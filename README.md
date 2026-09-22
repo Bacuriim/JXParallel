@@ -57,6 +57,7 @@ JavaFX integration is now a separate legacy compatibility module. It is not requ
 - JavaFX dispatcher that fails explicitly when the toolkit is unavailable
 - asynchronous FXML loading with `NONE`, `LRU`, `TTL`, and `LRU_TTL` cache strategies
 - independent Skia scene foundation through Skija, hosted by AWT
+- optional experimental LWJGL/OpenGL backend
 - independent native window lifecycle
 - native declarative layouts and initial controls
 - optional modern variants, density, focus, hover, and fade-in styling
@@ -423,6 +424,7 @@ JavaFX remains optional and is tested separately with `-Plegacy-javafx`.
 |---|---|
 | Core scheduler lifecycle | `FULL` for the documented JXParallel contract |
 | Native Skia foundation through Skija | `EXPERIMENTAL` |
+| LWJGL/OpenGL backend | `EXPERIMENTAL / OPTIONAL` |
 | JavaFX compatibility module | `LEGACY / PARTIAL` |
 | Native initial controls and layouts | `EXPERIMENTAL` |
 | FXML loader and cache | `EXPERIMENTAL` |
@@ -443,6 +445,7 @@ The native architecture and migration rules are documented in
 - [Declarative UI model](docs/ui-model.md)
 - [Performance methodology](docs/metrics-comparison.md)
 - [Native Skia UI architecture](docs/native-ui.md)
+- [Experimental LWJGL/OpenGL backend](docs/lwjgl-backend.md)
 - [Java 8 32-bit comparison](docs/java8-32bit-comparison.md)
 - [Scalability QA report](docs/qa-scalability-report.md)
 - [Native UI progress](docs/native-ui-progress.md)
