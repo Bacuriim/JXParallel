@@ -6,6 +6,7 @@ import com.jxparallel.javafx.controls.JXButton;
 import com.jxparallel.javafx.controls.JXTextField;
 import com.jxparallel.javafx.controls.JXVisualVariant;
 import javafx.application.Application;
+import javafx.animation.AnimationTimer;
 import javafx.application.Platform;
 import javafx.geometry.Insets;
 import javafx.scene.Scene;
@@ -20,6 +21,7 @@ import java.lang.management.ThreadMXBean;
 import java.util.Locale;
 
 public final class JavaFxMetricsRunner extends Application {
+    private static final long WORK_MILLIS = 350L;
     private static final String IMPLEMENTATION = System.getProperty("jx.metrics.implementation", "traditional");
     private final Runtime runtime = Runtime.getRuntime();
     private final ThreadMXBean threads = ManagementFactory.getThreadMXBean();
@@ -33,6 +35,7 @@ public final class JavaFxMetricsRunner extends Application {
 
     public static void main(String[] args) {
         processStart = System.nanoTime();
+        metric("process_start_ns", processStart);
         if ("jxparallel".equalsIgnoreCase(IMPLEMENTATION)) {
             JXParallel.start();
         }
@@ -64,7 +67,7 @@ public final class JavaFxMetricsRunner extends Application {
             status.setText("Loading...");
             Thread worker = new Thread(() -> {
                 try {
-                    Thread.sleep(50L);
+                    Thread.sleep(WORK_MILLIS);
                     Platform.runLater(() -> finish(button, "Hello, JavaFX"));
                 } catch (InterruptedException exception) {
                     Thread.currentThread().interrupt();
@@ -75,9 +78,7 @@ public final class JavaFxMetricsRunner extends Application {
             worker.start();
         });
         show(new VBox(12, input, button, status), "JavaFX metrics");
-        Platform.runLater(() -> {
-            button.fire();
-        });
+        reportFirstFrameAndRun(button);
     }
 
     private void startJxParallel() {
@@ -91,14 +92,12 @@ public final class JavaFxMetricsRunner extends Application {
             button.setDisable(true);
             status.setText("Loading...");
             JXParallel.background(() -> {
-                Thread.sleep(50L);
+                Thread.sleep(WORK_MILLIS);
                 return "Hello, JXParallel";
             }).thenAccept(value -> JXParallelFx.ui(() -> finish(button.node(), value)));
         });
         show(new VBox(12, input.node(), button.node(), status), "JXParallel metrics");
-        Platform.runLater(() -> {
-            button.node().fire();
-        });
+        reportFirstFrameAndRun(button.node());
     }
 
     private void show(VBox root, String title) {
@@ -107,21 +106,39 @@ public final class JavaFxMetricsRunner extends Application {
         stage.setTitle(title);
         stage.setScene(new Scene(root));
         stage.show();
-        System.out.println("startup_ms=" + nanosToMillis(System.nanoTime() - processStart));
+    }
+
+    private void reportFirstFrameAndRun(Button button) {
+        new AnimationTimer() {
+            private boolean reported;
+
+            @Override
+            public void handle(long now) {
+                if (!reported) {
+                    reported = true;
+                    stop();
+                    metric("first_paint_ns", System.nanoTime());
+                    Platform.runLater(button::fire);
+                }
+            }
+        }.start();
     }
 
     private void finish(Button button, String value) {
         status.setText(value);
         button.setDisable(false);
         long responseNanos = System.nanoTime() - clickTime;
-        System.out.printf(Locale.ROOT,
-                "implementation=%s,response_ms=%.3f,heap_delta_bytes=%d,process_cpu_ms=%.3f,thread_delta=%d%n",
-                IMPLEMENTATION,
-                nanosToMillis(responseNanos),
-                usedHeap() - beforeHeap,
-                nanosToMillis(processCpuNanos() - beforeCpu),
-                threads.getThreadCount() - beforeThreads);
+        metric("interaction_start_ns", clickTime);
+        metric("interaction_end_ns", System.nanoTime());
+        metric("heap_delta_bytes", usedHeap() - beforeHeap);
+        metric("process_cpu_ns", Math.max(0L, processCpuNanos() - beforeCpu));
+        metric("thread_delta", threads.getThreadCount() - beforeThreads);
         Platform.exit();
+    }
+
+    private static void metric(String name, long value) {
+        System.out.printf(Locale.ROOT, "JX_METRIC %s=%d%n", name, value);
+        System.out.flush();
     }
 
     private long usedHeap() {
