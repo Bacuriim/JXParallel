@@ -2,7 +2,7 @@
 
 ## Goals
 
-- provide an independent Java2D-based UI runtime
+- provide an independent Skia-based UI runtime through Skija
 - preserve familiar JavaFX concepts without depending on JavaFX
 - improve runtime efficiency under the hood
 - reduce allocation pressure and lifecycle overhead
@@ -18,7 +18,7 @@
    - lifecycle
 2. `jxparallel-ui`
    - native scene graph
-   - Java2D renderer
+   - Skia renderer through Skija
    - controls, layout, input, accessibility, styling, animation
 3. `jxparallel-properties`
    - property system for future control implementations
@@ -34,7 +34,8 @@
    - JMH-based performance evaluation
 
 The default Maven reactor does not include or resolve OpenJFX. JavaFX modules are migration
-adapters and are built only with `-Plegacy-javafx`.
+adapters and are built only with `-Plegacy-javafx`. The native UI requires Java 11 or newer
+because current Skija artifacts target Java 11; the core runtime remains Java 8 compatible.
 
 ## Compatibility rule
 

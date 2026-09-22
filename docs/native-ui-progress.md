@@ -1,14 +1,15 @@
 # Native UI implementation progress
 
-The native UI path is JavaFX-free and uses Java2D/AWT from the JDK.
+The native UI path is JavaFX-free and uses Skia through Skija. AWT is retained only as the
+window and input host.
 
 ## Implemented
 
 - retained native node tree with bounds and children
 - row, column, and stack composition
-- Java2D layout, preferred size, and painting
+- Skia layout, preferred size, and painting
 - dirty layout state and preferred-size caching to avoid repeated full calculations
-- native AWT window lifecycle
+- native AWT window and input lifecycle
 - pointer hit testing and click dispatch
 - keyboard dispatch to the focused native node
 - native button, label, text field, text area, password field, checkbox, toggle button,
@@ -70,7 +71,7 @@ window.show();
 ```
 
 The loader is intentionally independent of FXML and JavaFX. It produces JXParallel elements,
-which are then mounted by `JX2DRenderer`.
+which are then mounted by `JXSkiaRenderer`.
 
 ## Text editing
 

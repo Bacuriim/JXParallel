@@ -12,7 +12,7 @@ jobs:
         include:
           - os: ubuntu-latest
             java: 8
-            command: mvn --batch-mode --no-transfer-progress -pl jxparallel-core,jxparallel-ui,jxparallel-examples-native -am test
+            command: mvn --batch-mode --no-transfer-progress -pl jxparallel-core -am test
           - os: ubuntu-latest
             java: 11
             command: mvn --batch-mode --no-transfer-progress test

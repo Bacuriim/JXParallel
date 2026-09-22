@@ -56,7 +56,7 @@ JavaFX integration is now a separate legacy compatibility module. It is not requ
 - stable snapshots for concurrent observable-list consumers
 - JavaFX dispatcher that fails explicitly when the toolkit is unavailable
 - asynchronous FXML loading with `NONE`, `LRU`, `TTL`, and `LRU_TTL` cache strategies
-- independent Java2D/AWT scene foundation and renderer
+- independent Skia scene foundation through Skija, hosted by AWT
 - independent native window lifecycle
 - native declarative layouts and initial controls
 - optional modern variants, density, focus, hover, and fade-in styling
@@ -73,7 +73,7 @@ JavaFX integration is now a separate legacy compatibility module. It is not requ
 | JavaFX-compatible controls | `PARTIAL` |
 | FXML loader and cache | `EXPERIMENTAL` |
 | Modern visual layer | Implemented as an additive JavaFX layer |
-| Independent renderer | Not implemented |
+| Independent Skia renderer | `EXPERIMENTAL` |
 | Full accessibility and CSS replacement | Not implemented |
 | Production-scale stress and leak suites | Planned |
 
@@ -237,7 +237,7 @@ through the resource cache.
 Performance claims must be tied to a specific JDK, JavaFX runtime, architecture, display, and
 workload. The following data is a real Windows Java 21 GUI comparison, not a universal benchmark.
 
-### Equivalent JavaFX versus native Java2D workload
+### Equivalent JavaFX versus native Skia workload
 
 Environment:
 
@@ -366,7 +366,7 @@ jxparallel-benchmarks
   JMH and runtime comparison runners
 
 jxparallel-examples-native
-  executable Java2D example without JavaFX
+  executable Skia example without JavaFX
 
 jxparallel-examples
   legacy JavaFX comparison applications; excluded from the native build
@@ -407,11 +407,13 @@ The native build matrix is:
 
 | Runtime | Scope |
 |---|---|
-| Java 8 | `core`, `ui`, and native examples |
-| Java 11 | complete default reactor |
+| Java 8 | `core` only |
+| Java 11 | complete default reactor and native Skia UI |
 | Java 17 | complete default reactor and Windows CI |
 | Java 21 | complete default reactor |
 
+The native Skia UI uses Skija 0.116.4, whose artifacts target Java 11. Platform-specific Skija
+runtime artifacts are selected by Maven profiles for Windows x64, Linux x64, and macOS x64/ARM64.
 JavaFX remains optional and is tested separately with `-Plegacy-javafx`.
 
 ## Compatibility
@@ -419,12 +421,12 @@ JavaFX remains optional and is tested separately with `-Plegacy-javafx`.
 | Component or subsystem | Level |
 |---|---|
 | Core scheduler lifecycle | `FULL` for the documented JXParallel contract |
-| Native Java2D foundation | `EXPERIMENTAL` |
+| Native Skia foundation through Skija | `EXPERIMENTAL` |
 | JavaFX compatibility module | `LEGACY / PARTIAL` |
 | Native initial controls and layouts | `EXPERIMENTAL` |
 | FXML loader and cache | `EXPERIMENTAL` |
 | PowerMock adapter | `EXPERIMENTAL` |
-| Independent renderer | `UNSUPPORTED` |
+| Independent Skia renderer | `EXPERIMENTAL` |
 
 See [compatibility.md](docs/compatibility.md) for the complete matrix and migration boundaries.
 
@@ -439,6 +441,7 @@ The native architecture and migration rules are documented in
 - [Modern UI layer](docs/modern-ui.md)
 - [Declarative UI model](docs/ui-model.md)
 - [Performance methodology](docs/metrics-comparison.md)
+- [Native Skia UI architecture](docs/native-ui.md)
 - [Java 8 32-bit comparison](docs/java8-32bit-comparison.md)
 - [Scalability QA report](docs/qa-scalability-report.md)
 - [Native UI progress](docs/native-ui-progress.md)

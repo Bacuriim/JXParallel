@@ -99,7 +99,8 @@ Focus: JUnit 4/5, Mockito, PowerMock, thread-safety and compatibility checks.
 
 Status: baseline in place; core, bridge, controls, cache, lifecycle, Mockito, JUnit, and API-shape tests are present.
 
-CI currently verifies Java 17 and Java 21. Java 8 remains a core-runtime compatibility target
+CI currently verifies Java 11, Java 17, and Java 21 for the complete UI reactor. Java 8 remains a
+core-runtime compatibility target
 until the JavaFX dependency profile is separated.
 
 ## Phase 8 — Performance and open source maturity

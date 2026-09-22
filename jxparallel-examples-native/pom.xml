@@ -10,7 +10,7 @@
 
     <artifactId>jxparallel-examples-native</artifactId>
     <name>JXParallel Native Examples</name>
-    <description>Java2D examples that do not depend on JavaFX.</description>
+    <description>Skia examples that do not depend on JavaFX.</description>
 
     <dependencies>
         <dependency>

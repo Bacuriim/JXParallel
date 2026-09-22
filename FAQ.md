@@ -2,8 +2,8 @@
 
 ## What is the goal of JXParallel?
 
-JXParallel is an independent Java2D/AWT UI runtime with a JavaFX-inspired developer experience,
-lower overhead, safer parallelism, and bounded resource management.
+JXParallel is an independent Skia UI runtime, integrated through Skija and hosted by AWT, with a
+JavaFX-inspired developer experience, safer parallelism, and bounded resource management.
 
 ## Does JXParallel replace JavaFX?
 

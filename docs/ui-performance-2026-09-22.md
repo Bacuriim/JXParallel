@@ -3,7 +3,8 @@
 This report compares the same visible component structure in two separate processes:
 
 - **JavaFX:** `TextField`, `Button`, `Label`, `VBox`, JavaFX Application Thread.
-- **JXParallel native:** `JXTextField`, `JXButton`, `JXLabel`, `JXPane`, Java2D/AWT.
+- **JXParallel native:** `JXTextField`, `JXButton`, `JXLabel`, `JXPane`, Skia through Skija,
+  hosted by AWT.
 
 Both applications perform the same automatic interaction after the first rendered frame and
 execute a 350 ms background operation. The runs used Java 21.0.8 x64, OpenJFX 21.0.2 on

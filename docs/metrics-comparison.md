@@ -83,10 +83,9 @@ server, screen scale, JVM flags, and architecture:
 - GC pauses
 - application shutdown time
 
-The development build uses Java 21/OpenJFX 21, but Java 8 x86 GUI measurements were collected
-separately with the JDK at `C:\Program Files (x86)\Java\jdk1.8.0_51` and its JavaFX 8 runtime.
-Those results are in `docs/metrics-java8-x86-report.md`. Re-run the procedure on the target
-machine before making release or performance claims.
+The development build uses Java 21/OpenJFX 21. Historical Java 8 x86 GUI measurements were
+collected separately with JavaFX 8 and remain in `docs/metrics-java8-x86-report.md`. The current
+native Skia UI measurements are documented in `docs/ui-performance-2026-09-22.md`.
 
 ## Interpretation
 

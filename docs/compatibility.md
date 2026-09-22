@@ -27,7 +27,7 @@ does not include or resolve OpenJFX.
 - FULL: scheduler lifecycle, task submission, cancellation tokens, metrics
 
 ### Native UI
-- EXPERIMENTAL: Java2D scene foundation, native nodes, initial layouts, and window lifecycle
+- EXPERIMENTAL: Skia scene foundation through Skija, native nodes, initial layouts, and window lifecycle
 
 ### Legacy JavaFX integration
 - PARTIAL: optional adapter retained for migration and comparison
@@ -56,11 +56,9 @@ We prefer behavioral compatibility over micro-optimization. If a performance opt
 
 ## Build matrix status
 
-The current Maven build is verified with Java 21 in the development environment and CI is
-configured for Java 17 and Java 21. The project declares Java 8 source compatibility for the
-core, but the current OpenJFX 21 modules require a newer JDK for the JavaFX-dependent modules.
-Java 8 support therefore remains a target for a future dependency/profile split, not a current
-claim for the complete reactor.
+The core runtime remains Java 8 compatible. The native UI uses Skija 0.116.4, whose current
+artifacts target Java 11, so native UI applications require Java 11 or newer. The optional
+JavaFX profile has its own JDK requirements.
 ## Current control status
 
 The first control classes are compatibility bridges, not replacements for the JavaFX scene graph:

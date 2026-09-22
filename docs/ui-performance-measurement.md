@@ -49,10 +49,12 @@ Then run:
 ```powershell
 $javafxCp = "jxparallel-examples\target\classes;jxparallel-javafx\target\classes;jxparallel-core\target\classes"
 $javafxModules = "C:\path\to\javafx-base.jar;C:\path\to\javafx-base-win.jar;C:\path\to\javafx-graphics.jar;C:\path\to\javafx-graphics-win.jar;C:\path\to\javafx-controls.jar;C:\path\to\javafx-controls-win.jar"
+$skijaCp = "C:\path\to\skija-shared.jar;C:\path\to\types.jar;C:\path\to\skija-windows-x64.jar"
 powershell -ExecutionPolicy Bypass -File .\scripts\measure-ui.ps1 `
   -JavaPath "$env:JAVA_HOME\bin\java.exe" `
   -JavaFxClasspath $javafxCp `
   -JavaFxModulePath $javafxModules `
+  -NativeDependencies $skijaCp `
   -Runs 5 `
   -Output .\docs\ui-metrics.csv
 ```
