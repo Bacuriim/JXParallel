@@ -5,6 +5,7 @@ import java.util.LinkedHashMap;
 import java.util.Map;
 
 public final class JXProps {
+    private static final JXProps EMPTY = new JXProps(Collections.<String, Object>emptyMap());
     private final Map<String, Object> values;
 
     private JXProps(Map<String, Object> values) {
@@ -12,7 +13,7 @@ public final class JXProps {
     }
 
     public static JXProps empty() {
-        return new JXProps(Collections.<String, Object>emptyMap());
+        return EMPTY;
     }
 
     public static Builder builder() {
@@ -53,6 +54,9 @@ public final class JXProps {
         }
 
         public JXProps build() {
+            if (values.isEmpty()) {
+                return EMPTY;
+            }
             return new JXProps(values);
         }
     }

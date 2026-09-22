@@ -13,6 +13,7 @@ public final class JXNativeNode {
     private final String type;
     private final Map<String, Object> props;
     private final List<JXNativeNode> children = new ArrayList<JXNativeNode>();
+    private final List<JXNativeNode> unmodifiableChildren;
     private Rectangle bounds = new Rectangle();
     private Dimension preferredSize;
     private boolean layoutDirty = true;
@@ -23,6 +24,7 @@ public final class JXNativeNode {
         for (JXElement child : element.getChildren()) {
             children.add(new JXNativeNode(child));
         }
+        this.unmodifiableChildren = Collections.unmodifiableList(children);
     }
 
     public static JXNativeNode createBackendNode(JXElement element) {
@@ -45,7 +47,23 @@ public final class JXNativeNode {
     }
 
     public List<JXNativeNode> getChildren() {
-        return Collections.unmodifiableList(children);
+        return unmodifiableChildren;
+    }
+
+    public int getX() {
+        return bounds.x;
+    }
+
+    public int getY() {
+        return bounds.y;
+    }
+
+    public int getWidth() {
+        return bounds.width;
+    }
+
+    public int getHeight() {
+        return bounds.height;
     }
 
     public Rectangle getBounds() {
