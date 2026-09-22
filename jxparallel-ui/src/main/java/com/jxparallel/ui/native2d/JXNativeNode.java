@@ -25,6 +25,17 @@ public final class JXNativeNode {
         }
     }
 
+    public static JXNativeNode createBackendNode(JXElement element) {
+        if (element == null) {
+            throw new IllegalArgumentException("Element cannot be null");
+        }
+        return new JXNativeNode(element);
+    }
+
+    public void layoutForBackend(int width, int height) {
+        layout(0, 0, width, height);
+    }
+
     public String getType() {
         return type;
     }
