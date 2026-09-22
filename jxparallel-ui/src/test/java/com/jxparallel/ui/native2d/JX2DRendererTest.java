@@ -2,24 +2,24 @@ package com.jxparallel.ui.native2d;
 
 import org.junit.jupiter.api.Test;
 
-import java.awt.image.BufferedImage;
-
 import com.jxparallel.ui.JXElement;
 import com.jxparallel.ui.controls.JXControls;
 import com.jxparallel.ui.layout.JXLayouts;
+import com.jxparallel.ui.vulkan.JXVulkanRenderer;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 
-class JXSkiaRendererTest {
+class JXVulkanRendererTest {
     @Test
     void shouldMountAndLayoutNativeTreeWithoutJavaFx() {
         JXElement element = JXLayouts.column(8,
                 JXElement.text("Customers"),
                 JXControls.button("Load", null));
 
-        JXNativeNode node = JXSkiaRenderer.mount(element);
-        JXSkiaRenderer.layout(node, 320, 200);
+        JXNativeNode node = JXVulkanRenderer.mount(element);
+
+        JXVulkanRenderer.layout(node, 320, 200);
 
         assertNotNull(node);
         assertEquals("column", node.getType());
@@ -29,13 +29,14 @@ class JXSkiaRendererTest {
     }
 
     @Test
-    void shouldRenderNativeTreeWithSkia() {
-        JXNativeNode node = JXSkiaRenderer.mount(JXControls.button("Load", null));
+    void shouldMountAllNativeControlShapesForVulkan() {
+        JXNativeNode node = JXVulkanRenderer.mount(JXControls.button("Load", null));
 
-        BufferedImage image = JXSkiaRenderer.render(node, 160, 40);
+        JXVulkanRenderer.layout(node, 160, 40);
 
-        assertEquals(160, image.getWidth());
-        assertEquals(40, image.getHeight());
-        assertNotNull(image);
+        assertEquals("button", node.getType());
+        assertEquals(160, node.getBounds().width);
+        assertEquals(40, node.getBounds().height);
+        assertNotNull(node.getProperty("label"));
     }
 }
