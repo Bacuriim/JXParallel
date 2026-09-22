@@ -235,53 +235,76 @@ through the resource cache.
 ## Performance snapshot
 
 Performance claims must be tied to a specific JDK, JavaFX runtime, architecture, display, and
-workload. The following data is a real Java 8 32-bit GUI comparison, not a universal benchmark.
+workload. The following data is a real Windows Java 21 GUI comparison, not a universal benchmark.
 
-### Java 8 x86 GUI workload
+### Equivalent JavaFX versus native Java2D workload
 
 Environment:
 
 ```text
-JDK:     C:\Program Files (x86)\Java\jdk1.8.0_51
-VM:      Java HotSpot Client VM 1.8.0_51
-JavaFX:  JavaFX 8 from jfxrt.jar
-Runs:    5 independent process runs per implementation
-Flow:    create scene -> show stage -> click -> wait 50 ms -> update label
+JDK:       Java 21.0.8 x64
+JavaFX:    OpenJFX 21.0.2
+OS:        Windows
+Runs:      5 independent process runs per implementation
+Components: TextField/input, Button, Label, VBox/JXPane
+Flow:      create UI -> first paint -> action -> wait 350 ms -> update label
 ```
 
 ```mermaid
 xychart-beta
-    title "Java 8 x86: startup time (lower is better)"
-    x-axis ["Traditional JavaFX", "JXParallel"]
-    y-axis "milliseconds" 0 --> 300
-    bar [240.282, 267.408]
+    title "Startup to first paint (lower is better)"
+    x-axis ["JavaFX", "JXParallel native"]
+    y-axis "milliseconds" 0 --> 400
+    bar [319.817, 350.394]
 ```
 
 ```mermaid
 xychart-beta
-    title "Java 8 x86: observed heap delta (lower is better)"
-    x-axis ["Traditional JavaFX", "JXParallel"]
-    y-axis "bytes" 0 --> 2500000
-    bar [2309547, 1251810]
+    title "Interaction completion (lower is better)"
+    x-axis ["JavaFX", "JXParallel native"]
+    y-axis "milliseconds" 0 --> 400
+    bar [354.587, 359.045]
 ```
 
-| Metric | Traditional JavaFX | JXParallel | Difference |
+```mermaid
+xychart-beta
+    title "Process CPU time (lower is better)"
+    x-axis ["JavaFX", "JXParallel native"]
+    y-axis "milliseconds" 0 --> 900
+    bar [796.875, 390.625]
+```
+
+```mermaid
+xychart-beta
+    title "Peak resident RAM (lower is better)"
+    x-axis ["JavaFX", "JXParallel native"]
+    y-axis "megabytes" 0 --> 12
+    bar [9.98, 10.00]
+```
+
+| Metric | JavaFX | JXParallel native | Difference |
 |---|---:|---:|---:|
-| Startup to `Stage.show()` | 240.282 ms | 267.408 ms | JXParallel +11.3% |
-| Click to visible result | 51.134 ms | 54.725 ms | JXParallel +7.0% |
-| Observed heap delta | 2,309,547 bytes | 1,251,810 bytes | JXParallel -45.8% |
-| Process CPU | 328.125 ms | 378.125 ms | JXParallel +15.2% |
-| Thread-count delta | +1 | +1 | equal |
+| Startup to first paint | 319.817 ms | 350.394 ms | JXParallel +9.6% |
+| Interaction completion | 354.587 ms | 359.045 ms | JXParallel +1.3% |
+| Process CPU time | 796.875 ms | 390.625 ms | JXParallel -51.0% |
+| Normalized CPU | 3.532% | 1.999% | JXParallel -43.4% |
+| Peak working set / resident RAM | 9.98 MB | 10.00 MB | effectively equal |
+| Peak private memory | 1.74 MB | 1.75 MB | effectively equal |
+| Java heap delta | 7.17 MB | 4.22 MB | JXParallel -41.1% |
+| Thread-count delta | +2 | +5 | different toolkit lifecycle |
 
-Interpretation: this small GUI workload shows lower observed heap delta for JXParallel, but
-traditional JavaFX is faster in startup, click latency, and CPU. The current controls still
-use JavaFX nodes and therefore do not claim an independent scene-graph memory or rendering win.
+Interpretation: in this controlled workload, JavaFX reached the first paint about 9.6% faster,
+while JXParallel native used about 51% less process CPU. Resident RAM was effectively equal.
+Interaction completion was equivalent because both applications executed the same 350 ms
+background operation. These results are workload- and machine-specific, not a universal
+performance claim.
 
 More measurements and limitations:
 
-- [Java 8 x86 report](docs/metrics-java8-x86-report.md)
+- [UI performance report](docs/ui-performance-2026-09-22.md)
+- [UI measurement methodology](docs/ui-performance-measurement.md)
+- [Raw UI data](docs/ui-metrics-2026-09-22.csv)
 - [Benchmark methodology](docs/metrics-comparison.md)
-- [Raw Java 8 x86 data](docs/metrics-java8-x86-2026-09-22.csv)
 
 ### Runtime benchmark direction
 
