@@ -2,7 +2,7 @@
 
 ## Unreleased
 
-- added independent Java2D native UI module and executable native example
+- added independent Skia native UI module through Skija and executable native example
 - moved JavaFX integration to the optional `legacy-javafx` Maven profile
 - added native input, text editing, accessibility, styling, animation, and resource cache APIs
 - added Java 8 native-core CI coverage and Windows Java 17 CI coverage

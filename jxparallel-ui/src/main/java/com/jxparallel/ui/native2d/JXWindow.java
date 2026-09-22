@@ -1,11 +1,10 @@
 package com.jxparallel.ui.native2d;
 
 import java.awt.Canvas;
-import java.awt.Color;
 import java.awt.EventQueue;
 import java.awt.Frame;
 import java.awt.Graphics;
-import java.awt.Graphics2D;
+import java.awt.Image;
 import java.awt.event.WindowAdapter;
 import java.awt.event.WindowEvent;
 import java.awt.event.KeyAdapter;
@@ -30,7 +29,7 @@ public final class JXWindow {
         canvas = new Canvas() {
             @Override
             public void paint(Graphics graphics) {
-                render((Graphics2D) graphics);
+                render(graphics);
                 if (!firstPaintReported) {
                     firstPaintReported = true;
                     Runnable callback = onFirstPaint;
@@ -40,7 +39,7 @@ public final class JXWindow {
                 }
             }
         };
-        canvas.setBackground(Color.WHITE);
+        canvas.setBackground(java.awt.Color.WHITE);
         canvas.setFocusable(true);
         canvas.addMouseListener(new MouseAdapter() {
             @Override
@@ -75,8 +74,8 @@ public final class JXWindow {
     }
 
     public void setContent(JXElement element) {
-        root = JX2DRenderer.mount(element);
-        DimensionHelper.applyPreferredSize(frame, JX2DRenderer.preferredSize(root));
+        root = JXSkiaRenderer.mount(element);
+        DimensionHelper.applyPreferredSize(frame, JXSkiaRenderer.preferredSize(root));
         renderNow();
     }
 
@@ -99,7 +98,7 @@ public final class JXWindow {
 
     public void renderNow() {
         if (root != null) {
-            JX2DRenderer.layout(root, Math.max(1, canvas.getWidth()), Math.max(1, canvas.getHeight()));
+            JXSkiaRenderer.layout(root, Math.max(1, canvas.getWidth()), Math.max(1, canvas.getHeight()));
             requestRepaint();
         }
     }
@@ -115,14 +114,12 @@ public final class JXWindow {
         frame.dispose();
     }
 
-    private void render(Graphics2D graphics) {
+    private void render(Graphics graphics) {
         if (root == null) {
             return;
         }
-        graphics.setColor(Color.WHITE);
-        graphics.fillRect(0, 0, canvas.getWidth(), canvas.getHeight());
-        JX2DRenderer.layout(root, canvas.getWidth(), canvas.getHeight());
-        JX2DRenderer.paint(root, graphics);
+        Image image = JXSkiaRenderer.render(root, canvas.getWidth(), canvas.getHeight());
+        graphics.drawImage(image, 0, 0, null);
     }
 
     private static final class DimensionHelper {

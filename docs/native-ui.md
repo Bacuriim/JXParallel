@@ -10,20 +10,22 @@ The native path is:
 ```text
 JXParallel Core
     -> JXParallel Native UI
-        -> Java2D/AWT window and renderer
+        -> Skia renderer through Skija
+            -> AWT window/input host
 ```
 
 JavaFX is kept outside this path as a legacy compatibility module while the controls are migrated.
 The default Maven reactor excludes that module and does not resolve OpenJFX.
-New native code must not import `javafx.*`.
+New native code must not import `javafx.*` or use Java2D as a rendering API. AWT is retained only
+for the portable window and input host.
 
 ## Current native foundation
 
 The `jxparallel-ui` module currently provides:
 
 - `JXNativeNode`: independent scene node with properties and children
-- `JX2DRenderer`: mount, layout, preferred-size, and Java2D painting operations
-- `JXWindow`: AWT window lifecycle for native JXParallel content
+- `JXSkiaRenderer`: mount, layout, preferred-size, and Skia painting operations
+- `JXWindow`: AWT window/input lifecycle with Skia-backed rendering
 - native controls:
   - `JXButton`
   - `JXLabel`

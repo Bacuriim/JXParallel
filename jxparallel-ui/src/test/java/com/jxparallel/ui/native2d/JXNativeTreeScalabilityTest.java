@@ -15,10 +15,10 @@ class JXNativeTreeScalabilityTest {
             children[index] = JXElement.of("button",
                     JXProps.builder().set("label", String.valueOf(index)).build());
         }
-        JXNativeNode root = JX2DRenderer.mount(
+        JXNativeNode root = JXSkiaRenderer.mount(
                 JXElement.of("column", JXProps.builder().set("gap", 1).build(), children));
 
-        JX2DRenderer.layout(root, 800, 10000);
+        JXSkiaRenderer.layout(root, 800, 10000);
 
         assertEquals(10000, root.getChildren().size());
         assertEquals(800, root.getBounds().width);

@@ -1,6 +1,7 @@
 param(
     [string]$JavaPath = "java",
     [string]$NativeClasspath = "jxparallel-examples-native\target\classes;jxparallel-ui\target\classes;jxparallel-core\target\classes",
+    [string]$NativeDependencies,
     [string]$JavaFxClasspath,
     [string]$JavaFxModulePath,
     [int]$Runs = 5,
@@ -117,10 +118,15 @@ if ([string]::IsNullOrWhiteSpace($JavaFxClasspath)) {
     throw "Provide -JavaFxClasspath with the compiled JavaFX example, core, bridge, and OpenJFX jars."
 }
 
+$nativeRuntimeClasspath = $NativeClasspath
+if (-not [string]::IsNullOrWhiteSpace($NativeDependencies)) {
+    $nativeRuntimeClasspath += ";" + $NativeDependencies
+}
+
 $results = New-Object System.Collections.Generic.List[object]
 for ($run = 1; $run -le $Runs; $run++) {
     $results.Add((Invoke-UiCase "javafx" $JavaFxClasspath "com.jxparallel.examples.JavaFxMetricsRunner" $run))
-    $results.Add((Invoke-UiCase "jxparallel-native" $NativeClasspath "com.jxparallel.examples.nativeui.NativeMetricsRunner" $run))
+    $results.Add((Invoke-UiCase "jxparallel-native" $nativeRuntimeClasspath "com.jxparallel.examples.nativeui.NativeMetricsRunner" $run))
 }
 
 $results | Export-Csv -Path $Output -NoTypeInformation -Encoding UTF8

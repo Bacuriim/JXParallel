@@ -1,7 +1,6 @@
 package com.jxparallel.ui.native2d;
 
 import java.awt.Dimension;
-import java.awt.Graphics2D;
 import java.awt.Rectangle;
 import java.util.ArrayList;
 import java.util.Collections;
@@ -111,62 +110,6 @@ public final class JXNativeNode {
         }
     }
 
-    void paint(Graphics2D graphics) {
-        if ("button".equals(type) || "toggle".equals(type)) {
-            graphics.setColor(new java.awt.Color(45, 108, 223));
-            graphics.fillRoundRect(bounds.x, bounds.y, bounds.width, bounds.height, 8, 8);
-            graphics.setColor(java.awt.Color.WHITE);
-            drawCenteredText(graphics, String.valueOf(propertyOrDefault("label", "")));
-        } else if ("checkbox".equals(type)) {
-            graphics.setColor(java.awt.Color.WHITE);
-            graphics.fillRect(bounds.x, bounds.y, 18, 18);
-            graphics.setColor(new java.awt.Color(90, 90, 90));
-            graphics.drawRect(bounds.x, bounds.y, 17, 17);
-            if (Boolean.TRUE.equals(props.get("checked"))) {
-                graphics.drawLine(bounds.x + 3, bounds.y + 9, bounds.x + 8, bounds.y + 14);
-                graphics.drawLine(bounds.x + 8, bounds.y + 14, bounds.x + 15, bounds.y + 3);
-            }
-            graphics.drawString(String.valueOf(propertyOrDefault("label", "")), bounds.x + 24, bounds.y + 14);
-        } else if ("input".equals(type)) {
-            graphics.setColor(java.awt.Color.WHITE);
-            graphics.fillRect(bounds.x, bounds.y, bounds.width, bounds.height);
-            graphics.setColor(new java.awt.Color(150, 150, 150));
-            graphics.drawRect(bounds.x, bounds.y, bounds.width - 1, bounds.height - 1);
-            graphics.setColor(java.awt.Color.DARK_GRAY);
-            drawCenteredText(graphics, String.valueOf(propertyOrDefault("value", "")));
-        } else if ("textarea".equals(type) || "password".equals(type) || "select".equals(type)) {
-            graphics.setColor(java.awt.Color.WHITE);
-            graphics.fillRect(bounds.x, bounds.y, bounds.width, bounds.height);
-            graphics.setColor(new java.awt.Color(150, 150, 150));
-            graphics.drawRect(bounds.x, bounds.y, bounds.width - 1, bounds.height - 1);
-            graphics.setColor(java.awt.Color.DARK_GRAY);
-            drawCenteredText(graphics, String.valueOf(propertyOrDefault("value", "")));
-        } else if ("progress".equals(type)) {
-            graphics.setColor(new java.awt.Color(225, 225, 225));
-            graphics.fillRoundRect(bounds.x, bounds.y, bounds.width, bounds.height, 8, 8);
-            graphics.setColor(new java.awt.Color(45, 108, 223));
-            int progressWidth = (int) (bounds.width * propertyAsDouble("progress", 0.0));
-            graphics.fillRoundRect(bounds.x, bounds.y, progressWidth, bounds.height, 8, 8);
-        } else if ("slider".equals(type)) {
-            graphics.setColor(new java.awt.Color(180, 180, 180));
-            int centerY = bounds.y + bounds.height / 2;
-            graphics.drawLine(bounds.x, centerY, bounds.x + bounds.width, centerY);
-            double min = propertyAsDouble("min", 0.0);
-            double max = propertyAsDouble("max", 100.0);
-            double value = propertyAsDouble("value", min);
-            double fraction = max <= min ? 0.0 : (value - min) / (max - min);
-            int knobX = bounds.x + (int) (bounds.width * Math.max(0.0, Math.min(1.0, fraction)));
-            graphics.setColor(new java.awt.Color(45, 108, 223));
-            graphics.fillOval(knobX - 6, centerY - 6, 12, 12);
-        } else if ("#text".equals(type)) {
-            graphics.setColor(java.awt.Color.DARK_GRAY);
-            graphics.drawString(String.valueOf(propertyOrDefault("value", "")), bounds.x, bounds.y + 16);
-        }
-        for (JXNativeNode child : children) {
-            child.paint(graphics);
-        }
-    }
-
     Dimension preferredSize() {
         if (preferredSize != null) {
             return new Dimension(preferredSize);
@@ -212,13 +155,6 @@ public final class JXNativeNode {
         }
         preferredSize = new Dimension(Math.max(1, width), Math.max(1, height));
         return new Dimension(preferredSize);
-    }
-
-    private void drawCenteredText(Graphics2D graphics, String text) {
-        java.awt.FontMetrics metrics = graphics.getFontMetrics();
-        int textX = bounds.x + (bounds.width - metrics.stringWidth(text)) / 2;
-        int textY = bounds.y + (bounds.height - metrics.getHeight()) / 2 + metrics.getAscent();
-        graphics.drawString(text, textX, textY);
     }
 
     private Object propertyOrDefault(String name, Object fallback) {
