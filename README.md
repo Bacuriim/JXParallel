@@ -322,6 +322,90 @@ java -cp "jxparallel-benchmarks\target\classes;jxparallel-core\target\classes" `
 Do not use a single benchmark run to claim general superiority. The workload and configuration
 must match the application being optimized.
 
+### UI stress load test — JavaFX vs JXParallel native
+
+This test measures **usability stress**: 500 rapid refreshes per component (label update,
+button toggle, list swap, text field reset) performed on the UI thread without pauses — the
+pattern seen in live data feeds, dashboards, and reactive forms.
+
+Two isolated processes. No shared code at runtime:
+
+- **JavaFX**: `JavaFxStressRunner` — only `javafx.*`, zero JXParallel dependency.
+- **JXParallel native**: `NativeStressRunner` — only `com.jxparallel.*`, zero JavaFX dependency.
+
+Environment: Java 21.0.8 x64, OpenJFX 21.0.2, Windows, 5 independent runs.
+
+```mermaid
+xychart-beta
+    title "Stress total — 500 refreshes x 4 components (ms, median, lower is better)"
+    x-axis ["JavaFX", "JXParallel native"]
+    y-axis "milliseconds" 0 --> 550
+    bar [483.9, 290.2]
+```
+
+```mermaid
+xychart-beta
+    title "Label refresh 500x setText (ms, median, lower is better)"
+    x-axis ["JavaFX", "JXParallel native"]
+    y-axis "milliseconds" 0 --> 16
+    bar [13.0, 3.3]
+```
+
+```mermaid
+xychart-beta
+    title "ListView full-swap 500x (ms, median, lower is better)"
+    x-axis ["JavaFX", "JXParallel native"]
+    y-axis "milliseconds" 0 --> 450
+    bar [417.0, 270.5]
+```
+
+```mermaid
+xychart-beta
+    title "Process CPU — stress run (ms, median, lower is better)"
+    x-axis ["JavaFX", "JXParallel native"]
+    y-axis "milliseconds" 0 --> 1000
+    bar [812.5, 453.1]
+```
+
+```mermaid
+xychart-beta
+    title "Java heap delta — stress run (MB, median, lower is better)"
+    x-axis ["JavaFX", "JXParallel native"]
+    y-axis "megabytes" 0 --> 12
+    bar [8.68, 3.99]
+```
+
+| Metric | JavaFX | JXParallel native | Difference |
+|---|---:|---:|---:|
+| Stress total time | 483.9 ms | 290.2 ms | **JXParallel −40.0%** |
+| Label refresh 500× | 13.0 ms | 3.3 ms | **JXParallel −74.6%** |
+| Button toggle 500× | 18.9 ms | 4.8 ms | **JXParallel −74.6%** |
+| ListView swap 500× | 417.0 ms | 270.5 ms | **JXParallel −35.1%** |
+| TextField refresh 500× | 34.8 ms | 11.6 ms | **JXParallel −66.7%** |
+| Process CPU | 812.5 ms | 453.1 ms | **JXParallel −44.2%** |
+| Java heap delta | 8.68 MB | 3.99 MB | **JXParallel −54.0%** |
+| Peak working set | 142.4 MB | 144.1 MB | Effectively equal |
+
+**Why is state update faster in JXParallel?** JavaFX propagates each `setText()` or
+`setDisable()` through an `ObservableValue` chain (`StringProperty` → skin → CSS
+pseudo-class invalidation → layout pulse). JXParallel native writes a field and raises a
+single `renderRequested` flag — no property listener cascade, no CSS engine, no scheduled
+pulse.
+
+**Why does the ListView gap shrink to 35%?** The dominant cost becomes object creation
+(`ArrayList` + item strings), which is identical in both runtimes. The remaining gap is
+the `ObservableList` + `ListChangeListener` notification chain in JavaFX.
+
+**GC pressure**: at 8.68 MB vs 3.99 MB heap delta per 2000 operations, a 60 fps
+dashboard updating 100 labels per frame would generate roughly **104 MB/s churn** with
+JavaFX vs **48 MB/s with JXParallel native** — halving GC pause frequency under
+continuous load.
+
+Full analysis, raw data, and reproduction instructions:
+[UI stress load report](docs/ui-stress-load-report.md)
+
+
+
 ## Architecture
 
 ```mermaid
@@ -449,6 +533,7 @@ The native architecture and migration rules are documented in
 - [Experimental LWJGL/OpenGL backend](docs/lwjgl-backend.md)
 - [Java 8 32-bit comparison](docs/java8-32bit-comparison.md)
 - [Scalability QA report](docs/qa-scalability-report.md)
+- [UI stress load report](docs/ui-stress-load-report.md)
 - [Native UI progress](docs/native-ui-progress.md)
 - [Roadmap](docs/roadmap.md)
 - [Changelog](CHANGELOG.md)

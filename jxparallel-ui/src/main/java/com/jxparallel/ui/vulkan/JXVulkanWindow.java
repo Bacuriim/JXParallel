@@ -86,6 +86,7 @@ public final class JXVulkanWindow implements AutoCloseable {
     private int width = 640;
     private int height = 420;
     private boolean framebufferResized;
+    private volatile boolean renderRequested = true;
     private GLFWErrorCallback errorCallback;
     private Runnable onFirstPaint;
     private boolean firstPaintReported;
@@ -122,6 +123,7 @@ public final class JXVulkanWindow implements AutoCloseable {
 
     public void setContent(JXElement element) {
         root = JXVulkanRenderer.mount(element);
+        requestRender();
     }
 
     public void setOnFirstPaint(Runnable callback) {
@@ -133,10 +135,14 @@ public final class JXVulkanWindow implements AutoCloseable {
             throw new IllegalArgumentException("Action cannot be null");
         }
         pendingActions.add(action);
+        requestRender();
     }
 
     public void requestRender() {
-        framebufferResized = true;
+        renderRequested = true;
+        if (window != MemoryUtil.NULL) {
+            GLFW.glfwPostEmptyEvent();
+        }
     }
 
     public void show() {
@@ -165,6 +171,7 @@ public final class JXVulkanWindow implements AutoCloseable {
         }
         GLFW.glfwSetFramebufferSizeCallback(window, (handle, newWidth, newHeight) -> {
             framebufferResized = true;
+            renderRequested = true;
         });
         GLFW.glfwSetMouseButtonCallback(window, (handle, button, action, mods) -> {
             if (button == GLFW.GLFW_MOUSE_BUTTON_LEFT && action == GLFW.GLFW_PRESS && root != null) {
@@ -174,6 +181,7 @@ public final class JXVulkanWindow implements AutoCloseable {
                     JXNativeNode hit = root.hitTest((int) cursor.x[0], (int) cursor.y[0]);
                     if (hit != null) {
                         hit.dispatchPointer(new JXPointerEvent((int) cursor.x[0], (int) cursor.y[0], button));
+                        requestRender();
                     }
                 }
             }
@@ -668,12 +676,22 @@ public final class JXVulkanWindow implements AutoCloseable {
 
     private void loop() {
         while (!GLFW.glfwWindowShouldClose(window)) {
+            boolean hadPending = false;
             Runnable action;
             while ((action = pendingActions.poll()) != null) {
                 action.run();
+                hadPending = true;
             }
-            GLFW.glfwPollEvents();
-            drawFrame();
+            if (hadPending) {
+                renderRequested = true;
+            }
+            if (renderRequested || framebufferResized || !firstPaintReported) {
+                renderRequested = false;
+                drawFrame();
+                GLFW.glfwPollEvents();
+            } else {
+                GLFW.glfwWaitEventsTimeout(0.016);
+            }
         }
         vkDeviceWaitIdle(device);
     }
@@ -690,8 +708,8 @@ public final class JXVulkanWindow implements AutoCloseable {
                 return;
             }
             check(acquire, "vkAcquireNextImageKHR");
-            updateVertexBuffer();
-            recordCommandBuffer(commandBuffers[imageIndex.get(0)], imageIndex.get(0));
+            int vertexCount = updateVertexBuffer();
+            recordCommandBuffer(commandBuffers[imageIndex.get(0)], imageIndex.get(0), vertexCount);
             check(vkResetFences(device, fence), "vkResetFences");
             VkSubmitInfo submit = VkSubmitInfo.calloc(stack)
                     .sType(VK_STRUCTURE_TYPE_SUBMIT_INFO)
@@ -719,14 +737,15 @@ public final class JXVulkanWindow implements AutoCloseable {
         }
     }
 
-    private void updateVertexBuffer() {
+    private int updateVertexBuffer() {
         mappedVertexMemory.clear();
         FloatBuffer vertices = mappedVertexMemory.asFloatBuffer();
-        JXVulkanRenderer.writeVertices(root, swapchainExtent.width(), swapchainExtent.height(), vertices);
+        int vertexCount = JXVulkanRenderer.writeVertices(root, swapchainExtent.width(), swapchainExtent.height(), vertices);
         vertices.flip();
+        return vertexCount;
     }
 
-    private void recordCommandBuffer(VkCommandBuffer commandBuffer, int imageIndex) {
+    private void recordCommandBuffer(VkCommandBuffer commandBuffer, int imageIndex, int vertexCount) {
         try (MemoryStack stack = stackPush()) {
             check(vkResetCommandBuffer(commandBuffer, 0), "vkResetCommandBuffer");
             VkCommandBufferBeginInfo begin = VkCommandBufferBeginInfo.calloc(stack)
@@ -743,7 +762,6 @@ public final class JXVulkanWindow implements AutoCloseable {
             vkCmdBeginRenderPass(commandBuffer, renderPassBegin, VK_SUBPASS_CONTENTS_INLINE);
             vkCmdBindPipeline(commandBuffer, VK_PIPELINE_BIND_POINT_GRAPHICS, graphicsPipeline);
             vkCmdBindVertexBuffers(commandBuffer, 0, stack.longs(vertexBuffer), stack.longs(0));
-            int vertexCount = JXVulkanRenderer.vertexCount(root, swapchainExtent.width(), swapchainExtent.height());
             vkCmdDraw(commandBuffer, vertexCount, 1, 0, 0);
             vkCmdEndRenderPass(commandBuffer);
             check(vkEndCommandBuffer(commandBuffer), "vkEndCommandBuffer");

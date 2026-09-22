@@ -36,8 +36,8 @@ public final class JXVulkanRenderer {
         return buildVertices(root, width, height, null);
     }
 
-    static void writeVertices(JXNativeNode root, int width, int height, FloatBuffer target) {
-        buildVertices(root, width, height, target);
+    static int writeVertices(JXNativeNode root, int width, int height, FloatBuffer target) {
+        return buildVertices(root, width, height, target);
     }
 
     private static int buildVertices(JXNativeNode node, int width, int height, FloatBuffer target) {
@@ -46,36 +46,33 @@ public final class JXVulkanRenderer {
     }
 
     private static int appendNode(JXNativeNode node, int width, int height, FloatBuffer target) {
-        Rectangle bounds = node.getBounds();
+        int bx = node.getX();
+        int by = node.getY();
+        int bw = node.getWidth();
+        int bh = node.getHeight();
         String type = node.getType();
         int count = 0;
         if ("button".equals(type) || "toggle".equals(type)) {
-            count += rectangle(bounds, width, height, 0.18f, 0.42f, 0.87f, target);
+            count += rectangle(bx, by, bw, bh, width, height, 0.18f, 0.42f, 0.87f, target);
         } else if ("checkbox".equals(type)) {
-            count += rectangle(new Rectangle(bounds.x, bounds.y, 18, 18), width, height,
-                    0.96f, 0.96f, 0.96f, target);
-            count += outline(bounds.x, bounds.y, 18, 18, width, height,
-                    0.35f, 0.35f, 0.35f, target);
+            count += rectangle(bx, by, 18, 18, width, height, 0.96f, 0.96f, 0.96f, target);
+            count += outline(bx, by, 18, 18, width, height, 0.35f, 0.35f, 0.35f, target);
         } else if ("input".equals(type) || "textarea".equals(type)
                 || "password".equals(type) || "select".equals(type)) {
-            count += rectangle(bounds, width, height, 1.0f, 1.0f, 1.0f, target);
-            count += outline(bounds.x, bounds.y, bounds.width, bounds.height, width, height,
-                    0.55f, 0.55f, 0.55f, target);
+            count += rectangle(bx, by, bw, bh, width, height, 1.0f, 1.0f, 1.0f, target);
+            count += outline(bx, by, bw, bh, width, height, 0.55f, 0.55f, 0.55f, target);
         } else if ("progress".equals(type)) {
-            count += rectangle(bounds, width, height, 0.88f, 0.88f, 0.88f, target);
-            Rectangle progress = new Rectangle(bounds);
-            progress.width = (int) (bounds.width * clamp(propertyAsDouble(node, "progress", 0.0)));
-            count += rectangle(progress, width, height, 0.18f, 0.42f, 0.87f, target);
+            count += rectangle(bx, by, bw, bh, width, height, 0.88f, 0.88f, 0.88f, target);
+            int progressWidth = (int) (bw * clamp(propertyAsDouble(node, "progress", 0.0)));
+            count += rectangle(bx, by, progressWidth, bh, width, height, 0.18f, 0.42f, 0.87f, target);
         } else if ("slider".equals(type)) {
-            count += rectangle(new Rectangle(bounds.x, bounds.y + bounds.height / 2 - 1,
-                    bounds.width, 2), width, height, 0.70f, 0.70f, 0.70f, target);
+            count += rectangle(bx, by + bh / 2 - 1, bw, 2, width, height, 0.70f, 0.70f, 0.70f, target);
             double min = propertyAsDouble(node, "min", 0.0);
             double max = propertyAsDouble(node, "max", 100.0);
             double value = propertyAsDouble(node, "value", min);
             double fraction = max <= min ? 0.0 : (value - min) / (max - min);
-            int knobX = bounds.x + (int) (bounds.width * clamp(fraction));
-            count += rectangle(new Rectangle(knobX - 6, bounds.y + bounds.height / 2 - 6, 12, 12),
-                    width, height, 0.18f, 0.42f, 0.87f, target);
+            int knobX = bx + (int) (bw * clamp(fraction));
+            count += rectangle(knobX - 6, by + bh / 2 - 6, 12, 12, width, height, 0.18f, 0.42f, 0.87f, target);
         }
         for (JXNativeNode child : node.getChildren()) {
             count += appendNode(child, width, height, target);
@@ -83,29 +80,32 @@ public final class JXVulkanRenderer {
         return count;
     }
 
-    private static int rectangle(Rectangle bounds, int width, int height,
+    private static int rectangle(int rx, int ry, int rw, int rh, int width, int height,
             float red, float green, float blue, FloatBuffer target) {
-        if (bounds.width <= 0 || bounds.height <= 0) {
+        if (rw <= 0 || rh <= 0) {
             return 0;
         }
-        vertex(target, bounds.x, bounds.y, width, height, red, green, blue);
-        vertex(target, bounds.x + bounds.width, bounds.y, width, height, red, green, blue);
-        vertex(target, bounds.x + bounds.width, bounds.y + bounds.height, width, height, red, green, blue);
-        vertex(target, bounds.x, bounds.y, width, height, red, green, blue);
-        vertex(target, bounds.x + bounds.width, bounds.y + bounds.height, width, height, red, green, blue);
-        vertex(target, bounds.x, bounds.y + bounds.height, width, height, red, green, blue);
+        vertex(target, rx, ry, width, height, red, green, blue);
+        vertex(target, rx + rw, ry, width, height, red, green, blue);
+        vertex(target, rx + rw, ry + rh, width, height, red, green, blue);
+        vertex(target, rx, ry, width, height, red, green, blue);
+        vertex(target, rx + rw, ry + rh, width, height, red, green, blue);
+        vertex(target, rx, ry + rh, width, height, red, green, blue);
         return 6;
+    }
+
+    private static int rectangle(Rectangle bounds, int width, int height,
+            float red, float green, float blue, FloatBuffer target) {
+        return rectangle(bounds.x, bounds.y, bounds.width, bounds.height, width, height, red, green, blue, target);
     }
 
     private static int outline(int x, int y, int width, int height, int targetWidth, int targetHeight,
             float red, float green, float blue, FloatBuffer target) {
         int count = 0;
-        count += rectangle(new Rectangle(x, y, width, 1), targetWidth, targetHeight, red, green, blue, target);
-        count += rectangle(new Rectangle(x, y + height - 1, width, 1),
-                targetWidth, targetHeight, red, green, blue, target);
-        count += rectangle(new Rectangle(x, y, 1, height), targetWidth, targetHeight, red, green, blue, target);
-        count += rectangle(new Rectangle(x + width - 1, y, 1, height),
-                targetWidth, targetHeight, red, green, blue, target);
+        count += rectangle(x, y, width, 1, targetWidth, targetHeight, red, green, blue, target);
+        count += rectangle(x, y + height - 1, width, 1, targetWidth, targetHeight, red, green, blue, target);
+        count += rectangle(x, y, 1, height, targetWidth, targetHeight, red, green, blue, target);
+        count += rectangle(x + width - 1, y, 1, height, targetWidth, targetHeight, red, green, blue, target);
         return count;
     }
 

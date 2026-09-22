@@ -1,0 +1,51 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project xmlns="http://maven.apache.org/POM/4.0.0"
+         xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+         xsi:schemaLocation="http://maven.apache.org/POM/4.0.0
+             http://maven.apache.org/xsd/maven-4.0.0.xsd">
+    <modelVersion>4.0.0</modelVersion>
+
+    <!--
+        Standalone stress baseline — no JavaFX, no JXParallel.
+        Depends only on the standard JDK (java.awt / javax.swing).
+        Compiles with Java 8 source/target so it can run on any JVM >= 8.
+    -->
+    <parent>
+        <groupId>com.jxparallel</groupId>
+        <artifactId>jxparallel-parent</artifactId>
+        <version>1.0.0-SNAPSHOT</version>
+        <relativePath>../pom.xml</relativePath>
+    </parent>
+
+    <artifactId>jxparallel-stress-baseline</artifactId>
+    <name>JXParallel Stress Baseline (Swing)</name>
+    <description>
+        Swing-only UI stress baseline runner used as a traditional Java UI comparison
+        for the JXParallel native stress benchmarks. Has zero dependency on JavaFX or
+        any JXParallel module.
+    </description>
+
+    <properties>
+        <maven.compiler.source>8</maven.compiler.source>
+        <maven.compiler.target>8</maven.compiler.target>
+    </properties>
+
+    <!-- No dependencies: only standard JDK classes are used -->
+    <dependencies/>
+
+    <build>
+        <plugins>
+            <plugin>
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-jar-plugin</artifactId>
+                <configuration>
+                    <archive>
+                        <manifest>
+                            <mainClass>com.jxparallel.stress.SwingStressRunner</mainClass>
+                        </manifest>
+                    </archive>
+                </configuration>
+            </plugin>
+        </plugins>
+    </build>
+</project>

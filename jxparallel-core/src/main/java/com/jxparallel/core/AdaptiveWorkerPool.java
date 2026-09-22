@@ -34,7 +34,7 @@ public class AdaptiveWorkerPool {
             return thread;
         };
         this.metrics = new RuntimeMetrics(this.config.isMetricsEnabled());
-        this.capacity = new Semaphore(this.config.getQueueCapacity() + this.config.getMaxThreads(), true);
+        this.capacity = new Semaphore(this.config.getQueueCapacity() + this.config.getMaxThreads(), false);
         this.timeoutScheduler = java.util.concurrent.Executors.newSingleThreadScheduledExecutor(runnable -> {
             Thread thread = new Thread(runnable, "jxparallel-timeout");
             thread.setDaemon(this.config.isDaemonThreads());
@@ -51,8 +51,8 @@ public class AdaptiveWorkerPool {
                         return 0;
                     }
                     if (left instanceof PrioritizedRunnable && right instanceof PrioritizedRunnable) {
-                        PrioritizedRunnable a = (PrioritizedRunnable) left;
-                        PrioritizedRunnable b = (PrioritizedRunnable) right;
+                        PrioritizedRunnable<?> a = (PrioritizedRunnable<?>) left;
+                        PrioritizedRunnable<?> b = (PrioritizedRunnable<?>) right;
                         int priorityOrder = Integer.compare(b.priority().ordinal(), a.priority().ordinal());
                         if (priorityOrder != 0) {
                             return priorityOrder;
@@ -96,39 +96,8 @@ public class AdaptiveWorkerPool {
         TaskPriority effectivePriority = priority == null ? TaskPriority.NORMAL : priority;
         metrics.recordSubmitted();
         CompletableFuture<T> future = new CompletableFuture<T>();
-        AtomicBoolean finished = new AtomicBoolean(false);
-        AtomicReferenceHolder<Thread> runner = new AtomicReferenceHolder<Thread>();
-        AtomicReferenceHolder<ScheduledFuture<?>> timeoutHandle = new AtomicReferenceHolder<ScheduledFuture<?>>();
-        Runnable task = new PrioritizedRunnable(() -> {
-            if (cancellationToken != null && cancellationToken.isCancelled()) {
-                finished.set(true);
-                future.cancel(false);
-                capacity.release();
-                return;
-            }
-            runner.set(Thread.currentThread());
-            long start = System.nanoTime();
-            try {
-                T value = callable.call();
-                if (finished.compareAndSet(false, true)) {
-                    metrics.recordCompleted(System.nanoTime() - start);
-                    future.complete(value);
-                }
-            } catch (Throwable throwable) {
-                if (finished.compareAndSet(false, true)) {
-                    metrics.recordFailed(System.nanoTime() - start);
-                    future.completeExceptionally(throwable instanceof Exception
-                            ? (Exception) throwable : new RuntimeException(throwable));
-                }
-            } finally {
-                runner.set(null);
-                ScheduledFuture<?> scheduled = timeoutHandle.get();
-                if (scheduled != null) {
-                    scheduled.cancel(false);
-                }
-                capacity.release();
-            }
-        }, future, effectivePriority, sequence.getAndIncrement(), finished, timeoutHandle);
+        PrioritizedRunnable<T> task = new PrioritizedRunnable<T>(callable, future, effectivePriority,
+                sequence.getAndIncrement(), cancellationToken);
         if (!reserveCapacity(future)) {
             metrics.recordFailed(0L);
             return future;
@@ -138,22 +107,13 @@ public class AdaptiveWorkerPool {
         } catch (RuntimeException exception) {
             capacity.release();
             future.completeExceptionally(exception);
+            return future;
         }
         if (timeout != null && !timeout.isNegative() && !timeout.isZero() && !future.isDone()) {
             ScheduledFuture<?> scheduled = timeoutScheduler.schedule(() -> {
-                if (finished.compareAndSet(false, true)) {
-                    if (cancellationToken != null) {
-                        cancellationToken.cancel();
-                    }
-                    Thread activeThread = runner.get();
-                    if (activeThread != null) {
-                        activeThread.interrupt();
-                    }
-                    future.completeExceptionally(new TimeoutException("JXParallel task timed out after " + timeout));
-                    metrics.recordFailed(timeout.toNanos());
-                }
+                task.handleTimeout(timeout);
             }, timeout.toNanos(), TimeUnit.NANOSECONDS);
-            timeoutHandle.set(scheduled);
+            task.setTimeoutHandle(scheduled);
             if (future.isDone()) {
                 scheduled.cancel(false);
             }
@@ -203,7 +163,7 @@ public class AdaptiveWorkerPool {
         timeoutScheduler.shutdownNow();
         for (Runnable runnable : pending) {
             if (runnable instanceof PrioritizedRunnable) {
-                ((PrioritizedRunnable) runnable).cancel();
+                ((PrioritizedRunnable<?>) runnable).cancel();
             }
         }
         return pending;
@@ -213,24 +173,24 @@ public class AdaptiveWorkerPool {
         return config;
     }
 
-    private final class PrioritizedRunnable implements Runnable {
-        private final Runnable delegate;
-        private final CompletableFuture<?> future;
+    private final class PrioritizedRunnable<T> implements Runnable {
+        private final Callable<T> callable;
+        private final CompletableFuture<T> future;
         private final TaskPriority priority;
         private final long sequence;
-        private final AtomicBoolean finished;
-        private final AtomicReferenceHolder<ScheduledFuture<?>> timeoutHandle;
+        private final CancellationToken cancellationToken;
+        private final AtomicBoolean finished = new AtomicBoolean(false);
+        private volatile Thread runner;
+        private volatile ScheduledFuture<?> timeoutHandle;
 
-        private PrioritizedRunnable(Runnable delegate, CompletableFuture<?> future,
+        private PrioritizedRunnable(Callable<T> callable, CompletableFuture<T> future,
                                     TaskPriority priority, long sequence,
-                                    AtomicBoolean finished,
-                                    AtomicReferenceHolder<ScheduledFuture<?>> timeoutHandle) {
-            this.delegate = delegate;
+                                    CancellationToken cancellationToken) {
+            this.callable = callable;
             this.future = future;
             this.priority = priority == null ? TaskPriority.NORMAL : priority;
             this.sequence = sequence;
-            this.finished = finished;
-            this.timeoutHandle = timeoutHandle;
+            this.cancellationToken = cancellationToken;
         }
 
         private TaskPriority priority() {
@@ -241,10 +201,28 @@ public class AdaptiveWorkerPool {
             return sequence;
         }
 
+        private void setTimeoutHandle(ScheduledFuture<?> timeoutHandle) {
+            this.timeoutHandle = timeoutHandle;
+        }
+
+        private void handleTimeout(java.time.Duration timeout) {
+            if (finished.compareAndSet(false, true)) {
+                if (cancellationToken != null) {
+                    cancellationToken.cancel();
+                }
+                Thread activeThread = runner;
+                if (activeThread != null) {
+                    activeThread.interrupt();
+                }
+                future.completeExceptionally(new TimeoutException("JXParallel task timed out after " + timeout));
+                metrics.recordFailed(timeout.toNanos());
+            }
+        }
+
         private void cancel() {
             finished.set(true);
             future.cancel(false);
-            ScheduledFuture<?> scheduled = timeoutHandle.get();
+            ScheduledFuture<?> scheduled = timeoutHandle;
             if (scheduled != null) {
                 scheduled.cancel(false);
             }
@@ -253,7 +231,34 @@ public class AdaptiveWorkerPool {
 
         @Override
         public void run() {
-            delegate.run();
+            if (cancellationToken != null && cancellationToken.isCancelled()) {
+                finished.set(true);
+                future.cancel(false);
+                capacity.release();
+                return;
+            }
+            runner = Thread.currentThread();
+            long start = System.nanoTime();
+            try {
+                T value = callable.call();
+                if (finished.compareAndSet(false, true)) {
+                    metrics.recordCompleted(System.nanoTime() - start);
+                    future.complete(value);
+                }
+            } catch (Throwable throwable) {
+                if (finished.compareAndSet(false, true)) {
+                    metrics.recordFailed(System.nanoTime() - start);
+                    future.completeExceptionally(throwable instanceof Exception
+                            ? (Exception) throwable : new RuntimeException(throwable));
+                }
+            } finally {
+                runner = null;
+                ScheduledFuture<?> scheduled = timeoutHandle;
+                if (scheduled != null) {
+                    scheduled.cancel(false);
+                }
+                capacity.release();
+            }
         }
     }
 
@@ -277,7 +282,7 @@ public class AdaptiveWorkerPool {
                 if (capacity.tryAcquire()) {
                     return true;
                 }
-                PrioritizedRunnable oldest = removeOldestQueued();
+                PrioritizedRunnable<?> oldest = removeOldestQueued();
                 if (oldest != null) {
                     oldest.cancel();
                     if (capacity.tryAcquire()) {
@@ -296,11 +301,11 @@ public class AdaptiveWorkerPool {
         }
     }
 
-    private PrioritizedRunnable removeOldestQueued() {
-        PrioritizedRunnable oldest = null;
+    private PrioritizedRunnable<?> removeOldestQueued() {
+        PrioritizedRunnable<?> oldest = null;
         for (Runnable runnable : executor.getQueue()) {
             if (runnable instanceof PrioritizedRunnable) {
-                PrioritizedRunnable candidate = (PrioritizedRunnable) runnable;
+                PrioritizedRunnable<?> candidate = (PrioritizedRunnable<?>) runnable;
                 if (oldest == null || candidate.sequence() < oldest.sequence()) {
                     oldest = candidate;
                 }
@@ -312,24 +317,12 @@ public class AdaptiveWorkerPool {
         return null;
     }
 
-    private static final class AtomicReferenceHolder<T> {
-        private volatile T value;
-
-        void set(T value) {
-            this.value = value;
-        }
-
-        T get() {
-            return value;
-        }
-    }
-
     private static final class BoundedPriorityBlockingQueue extends PriorityBlockingQueue<Runnable> {
         private final Semaphore permits;
 
         BoundedPriorityBlockingQueue(int capacity, java.util.Comparator<Runnable> comparator) {
             super(Math.max(1, capacity), comparator);
-            this.permits = new Semaphore(Math.max(1, capacity), true);
+            this.permits = new Semaphore(Math.max(1, capacity), false);
         }
 
         @Override
