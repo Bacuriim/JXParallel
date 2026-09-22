@@ -1,0 +1,5 @@
+scenario,implementation,iterations,total_ms,avg_response_us,process_cpu_ms,heap_delta_bytes
+single_task,traditional,1000,34.924,34.924,62.500,1896440
+single_task,jxparallel,1000,20.883,20.883,15.625,629296
+burst,traditional,64,37.147,580.422,0.000,206528
+burst,jxparallel,64,49.643,775.672,0.000,81352
