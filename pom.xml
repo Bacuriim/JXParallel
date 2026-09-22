@@ -110,6 +110,12 @@
             </modules>
         </profile>
         <profile>
+            <id>lwjgl-vulkan</id>
+            <modules>
+                <module>jxparallel-lwjgl</module>
+            </modules>
+        </profile>
+        <profile>
             <id>legacy-javafx</id>
             <modules>
                 <module>jxparallel-javafx</module>

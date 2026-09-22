@@ -9,8 +9,8 @@
     </parent>
 
     <artifactId>jxparallel-lwjgl</artifactId>
-    <name>JXParallel LWJGL OpenGL Backend</name>
-    <description>Experimental GLFW/OpenGL backend for JXParallel.</description>
+    <name>JXParallel LWJGL Graphics Backends</name>
+    <description>Experimental direct OpenGL and Vulkan backends for JXParallel.</description>
 
     <dependencies>
         <dependency>
@@ -31,6 +31,16 @@
         <dependency>
             <groupId>org.lwjgl</groupId>
             <artifactId>lwjgl-opengl</artifactId>
+            <version>${lwjgl.version}</version>
+        </dependency>
+        <dependency>
+            <groupId>org.lwjgl</groupId>
+            <artifactId>lwjgl-vulkan</artifactId>
+            <version>${lwjgl.version}</version>
+        </dependency>
+        <dependency>
+            <groupId>org.lwjgl</groupId>
+            <artifactId>lwjgl-shaderc</artifactId>
             <version>${lwjgl.version}</version>
         </dependency>
     </dependencies>
@@ -57,6 +67,13 @@
                 <dependency>
                     <groupId>org.lwjgl</groupId>
                     <artifactId>lwjgl-opengl</artifactId>
+                    <version>${lwjgl.version}</version>
+                    <classifier>natives-windows</classifier>
+                    <scope>runtime</scope>
+                </dependency>
+                <dependency>
+                    <groupId>org.lwjgl</groupId>
+                    <artifactId>lwjgl-shaderc</artifactId>
                     <version>${lwjgl.version}</version>
                     <classifier>natives-windows</classifier>
                     <scope>runtime</scope>
@@ -88,6 +105,13 @@
                     <classifier>natives-linux</classifier>
                     <scope>runtime</scope>
                 </dependency>
+                <dependency>
+                    <groupId>org.lwjgl</groupId>
+                    <artifactId>lwjgl-shaderc</artifactId>
+                    <version>${lwjgl.version}</version>
+                    <classifier>natives-linux</classifier>
+                    <scope>runtime</scope>
+                </dependency>
             </dependencies>
         </profile>
         <profile>
@@ -111,6 +135,13 @@
                 <dependency>
                     <groupId>org.lwjgl</groupId>
                     <artifactId>lwjgl-opengl</artifactId>
+                    <version>${lwjgl.version}</version>
+                    <classifier>natives-macos</classifier>
+                    <scope>runtime</scope>
+                </dependency>
+                <dependency>
+                    <groupId>org.lwjgl</groupId>
+                    <artifactId>lwjgl-shaderc</artifactId>
                     <version>${lwjgl.version}</version>
                     <classifier>natives-macos</classifier>
                     <scope>runtime</scope>

@@ -425,6 +425,7 @@ JavaFX remains optional and is tested separately with `-Plegacy-javafx`.
 | Core scheduler lifecycle | `FULL` for the documented JXParallel contract |
 | Native Skia foundation through Skija | `EXPERIMENTAL` |
 | LWJGL/OpenGL backend | `EXPERIMENTAL / OPTIONAL` |
+| LWJGL/Vulkan backend | `EXPERIMENTAL / OPTIONAL` |
 | JavaFX compatibility module | `LEGACY / PARTIAL` |
 | Native initial controls and layouts | `EXPERIMENTAL` |
 | FXML loader and cache | `EXPERIMENTAL` |
