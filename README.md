@@ -255,7 +255,7 @@ xychart-beta
     title "Startup to first paint (lower is better)"
     x-axis ["JavaFX", "JXParallel native"]
     y-axis "milliseconds" 0 --> 400
-    bar [319.817, 350.394]
+    bar [312.404, 396.723]
 ```
 
 ```mermaid
@@ -263,7 +263,7 @@ xychart-beta
     title "Interaction completion (lower is better)"
     x-axis ["JavaFX", "JXParallel native"]
     y-axis "milliseconds" 0 --> 400
-    bar [354.587, 359.045]
+    bar [353.486, 364.305]
 ```
 
 ```mermaid
@@ -271,7 +271,7 @@ xychart-beta
     title "Process CPU time (lower is better)"
     x-axis ["JavaFX", "JXParallel native"]
     y-axis "milliseconds" 0 --> 900
-    bar [796.875, 390.625]
+    bar [750.000, 468.750]
 ```
 
 ```mermaid
@@ -279,31 +279,32 @@ xychart-beta
     title "Peak resident RAM (lower is better)"
     x-axis ["JavaFX", "JXParallel native"]
     y-axis "megabytes" 0 --> 12
-    bar [9.98, 10.00]
+    bar [10.01, 10.04]
 ```
 
 | Metric | JavaFX | JXParallel native | Difference |
 |---|---:|---:|---:|
-| Startup to first paint | 319.817 ms | 350.394 ms | JXParallel +9.6% |
-| Interaction completion | 354.587 ms | 359.045 ms | JXParallel +1.3% |
-| Process CPU time | 796.875 ms | 390.625 ms | JXParallel -51.0% |
-| Normalized CPU | 3.532% | 1.999% | JXParallel -43.4% |
-| Peak working set / resident RAM | 9.98 MB | 10.00 MB | effectively equal |
-| Peak private memory | 1.74 MB | 1.75 MB | effectively equal |
-| Java heap delta | 7.17 MB | 4.22 MB | JXParallel -41.1% |
-| Thread-count delta | +2 | +5 | different toolkit lifecycle |
+| Startup to first paint | 312.404 ms | 396.723 ms | JXParallel +27.0% |
+| Interaction completion | 353.486 ms | 364.305 ms | JXParallel +3.1% |
+| Process CPU time | 750.000 ms | 468.750 ms | JXParallel -37.5% |
+| Normalized CPU | 3.261% | 2.309% | JXParallel -29.2% |
+| Peak working set / resident RAM | 10.01 MB | 10.04 MB | effectively equal |
+| Peak private memory | 1.74 MB | 1.96 MB | JXParallel +12.6% |
+| Java heap delta | 7.19 MB | 10.15 MB | JXParallel +41.2% |
+| Thread-count delta | +2 | +6 | different toolkit lifecycle |
 
-Interpretation: in this controlled workload, JavaFX reached the first paint about 9.6% faster,
-while JXParallel native used about 51% less process CPU. Resident RAM was effectively equal.
-Interaction completion was equivalent because both applications executed the same 350 ms
-background operation. These results are workload- and machine-specific, not a universal
-performance claim.
+Interpretation: in this controlled Skija workload, JavaFX reached the first paint about 27.0%
+faster, while JXParallel native used about 37.5% less process CPU. Resident RAM was effectively
+equal, but Skija showed higher private memory and heap delta. Interaction completion remained
+close because both applications executed the same 350 ms background operation. These results are
+workload- and machine-specific, not a universal performance claim.
 
 More measurements and limitations:
 
 - [UI performance report](docs/ui-performance-2026-09-22.md)
 - [UI measurement methodology](docs/ui-performance-measurement.md)
 - [Raw UI data](docs/ui-metrics-2026-09-22.csv)
+- [Raw Skija UI data](docs/ui-metrics-skia-2026-09-22.csv)
 - [Benchmark methodology](docs/metrics-comparison.md)
 
 ### Runtime benchmark direction
