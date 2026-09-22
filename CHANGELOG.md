@@ -4,6 +4,7 @@
 
 - added independent Skia native UI module through Skija and executable native example
 - added optional experimental LWJGL/OpenGL backend with GLFW window lifecycle
+- added optional experimental direct LWJGL/Vulkan backend reusing the existing native components
 - moved JavaFX integration to the optional `legacy-javafx` Maven profile
 - added native input, text editing, accessibility, styling, animation, and resource cache APIs
 - added Java 8 native-core CI coverage and Windows Java 17 CI coverage
