@@ -10,7 +10,7 @@
 
     <artifactId>jxparallel-ui</artifactId>
     <name>JXParallel Native UI</name>
-    <description>JavaFX-free scene model and Skia renderer for JXParallel.</description>
+    <description>JavaFX-free scene model and direct Vulkan renderer for JXParallel.</description>
 
     <dependencies>
         <dependency>
@@ -19,9 +19,24 @@
             <version>${project.version}</version>
         </dependency>
         <dependency>
-            <groupId>io.github.humbleui</groupId>
-            <artifactId>skija-shared</artifactId>
-            <version>${skija.version}</version>
+            <groupId>org.lwjgl</groupId>
+            <artifactId>lwjgl</artifactId>
+            <version>${lwjgl.version}</version>
+        </dependency>
+        <dependency>
+            <groupId>org.lwjgl</groupId>
+            <artifactId>lwjgl-glfw</artifactId>
+            <version>${lwjgl.version}</version>
+        </dependency>
+        <dependency>
+            <groupId>org.lwjgl</groupId>
+            <artifactId>lwjgl-vulkan</artifactId>
+            <version>${lwjgl.version}</version>
+        </dependency>
+        <dependency>
+            <groupId>org.lwjgl</groupId>
+            <artifactId>lwjgl-shaderc</artifactId>
+            <version>${lwjgl.version}</version>
         </dependency>
         <dependency>
             <groupId>org.junit.jupiter</groupId>
@@ -32,7 +47,7 @@
 
     <profiles>
         <profile>
-            <id>skija-windows-x64</id>
+            <id>vulkan-windows</id>
             <activation>
                 <os>
                     <family>Windows</family>
@@ -41,15 +56,30 @@
             </activation>
             <dependencies>
                 <dependency>
-                    <groupId>io.github.humbleui</groupId>
-                    <artifactId>skija-windows-x64</artifactId>
-                    <version>${skija.version}</version>
+                    <groupId>org.lwjgl</groupId>
+                    <artifactId>lwjgl</artifactId>
+                    <version>${lwjgl.version}</version>
+                    <classifier>natives-windows</classifier>
+                    <scope>runtime</scope>
+                </dependency>
+                <dependency>
+                    <groupId>org.lwjgl</groupId>
+                    <artifactId>lwjgl-glfw</artifactId>
+                    <version>${lwjgl.version}</version>
+                    <classifier>natives-windows</classifier>
+                    <scope>runtime</scope>
+                </dependency>
+                <dependency>
+                    <groupId>org.lwjgl</groupId>
+                    <artifactId>lwjgl-shaderc</artifactId>
+                    <version>${lwjgl.version}</version>
+                    <classifier>natives-windows</classifier>
                     <scope>runtime</scope>
                 </dependency>
             </dependencies>
         </profile>
         <profile>
-            <id>skija-linux-x64</id>
+            <id>vulkan-linux</id>
             <activation>
                 <os>
                     <family>unix</family>
@@ -59,43 +89,24 @@
             </activation>
             <dependencies>
                 <dependency>
-                    <groupId>io.github.humbleui</groupId>
-                    <artifactId>skija-linux-x64</artifactId>
-                    <version>${skija.version}</version>
+                    <groupId>org.lwjgl</groupId>
+                    <artifactId>lwjgl</artifactId>
+                    <version>${lwjgl.version}</version>
+                    <classifier>natives-linux</classifier>
                     <scope>runtime</scope>
                 </dependency>
-            </dependencies>
-        </profile>
-        <profile>
-            <id>skija-macos-x64</id>
-            <activation>
-                <os>
-                    <family>mac</family>
-                    <arch>amd64</arch>
-                </os>
-            </activation>
-            <dependencies>
                 <dependency>
-                    <groupId>io.github.humbleui</groupId>
-                    <artifactId>skija-macos-x64</artifactId>
-                    <version>${skija.version}</version>
+                    <groupId>org.lwjgl</groupId>
+                    <artifactId>lwjgl-glfw</artifactId>
+                    <version>${lwjgl.version}</version>
+                    <classifier>natives-linux</classifier>
                     <scope>runtime</scope>
                 </dependency>
-            </dependencies>
-        </profile>
-        <profile>
-            <id>skija-macos-arm64</id>
-            <activation>
-                <os>
-                    <family>mac</family>
-                    <arch>aarch64</arch>
-                </os>
-            </activation>
-            <dependencies>
                 <dependency>
-                    <groupId>io.github.humbleui</groupId>
-                    <artifactId>skija-macos-arm64</artifactId>
-                    <version>${skija.version}</version>
+                    <groupId>org.lwjgl</groupId>
+                    <artifactId>lwjgl-shaderc</artifactId>
+                    <version>${lwjgl.version}</version>
+                    <classifier>natives-linux</classifier>
                     <scope>runtime</scope>
                 </dependency>
             </dependencies>

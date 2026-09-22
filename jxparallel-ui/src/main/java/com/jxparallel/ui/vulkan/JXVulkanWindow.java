@@ -4,6 +4,7 @@ import java.nio.ByteBuffer;
 import java.nio.FloatBuffer;
 import java.nio.IntBuffer;
 import java.nio.LongBuffer;
+import java.util.concurrent.ConcurrentLinkedQueue;
 
 import com.jxparallel.ui.JXElement;
 import com.jxparallel.ui.native2d.JXNativeNode;
@@ -86,6 +87,9 @@ public final class JXVulkanWindow implements AutoCloseable {
     private int height = 420;
     private boolean framebufferResized;
     private GLFWErrorCallback errorCallback;
+    private Runnable onFirstPaint;
+    private boolean firstPaintReported;
+    private final ConcurrentLinkedQueue<Runnable> pendingActions = new ConcurrentLinkedQueue<Runnable>();
 
     private VkInstance instance;
     private VkPhysicalDevice physicalDevice;
@@ -118,6 +122,21 @@ public final class JXVulkanWindow implements AutoCloseable {
 
     public void setContent(JXElement element) {
         root = JXVulkanRenderer.mount(element);
+    }
+
+    public void setOnFirstPaint(Runnable callback) {
+        onFirstPaint = callback;
+    }
+
+    public void invokeLater(Runnable action) {
+        if (action == null) {
+            throw new IllegalArgumentException("Action cannot be null");
+        }
+        pendingActions.add(action);
+    }
+
+    public void requestRender() {
+        framebufferResized = true;
     }
 
     public void show() {
@@ -649,6 +668,10 @@ public final class JXVulkanWindow implements AutoCloseable {
 
     private void loop() {
         while (!GLFW.glfwWindowShouldClose(window)) {
+            Runnable action;
+            while ((action = pendingActions.poll()) != null) {
+                action.run();
+            }
             GLFW.glfwPollEvents();
             drawFrame();
         }
@@ -685,6 +708,12 @@ public final class JXVulkanWindow implements AutoCloseable {
             int presentResult = vkQueuePresentKHR(presentQueue, present);
             if (presentResult != VK_SUCCESS && presentResult != VK_SUBOPTIMAL_KHR) {
                 check(presentResult, "vkQueuePresentKHR");
+            }
+            if (!firstPaintReported) {
+                firstPaintReported = true;
+                if (onFirstPaint != null) {
+                    onFirstPaint.run();
+                }
             }
             currentFrame = (currentFrame + 1) % MAX_FRAMES_IN_FLIGHT;
         }
