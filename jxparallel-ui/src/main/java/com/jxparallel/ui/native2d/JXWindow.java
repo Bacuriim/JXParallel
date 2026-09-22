@@ -2,6 +2,7 @@ package com.jxparallel.ui.native2d;
 
 import java.awt.Canvas;
 import java.awt.Color;
+import java.awt.EventQueue;
 import java.awt.Frame;
 import java.awt.Graphics;
 import java.awt.Graphics2D;
@@ -20,6 +21,8 @@ public final class JXWindow {
     private final Canvas canvas;
     private JXNativeNode root;
     private JXNativeNode focusedNode;
+    private Runnable onFirstPaint;
+    private boolean firstPaintReported;
     private final AtomicBoolean repaintPending = new AtomicBoolean(false);
 
     public JXWindow(String title) {
@@ -28,6 +31,13 @@ public final class JXWindow {
             @Override
             public void paint(Graphics graphics) {
                 render((Graphics2D) graphics);
+                if (!firstPaintReported) {
+                    firstPaintReported = true;
+                    Runnable callback = onFirstPaint;
+                    if (callback != null) {
+                        callback.run();
+                    }
+                }
             }
         };
         canvas.setBackground(Color.WHITE);
@@ -74,6 +84,17 @@ public final class JXWindow {
         frame.setVisible(true);
         canvas.requestFocus();
         renderNow();
+    }
+
+    public void setOnFirstPaint(Runnable callback) {
+        onFirstPaint = callback;
+    }
+
+    public void invokeLater(Runnable action) {
+        if (action == null) {
+            throw new IllegalArgumentException("Action cannot be null");
+        }
+        EventQueue.invokeLater(action);
     }
 
     public void renderNow() {
