@@ -29,6 +29,10 @@ public final class JXWindow implements AutoCloseable {
         delegate.invokeLater(action);
     }
 
+    public void requestRender() {
+        delegate.requestRender();
+    }
+
     public void renderNow() {
         delegate.requestRender();
     }

@@ -40,17 +40,17 @@ Each run performs the following four scenarios **in sequence on the UI thread**:
 
 ## Median results (5 runs)
 
-| Metric | JavaFX | JXParallel native | Difference |
-|---|---:|---:|---:|
-| **Stress total time** | 483.9 ms | 290.2 ms | **JXParallel −40.0%** |
-| Label refresh (500×) | 13.0 ms | 3.3 ms | **JXParallel −74.6%** |
-| Button toggle (500×) | 18.9 ms | 4.8 ms | **JXParallel −74.6%** |
-| List swap (500×) | 417.0 ms | 270.5 ms | **JXParallel −35.1%** |
-| TextField refresh (500×) | 34.8 ms | 11.6 ms | **JXParallel −66.7%** |
-| Process CPU | 812.5 ms | 453.1 ms | **JXParallel −44.2%** |
-| Java heap delta | 8.68 MB | 3.99 MB | **JXParallel −54.0%** |
-| Peak working set | 142.4 MB | 144.1 MB | Effectively equal |
-| Thread count (delta) | 14 | 9 | Different toolkit lifecycle |
+| Metric                   | JavaFX   | JXParallel native | Difference                  |
+|--------------------------|---------:|------------------:|----------------------------:|
+| **Stress total time**    | 483.9 ms | 290.2 ms          | **JXParallel −40.0%**       |
+| Label refresh (500×)     | 13.0 ms  | 3.3 ms            | **JXParallel −74.6%**       |
+| Button toggle (500×)     | 18.9 ms  | 4.8 ms            | **JXParallel −74.6%**       |
+| List swap (500×)         | 417.0 ms | 270.5 ms          | **JXParallel −35.1%**       |
+| TextField refresh (500×) | 34.8 ms  | 11.6 ms           | **JXParallel −66.7%**       |
+| Process CPU              | 812.5 ms | 453.1 ms          | **JXParallel −44.2%**       |
+| Java heap delta          | 8.68 MB  | 3.99 MB           | **JXParallel −54.0%**       |
+| Peak working set         | 142.4 MB | 144.1 MB          | Effectively equal           |
+| Thread count (delta)     | 14       | 9                 | Different toolkit lifecycle |
 
 ## Gráficos
 
