@@ -588,6 +588,7 @@ public final class JXVulkanWindow implements AutoCloseable {
         try (MemoryStack stack = stackPush()) {
             VkCommandPoolCreateInfo createInfo = VkCommandPoolCreateInfo.calloc(stack)
                     .sType(VK_STRUCTURE_TYPE_COMMAND_POOL_CREATE_INFO)
+                    .flags(VK_COMMAND_POOL_CREATE_RESET_COMMAND_BUFFER_BIT)
                     .queueFamilyIndex(findQueueFamily(physicalDevice));
             LongBuffer pool = stack.mallocLong(1);
             check(vkCreateCommandPool(device, createInfo, null, pool), "vkCreateCommandPool");

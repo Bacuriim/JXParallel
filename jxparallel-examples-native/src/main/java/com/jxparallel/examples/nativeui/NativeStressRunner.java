@@ -2,8 +2,8 @@ package com.jxparallel.examples.nativeui;
 
 import com.jxparallel.core.JXParallel;
 import com.jxparallel.ui.controls.JXButton;
+import com.jxparallel.ui.controls.JXComboBox;
 import com.jxparallel.ui.controls.JXLabel;
-import com.jxparallel.ui.controls.JXListView;
 import com.jxparallel.ui.controls.JXTextField;
 import com.jxparallel.ui.layout.JXPane;
 import com.jxparallel.ui.native2d.JXWindow;
@@ -16,7 +16,7 @@ import java.util.Locale;
 
 /**
  * UI stress test for JXParallel native renderer: rapidly refreshes components
- * (JXLabel, JXButton, JXListView, JXTextField) to simulate real usability load
+ * (JXLabel, JXButton, JXComboBox, JXTextField) to simulate real usability load
  * and measure CPU, heap, and timing.
  *
  * <p>Emits {@code JX_METRIC key=value} lines on stdout that the
@@ -26,7 +26,7 @@ import java.util.Locale;
  * <ol>
  *   <li>JXLabel text refresh x {@code REFRESH_COUNT}.</li>
  *   <li>JXButton enable/disable toggle x {@code REFRESH_COUNT}.</li>
- *   <li>JXListView item refresh x {@code REFRESH_COUNT} (swap entire list).</li>
+ *   <li>JXComboBox item refresh x {@code REFRESH_COUNT} (swap entire list).</li>
  *   <li>JXTextField prompt refresh x {@code REFRESH_COUNT}.</li>
  * </ol>
  */
@@ -51,13 +51,13 @@ public final class NativeStressRunner {
         final JXButton actionButton = new JXButton("Action");
         final JXTextField inputField = new JXTextField();
         inputField.setPromptText("Type here...");
-        final JXListView listView = new JXListView();
+        final JXComboBox<String> comboBox = new JXComboBox<String>();
 
         final JXPane content = new JXPane(8);
         content.add(statusLabel);
         content.add(actionButton);
         content.add(inputField);
-        content.add(listView);
+        content.add(comboBox);
 
         final JXWindow window = new JXWindow("JXParallel Stress Runner");
         window.setContent(content.render());
@@ -70,7 +70,7 @@ public final class NativeStressRunner {
                     @Override
                     public void run() {
                         runStress(window, statusLabel, actionButton, inputField,
-                                listView, beforeHeap, beforeCpu);
+                                comboBox, beforeHeap, beforeCpu);
                     }
                 });
             }
@@ -83,7 +83,7 @@ public final class NativeStressRunner {
                                   JXLabel statusLabel,
                                   JXButton actionButton,
                                   JXTextField inputField,
-                                  JXListView listView,
+                                  JXComboBox<String> comboBox,
                                   long beforeHeap,
                                   long beforeCpu) {
         long stressStart = System.nanoTime();
@@ -106,14 +106,14 @@ public final class NativeStressRunner {
         actionButton.setDisable(false);
         long btnEnd = System.nanoTime();
 
-        // --- ListView refresh ---
+        // --- ComboBox refresh ---
         long listStart = System.nanoTime();
         for (int i = 0; i < REFRESH_COUNT; i++) {
-            List<String> items = new ArrayList<String>(5);
+            comboBox.getItems().clear();
             for (int j = 0; j < 5; j++) {
-                items.add("Item " + i + "." + j);
+                comboBox.getItems().add("Item " + i + "." + j);
             }
-            listView.setItems(items);
+            comboBox.select(0);
             window.requestRender();
         }
         long listEnd = System.nanoTime();
