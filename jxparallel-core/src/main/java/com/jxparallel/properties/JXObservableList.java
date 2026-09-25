@@ -24,9 +24,13 @@ public class JXObservableList<E> extends AbstractList<E> {
     }
 
     @Override
-    public synchronized boolean add(E value) {
-        delegate.add(value);
-        notifyListeners(new JXListChangeEvent<E>(JXListChangeEvent.Type.ADD, delegate.size() - 1, value, null));
+    public boolean add(E value) {
+        JXListChangeEvent<E> event;
+        synchronized (this) {
+            delegate.add(value);
+            event = new JXListChangeEvent<E>(JXListChangeEvent.Type.ADD, delegate.size() - 1, value, null);
+        }
+        notifyListeners(event);
         return true;
     }
 
@@ -50,34 +54,51 @@ public class JXObservableList<E> extends AbstractList<E> {
     }
 
     @Override
-    public synchronized boolean addAll(java.util.Collection<? extends E> values) {
+    public boolean addAll(java.util.Collection<? extends E> values) {
         if (values == null || values.isEmpty()) {
             return false;
         }
-        boolean changed = false;
-        for (E value : values) {
-            changed |= add(value);
+        int start;
+        List<E> added = new ArrayList<E>(values);
+        synchronized (this) {
+            start = delegate.size();
+            delegate.addAll(added);
         }
-        return changed;
+        for (int i = 0; i < added.size(); i++) {
+            notifyListeners(new JXListChangeEvent<E>(JXListChangeEvent.Type.ADD, start + i, added.get(i), null));
+        }
+        return true;
+    }
+
+    /** Removes everything atomically, then reports one REMOVE per element from the last index down. */
+    @Override
+    public void clear() {
+        List<E> removed;
+        synchronized (this) {
+            removed = new ArrayList<E>(delegate);
+            delegate.clear();
+        }
+        for (int i = removed.size() - 1; i >= 0; i--) {
+            notifyListeners(new JXListChangeEvent<E>(JXListChangeEvent.Type.REMOVE, i, null, removed.get(i)));
+        }
     }
 
     @Override
-    public synchronized void clear() {
-        while (!delegate.isEmpty()) {
-            remove(delegate.size() - 1);
+    public E set(int index, E element) {
+        E old;
+        synchronized (this) {
+            old = delegate.set(index, element);
         }
-    }
-
-    @Override
-    public synchronized E set(int index, E element) {
-        E old = delegate.set(index, element);
         notifyListeners(new JXListChangeEvent<E>(JXListChangeEvent.Type.UPDATE, index, element, old));
         return old;
     }
 
     @Override
-    public synchronized E remove(int index) {
-        E old = delegate.remove(index);
+    public E remove(int index) {
+        E old;
+        synchronized (this) {
+            old = delegate.remove(index);
+        }
         notifyListeners(new JXListChangeEvent<E>(JXListChangeEvent.Type.REMOVE, index, null, old));
         return old;
     }

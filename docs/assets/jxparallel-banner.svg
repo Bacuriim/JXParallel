@@ -1,0 +1,60 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1280 640" width="1280" height="640">
+  <title>JXParallel</title>
+  <defs>
+    <linearGradient id="bg" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0" stop-color="#FFFFFF"/>
+      <stop offset="1" stop-color="#FFF1F3"/>
+    </linearGradient>
+    <linearGradient id="icon" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0" stop-color="#E3122F"/>
+      <stop offset="1" stop-color="#A80B24"/>
+    </linearGradient>
+    <linearGradient id="fade" x1="0" y1="0" x2="1" y2="0">
+      <stop offset="0" stop-color="#FFFFFF" stop-opacity="0"/>
+      <stop offset="1" stop-color="#FFFFFF" stop-opacity="1"/>
+    </linearGradient>
+    <mask id="lanesMask">
+      <rect x="760" y="0" width="520" height="640" fill="url(#fade)"/>
+    </mask>
+  </defs>
+
+  <rect width="1280" height="640" fill="url(#bg)"/>
+
+  <!-- background lanes: tasks running in parallel -->
+  <g mask="url(#lanesMask)" stroke-linecap="round" stroke-width="14" opacity="0.55">
+    <path d="M1320 -40 L1000 680" stroke="#FF8A9A"/>
+    <path d="M1360 -40 L1040 680" stroke="#E3122F"/>
+    <path d="M1400 -40 L1080 680" stroke="#A80B24"/>
+    <path d="M1200 -40 L880 680" stroke="#FFC4CC"/>
+    <path d="M1240 -40 L920 680" stroke="#FF8A9A" opacity="0.6"/>
+  </g>
+
+  <!-- icon -->
+  <g transform="translate(96 176) scale(0.5625)">
+    <rect width="512" height="512" rx="112" fill="url(#icon)"/>
+    <g fill="none" stroke-linecap="round" stroke-linejoin="round">
+      <path d="M205 128 V318 Q205 392 138 392 Q104 392 86 366" stroke="#FFFFFF" stroke-width="56"/>
+      <path d="M290 128 L430 392" stroke="#FFFFFF" stroke-width="56"/>
+      <path d="M409 117 L269 381" stroke="#C20E29" stroke-width="26"/><path d="M409 117 L269 381" stroke="#FFFFFF" stroke-width="16"/>
+      <path d="M430 128 L290 392" stroke="#C20E29" stroke-width="26"/><path d="M430 128 L290 392" stroke="#FFC4CC" stroke-width="16"/>
+      <path d="M451 139 L311 403" stroke="#C20E29" stroke-width="26"/><path d="M451 139 L311 403" stroke="#FF8A9A" stroke-width="16"/>
+    </g>
+  </g>
+
+  <!-- wordmark and tagline -->
+  <g font-family="'Segoe UI', 'Inter', 'Helvetica Neue', Arial, sans-serif">
+    <text x="424" y="300" font-size="104" font-weight="700" fill="#A80B24" letter-spacing="-2">JX<tspan fill="#E3122F">Parallel</tspan></text>
+    <text x="428" y="360" font-size="32" font-weight="400" fill="#4A0A14">Native Java UI runtime. Parallel by default.</text>
+
+    <g font-size="22" font-weight="600" fill="#C20E29">
+      <rect x="428" y="404" width="178" height="44" rx="22" fill="#FFFFFF" stroke="#E3122F" stroke-width="2"/>
+      <text x="517" y="433" text-anchor="middle">Skia · NanoVG</text>
+      <rect x="622" y="404" width="160" height="44" rx="22" fill="#FFFFFF" stroke="#E3122F" stroke-width="2"/>
+      <text x="702" y="433" text-anchor="middle">Java 8 → 25</text>
+      <rect x="798" y="404" width="132" height="44" rx="22" fill="#FFFFFF" stroke="#E3122F" stroke-width="2"/>
+      <text x="864" y="433" text-anchor="middle">x86 · x64</text>
+      <rect x="946" y="404" width="190" height="44" rx="22" fill="#FFFFFF" stroke="#E3122F" stroke-width="2"/>
+      <text x="1041" y="433" text-anchor="middle">Parallel FXML</text>
+    </g>
+  </g>
+</svg>

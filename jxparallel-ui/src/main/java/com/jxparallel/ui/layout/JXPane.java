@@ -7,9 +7,11 @@ import java.util.List;
 import com.jxparallel.ui.JXComponent;
 import com.jxparallel.ui.JXElement;
 import com.jxparallel.ui.JXProps;
+import com.jxparallel.ui.controls.JXRenderMemo;
 
 public final class JXPane implements JXComponent {
     private final List<JXComponent> children = new ArrayList<JXComponent>();
+    private final JXRenderMemo memo = new JXRenderMemo();
     private double gap;
 
     public JXPane() {
@@ -43,12 +45,16 @@ public final class JXPane implements JXComponent {
         gap = Math.max(0.0, value);
     }
 
+    /** Returns the previous element when the gap and every child's element are unchanged. */
     @Override
     public JXElement render() {
-        JXElement[] elements = new JXElement[children.size()];
-        for (int index = 0; index < children.size(); index++) {
+        final JXElement[] elements = new JXElement[children.size()];
+        Object[] state = new Object[elements.length + 1];
+        state[0] = gap;
+        for (int index = 0; index < elements.length; index++) {
             elements[index] = children.get(index).render();
+            state[index + 1] = elements[index];
         }
-        return JXElement.of("column", JXProps.builder().set("gap", gap).build(), elements);
+        return memo.render(() -> JXElement.of("column", JXProps.builder().set("gap", gap).build(), elements), state);
     }
 }

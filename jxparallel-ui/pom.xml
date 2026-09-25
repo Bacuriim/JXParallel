@@ -10,13 +10,18 @@
 
     <artifactId>jxparallel-ui</artifactId>
     <name>JXParallel Native UI</name>
-    <description>JavaFX-free scene model and direct Vulkan renderer for JXParallel.</description>
+    <description>JavaFX-free scene model on a GLFW/OpenGL window: Skia on 64-bit JVMs, NanoVG on 32-bit.</description>
 
     <dependencies>
         <dependency>
             <groupId>com.jxparallel</groupId>
             <artifactId>jxparallel-core</artifactId>
             <version>${project.version}</version>
+        </dependency>
+        <dependency>
+            <groupId>io.github.humbleui</groupId>
+            <artifactId>skija-shared</artifactId>
+            <version>${skija.version}</version>
         </dependency>
         <dependency>
             <groupId>org.lwjgl</groupId>
@@ -30,12 +35,12 @@
         </dependency>
         <dependency>
             <groupId>org.lwjgl</groupId>
-            <artifactId>lwjgl-vulkan</artifactId>
+            <artifactId>lwjgl-opengl</artifactId>
             <version>${lwjgl.version}</version>
         </dependency>
         <dependency>
             <groupId>org.lwjgl</groupId>
-            <artifactId>lwjgl-shaderc</artifactId>
+            <artifactId>lwjgl-nanovg</artifactId>
             <version>${lwjgl.version}</version>
         </dependency>
         <dependency>
@@ -45,9 +50,11 @@
         </dependency>
     </dependencies>
 
+    <!-- Natives follow the JVM running Maven. 64-bit: Skia + LWJGL. 32-bit (Java 8 to 17):
+         Skija ships no x86 natives, so JXWindow uses NanoVG and only LWJGL natives are needed. -->
     <profiles>
         <profile>
-            <id>vulkan-windows</id>
+            <id>natives-windows-x64</id>
             <activation>
                 <os>
                     <family>Windows</family>
@@ -55,6 +62,12 @@
                 </os>
             </activation>
             <dependencies>
+                <dependency>
+                    <groupId>io.github.humbleui</groupId>
+                    <artifactId>skija-windows-x64</artifactId>
+                    <version>${skija.version}</version>
+                    <scope>runtime</scope>
+                </dependency>
                 <dependency>
                     <groupId>org.lwjgl</groupId>
                     <artifactId>lwjgl</artifactId>
@@ -71,7 +84,14 @@
                 </dependency>
                 <dependency>
                     <groupId>org.lwjgl</groupId>
-                    <artifactId>lwjgl-shaderc</artifactId>
+                    <artifactId>lwjgl-opengl</artifactId>
+                    <version>${lwjgl.version}</version>
+                    <classifier>natives-windows</classifier>
+                    <scope>runtime</scope>
+                </dependency>
+                <dependency>
+                    <groupId>org.lwjgl</groupId>
+                    <artifactId>lwjgl-nanovg</artifactId>
                     <version>${lwjgl.version}</version>
                     <classifier>natives-windows</classifier>
                     <scope>runtime</scope>
@@ -79,7 +99,46 @@
             </dependencies>
         </profile>
         <profile>
-            <id>vulkan-linux</id>
+            <id>natives-windows-x86</id>
+            <activation>
+                <os>
+                    <family>Windows</family>
+                    <arch>x86</arch>
+                </os>
+            </activation>
+            <dependencies>
+                <dependency>
+                    <groupId>org.lwjgl</groupId>
+                    <artifactId>lwjgl</artifactId>
+                    <version>${lwjgl.version}</version>
+                    <classifier>natives-windows-x86</classifier>
+                    <scope>runtime</scope>
+                </dependency>
+                <dependency>
+                    <groupId>org.lwjgl</groupId>
+                    <artifactId>lwjgl-glfw</artifactId>
+                    <version>${lwjgl.version}</version>
+                    <classifier>natives-windows-x86</classifier>
+                    <scope>runtime</scope>
+                </dependency>
+                <dependency>
+                    <groupId>org.lwjgl</groupId>
+                    <artifactId>lwjgl-opengl</artifactId>
+                    <version>${lwjgl.version}</version>
+                    <classifier>natives-windows-x86</classifier>
+                    <scope>runtime</scope>
+                </dependency>
+                <dependency>
+                    <groupId>org.lwjgl</groupId>
+                    <artifactId>lwjgl-nanovg</artifactId>
+                    <version>${lwjgl.version}</version>
+                    <classifier>natives-windows-x86</classifier>
+                    <scope>runtime</scope>
+                </dependency>
+            </dependencies>
+        </profile>
+        <profile>
+            <id>natives-linux-x64</id>
             <activation>
                 <os>
                     <family>unix</family>
@@ -89,6 +148,12 @@
             </activation>
             <dependencies>
                 <dependency>
+                    <groupId>io.github.humbleui</groupId>
+                    <artifactId>skija-linux-x64</artifactId>
+                    <version>${skija.version}</version>
+                    <scope>runtime</scope>
+                </dependency>
+                <dependency>
                     <groupId>org.lwjgl</groupId>
                     <artifactId>lwjgl</artifactId>
                     <version>${lwjgl.version}</version>
@@ -104,7 +169,14 @@
                 </dependency>
                 <dependency>
                     <groupId>org.lwjgl</groupId>
-                    <artifactId>lwjgl-shaderc</artifactId>
+                    <artifactId>lwjgl-opengl</artifactId>
+                    <version>${lwjgl.version}</version>
+                    <classifier>natives-linux</classifier>
+                    <scope>runtime</scope>
+                </dependency>
+                <dependency>
+                    <groupId>org.lwjgl</groupId>
+                    <artifactId>lwjgl-nanovg</artifactId>
                     <version>${lwjgl.version}</version>
                     <classifier>natives-linux</classifier>
                     <scope>runtime</scope>

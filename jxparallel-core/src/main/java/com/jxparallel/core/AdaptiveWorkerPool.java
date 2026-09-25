@@ -41,8 +41,10 @@ public class AdaptiveWorkerPool {
             return thread;
         });
 
+        // ThreadPoolExecutor only grows past core when the queue is full, which a large queue never is.
+        // Auto-scale therefore uses core = max and lets idle workers expire after keep-alive.
         this.executor = new ThreadPoolExecutor(
-                this.config.getMinThreads(),
+                this.config.isAutoScale() ? this.config.getMaxThreads() : this.config.getMinThreads(),
                 this.config.getMaxThreads(),
                 this.config.getKeepAliveMillis(),
                 TimeUnit.MILLISECONDS,
@@ -64,11 +66,14 @@ public class AdaptiveWorkerPool {
                 threadFactory,
                 new ThreadPoolExecutor.AbortPolicy()
         );
+        executor.allowCoreThreadTimeOut(this.config.isAutoScale());
     }
 
     public void start() {
         if (started.compareAndSet(false, true)) {
-            executor.prestartAllCoreThreads();
+            for (int i = 0; i < config.getMinThreads(); i++) {
+                executor.prestartCoreThread();
+            }
         }
     }
 
@@ -340,6 +345,15 @@ public class AdaptiveWorkerPool {
         @Override
         public Runnable poll() {
             Runnable result = super.poll();
+            if (result != null) {
+                permits.release();
+            }
+            return result;
+        }
+
+        @Override
+        public Runnable poll(long timeout, TimeUnit unit) throws InterruptedException {
+            Runnable result = super.poll(timeout, unit);
             if (result != null) {
                 permits.release();
             }

@@ -4,19 +4,19 @@ param(
     [string]$JavaFxModulePath,
     [string]$NativeClasspath = "jxparallel-examples-native\target\classes;jxparallel-ui\target\classes;jxparallel-core\target\classes",
     [string]$NativeDependencies,
-    [int]$Runs         = 5,
-    [int]$RefreshCount = 500,
-    [string]$Output    = "docs\ui-stress-results.csv"
+    [int]$Runs            = 5,
+    [int]$RefreshCount    = 500,
+    [int]$SustainedFrames = 600,
+    [int]$Monitor         = -1,   # >= 0 opens both windows on that monitor (0 = primary)
+    [string]$Output       = "docs\ui-stress-results.csv"
 )
+
+# Runs JavaFxStressRunner and NativeStressRunner alternately in fresh JVMs.
+# Every "JX_METRIC key=value" line the runners print becomes a CSV column; process memory
+# (working set, private bytes, handles) is sampled outside the JVM every 10 ms.
 
 $ErrorActionPreference = "Stop"
 [System.Threading.Thread]::CurrentThread.CurrentCulture = [Globalization.CultureInfo]::InvariantCulture
-
-function Get-Metric([string]$Text, [string]$Name) {
-    $m = [regex]::Match($Text, "(?m)^JX_METRIC\s+$([regex]::Escape($Name))=([0-9-]+)\s*$")
-    if ($m.Success) { return [long]$m.Groups[1].Value }
-    return $null
-}
 
 function Invoke-StressCase([string]$Name, [string]$Classpath, [string]$MainClass, [int]$Run) {
     $out = Join-Path $env:TEMP "jxstress-$Name-$Run-out.txt"
@@ -25,88 +25,85 @@ function Invoke-StressCase([string]$Name, [string]$Classpath, [string]$MainClass
 
     $jvmArgs = [System.Collections.Generic.List[string]]::new()
     $jvmArgs.Add("-Djx.stress.refreshCount=$RefreshCount")
+    $jvmArgs.Add("-Djx.sustained.frames=$SustainedFrames")
+    if ($Monitor -ge 0) { $jvmArgs.Add("-Djx.monitor=$Monitor") }
     if ($Name -eq "javafx" -and -not [string]::IsNullOrWhiteSpace($JavaFxModulePath)) {
-        $jvmArgs.Add("--module-path"); $jvmArgs.Add($JavaFxModulePath)
-        $jvmArgs.Add("--add-modules"); $jvmArgs.Add("javafx.controls,javafx.fxml")
+        $jvmArgs.Add("--module-path"); $jvmArgs.Add("`"$JavaFxModulePath`"")
+        $jvmArgs.Add("--add-modules"); $jvmArgs.Add("javafx.controls")
     }
-    $jvmArgs.Add("-cp"); $jvmArgs.Add($Classpath); $jvmArgs.Add($MainClass)
+    $jvmArgs.Add("-cp"); $jvmArgs.Add("`"$Classpath`""); $jvmArgs.Add($MainClass)
 
     $sw   = [System.Diagnostics.Stopwatch]::StartNew()
     $proc = Start-Process -FilePath $JavaPath -ArgumentList $jvmArgs.ToArray() `
                 -RedirectStandardOutput $out -RedirectStandardError $err -PassThru
-
-    $samples = [System.Collections.Generic.List[object]]::new()
+    $peakWs = 0L; $peakPb = 0L; $peakHandles = 0; $sumWs = 0.0; $n = 0
     while (-not $proc.HasExited) {
         try {
             $p = Get-Process -Id $proc.Id -ErrorAction Stop
-            $samples.Add([pscustomobject]@{
-                WorkingSet = $p.WorkingSet64
-                PrivBytes  = $p.PrivateMemorySize64
-            })
+            if ($p.WorkingSet64 -gt 0) {
+                $peakWs = [math]::Max($peakWs, $p.WorkingSet64)
+                $peakPb = [math]::Max($peakPb, $p.PrivateMemorySize64)
+                $peakHandles = [math]::Max($peakHandles, $p.HandleCount)
+                $sumWs += $p.WorkingSet64; $n++
+            }
         } catch {}
         Start-Sleep -Milliseconds 10
     }
     $proc.WaitForExit(); $sw.Stop()
 
-    $txt = if (Test-Path $out) { Get-Content $out -Raw } else { "" }
-    Remove-Item $out, $err -Force -ErrorAction SilentlyContinue
-
-    $posW   = @($samples | Where-Object { $_.WorkingSet -gt 0 })
-    $peakWs = if ($posW.Count) { ($posW | Measure-Object WorkingSet -Maximum).Maximum } else { 0 }
-    $peakPb = if ($posW.Count) { ($posW | Measure-Object PrivBytes  -Maximum).Maximum } else { 0 }
-    $avgWs  = if ($posW.Count) { ($posW | Measure-Object WorkingSet -Average).Average  } else { 0 }
-
-    $labelNs = Get-Metric $txt "stress_label_ns"
-    $btnNs   = Get-Metric $txt "stress_button_ns"
-    $listNs  = Get-Metric $txt "stress_list_ns"
-    $inputNs = Get-Metric $txt "stress_input_ns"
-    $totalNs = Get-Metric $txt "stress_total_ns"
-    $heapD   = Get-Metric $txt "heap_delta_bytes"
-    $cpuNs   = Get-Metric $txt "process_cpu_ns"
-    $threads = Get-Metric $txt "thread_count"
-    $fpNs    = Get-Metric $txt "first_paint_ns"
-    $psNs    = Get-Metric $txt "process_start_ns"
-
-    $startupMs = if ($fpNs -ne $null -and $psNs -ne $null) {
-        [math]::Round(($fpNs - $psNs) / 1e6, 3) } else { $null }
-    $cpuMs = if ($cpuNs -ne $null) { [math]::Round($cpuNs / 1e6, 3) } else { $null }
-
-    return [pscustomobject]@{
-        implementation          = $Name
-        run                     = $Run
-        refresh_count           = $RefreshCount
-        wall_ms                 = [math]::Round($sw.Elapsed.TotalMilliseconds, 3)
-        startup_to_first_paint_ms = $startupMs
-        stress_total_ms         = if ($totalNs -ne $null) { [math]::Round($totalNs / 1e6, 3) } else { $null }
-        label_refresh_ms        = if ($labelNs -ne $null) { [math]::Round($labelNs / 1e6, 3) } else { $null }
-        button_toggle_ms        = if ($btnNs   -ne $null) { [math]::Round($btnNs   / 1e6, 3) } else { $null }
-        list_refresh_ms         = if ($listNs  -ne $null) { [math]::Round($listNs  / 1e6, 3) } else { $null }
-        input_refresh_ms        = if ($inputNs -ne $null) { [math]::Round($inputNs / 1e6, 3) } else { $null }
-        heap_delta_bytes        = $heapD
-        process_cpu_ms          = $cpuMs
-        peak_working_set_bytes  = $peakWs
-        avg_working_set_bytes   = [math]::Round($avgWs, 0)
-        peak_private_bytes      = $peakPb
-        thread_count            = $threads
+    $row = [ordered]@{
+        implementation         = $Name
+        run                    = $Run
+        exit_code              = $proc.ExitCode
+        wall_ms                = [math]::Round($sw.Elapsed.TotalMilliseconds, 1)
+        peak_working_set_bytes = $peakWs
+        avg_working_set_bytes  = if ($n) { [math]::Round($sumWs / $n, 0) } else { 0 }
+        peak_private_bytes     = $peakPb
+        peak_handles           = $peakHandles
     }
+    $txt = if (Test-Path $out) { Get-Content $out -Raw } else { "" }
+    foreach ($m in [regex]::Matches($txt, "(?m)^JX_METRIC\s+(\w+)=(-?[0-9]+)\s*$")) {
+        $row[$m.Groups[1].Value] = [long]$m.Groups[2].Value
+    }
+    if ($row.Contains("first_paint_ns") -and $row.Contains("process_start_ns")) {
+        $row["startup_to_first_paint_ms"] = [math]::Round(($row["first_paint_ns"] - $row["process_start_ns"]) / 1e6, 1)
+    }
+    if (-not $row.Contains("heap_live_after_gc_bytes")) {
+        Write-Warning "$Name run $Run did not finish; stderr: $(Get-Content $err -Raw -ErrorAction SilentlyContinue)"
+    }
+    Remove-Item $out, $err -Force -ErrorAction SilentlyContinue
+    return [pscustomobject]$row
 }
 
 if ([string]::IsNullOrWhiteSpace($JavaFxClasspath)) {
-    throw "Provide -JavaFxClasspath (jxparallel-examples\target\classes + OpenJFX jars)"
+    throw "Provide -JavaFxClasspath (jxparallel-examples\target\classes) and -JavaFxModulePath (OpenJFX jars)"
 }
-
 $nativeCp = $NativeClasspath
 if (-not [string]::IsNullOrWhiteSpace($NativeDependencies)) { $nativeCp += ";$NativeDependencies" }
 
 $results = [System.Collections.Generic.List[object]]::new()
 for ($r = 1; $r -le $Runs; $r++) {
-    Write-Host "[$r/$Runs] JavaFX stress (no JXParallel)..."
+    Write-Host "[$r/$Runs] JavaFX..."
     $results.Add((Invoke-StressCase "javafx" $JavaFxClasspath "com.jxparallel.examples.JavaFxStressRunner" $r))
-
-    Write-Host "[$r/$Runs] JXParallel native stress (no JavaFX)..."
+    Write-Host "[$r/$Runs] JXParallel native..."
     $results.Add((Invoke-StressCase "jxparallel-native" $nativeCp "com.jxparallel.examples.nativeui.NativeStressRunner" $r))
 }
 
-$results | Export-Csv -Path $Output -NoTypeInformation -Encoding UTF8
-$results | Format-Table -AutoSize
-Write-Host "Saved to $Output"
+# Every run gets every column, so Export-Csv does not drop late keys.
+$columns = $results | ForEach-Object { $_.PSObject.Properties.Name } | Select-Object -Unique
+$results | Select-Object $columns | Export-Csv -Path $Output -NoTypeInformation -Encoding UTF8
+
+# Median per metric per implementation.
+$summary = foreach ($column in $columns | Where-Object { $_ -notin "implementation", "run" }) {
+    $line = [ordered]@{ metric = $column }
+    foreach ($impl in "javafx", "jxparallel-native") {
+        $values = @($results | Where-Object implementation -eq $impl | ForEach-Object { $_.$column } |
+                    Where-Object { $_ -ne $null } | Sort-Object)
+        $line[$impl] = if ($values.Count) { $values[[int][math]::Floor(($values.Count - 1) / 2)] } else { $null }
+    }
+    [pscustomobject]$line
+}
+$summaryPath = [IO.Path]::ChangeExtension($Output, $null).TrimEnd('.') + "-median.csv"
+$summary | Export-Csv -Path $summaryPath -NoTypeInformation -Encoding UTF8
+$summary | Format-Table -AutoSize
+Write-Host "Saved $Output and $summaryPath"

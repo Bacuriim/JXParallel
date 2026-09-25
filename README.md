@@ -1,592 +1,585 @@
-# JXParallel
+<p align="center">
+  <img src="docs/assets/jxparallel-banner.png" alt="JXParallel" width="820">
+</p>
 
-## JavaFX-compatible runtime for safer parallel work
+<p align="center">
+  <a href="https://github.com/Bacuriim/JXParallel/actions/workflows/build.yml"><img src="https://github.com/Bacuriim/JXParallel/actions/workflows/build.yml/badge.svg" alt="Build"></a>
+  <img src="https://img.shields.io/badge/Java-8%20%E2%86%92%2025-C20E29" alt="Java 8 to 25">
+  <img src="https://img.shields.io/badge/arch-x86%20%7C%20x64-C20E29" alt="x86 and x64">
+  <a href="LICENSE"><img src="https://img.shields.io/badge/license-MIT-C20E29" alt="MIT license"></a>
+</p>
 
-> **Same API. Same concepts. Better internals.**
+**JXParallel** is a Java UI runtime for applications that outgrew the single JavaFX
+Application Thread. You can adopt it one step at a time: keep your JavaFX application and move
+background work and FXML loading onto a bounded worker pool, or write new screens on the
+native JXParallel UI, which draws with Skia or NanoVG on OpenGL and does not depend on JavaFX.
 
-JXParallel is an open-source, modular runtime for Java and JavaFX applications. It provides
-bounded background execution, adaptive worker management, explicit JavaFX-thread dispatch,
-lightweight properties and events, configurable FXML caching, and JavaFX-compatible controls.
+| Measured against JavaFX (medians of 5 runs, [details](#performance)) | JavaFX | JXParallel |
+|---|---:|---:|
+| Load 20 FXML screens with controllers (warm) | 692 ms | **31 ms** |
+| Open one FXML screen with its controller (warm) | 40.7 ms | **7.8 ms** |
+| FX thread blocked while loading those screens (cold) | 1163 ms | **0 ms** |
+| CPU per frame, 600 animated frames, Java 17 x64 | 10.4 ms | **2.9 ms** |
+| CPU per frame, 600 animated frames, Java 8 x86 | 4.1 ms | **1.4 ms** |
+| Peak RAM of the same UI test, Java 17 x64 | 249.9 MB | **154.2 MB** |
 
-The project is designed for teams that already know JavaFX and want to introduce safer
-concurrency and resource management without replacing the development model they already use.
+> **Status: pre-1.0.** The scheduler, properties, events and FXML loading are tested and usable.
+> The native UI covers basic controls and layouts; CSS, virtualized lists and tables, and full
+> accessibility are not implemented yet. See [project status](#project-status).
 
-> **Migration status:** the new native UI foundation is independent of JavaFX, but the complete
-> control, input, CSS, accessibility, and animation refactor is still in progress. Existing
-> JavaFX-backed controls are legacy code and are not part of the native runtime.
+## Contents
 
-## Why JXParallel?
+- [Why JXParallel](#why-jxparallel)
+- [Adopting it step by step](#adopting-it-step-by-step)
+- [JavaFX vs JXParallel, side by side](#javafx-vs-jxparallel-side-by-side)
+- [How it works](#how-it-works)
+- [Performance](#performance)
+- [Installation](#installation)
+- [Configuration](#configuration)
+- [Platform support](#platform-support)
+- [Modules](#modules)
+- [Project status](#project-status)
+- [Documentation](#documentation)
 
-JavaFX applications commonly need to coordinate two different execution domains:
+## Why JXParallel
 
-```text
-Background work
-      |
-      v
-JXParallel bounded scheduler
-      |
-      v
-JXFxDispatcher
-      |
-      v
-One JavaFX Application Thread
-      |
-      v
-Scene Graph
+Large JavaFX applications tend to hit the same three limits:
+
+| Problem in JavaFX | What JXParallel does |
+|---|---|
+| Every `FXMLLoader.load` runs on the FX thread, so opening a module with many screens freezes the UI. | Loads FXML views and controllers on a worker pool, in parallel, while the FX thread keeps painting. |
+| Background work means `new Thread(task)` or an unbounded executor per feature; under load, threads and queues grow without limit. | One bounded, prioritized worker pool with explicit backpressure (`BLOCK`, `REJECT`, `DISCARD`, `DISCARD_OLDEST`), timeouts and cancellation. |
+| The scene graph, CSS engine and skins cost memory and CPU on every frame, and the toolkit is tied to the JavaFX release you can ship. | A native scene graph drawn with Skia (64-bit) or NanoVG (32-bit) on OpenGL, with fewer classes, less allocation and no JavaFX dependency. |
+
+## Adopting it step by step
+
+You do not need to rewrite anything to start. Each level is independent and can stay in place
+for as long as you need.
+
+```mermaid
+flowchart LR
+    A["Existing JavaFX app"] --> L1
+    subgraph L1 ["Level 1: background work"]
+        direction TB
+        L1a["Add jxparallel-core"] --> L1b["Replace new Thread / Task<br/>with JXParallel.background"]
+    end
+    L1 --> L2
+    subgraph L2 ["Level 2: FXML loading"]
+        direction TB
+        L2a["Add jxparallel-fxml"] --> L2b["Replace FXMLLoader.load<br/>with FXMLLoaderService.loadAsync"]
+    end
+    L2 --> L3
+    subgraph L3 ["Level 3: native UI"]
+        direction TB
+        L3a["Add jxparallel-ui"] --> L3b["Write new screens with JXWindow<br/>(no JavaFX needed)"]
+    end
 ```
 
-The native JXParallel UI does not create JavaFX Application Threads. It parallelizes work that
-can run away from the native scene graph and makes rendering invalidation explicit.
+| Level | What changes in your code | JavaFX still required |
+|---|---|---|
+| 1. Background work | One `JXParallel.start()` at startup and one `shutdownNow()` at exit. Each `Task` plus `new Thread` becomes `JXParallel.background(...)` plus `JXParallelFx.ui(...)`. Controllers, FXML and CSS stay the same. | Yes |
+| 2. FXML loading | Each `FXMLLoader.load(url)` becomes `loader.loadAsync(path)` and the result is attached on the FX thread. FXML files and controllers stay the same. | Yes |
+| 3. Native UI | New screens use `JXWindow` and the `com.jxparallel.ui` controls. Existing JavaFX screens keep working next to them. | No, for native screens |
 
-JavaFX integration is now a separate legacy compatibility module. It is not required by
-`jxparallel-core` or the new `jxparallel-ui` module.
+## JavaFX vs JXParallel, side by side
 
-## Features
+### Level 1: background work in an existing JavaFX screen
 
-- JavaFX-inspired task, property, event, collection, and control APIs
-- bounded priority queue with backpressure
-- dirty-layout caching and bounded resource memory
-- shared animation scheduling instead of one thread per animation manager
-- `BLOCK`, `REJECT`, `DISCARD`, and `DISCARD_OLDEST` queue policies
-- configurable minimum and maximum worker counts
-- cancellation tokens and enforced task timeouts
-- lifecycle operations: `start`, `shutdown`, `shutdownNow`, and restart after shutdown
-- optional runtime metrics with zero counter updates when disabled
-- safe property binding lifecycle with `unbind()`
-- stable snapshots for concurrent observable-list consumers
-- JavaFX dispatcher that fails explicitly when the toolkit is unavailable
-- asynchronous FXML loading with `NONE`, `LRU`, `TTL`, and `LRU_TTL` cache strategies
-- independent Skia scene foundation through Skija, hosted by AWT
-- optional experimental LWJGL/OpenGL backend
-- independent native window lifecycle
-- native declarative layouts and initial controls
-- optional modern variants, density, focus, hover, and fade-in styling
-- independent experimental declarative UI model
-- JUnit 4, JUnit 5, Mockito, PowerMock, JMH, and example modules
+The same "load, then update the label" action. The JavaFX version creates one thread per click;
+the JXParallel version reuses the bounded pool. Taken from
+[`TraditionalJavaFxApp`](jxparallel-examples/src/main/java/com/jxparallel/examples/TraditionalJavaFxApp.java)
+and [`JXParallelJavaFxApp`](jxparallel-examples/src/main/java/com/jxparallel/examples/JXParallelJavaFxApp.java).
 
-## Project status
-
-| Area | Status |
-|---|---|
-| Core scheduler and lifecycle | Stable foundation |
-| Properties, events, and collections | Implemented and tested |
-| JavaFX dispatcher | Implemented; toolkit integration remains platform-dependent |
-| JavaFX-compatible controls | `PARTIAL` |
-| FXML loader and cache | `EXPERIMENTAL` |
-| Modern visual layer | Implemented as an additive JavaFX layer |
-| Independent Skia renderer | `EXPERIMENTAL` |
-| Full accessibility and CSS replacement | Not implemented |
-| Production-scale stress and leak suites | Planned |
-
-The project prioritizes compatibility and correctness before micro-optimizations.
-
-Scalability is implemented through bounded queues, lazy work, cached layout measurements,
-bounded resource memory, stable snapshots, and shared schedulers. It is not based on creating
-unbounded threads or retaining unlimited scene data.
-
-## Quick start
-
-### Background work and UI dispatch
+<table>
+<tr><th>JavaFX</th><th>JXParallel</th></tr>
+<tr>
+<td>
 
 ```java
-import com.jxparallel.core.JXParallel;
-import com.jxparallel.javafx.JXFxDispatcher;
+Task<String> task = new Task<String>() {
+    @Override
+    protected String call() throws Exception {
+        return service.greet(name);
+    }
+};
+task.setOnSucceeded(e -> {
+    status.setText(task.getValue());
+    button.setDisable(false);
+});
+task.setOnFailed(e -> {
+    status.setText("Unable to complete");
+    button.setDisable(false);
+});
+Thread worker = new Thread(task);
+worker.setDaemon(true);
+worker.start();
+```
 
-JXParallel.start();
+</td>
+<td>
 
-JXParallel.background(() -> repository.loadCustomers())
-    .thenAccept(customers ->
-        JXFxDispatcher.runLater(() -> table.setItems(customers))
-    )
+```java
+JXParallel.background(() -> service.greet(name))
+    .thenAccept(value -> JXParallelFx.ui(() -> {
+        status.setText(value);
+        button.setDisable(false);
+    }))
     .exceptionally(error -> {
-        JXFxDispatcher.runLater(() -> showError(error));
+        JXParallelFx.ui(() -> {
+            status.setText("Unable to complete");
+            button.setDisable(false);
+        });
         return null;
     });
 ```
 
-The rule is simple:
+</td>
+</tr>
+</table>
+
+What you add once, in the `Application` class:
+
+```diff
+  public static void main(String[] args) {
++     JXParallel.start();
+      launch(args);
+  }
+
+  @Override
+  public void stop() {
++     JXParallel.shutdownNow();
+  }
+```
+
+The rule for the rest of the code:
 
 ```text
-I/O, parsing, computation      -> JXParallel.background(...)
-Scene graph mutation            -> JXFxDispatcher.runLater(...)
+I/O, parsing, computation   ->  JXParallel.background(...)
+Scene graph changes         ->  JXParallelFx.ui(...)   (Platform.runLater semantics)
 ```
 
-### Native control model
+Timeouts, priorities and cancellation are available when you need them:
 
 ```java
-JXButton save = new JXButton("Save");
-save.setOnAction(() -> saveDocument());
-
-JXWindow window = new JXWindow("Editor");
-JXPane content = new JXPane(12);
-content.add(save);
-window.setContent(content.render());
-window.show();
-```
-
-The native model is independent of JavaFX. The JavaFX-like surface is being rebuilt on top of
-native state rather than wrapping JavaFX controls.
-
-```java
-JXElement.of("button",
-    JXProps.builder()
-        .set("label", "Continue")
-        .set("disabled", true)
-        .build());
-```
-
-### Properties and binding lifecycle
-
-```java
-JXProperty<String> source = new JXProperty<>("initial");
-JXProperty<String> target = new JXProperty<>();
-
-target.bind(source);
-source.set("updated");
-
-// Release the listener when the view/controller is disposed.
-target.unbind();
-```
-
-### Enforced timeout and cancellation
-
-```java
-Task<String> task = Task.of(() -> remoteService.fetch())
+Task.of(() -> remoteService.fetch())
     .withTimeout(5, TimeUnit.SECONDS)
-    .withPriority(TaskPriority.HIGH);
-
-task.submit()
-    .thenAccept(this::renderResult)
-    .exceptionally(this::renderFailure);
+    .withPriority(TaskPriority.HIGH)
+    .submit()
+    .thenAccept(result -> JXParallelFx.ui(() -> render(result)));
 ```
 
-Timeout completion is exceptional and interrupts the active worker. Task code should still
-cooperate with interruption and release its own resources.
+### Level 2: FXML loading in an existing application
 
-## Backpressure configuration
+Same FXML files, same controllers. Only the loading call changes.
+
+<table>
+<tr><th>JavaFX: loads on the FX thread, one after another</th><th>JXParallel: loads on the worker pool</th></tr>
+<tr>
+<td>
 
 ```java
-JXParallelConfig config = JXParallelConfig.builder()
+// UI is frozen until every view is built
+Parent customers = FXMLLoader.load(
+    getClass().getResource("/views/customers.fxml"));
+Parent orders = FXMLLoader.load(
+    getClass().getResource("/views/orders.fxml"));
+Parent reports = FXMLLoader.load(
+    getClass().getResource("/views/reports.fxml"));
+
+tabs.getTabs().get(0).setContent(customers);
+```
+
+</td>
+<td>
+
+```java
+FXMLLoaderService loader = new FXMLLoaderService();
+
+// 1. The screen the user opened, alone: ready first
+loader.loadAsync("/views/customers.fxml")
+    .thenAccept(view -> JXParallelFx.ui(
+        () -> tabs.getTabs().get(0).setContent(view)));
+
+// 2. The others, in parallel, in the background
+loader.loadAsync("/views/orders.fxml");
+loader.loadAsync("/views/reports.fxml");
+```
+
+</td>
+</tr>
+</table>
+
+Load the screen the user is waiting for first, then preload the rest, so the first one does not
+compete for cores with the others. After the first load, each file is kept as a pre-parsed
+template: later loads skip XML parsing and reflective lookups. Measured on 20 form screens: one
+screen in 7.8 ms instead of 40.7 ms, all 20 in 31 ms instead of 692 ms (warm).
+
+### Level 3: a native screen, no JavaFX
+
+For new modules. The model is component-based: you change state, then push the new tree to the
+window.
+
+<table>
+<tr><th>JavaFX</th><th>JXParallel native</th></tr>
+<tr>
+<td>
+
+```java
+public class Editor extends Application {
+    @Override
+    public void start(Stage stage) {
+        Label title = new Label("Customers");
+        Button save = new Button("Save");
+        save.setOnAction(e -> saveDocument());
+
+        VBox root = new VBox(12, title, save);
+        stage.setScene(new Scene(root));
+        stage.show();
+    }
+}
+```
+
+</td>
+<td>
+
+```java
+public class Editor {
+    public static void main(String[] args) {
+        JXLabel title = new JXLabel("Customers");
+        JXButton save = new JXButton("Save");
+        save.setOnAction(() -> saveDocument());
+
+        JXPane root = new JXPane(12);
+        root.add(title);
+        root.add(save);
+
+        JXWindow window = new JXWindow("Editor");
+        window.setContent(root.render());
+        window.show();
+    }
+}
+```
+
+</td>
+</tr>
+</table>
+
+Updating the UI from background work:
+
+```java
+JXParallel.background(() -> repository.count())
+    .thenAccept(count -> window.invokeLater(() -> {
+        title.setText(count + " customers");
+        window.setContent(root.render());
+    }));
+```
+
+The window picks its renderer by itself: Skia on 64-bit JVMs, NanoVG on 32-bit JVMs.
+`-Djx.renderer=skia|nanovg` forces one and `-Djx.monitor=N` opens the window on another monitor.
+
+### Tests
+
+```java
+@ExtendWith(JXParallelJUnit5Extension.class)   // starts and stops the pool per test
+class CustomerServiceTest { ... }
+```
+
+JUnit 4 (`JXParallelJUnit4Rule`), Mockito and PowerMock helpers are also available.
+
+## How it works
+
+### Threading model
+
+```mermaid
+sequenceDiagram
+    autonumber
+    participant UI as UI thread<br/>(FX thread or JXWindow)
+    participant Pool as JXParallel worker pool<br/>(bounded, prioritized)
+    participant IO as Database / network / disk
+
+    UI->>Pool: JXParallel.background(task)
+    Note over UI: keeps rendering and handling input
+    Pool->>IO: query / read / parse
+    IO-->>Pool: result
+    Pool-->>UI: JXParallelFx.ui(...) or window.invokeLater(...)
+    UI->>UI: update controls, repaint
+```
+
+The pool grows from `threads.min` up to `threads.max` under load and lets idle workers expire.
+When the queue is full, the configured policy decides whether the caller waits, fails fast or
+drops work, so a burst of requests cannot exhaust memory.
+
+### Parallel FXML loading
+
+```mermaid
+sequenceDiagram
+    participant FX as FX thread
+    participant W1 as Worker 1
+    participant W2 as Worker 2..8
+
+    FX->>W1: loadAsync("customers.fxml")
+    Note over FX: stays responsive
+    W1-->>FX: Parent + controller ready
+    FX->>FX: attach to the scene
+    FX->>W2: loadAsync(other screens)
+    W2-->>FX: ready for instant navigation
+```
+
+`FXMLLoaderService` builds a new `Parent` and a new controller for every load. Views are never
+shared between scene graphs.
+
+### Native rendering
+
+```mermaid
+flowchart TD
+    C["Components<br/>JXLabel, JXButton, JXPane..."] -->|"render()"| E["JXElement tree<br/>(immutable description)"]
+    E -->|"setContent()"| N["JXNativeNode tree<br/>layout: preferred size, like HBox/VBox"]
+    N --> D{"JVM data model"}
+    D -->|64-bit| S["Skia (Skija)<br/>GPU canvas"]
+    D -->|"32-bit, Java 8 to 17"| V["NanoVG<br/>OpenGL 3"]
+    S --> G["GLFW window + OpenGL context (LWJGL)"]
+    V --> G
+```
+
+Skija publishes no 32-bit native libraries, so 32-bit JVMs use NanoVG. Both renderers draw the
+same shapes, colors and sizes:
+
+<p align="center"><img src="docs/assets/renderers-nanovg-vs-skia.png" alt="NanoVG on Java 8 32-bit and Skia on Java 17 64-bit" width="560"></p>
+
+## Performance
+
+All numbers: Windows 11, Intel Core i7-1255U (12 threads), each implementation in a fresh JVM,
+5 runs alternating JavaFX and JXParallel, medians. Method, raw CSVs and limitations are in the
+linked reports.
+
+### UI stress: 4 components, 500 updates each, then 600 animated frames
+
+| Metric | JavaFX 8 x86 | JXParallel NanoVG x86 | JavaFX 21 x64 | JXParallel Skia x64 |
+|---|---:|---:|---:|---:|
+| JVM start to first frame | 855 ms | **761 ms** | 1568 ms | **888 ms** |
+| Peak working set | 97.4 MB | **89.5 MB** | 249.9 MB | **154.2 MB** |
+| Heap live after GC | 7.6 MB | **2.1 MB** | 10.6 MB | **2.1 MB** |
+| CPU per frame | 4.1 ms | **1.4 ms** | 10.4 ms | **2.9 ms** |
+| Allocation over 600 frames | 24.5 MB | **3.5 MB** | 34.1 MB | **4.8 MB** |
+| Worst frame | 31.1 ms | **23.6 ms** | 56.9 ms | **13.1 ms** |
+| 500 label updates, warm | 2.57 ms | **0.93 ms** | 3.34 ms | **2.59 ms** |
+| 500 label updates, cold JIT | 11.4 ms | **10.3 ms** | **10.3 ms** | 10.7 ms |
+| Frames per second | 118.3 | 119.3 | 118.4 | 120.3 |
+
+```mermaid
+xychart-beta
+    title "CPU per animated frame, ms (lower is better)"
+    x-axis ["JavaFX 8 x86", "JXParallel x86", "JavaFX 21 x64", "JXParallel x64"]
+    y-axis "ms" 0 --> 12
+    bar [4.1, 1.4, 10.4, 2.9]
+```
+
+x86 columns: 10 runs; x64: 5 runs; after the incremental-update changes. "Cold JIT" is the
+first update phase of each run. Report: [ui-comparison-2026-09-25.md](docs/ui-comparison-2026-09-25.md).
+
+### FXML: 20 form screens with controllers
+
+| Metric | JavaFX `FXMLLoader` | JXParallel `FXMLLoaderService` |
+|---|---:|---:|
+| 20 screens, cold JVM | 1467 ms | **538 ms** |
+| 20 screens, warm | 692 ms | **31 ms** |
+| One screen, warm | 40.7 ms | **7.8 ms** |
+| Allocated per warm pass | 223.5 MB | **9.8 MB** |
+| FX thread blocked (cold) | 1467 ms | **0 ms** |
+| Peak working set | 330 MB | **322 MB** |
+
+```mermaid
+xychart-beta
+    title "Load 20 FXML screens, warm, ms (lower is better)"
+    x-axis ["JavaFX FXMLLoader", "JXParallel loadAsync"]
+    y-axis "ms" 0 --> 700
+    bar [692, 31]
+```
+
+Report: [fxml-load-comparison.md](docs/fxml-load-comparison.md).
+
+### Where JXParallel is not ahead yet
+
+- **JavaFX draws more.** CSS, skins, LCD text and a real `ListView` cost JavaFX memory and CPU
+  that the native renderer does not spend yet. Part of every gap above comes from that.
+- **The first load of each FXML file allocates more** (+30%): that is when the template is parsed.
+- **FXML templates cover the common subset.** `fx:include`, `fx:define`, expressions, `%resources`
+  and scripts fall back to `FXMLLoader`, so those files only get the parallel-loading gain.
+
+<details>
+<summary>Scheduler micro-benchmark and earlier measurements</summary>
+
+`RuntimeComparisonRunner` compares the adaptive pool with `ForkJoinPool.commonPool()`
+(Java 17, same machine):
+
+| Scenario | Implementation | Iterations | Total time | Heap delta |
+|---|---|---:|---:|---:|
+| Sequential | `ForkJoinPool` | 1,000 | **29.7 ms** | 462 KB |
+| Sequential | JXParallel pool | 1,000 | 57.1 ms | **250 KB** |
+| Burst | `ForkJoinPool` | 64 | **36.3 ms** | 287 KB |
+| Burst | JXParallel pool | 64 | 48.5 ms | **77 KB** |
+
+`ForkJoinPool` dispatches trivial tasks faster; the bounded pool trades microseconds for
+backpressure, priorities and lower allocation.
+
+```powershell
+mvn -pl jxparallel-benchmarks,jxparallel-core -am compile
+java -cp "jxparallel-benchmarks\target\classes;jxparallel-core\target\classes" com.jxparallel.benchmarks.RuntimeComparisonRunner
+```
+
+Earlier reports (2026-09-22, when the native side drew into an AWT window):
+[UI performance](docs/ui-performance-2026-09-22.md),
+[Java 8 32-bit](docs/java8-32bit-comparison.md),
+[methodology](docs/ui-performance-measurement.md).
+The first UI stress report from that day was withdrawn: its native runner never pushed changes
+to the renderer. See the [development log](docs/tcc/diario-de-desenvolvimento.md).
+
+</details>
+
+## Installation
+
+JXParallel is not on Maven Central yet. Build and install it locally:
+
+```powershell
+git clone https://github.com/Bacuriim/JXParallel.git
+cd JXParallel
+mvn install -DskipTests
+```
+
+Then add the modules you need:
+
+```xml
+<!-- Level 1: worker pool, tasks, properties, events -->
+<dependency>
+    <groupId>com.jxparallel</groupId>
+    <artifactId>jxparallel-core</artifactId>
+    <version>0.1.0-SNAPSHOT</version>
+</dependency>
+
+<!-- Level 1 and 2 in a JavaFX app: FX dispatch, parallel FXML (build with -Plegacy-javafx) -->
+<dependency>
+    <groupId>com.jxparallel</groupId>
+    <artifactId>jxparallel-fxml</artifactId>
+    <version>0.1.0-SNAPSHOT</version>
+</dependency>
+
+<!-- Level 3: native UI, no JavaFX -->
+<dependency>
+    <groupId>com.jxparallel</groupId>
+    <artifactId>jxparallel-ui</artifactId>
+    <version>0.1.0-SNAPSHOT</version>
+</dependency>
+```
+
+`jxparallel-ui` brings the LWJGL natives for the platform Maven runs on (Windows x64/x86,
+Linux x64) and Skija on 64-bit.
+
+## Configuration
+
+In code:
+
+```java
+JXParallel.applyConfiguration(JXParallelConfig.builder()
     .minThreads(2)
     .maxThreads(8)
     .autoScale(true)
     .queueCapacity(500)
     .queuePolicy(QueuePolicy.BLOCK)
-    .metricsEnabled(true)
-    .build();
-
-JXParallel.applyConfiguration(config);
+    .build());
 ```
 
-Equivalent `jx-parallel.config`:
+Or in `jx-parallel.config` next to the application:
 
 ```properties
 threads.min=2
 threads.max=8
 threads.auto-scale=true
-threads.daemon=true
 queue.capacity=500
 queue.policy=BLOCK
-metrics.enabled=true
-debug=false
-```
-
-Configuration precedence:
-
-```text
-built-in defaults
-    < jx-parallel.config
-    < environment variables
-    < Java system properties
-    < programmatic configuration
-```
-
-Queue policies:
-
-| Policy | Behavior |
-|---|---|
-| `BLOCK` | waits for worker or queue capacity |
-| `REJECT` | completes the new future exceptionally |
-| `DISCARD` | cancels the new task without executing it |
-| `DISCARD_OLDEST` | removes the oldest queued task and accepts the new one when possible |
-
-## FXML cache
-
-JXParallel caches resource bytes rather than sharing `Node` instances between scene graphs:
-
-```java
-FXMLLoaderService loader = new FXMLLoaderService();
-
-loader.loadAsync("/views/home.fxml")
-    .thenAccept(root -> JXFxDispatcher.runLater(() -> scene.setRoot(root)));
-```
-
-Supported strategies:
-
-```properties
 fxml.cache.enabled=true
 fxml.cache.strategy=LRU
-fxml.cache.max-size=100
-fxml.cache.ttl=30m
 ```
 
-Each load creates a new UI instance. Controllers and mutable scene-graph state are not shared
-through the resource cache.
+Precedence, lowest to highest: built-in defaults, `jx-parallel.config`, environment variables,
+Java system properties (`-Dthreads.max=12`), programmatic configuration.
 
-## Performance snapshot
+| Queue policy | When the queue is full |
+|---|---|
+| `BLOCK` | the caller waits for a free slot |
+| `REJECT` | the returned future fails with `RejectedExecutionException` |
+| `DISCARD` | the new task is cancelled without running |
+| `DISCARD_OLDEST` | the oldest queued task is cancelled to make room |
 
-Performance claims must be tied to a specific JDK, JavaFX runtime, architecture, display, and
-workload. The following data is a real Windows Java 21 GUI comparison, not a universal benchmark.
+Full reference: [configuration.md](docs/configuration.md).
 
-### Equivalent JavaFX versus native Skia workload
+## Platform support
 
-Environment:
+| JVM | Architecture | Native UI renderer | Window opened and measured | CI (unit tests) |
+|---|---|---|---|---|
+| Java 8 | x86 | NanoVG | yes | Windows, core and UI |
+| Java 8 | x64 | Skia | not yet | Ubuntu, core |
+| Java 11 | x64 | Skia | not yet | Ubuntu |
+| Java 17 | x64 | Skia | yes | Ubuntu, Windows |
+| Java 17 | x86 | NanoVG | not yet | Windows |
+| Java 21 | x64 | Skia | not yet | Ubuntu |
+| Java 25 | x64 | Skia | not yet | Windows |
 
-```text
-JDK:       Java 21.0.8 x64
-JavaFX:    OpenJFX 21.0.2
-OS:        Windows
-Runs:      5 independent process runs per implementation
-Components: TextField/input, Button, Label, VBox/JXPane
-Flow:      create UI -> first paint -> action -> wait 350 ms -> update label
-```
-
-```mermaid
-xychart-beta
-    title "Startup to first paint (lower is better)"
-    x-axis ["JavaFX", "JXParallel native"]
-    y-axis "milliseconds" 0 --> 400
-    bar [312.404, 396.723]
-```
-
-```mermaid
-xychart-beta
-    title "Interaction completion (lower is better)"
-    x-axis ["JavaFX", "JXParallel native"]
-    y-axis "milliseconds" 0 --> 400
-    bar [353.486, 364.305]
-```
-
-```mermaid
-xychart-beta
-    title "Process CPU time (lower is better)"
-    x-axis ["JavaFX", "JXParallel native"]
-    y-axis "milliseconds" 0 --> 900
-    bar [750.000, 468.750]
-```
-
-```mermaid
-xychart-beta
-    title "Peak resident RAM (lower is better)"
-    x-axis ["JavaFX", "JXParallel native"]
-    y-axis "megabytes" 0 --> 12
-    bar [10.01, 10.04]
-```
-
-| Metric | JavaFX | JXParallel native | Difference |
-|---|---:|---:|---:|
-| Startup to first paint | 312.404 ms | 396.723 ms | JXParallel +27.0% |
-| Interaction completion | 353.486 ms | 364.305 ms | JXParallel +3.1% |
-| Process CPU time | 750.000 ms | 468.750 ms | JXParallel -37.5% |
-| Normalized CPU | 3.261% | 2.309% | JXParallel -29.2% |
-| Peak working set / resident RAM | 10.01 MB | 10.04 MB | effectively equal |
-| Peak private memory | 1.74 MB | 1.96 MB | JXParallel +12.6% |
-| Java heap delta | 7.19 MB | 10.15 MB | JXParallel +41.2% |
-| Thread-count delta | +2 | +6 | different toolkit lifecycle |
-
-Interpretation: in this controlled Skija workload, JavaFX reached the first paint about 27.0%
-faster, while JXParallel native used about 37.5% less process CPU. Resident RAM was effectively
-equal, but Skija showed higher private memory and heap delta. Interaction completion remained
-close because both applications executed the same 350 ms background operation. These results are
-workload- and machine-specific, not a universal performance claim.
-
-More measurements and limitations:
-
-- [UI performance report](docs/ui-performance-2026-09-22.md)
-- [UI measurement methodology](docs/ui-performance-measurement.md)
-- [Raw UI data](docs/ui-metrics-2026-09-22.csv)
-- [Raw Skija UI data](docs/ui-metrics-skia-2026-09-22.csv)
-- [Benchmark methodology](docs/metrics-comparison.md)
-
-### Runtime benchmark direction
-
-The benchmark module measures scheduler completion, task queuing, CPU, wall time,
-and observed heap delta:
-
-```powershell
-mvn -pl jxparallel-benchmarks,jxparallel-core -am compile
-java -cp "jxparallel-benchmarks\target\classes;jxparallel-core\target\classes" `
-  com.jxparallel.benchmarks.RuntimeComparisonRunner
-```
-
-#### Recalculated benchmark results (post-optimizations)
-
-Measured on Windows 11 (12th Gen Intel Core i7-1255U, 12 threads, Java 17):
-
-| Scenario | Implementation | Iterations | Total time | Avg task latency | Process CPU | Heap delta |
-|---|---|---:|---:|---:|---:|---:|
-| Sequential throughput | Traditional `ForkJoinPool` | 1,000 | 29.665 ms | 29.665 µs | 31.250 ms | 473,312 B (~462 KB) |
-| Sequential throughput | `JXParallel` adaptive pool | 1,000 | 57.120 ms | 57.120 µs | 62.500 ms | **255,608 B (~250 KB)** |
-| Concurrent burst | Traditional `ForkJoinPool` | 64 | 36.303 ms | 567.236 µs | 0.000 ms | 293,616 B (~287 KB) |
-| Concurrent burst | `JXParallel` adaptive pool | 64 | 48.455 ms | 757.103 µs | 0.000 ms | **78,576 B (~77 KB)** |
-
-> **Key takeaway**: In high-concurrency burst conditions, `JXParallel` reduced heap allocations by **73.2%** (78 KB vs 293 KB) and sequential allocations by **46.0%** due to unfair semaphore handoffs, task wrapper reuse, and zero-allocation metadata props.
-
-#### Understanding the Scheduler Trade-off: Latency vs Memory & Safety
-
-The benchmark compares the internal `AdaptiveWorkerPool` against the JVM's default `ForkJoinPool.commonPool()` (used by `CompletableFuture.supplyAsync()`):
-
-1. **Why `ForkJoinPool` shows lower dispatch latency on trivial tasks**:
-   - `ForkJoinPool` is deeply integrated with the HotSpot JVM runtime, using raw intrinsic memory operations (Unsafe/VarHandles) and unbounded work-stealing queues without backpressure checks.
-   - For micro-tasks completing in nanoseconds (such as `() -> 42`), the measurement captures almost purely the queue handoff cost.
-2. **Why `JXParallel` intentionally trades a few microseconds for memory control**:
-   - **Bounded Queues & Backpressure**: Unlike `ForkJoinPool.commonPool()`, which accepts unbounded tasks until risking `OutOfMemoryError`, `JXParallel` enforces explicit capacity constraints, overflow rejection policies (`BLOCK`, `REJECT`, `DISCARD`), and priority ordering to prevent starving the UI thread.
-   - **Drastic GC Churn Reduction**: By avoiding unbounded queue node allocations, `JXParallel` cuts heap allocation by **46.0%** in sequential workloads and by **73.2%** during concurrent task bursts (saving ~215 KB per 64-task spike). On long-running desktop apps or memory-constrained 32-bit JVMs, this directly translates to fewer Stop-The-World GC pauses.
-
-Do not use a single benchmark run to claim general superiority. The workload and configuration
-must match the application being optimized.
-
-### UI stress load test — JavaFX vs JXParallel native
-
-This test measures **usability stress**: 500 rapid refreshes per component (label update,
-button toggle, list swap, text field reset) performed on the UI thread without pauses — the
-pattern seen in live data feeds, dashboards, and reactive forms.
-
-Two isolated processes. No shared code at runtime:
-
-- **JavaFX**: `JavaFxStressRunner` — only `javafx.*`, zero JXParallel dependency.
-- **JXParallel native**: `NativeStressRunner` — only `com.jxparallel.*`, zero JavaFX dependency.
-
-Environment: Java 21.0.8 x64, OpenJFX 21.0.2, Windows, 5 independent runs.
-
-```mermaid
-xychart-beta
-    title "Stress total — 500 refreshes x 4 components (ms, median, lower is better)"
-    x-axis ["JavaFX", "JXParallel native"]
-    y-axis "milliseconds" 0 --> 550
-    bar [483.9, 290.2]
-```
-
-```mermaid
-xychart-beta
-    title "Label refresh 500x setText (ms, median, lower is better)"
-    x-axis ["JavaFX", "JXParallel native"]
-    y-axis "milliseconds" 0 --> 16
-    bar [13.0, 3.3]
-```
-
-```mermaid
-xychart-beta
-    title "ListView full-swap 500x (ms, median, lower is better)"
-    x-axis ["JavaFX", "JXParallel native"]
-    y-axis "milliseconds" 0 --> 450
-    bar [417.0, 270.5]
-```
-
-```mermaid
-xychart-beta
-    title "Process CPU — stress run (ms, median, lower is better)"
-    x-axis ["JavaFX", "JXParallel native"]
-    y-axis "milliseconds" 0 --> 1000
-    bar [812.5, 453.1]
-```
-
-```mermaid
-xychart-beta
-    title "Java heap delta — stress run (MB, median, lower is better)"
-    x-axis ["JavaFX", "JXParallel native"]
-    y-axis "megabytes" 0 --> 12
-    bar [8.68, 3.99]
-```
-
-| Metric | JavaFX | JXParallel native | Difference |
-|---|---:|---:|---:|
-| Stress total time | 483.9 ms | 290.2 ms | **JXParallel −40.0%** |
-| Label refresh 500× | 13.0 ms | 3.3 ms | **JXParallel −74.6%** |
-| Button toggle 500× | 18.9 ms | 4.8 ms | **JXParallel −74.6%** |
-| ListView swap 500× | 417.0 ms | 270.5 ms | **JXParallel −35.1%** |
-| TextField refresh 500× | 34.8 ms | 11.6 ms | **JXParallel −66.7%** |
-| Process CPU | 812.5 ms | 453.1 ms | **JXParallel −44.2%** |
-| Java heap delta | 8.68 MB | 3.99 MB | **JXParallel −54.0%** |
-| Peak working set | 142.4 MB | 144.1 MB | Effectively equal |
-
-**Why is state update faster in JXParallel?** JavaFX propagates each `setText()` or
-`setDisable()` through an `ObservableValue` chain (`StringProperty` → skin → CSS
-pseudo-class invalidation → layout pulse). JXParallel native writes a field and raises a
-single `renderRequested` flag — no property listener cascade, no CSS engine, no scheduled
-pulse.
-
-**Why does the ListView gap shrink to 35%?** The dominant cost becomes object creation
-(`ArrayList` + item strings), which is identical in both runtimes. The remaining gap is
-the `ObservableList` + `ListChangeListener` notification chain in JavaFX.
-
-**GC pressure**: at 8.68 MB vs 3.99 MB heap delta per 2000 operations, a 60 fps
-dashboard updating 100 labels per frame would generate roughly **104 MB/s churn** with
-JavaFX vs **48 MB/s with JXParallel native** — halving GC pause frequency under
-continuous load.
-
-Full analysis, raw data, and reproduction instructions:
-[UI stress load report](docs/ui-stress-load-report.md)
-
-> [!NOTE]
-> **Backend Implementation Status**: The UI component stress timings reflect in-memory component updates and layout tree invalidation. The direct Vulkan hardware renderer backend is under active development across diverse GPU architectures (such as Intel Gen12 graphics); production environments targeting standard desktop environments can alternatively use the Skija/OpenGL backend.
-
-
-
-## Architecture
-
-```mermaid
-flowchart LR
-    App[JavaFX application] --> API[JXParallel API]
-    API --> Pool[Bounded priority worker pool]
-    Pool --> Metrics[Optional runtime metrics]
-    Pool --> Future[CompletableFuture / Task]
-    Future --> Dispatch[JXFxDispatcher]
-    Dispatch --> FX[One JavaFX Application Thread]
-    FX --> Scene[JavaFX Scene Graph]
-    FXML[JXFXMLLoader] --> Cache[Resource/template cache]
-    Cache --> FXML
-```
-
-Core design rules:
-
-1. never create multiple JavaFX Application Threads
-2. keep the core independent from JavaFX where possible
-3. bound queues and make overload behavior explicit
-4. preserve JavaFX concepts before optimizing internals
-5. never share mutable `Node` instances through FXML cache entries
-6. measure before calling a component lightweight or faster
+Everything compiles to Java 8 bytecode (`--release 8` on newer JDKs). The newest Windows x86 JDK
+published by Temurin and Zulu is 17 (the port was deprecated in 21 and removed in 24). The JavaFX modules build against OpenJFX 21 and need JDK 17 or newer to
+compile; the JavaFX comparison runners also run on the JavaFX 8 bundled with Oracle JDK 8.
 
 ## Modules
 
-```text
-jxparallel-core
-  scheduler, tasks, configuration, properties, events, collections, declarative UI model
+| Module | Purpose | JavaFX |
+|---|---|---|
+| `jxparallel-core` | worker pool, tasks, configuration, properties, events, observable collections | no |
+| `jxparallel-ui` | native scene graph, controls, layouts, `JXWindow`, Skia and NanoVG renderers | no |
+| `jxparallel-javafx` | FX thread dispatch (`JXParallelFx`, `JXFxDispatcher`) and JavaFX control wrappers | yes |
+| `jxparallel-fxml` | `FXMLLoaderService` with parallel loading and cache | yes |
+| `jxparallel-junit4`, `-junit5`, `-mockito`, `-powermock` | test integrations | no |
+| `jxparallel-benchmarks` | JMH and runtime comparison runners | no |
+| `jxparallel-examples-native` | native examples and the UI stress runner | no |
+| `jxparallel-examples` | JavaFX comparison apps and benchmarks | yes |
 
-jxparallel-javafx
-  legacy optional JavaFX adapter; excluded from the native build
-
-jxparallel-fxml
-  legacy optional JavaFX FXML adapter; excluded from the native build
-
-jxparallel-junit4
-jxparallel-junit5
-jxparallel-mockito
-jxparallel-powermock
-  optional test integrations
-
-jxparallel-benchmarks
-  JMH and runtime comparison runners
-
-jxparallel-examples-native
-  executable Skia example without JavaFX
-
-jxparallel-examples
-  legacy JavaFX comparison applications; excluded from the native build
-```
-
-The default reactor has no OpenJFX dependency:
+The default build has no JavaFX dependency. JavaFX modules are built with a profile:
 
 ```powershell
-mvn -q test
+mvn test                      # core, UI, test integrations, benchmarks
+mvn -Plegacy-javafx test      # plus jxparallel-javafx, jxparallel-fxml, examples
 ```
 
-The legacy adapter is only built explicitly:
+## Project status
 
-```powershell
-mvn -Plegacy-javafx -q test
-```
-
-## Build and test
-
-The development reactor is verified with Maven and Java 21:
-
-```powershell
-cd C:\dev\JXParallel
-mvn -q test
-```
-
-Build a package:
-
-```powershell
-mvn clean package
-```
-
-The core targets Java 8 source compatibility. The current JavaFX dependency profile uses OpenJFX
-21 and therefore requires a newer JDK for JavaFX-dependent modules. Java 8 x86 GUI validation is
-performed separately with JavaFX 8.
-
-The native build matrix is:
-
-| Runtime | Scope |
+| Area | Status |
 |---|---|
-| Java 8 | `core` only |
-| Java 11 | complete default reactor and native Skia UI |
-| Java 17 | complete default reactor and Windows CI |
-| Java 21 | complete default reactor |
+| Worker pool, tasks, backpressure, lifecycle | Tested; used by all benchmarks |
+| Properties, events, observable collections | Tested |
+| FX thread dispatch and parallel FXML loading | Tested; pre-parsed templates with `FXMLLoader` fallback |
+| Native window (Skia 64-bit, NanoVG 32-bit) | Working; basic controls and layouts |
+| Incremental UI updates | Implemented: memoized render and in-place reconciliation |
+| Virtualized list, table and tree | Planned |
+| CSS replacement and full accessibility | Not implemented |
 
-The native Skia UI uses Skija 0.116.4, whose artifacts target Java 11. Platform-specific Skija
-runtime artifacts are selected by Maven profiles for Windows x64, Linux x64, and macOS x64/ARM64.
-JavaFX remains optional and is tested separately with `-Plegacy-javafx`.
-
-## Compatibility
-
-| Component or subsystem | Level |
-|---|---|
-| Core scheduler lifecycle | `FULL` for the documented JXParallel contract |
-| Native Skia foundation through Skija | `EXPERIMENTAL` |
-| LWJGL/OpenGL backend | `EXPERIMENTAL / OPTIONAL` |
-| LWJGL/Vulkan backend | `EXPERIMENTAL / OPTIONAL` |
-| JavaFX compatibility module | `LEGACY / PARTIAL` |
-| Native initial controls and layouts | `EXPERIMENTAL` |
-| FXML loader and cache | `EXPERIMENTAL` |
-| PowerMock adapter | `EXPERIMENTAL` |
-| Independent Skia renderer | `EXPERIMENTAL` |
-
-See [compatibility.md](docs/compatibility.md) for the complete matrix and migration boundaries.
-
-The native architecture and migration rules are documented in
-[native-ui.md](docs/native-ui.md).
+Roadmap: [roadmap.md](docs/roadmap.md). Changes: [CHANGELOG.md](CHANGELOG.md).
 
 ## Documentation
 
-- [Architecture](ARCHITECTURE.md)
-- [Compatibility matrix](docs/compatibility.md)
-- [Configuration](docs/configuration.md)
-- [Modern UI layer](docs/modern-ui.md)
-- [Declarative UI model](docs/ui-model.md)
-- [Performance methodology](docs/metrics-comparison.md)
-- [Native Skia UI architecture](docs/native-ui.md)
-- [Experimental LWJGL/OpenGL backend](docs/lwjgl-backend.md)
-- [Java 8 32-bit comparison](docs/java8-32bit-comparison.md)
-- [Scalability QA report](docs/qa-scalability-report.md)
-- [UI stress load report](docs/ui-stress-load-report.md)
-- [Native UI progress](docs/native-ui-progress.md)
-- [Roadmap](docs/roadmap.md)
-- [Changelog](CHANGELOG.md)
-- [Contributing](CONTRIBUTING.md)
-- [Security policy](SECURITY.md)
+| Topic | Document |
+|---|---|
+| Architecture and design rules | [ARCHITECTURE.md](ARCHITECTURE.md) |
+| Configuration reference | [configuration.md](docs/configuration.md) |
+| Compatibility with JavaFX | [compatibility.md](docs/compatibility.md) |
+| Native UI architecture | [native-ui.md](docs/native-ui.md) |
+| UI comparison, 32-bit and 64-bit | [ui-comparison-2026-09-25.md](docs/ui-comparison-2026-09-25.md) |
+| FXML loading comparison | [fxml-load-comparison.md](docs/fxml-load-comparison.md) |
+| Development log (pt-BR) | [diario-de-desenvolvimento.md](docs/tcc/diario-de-desenvolvimento.md) |
 
 ## Contributing
 
-Contributions should preserve the project priority order:
-
-```text
-Compatibility
-    -> Correctness
-        -> Stability
-            -> Performance
-                -> Micro-optimizations
-```
-
-Before adding an optimization, include:
-
-- the JavaFX behavior being preserved
-- the overhead being reduced
-- a focused regression test
-- a benchmark with the workload and runtime specified
-- documentation for any compatibility difference
+Priorities, in order: compatibility, correctness, stability, performance. An optimization should
+come with the behavior it preserves, a regression test, and a benchmark that states the workload
+and runtime. See [CONTRIBUTING.md](CONTRIBUTING.md) and [SECURITY.md](SECURITY.md).
 
 ## License
 
-JXParallel is released under the [MIT License](LICENSE).
+[MIT](LICENSE)

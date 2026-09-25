@@ -8,6 +8,7 @@ import com.jxparallel.ui.JXElement;
 import com.jxparallel.ui.JXProps;
 
 public final class JXComboBox<T> implements JXComponent {
+    private final JXRenderMemo memo = new JXRenderMemo();
     private final JXObservableList<T> items = new JXObservableList<T>();
     private final JXIntegerProperty selectedIndex = new JXIntegerProperty(-1);
     private final JXStringProperty value = new JXStringProperty("");
@@ -36,10 +37,11 @@ public final class JXComboBox<T> implements JXComponent {
 
     @Override
     public JXElement render() {
-        return JXElement.of("select", JXProps.builder()
-                .set("value", getValue())
-                .set("selectedIndex", getSelectedIndex())
-                .set("options", items.snapshot().toArray())
-                .build());
+        return memo.render(() -> JXElement.of("select", JXProps.builder()
+                        .set("value", getValue())
+                        .set("selectedIndex", getSelectedIndex())
+                        .set("options", items.snapshot().toArray())
+                        .build()),
+                getValue(), getSelectedIndex(), items.snapshot());
     }
 }
