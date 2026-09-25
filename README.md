@@ -429,7 +429,7 @@ Full analysis, raw data, and reproduction instructions:
 [UI stress load report](docs/ui-stress-load-report.md)
 
 > [!NOTE]
-> **Backend Implementation Status**: The UI component stress timings reflect in-memory component updates and layout tree invalidation. The direct Vulkan hardware renderer backend is under active development across diverse GPU architectures (such as Intel Gen12 graphics); production environments targeting standard desktop environments can alternatively use the Skija/OpenGL backend.
+> **Backend Implementation Status**: The UI component stress timings reflect in-memory component updates and layout tree invalidation. The native window renders the scene graph with Skia (Skija) on a GLFW/OpenGL context and requires a 64-bit JVM.
 
 
 
@@ -536,7 +536,6 @@ JavaFX remains optional and is tested separately with `-Plegacy-javafx`.
 | Core scheduler lifecycle | `FULL` for the documented JXParallel contract |
 | Native Skia foundation through Skija | `EXPERIMENTAL` |
 | LWJGL/OpenGL backend | `EXPERIMENTAL / OPTIONAL` |
-| LWJGL/Vulkan backend | `EXPERIMENTAL / OPTIONAL` |
 | JavaFX compatibility module | `LEGACY / PARTIAL` |
 | Native initial controls and layouts | `EXPERIMENTAL` |
 | FXML loader and cache | `EXPERIMENTAL` |

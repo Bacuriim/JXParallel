@@ -5,21 +5,21 @@ import org.junit.jupiter.api.Test;
 import com.jxparallel.ui.JXElement;
 import com.jxparallel.ui.controls.JXControls;
 import com.jxparallel.ui.layout.JXLayouts;
-import com.jxparallel.ui.vulkan.JXVulkanRenderer;
+
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 
-class JXVulkanRendererTest {
+class JX2DRendererTest {
     @Test
     void shouldMountAndLayoutNativeTreeWithoutJavaFx() {
         JXElement element = JXLayouts.column(8,
                 JXElement.text("Customers"),
                 JXControls.button("Load", null));
 
-        JXNativeNode node = JXVulkanRenderer.mount(element);
+        JXNativeNode node = JXSkiaRenderer.mount(element);
 
-        JXVulkanRenderer.layout(node, 320, 200);
+        JXSkiaRenderer.layout(node, 320, 200);
 
         assertNotNull(node);
         assertEquals("column", node.getType());
@@ -29,10 +29,10 @@ class JXVulkanRendererTest {
     }
 
     @Test
-    void shouldMountAllNativeControlShapesForVulkan() {
-        JXNativeNode node = JXVulkanRenderer.mount(JXControls.button("Load", null));
+    void shouldMountAllNativeControlShapes() {
+        JXNativeNode node = JXSkiaRenderer.mount(JXControls.button("Load", null));
 
-        JXVulkanRenderer.layout(node, 160, 40);
+        JXSkiaRenderer.layout(node, 160, 40);
 
         assertEquals("button", node.getType());
         assertEquals(160, node.getBounds().width);
