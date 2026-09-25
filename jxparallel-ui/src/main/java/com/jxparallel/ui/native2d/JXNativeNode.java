@@ -4,11 +4,23 @@ import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
 import java.util.Map;
+import java.util.Objects;
 
 import com.jxparallel.ui.JXElement;
+import com.jxparallel.ui.text.JXTextEngine;
 
 public final class JXNativeNode {
     private static final int UNKNOWN = -1;
+    /** Insets around text in buttons and fields, close to JavaFX's Modena theme at 13 px. */
+    static final int PAD_X = 12;
+    static final int PAD_Y = 6;
+    static final int CHECK_BOX = 18;
+    static final int CHECK_GAP = 6;
+    static final int ARROW = 20;
+    /** JavaFX defaults: TextField.prefColumnCount 12, TextArea 40 columns by 10 rows. */
+    static final int FIELD_COLUMNS = 12;
+    static final int AREA_COLUMNS = 40;
+    static final int AREA_ROWS = 10;
 
     private final String type;
     private Map<String, Object> props;
@@ -66,7 +78,7 @@ public final class JXNativeNode {
         }
         source = element;
         Map<String, Object> next = element.getProps().asMap();
-        boolean changed = propertyAsInt(next, "gap", 0) != propertyAsInt(props, "gap", 0);
+        boolean changed = sizeAffected(next);
         props = next;
         List<JXElement> nextChildren = element.getChildren();
         int common = Math.min(children.size(), nextChildren.size());
@@ -120,6 +132,10 @@ public final class JXNativeNode {
 
     public int getHeight() {
         return height;
+    }
+
+    boolean isLayoutDirty() {
+        return layoutDirty;
     }
 
     public void invalidateLayout() {
@@ -216,19 +232,31 @@ public final class JXNativeNode {
         if (preferredWidth != UNKNOWN) {
             return;
         }
-        if ("button".equals(type) || "toggle".equals(type) || "input".equals(type)
-                || "select".equals(type)) {
-            setPreferred(120, 32);
+        JXTextEngine text = JXTextEngine.get();
+        float size = JXTextEngine.DEFAULT_SIZE;
+        int line = ceil(text.lineHeight(size));
+        if ("button".equals(type) || "toggle".equals(type)) {
+            setPreferred(ceil(text.width(string("label"), size)) + 2 * PAD_X, line + 2 * PAD_Y);
         } else if ("checkbox".equals(type)) {
-            setPreferred(160, 24);
+            setPreferred(CHECK_BOX + CHECK_GAP + ceil(text.width(string("label"), size)), Math.max(CHECK_BOX, line));
+        } else if ("input".equals(type) || "password".equals(type)) {
+            // Like JavaFX TextField: width from the column count, not the content, so typing never relayouts.
+            setPreferred(FIELD_COLUMNS * ceil(text.width("W", size)) + 2 * PAD_X, line + 2 * PAD_Y);
         } else if ("textarea".equals(type)) {
-            setPreferred(240, 96);
-        } else if ("password".equals(type)) {
-            setPreferred(180, 32);
+            setPreferred(AREA_COLUMNS * ceil(text.width("W", size)) + 2 * PAD_X, AREA_ROWS * line + 2 * PAD_Y);
+        } else if ("select".equals(type)) {
+            int widest = ceil(text.width(string("value"), size));
+            Object options = props.get("options");
+            if (options instanceof Object[]) {
+                for (Object option : (Object[]) options) {
+                    widest = Math.max(widest, ceil(text.width(String.valueOf(option), size)));
+                }
+            }
+            setPreferred(widest + 2 * PAD_X + ARROW, line + 2 * PAD_Y);
         } else if ("progress".equals(type) || "slider".equals(type)) {
             setPreferred(180, 24);
         } else if ("#text".equals(type)) {
-            setPreferred(100, 24);
+            setPreferred(ceil(text.width(string("value"), size)), line);
         } else {
             int gap = propertyAsInt("gap", 0);
             int sumWidth = 0;
@@ -256,6 +284,33 @@ public final class JXNativeNode {
     private void setPreferred(int width, int height) {
         preferredWidth = width;
         preferredHeight = height;
+    }
+
+    private String string(String name) {
+        Object value = props.get(name);
+        return value == null ? "" : String.valueOf(value);
+    }
+
+    private static int ceil(float value) {
+        return (int) Math.ceil(value);
+    }
+
+    /** True if the new props can change this node's preferred size (text, options or gap). */
+    private boolean sizeAffected(Map<String, Object> next) {
+        if (propertyAsInt(next, "gap", 0) != propertyAsInt(props, "gap", 0)) {
+            return true;
+        }
+        if ("#text".equals(type)) {
+            return !Objects.equals(props.get("value"), next.get("value"));
+        }
+        if ("button".equals(type) || "toggle".equals(type) || "checkbox".equals(type)) {
+            return !Objects.equals(props.get("label"), next.get("label"));
+        }
+        if ("select".equals(type)) {
+            return !Objects.equals(props.get("value"), next.get("value"))
+                    || !Objects.deepEquals(props.get("options"), next.get("options"));
+        }
+        return false;
     }
 
     private int propertyAsInt(String name, int fallback) {

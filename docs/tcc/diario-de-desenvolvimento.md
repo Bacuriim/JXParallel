@@ -497,6 +497,52 @@ paridade com o JavaFX vai exigir (sombras e desfoque como `DropShadow`/`Gaussian
 complexos, filtros, codecs de imagem, texto com hinting), e o NanoVG tem só o básico (gradientes e
 sombra de caixa simples). Decisão do autor: manter Skia em 64 bits e NanoVG em 32 bits.
 
+## 2026-09-25: texto medido de verdade (primeiro passo da UI nativa no nível do JavaFX)
+
+**Decisão do autor.** A 1.0 terá a UI nativa no nível do JavaFX. A ordem escolhida parte do
+texto, porque tudo depende dele: sem medir texto, nenhum tamanho de layout é real.
+
+**Problema.** O layout usava tamanhos fixos no código (botão 120x32, texto 100x24, caixa de
+seleção 160x24), e os dois renderers desenhavam com fontes diferentes: Skia com a fonte padrão a
+13 px, NanoVG com Segoe UI a 15 px. O mesmo programa tinha outra aparência em 32 e em 64 bits, e
+textos longos vazavam dos botões.
+
+**Estratégia.** `JXTextEngine` com HarfBuzz pelo LWJGL (o `HarfBuzz` do LWJGL carrega o FreeType
+junto; cerca de 1,5 MB de natives por plataforma, com x86). O HarfBuzz mede o texto shaped (kerning,
+ligaduras, acentos, outros alfabetos) direto das métricas OpenType, só com CPU: sem janela, sem GPU,
+e com o mesmo resultado em 32 e 64 bits. Os dois renderers passam a desenhar com o mesmo arquivo de
+fonte e tamanho. O Skia desenha texto shaped (`Shaper` do próprio Skia, que também usa HarfBuzz) em
+vez de `drawString`, que ignorava o kerning. O layout usa os padrões do JavaFX: `TextField` com 12
+colunas da largura de "W", `TextArea` com 40x10; botões, rótulos e caixas de seleção medem o texto.
+Campos de entrada não mudam de tamanho ao digitar, então digitar não refaz o layout.
+
+**Validação.**
+
+- O Skia chegou a desenhar "AVATAR Wave" 4 px mais largo do que o layout mediu, porque o
+  `drawString` não aplica kerning. Com texto shaped, as 6 frases de teste concordam em menos de 0,5 px.
+- O snapshot de layout gerado no Java 17 x64 bateu idêntico no Java 8 x86: o layout não depende
+  mais da arquitetura.
+- O teste de propriedade do reconcile passou a exercitar a invalidação por texto: trocar o texto de
+  um rótulo agora muda o tamanho dele, e o reconcile precisa refazer o layout.
+
+**Custo** (JMH, tela de 1001 nós, JDK 17):
+
+| Caso | Tamanho fixo | HarfBuzz sem cache | HarfBuzz com cache de largura |
+|---|---:|---:|---:|
+| Montar do zero | 65,5 µs | 759,7 µs | 68,3 µs |
+| Reconcile de um rótulo | 1,1 µs | 3,4 µs | 2,7 µs |
+
+O shaping custa cerca de 0,7 µs por texto. Como sem hinting a largura escala linearmente com o
+tamanho, o cache guarda a largura por texto uma vez só, e interfaces repetem muito os mesmos
+textos. A primeira vez que cada texto aparece continua custando os 0,7 µs. O gate da CI compara
+razões e não pegaria essa piora absoluta; fica registrado como limitação do gate.
+
+**Encontrado na janela real.** Numa coluna, o botão ocupa a largura toda. No JavaFX, o `Button`
+tem largura máxima igual à preferida e não estica numa `VBox`. É o próximo passo (motor de layout).
+
+**Limitação.** O NanoVG desenha com o shaping próprio (stb_truetype, só a tabela `kern`); em fontes
+com kerning só na tabela GPOS, o texto pode sair poucos pixels mais largo que o medido no 32-bit.
+
 ## Evolução das métricas principais
 
 | Data | Métrica | JavaFX | JXParallel | Observação |

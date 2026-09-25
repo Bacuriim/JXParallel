@@ -2,6 +2,7 @@
 
 ## Unreleased
 
+- real text measurement: `JXTextEngine` shapes text with HarfBuzz (LWJGL, 32 and 64-bit); controls are sized from their text with JavaFX defaults (TextField 12 columns, TextArea 40x10) instead of fixed sizes; Skia and NanoVG draw with the same font file and size, Skia draws shaped text
 - testing: jqwik property and differential tests, jcstress module, Skia golden image and click tests, JMH ratio gate in CI, ArchUnit rules, leak tests, `coverage` (JaCoCo) and `mutation` (PIT) profiles; see docs/testing-strategy.md
 - fixed: native buttons ignored clicks (`onAction` was set, `onClick` read); disabled nodes no longer get clicks
 - fixed: `JXProperty`, `JXState` and `JXObservableList` could notify out of order or twice under concurrent changes; changes and notifications are now serialized, readers never block
