@@ -24,8 +24,24 @@ class JX2DRendererTest {
         assertNotNull(node);
         assertEquals("column", node.getType());
         assertEquals(2, node.getChildren().size());
-        assertEquals(320, node.getBounds().width);
-        assertEquals(200, node.getBounds().height);
+        assertEquals(320, node.getWidth());
+        assertEquals(200, node.getHeight());
+    }
+
+    @Test
+    void columnShouldGiveChildrenTheirPreferredHeightAndFullWidth() {
+        JXNativeNode node = JXSkiaRenderer.mount(JXLayouts.column(8,
+                JXElement.text("Customers"),
+                JXControls.button("Load", null)));
+
+        JXSkiaRenderer.layout(node, 320, 200);
+
+        JXNativeNode text = node.getChildren().get(0);
+        JXNativeNode button = node.getChildren().get(1);
+        assertEquals(24, text.getHeight());
+        assertEquals(24 + 8, button.getY());
+        assertEquals(32, button.getHeight());
+        assertEquals(320, button.getWidth());
     }
 
     @Test
@@ -35,8 +51,8 @@ class JX2DRendererTest {
         JXSkiaRenderer.layout(node, 160, 40);
 
         assertEquals("button", node.getType());
-        assertEquals(160, node.getBounds().width);
-        assertEquals(40, node.getBounds().height);
+        assertEquals(160, node.getWidth());
+        assertEquals(40, node.getHeight());
         assertNotNull(node.getProperty("label"));
     }
 }

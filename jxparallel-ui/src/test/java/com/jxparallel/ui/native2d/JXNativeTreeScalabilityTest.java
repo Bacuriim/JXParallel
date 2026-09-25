@@ -22,6 +22,6 @@ class JXNativeTreeScalabilityTest {
         JXSkiaRenderer.layout(root, 800, 10000);
 
         assertEquals(10000, root.getChildren().size());
-        assertEquals(800, root.getBounds().width);
+        assertEquals(800, root.getWidth());
     }
 }
