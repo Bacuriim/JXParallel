@@ -20,9 +20,10 @@ import static org.lwjgl.nanovg.NanoVG.nvgStrokeWidth;
 import static org.lwjgl.nanovg.NanoVG.nvgText;
 import static org.lwjgl.nanovg.NanoVG.nvgTextAlign;
 
-import java.io.File;
 
 import org.lwjgl.nanovg.NVGColor;
+
+import com.jxparallel.ui.text.JXTextEngine;
 
 /**
  * Paints a {@link JXNativeNode} tree with NanoVG. Used by {@link JXWindow} on 32-bit JVMs, where
@@ -36,31 +37,7 @@ public final class JXNanoVGRenderer {
     private static final int BORDER = 0xFF969696;
     private static final int WHITE = 0xFFFFFFFF;
 
-    /** Candidate system fonts; {@code -Djx.font=path} takes precedence. */
-    private static final String[] FONT_CANDIDATES = {
-            "C:\\Windows\\Fonts\\segoeui.ttf",
-            "C:\\Windows\\Fonts\\arial.ttf",
-            "/usr/share/fonts/truetype/dejavu/DejaVuSans.ttf",
-            "/usr/share/fonts/dejavu/DejaVuSans.ttf",
-            "/System/Library/Fonts/Supplemental/Arial.ttf",
-            "/Library/Fonts/Arial.ttf",
-    };
-
     private JXNanoVGRenderer() {
-    }
-
-    /** Returns a TrueType font path for NanoVG, or {@code null} if none is found (text is skipped). */
-    static String findFont() {
-        String configured = System.getProperty("jx.font");
-        if (configured != null && new File(configured).isFile()) {
-            return configured;
-        }
-        for (String candidate : FONT_CANDIDATES) {
-            if (new File(candidate).isFile()) {
-                return candidate;
-            }
-        }
-        return null;
     }
 
     /**
@@ -74,7 +51,7 @@ public final class JXNanoVGRenderer {
         root.layoutForBackend(Math.max(1, width), Math.max(1, height));
         if (hasFont) {
             nvgFontFace(vg, FONT);
-            nvgFontSize(vg, 15.0f);
+            nvgFontSize(vg, JXTextEngine.DEFAULT_SIZE);
         }
         paintNode(root, vg, color, hasFont);
     }
@@ -102,7 +79,7 @@ public final class JXNanoVGRenderer {
                 nvgLineTo(vg, x + 15, y + 3);
                 stroke(vg, color, 0xFF5A5A5A);
             }
-            left(vg, color, hasFont, text(node, "label"), x + 24, y + 14, DARK_GRAY);
+            left(vg, color, hasFont, text(node, "label"), x + 24, y + JXTextEngine.get().baseline(h, JXTextEngine.DEFAULT_SIZE), DARK_GRAY);
         } else if ("input".equals(type) || "textarea".equals(type)
                 || "password".equals(type) || "select".equals(type)) {
             nvgBeginPath(vg);
@@ -130,7 +107,7 @@ public final class JXNanoVGRenderer {
             nvgCircle(vg, x + (float) (w * clamp(fraction)), middle, 6.0f);
             fill(vg, color, BLUE);
         } else if ("#text".equals(type)) {
-            left(vg, color, hasFont, text(node, "value"), x, y + 16, DARK_GRAY);
+            left(vg, color, hasFont, text(node, "value"), x, y + JXTextEngine.get().baseline(h, JXTextEngine.DEFAULT_SIZE), DARK_GRAY);
         }
         for (JXNativeNode child : node.getChildren()) {
             paintNode(child, vg, color, hasFont);

@@ -5,6 +5,7 @@ import org.junit.jupiter.api.Test;
 import com.jxparallel.ui.JXElement;
 import com.jxparallel.ui.controls.JXControls;
 import com.jxparallel.ui.layout.JXLayouts;
+import com.jxparallel.ui.text.JXTextEngine;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
@@ -20,8 +21,12 @@ class JXNativeNodeReconcileTest {
         return JXLayouts.column(8, children);
     }
 
+    private static int line() {
+        return (int) Math.ceil(JXTextEngine.get().lineHeight(JXTextEngine.DEFAULT_SIZE));
+    }
+
     @Test
-    void textChangeReusesNodesAndKeepsLayout() {
+    void textChangeReusesNodesAndRelayoutsBecauseTheWidthChanged() {
         JXNativeNode root = JXNativeNode.createBackendNode(screen("Before", JXControls.button("Save", null)));
         root.layoutForBackend(320, 200);
         JXNativeNode title = root.getChildren().get(0);
@@ -32,7 +37,20 @@ class JXNativeNodeReconcileTest {
         assertSame(title, root.getChildren().get(0));
         assertSame(button, root.getChildren().get(1));
         assertEquals("After", title.getProperty("value"));
-        assertEquals(24 + 8, button.getY(), "layout kept, no relayout needed for a text change");
+        assertTrue(root.isLayoutDirty(), "a label's width depends on its text");
+        root.layoutForBackend(320, 200);
+        assertEquals(line() + 8, button.getY());
+    }
+
+    @Test
+    void typingInAFieldDoesNotRelayout() {
+        JXNativeNode root = JXNativeNode.createBackendNode(screen("Title", JXControls.input("a", "Name")));
+        root.layoutForBackend(320, 200);
+
+        assertTrue(root.reconcile(screen("Title", JXControls.input("ab", "Name"))));
+
+        assertEquals("ab", root.getChildren().get(1).getProperty("value"));
+        assertFalse(root.isLayoutDirty(), "field width comes from its column count, like JavaFX");
     }
 
     @Test
@@ -45,8 +63,8 @@ class JXNativeNodeReconcileTest {
 
         JXNativeNode added = root.getChildren().get(1);
         assertEquals(2, root.getChildren().size());
-        assertEquals(24 + 8, added.getY());
-        assertEquals(32, added.getHeight());
+        assertEquals(line() + 8, added.getY());
+        assertEquals(line() + 2 * JXNativeNode.PAD_Y, added.getHeight());
     }
 
     @Test

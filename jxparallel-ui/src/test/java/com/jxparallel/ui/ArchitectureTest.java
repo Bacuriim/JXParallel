@@ -46,8 +46,17 @@ class ArchitectureTest {
     @Test
     void onlyNative2dTalksToGlfwSkiaAndNanoVg() {
         noClasses().that().resideOutsideOfPackage("com.jxparallel.ui.native2d..")
-                .should().dependOnClassesThat().resideInAnyPackage("org.lwjgl..", "io.github.humbleui..")
+                .should().dependOnClassesThat().resideInAnyPackage("io.github.humbleui..", "org.lwjgl.glfw..",
+                        "org.lwjgl.opengl..", "org.lwjgl.nanovg..")
                 .because("renderer choice (Skia on 64-bit, NanoVG on 32-bit) stays inside native2d")
+                .check(UI);
+    }
+
+    @Test
+    void layoutMeasuresTextOnlyThroughTheTextEngine() {
+        noClasses().that().resideOutsideOfPackage("com.jxparallel.ui.text..")
+                .should().dependOnClassesThat().resideInAnyPackage("org.lwjgl.util.harfbuzz..", "org.lwjgl.util.freetype..")
+                .because("one text engine gives the same sizes to layout and both renderers")
                 .check(UI);
     }
 

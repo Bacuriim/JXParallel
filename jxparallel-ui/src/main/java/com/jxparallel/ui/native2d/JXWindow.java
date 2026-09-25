@@ -6,6 +6,7 @@ import java.util.concurrent.atomic.AtomicBoolean;
 
 import com.jxparallel.ui.JXElement;
 import com.jxparallel.ui.input.JXClipboard;
+import com.jxparallel.ui.text.JXTextEngine;
 
 import org.lwjgl.glfw.GLFW;
 import org.lwjgl.glfw.GLFWErrorCallback;
@@ -315,7 +316,7 @@ public final class JXWindow implements AutoCloseable {
             if (vg == MemoryUtil.NULL) {
                 throw new IllegalStateException("Unable to create NanoVG context (OpenGL 3 required)");
             }
-            String font = JXNanoVGRenderer.findFont();
+            String font = JXTextEngine.get().getFontFile();
             hasFont = font != null && NanoVG.nvgCreateFont(vg, JXNanoVGRenderer.FONT, font) >= 0;
             if (!hasFont) {
                 System.err.println("JXParallel: no TrueType font found, text will not be drawn; set -Djx.font=<path>");
