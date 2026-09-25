@@ -58,17 +58,28 @@ public class JXObservableList<E> extends AbstractList<E> {
         if (values == null || values.isEmpty()) {
             return false;
         }
-        boolean changed = false;
-        for (E value : values) {
-            changed |= add(value);
+        int start;
+        List<E> added = new ArrayList<E>(values);
+        synchronized (this) {
+            start = delegate.size();
+            delegate.addAll(added);
         }
-        return changed;
+        for (int i = 0; i < added.size(); i++) {
+            notifyListeners(new JXListChangeEvent<E>(JXListChangeEvent.Type.ADD, start + i, added.get(i), null));
+        }
+        return true;
     }
 
+    /** Removes everything atomically, then reports one REMOVE per element from the last index down. */
     @Override
     public void clear() {
-        while (size() > 0) {
-            remove(size() - 1);
+        List<E> removed;
+        synchronized (this) {
+            removed = new ArrayList<E>(delegate);
+            delegate.clear();
+        }
+        for (int i = removed.size() - 1; i >= 0; i--) {
+            notifyListeners(new JXListChangeEvent<E>(JXListChangeEvent.Type.REMOVE, i, null, removed.get(i)));
         }
     }
 
