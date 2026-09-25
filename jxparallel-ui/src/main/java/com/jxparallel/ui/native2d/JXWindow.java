@@ -1,30 +1,32 @@
 package com.jxparallel.ui.native2d;
 
+import java.util.Locale;
 import java.util.concurrent.ConcurrentLinkedQueue;
 
 import com.jxparallel.ui.JXElement;
-import io.github.humbleui.skija.BackendRenderTarget;
-import io.github.humbleui.skija.ColorSpace;
-import io.github.humbleui.skija.DirectContext;
-import io.github.humbleui.skija.FramebufferFormat;
-import io.github.humbleui.skija.Surface;
-import io.github.humbleui.skija.SurfaceColorFormat;
-import io.github.humbleui.skija.SurfaceOrigin;
+import com.jxparallel.ui.input.JXClipboard;
 
 import org.lwjgl.glfw.GLFW;
 import org.lwjgl.glfw.GLFWErrorCallback;
+import org.lwjgl.nanovg.NVGColor;
+import org.lwjgl.nanovg.NanoVG;
+import org.lwjgl.nanovg.NanoVGGL3;
 import org.lwjgl.opengl.GL;
 import org.lwjgl.opengl.GL11;
 import org.lwjgl.system.MemoryUtil;
 
 /**
- * Native window: GLFW owns the window and the OpenGL context, Skia paints into the
- * default framebuffer. {@link #show()} blocks and runs the render loop on the calling thread.
+ * Native window: GLFW owns the window and the OpenGL context. 64-bit JVMs paint with Skia
+ * (Skija); 32-bit JVMs, where Skija has no native libraries, paint with NanoVG.
+ * {@code -Djx.renderer=skia|nanovg} forces one. {@link #show()} blocks and runs the render loop
+ * on the calling thread.
  */
 public final class JXWindow implements AutoCloseable {
-    private static final int GL_FRAMEBUFFER_BINDING = 0x8CA6;
+    public static final String SKIA = "skia";
+    public static final String NANOVG = "nanovg";
 
     private final String title;
+    private final String rendererName = selectRenderer();
     private final ConcurrentLinkedQueue<Runnable> pendingActions = new ConcurrentLinkedQueue<Runnable>();
     private volatile boolean renderRequested = true;
     private volatile long window = MemoryUtil.NULL;
@@ -33,19 +35,31 @@ public final class JXWindow implements AutoCloseable {
     private Runnable onFirstPaint;
     private Runnable onFrame;
     private boolean firstPaintReported;
-
-    private DirectContext context;
-    private BackendRenderTarget renderTarget;
-    private Surface surface;
-    private int surfaceWidth;
-    private int surfaceHeight;
+    private Backend backend;
 
     public JXWindow(String title) {
         this.title = title == null ? "JXParallel" : title;
     }
 
+    /** {@link #SKIA} or {@link #NANOVG}. */
+    public String getRendererName() {
+        return rendererName;
+    }
+
+    static String selectRenderer() {
+        String forced = System.getProperty("jx.renderer");
+        if (forced != null && (SKIA.equalsIgnoreCase(forced) || NANOVG.equalsIgnoreCase(forced))) {
+            return forced.toLowerCase(Locale.ROOT);
+        }
+        String dataModel = System.getProperty("sun.arch.data.model");
+        String arch = System.getProperty("os.arch", "");
+        boolean is32Bit = "32".equals(dataModel)
+                || (dataModel == null && (arch.equals("x86") || arch.matches("i[3-6]86")));
+        return is32Bit ? NANOVG : SKIA;
+    }
+
     public void setContent(JXElement element) {
-        root = JXSkiaRenderer.mount(element);
+        root = JXNativeNode.createBackendNode(element);
         focusedNode = null;
         requestRender();
     }
@@ -78,6 +92,21 @@ public final class JXWindow implements AutoCloseable {
         requestRender();
     }
 
+    /** System clipboard through GLFW. Use from the window thread while the window is shown. */
+    public JXClipboard clipboard() {
+        return new JXClipboard() {
+            @Override
+            public String getText() {
+                return GLFW.glfwGetClipboardString(window);
+            }
+
+            @Override
+            public void setText(String value) {
+                GLFW.glfwSetClipboardString(window, value == null ? "" : value);
+            }
+        };
+    }
+
     public void show() {
         GLFWErrorCallback.createPrint(System.err).set();
         if (!GLFW.glfwInit()) {
@@ -90,11 +119,13 @@ public final class JXWindow implements AutoCloseable {
             if (window == MemoryUtil.NULL) {
                 throw new IllegalStateException("Unable to create GLFW window");
             }
+            moveToConfiguredMonitor();
             installCallbacks();
             GLFW.glfwMakeContextCurrent(window);
             GLFW.glfwSwapInterval(1);
             GL.createCapabilities();
-            context = DirectContext.makeGL();
+            // The Skia class is only loaded here, so 32-bit JVMs never touch Skija.
+            backend = NANOVG.equals(rendererName) ? new NanoVGBackend() : new SkiaBackend();
             loop();
         } finally {
             release();
@@ -104,6 +135,19 @@ public final class JXWindow implements AutoCloseable {
                 previous.free();
             }
         }
+    }
+
+    /** {@code -Djx.monitor=N} opens the window on monitor N (0 = primary, GLFW order). */
+    private void moveToConfiguredMonitor() {
+        Integer index = Integer.getInteger("jx.monitor");
+        org.lwjgl.PointerBuffer monitors = GLFW.glfwGetMonitors();
+        if (index == null || monitors == null || index < 0 || index >= monitors.limit()) {
+            return;
+        }
+        int[] x = new int[1];
+        int[] y = new int[1];
+        GLFW.glfwGetMonitorPos(monitors.get(index), x, y);
+        GLFW.glfwSetWindowPos(window, x[0] + 100, y[0] + 100);
     }
 
     private void installCallbacks() {
@@ -151,19 +195,16 @@ public final class JXWindow implements AutoCloseable {
     }
 
     private void drawFrame() {
-        int[] width = new int[1];
-        int[] height = new int[1];
-        GLFW.glfwGetFramebufferSize(window, width, height);
-        if (width[0] <= 0 || height[0] <= 0) {
+        int[] fbWidth = new int[1];
+        int[] fbHeight = new int[1];
+        int[] winWidth = new int[1];
+        int[] winHeight = new int[1];
+        GLFW.glfwGetFramebufferSize(window, fbWidth, fbHeight);
+        GLFW.glfwGetWindowSize(window, winWidth, winHeight);
+        if (fbWidth[0] <= 0 || fbHeight[0] <= 0 || winWidth[0] <= 0 || winHeight[0] <= 0) {
             return; // minimized
         }
-        if (surface == null || width[0] != surfaceWidth || height[0] != surfaceHeight) {
-            recreateSurface(width[0], height[0]);
-        }
-        if (root != null) {
-            JXSkiaRenderer.paint(root, surface.getCanvas(), surfaceWidth, surfaceHeight);
-        }
-        context.flush();
+        backend.render(root, fbWidth[0], fbHeight[0], winWidth[0], winHeight[0]);
         GLFW.glfwSwapBuffers(window);
         if (!firstPaintReported) {
             firstPaintReported = true;
@@ -176,32 +217,10 @@ public final class JXWindow implements AutoCloseable {
         }
     }
 
-    private void recreateSurface(int width, int height) {
-        closeSurface();
-        surfaceWidth = width;
-        surfaceHeight = height;
-        int framebufferId = GL11.glGetInteger(GL_FRAMEBUFFER_BINDING);
-        renderTarget = BackendRenderTarget.makeGL(width, height, 0, 8, framebufferId, FramebufferFormat.GR_GL_RGBA8);
-        surface = Surface.makeFromBackendRenderTarget(context, renderTarget, SurfaceOrigin.BOTTOM_LEFT,
-                SurfaceColorFormat.RGBA_8888, ColorSpace.getSRGB());
-    }
-
-    private void closeSurface() {
-        if (surface != null) {
-            surface.close();
-            surface = null;
-        }
-        if (renderTarget != null) {
-            renderTarget.close();
-            renderTarget = null;
-        }
-    }
-
     private void release() {
-        closeSurface();
-        if (context != null) {
-            context.close();
-            context = null;
+        if (backend != null) {
+            backend.close();
+            backend = null;
         }
         if (window != MemoryUtil.NULL) {
             GLFW.glfwDestroyWindow(window);
@@ -221,5 +240,99 @@ public final class JXWindow implements AutoCloseable {
     @Override
     public void close() {
         dispose();
+    }
+
+    /** Paints one frame into the current OpenGL context. Window thread only. */
+    private interface Backend {
+        void render(JXNativeNode root, int fbWidth, int fbHeight, int winWidth, int winHeight);
+
+        void close();
+    }
+
+    private static final class SkiaBackend implements Backend {
+        private static final int GL_FRAMEBUFFER_BINDING = 0x8CA6;
+        private final io.github.humbleui.skija.DirectContext context = io.github.humbleui.skija.DirectContext.makeGL();
+        private io.github.humbleui.skija.BackendRenderTarget renderTarget;
+        private io.github.humbleui.skija.Surface surface;
+        private int width;
+        private int height;
+
+        @Override
+        public void render(JXNativeNode root, int fbWidth, int fbHeight, int winWidth, int winHeight) {
+            if (surface == null || fbWidth != width || fbHeight != height) {
+                recreateSurface(fbWidth, fbHeight);
+            }
+            if (root != null) {
+                JXSkiaRenderer.paint(root, surface.getCanvas(), width, height);
+            }
+            context.flush();
+        }
+
+        private void recreateSurface(int newWidth, int newHeight) {
+            closeSurface();
+            width = newWidth;
+            height = newHeight;
+            int framebufferId = GL11.glGetInteger(GL_FRAMEBUFFER_BINDING);
+            renderTarget = io.github.humbleui.skija.BackendRenderTarget.makeGL(width, height, 0, 8, framebufferId,
+                    io.github.humbleui.skija.FramebufferFormat.GR_GL_RGBA8);
+            surface = io.github.humbleui.skija.Surface.makeFromBackendRenderTarget(context, renderTarget,
+                    io.github.humbleui.skija.SurfaceOrigin.BOTTOM_LEFT,
+                    io.github.humbleui.skija.SurfaceColorFormat.RGBA_8888,
+                    io.github.humbleui.skija.ColorSpace.getSRGB());
+        }
+
+        private void closeSurface() {
+            if (surface != null) {
+                surface.close();
+                surface = null;
+            }
+            if (renderTarget != null) {
+                renderTarget.close();
+                renderTarget = null;
+            }
+        }
+
+        @Override
+        public void close() {
+            closeSurface();
+            context.close();
+        }
+    }
+
+    private static final class NanoVGBackend implements Backend {
+        private final long vg = NanoVGGL3.nvgCreate(NanoVGGL3.NVG_ANTIALIAS | NanoVGGL3.NVG_STENCIL_STROKES);
+        private final NVGColor color = NVGColor.create();
+        private final boolean hasFont;
+
+        NanoVGBackend() {
+            if (vg == MemoryUtil.NULL) {
+                throw new IllegalStateException("Unable to create NanoVG context (OpenGL 3 required)");
+            }
+            String font = JXNanoVGRenderer.findFont();
+            hasFont = font != null && NanoVG.nvgCreateFont(vg, JXNanoVGRenderer.FONT, font) >= 0;
+            if (!hasFont) {
+                System.err.println("JXParallel: no TrueType font found, text will not be drawn; set -Djx.font=<path>");
+            }
+        }
+
+        @Override
+        public void render(JXNativeNode root, int fbWidth, int fbHeight, int winWidth, int winHeight) {
+            int background = JXNanoVGRenderer.BACKGROUND;
+            GL11.glViewport(0, 0, fbWidth, fbHeight);
+            GL11.glClearColor(((background >> 16) & 0xFF) / 255.0f, ((background >> 8) & 0xFF) / 255.0f,
+                    (background & 0xFF) / 255.0f, 1.0f);
+            GL11.glClear(GL11.GL_COLOR_BUFFER_BIT | GL11.GL_STENCIL_BUFFER_BIT | GL11.GL_DEPTH_BUFFER_BIT);
+            if (root == null) {
+                return;
+            }
+            NanoVG.nvgBeginFrame(vg, winWidth, winHeight, (float) fbWidth / winWidth);
+            JXNanoVGRenderer.paint(root, vg, color, hasFont, winWidth, winHeight);
+            NanoVG.nvgEndFrame(vg);
+        }
+
+        @Override
+        public void close() {
+            NanoVGGL3.nvgDelete(vg);
+        }
     }
 }

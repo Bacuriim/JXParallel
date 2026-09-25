@@ -7,6 +7,7 @@ param(
     [int]$Runs            = 5,
     [int]$RefreshCount    = 500,
     [int]$SustainedFrames = 600,
+    [int]$Monitor         = -1,   # >= 0 opens both windows on that monitor (0 = primary)
     [string]$Output       = "docs\ui-stress-results.csv"
 )
 
@@ -25,6 +26,7 @@ function Invoke-StressCase([string]$Name, [string]$Classpath, [string]$MainClass
     $jvmArgs = [System.Collections.Generic.List[string]]::new()
     $jvmArgs.Add("-Djx.stress.refreshCount=$RefreshCount")
     $jvmArgs.Add("-Djx.sustained.frames=$SustainedFrames")
+    if ($Monitor -ge 0) { $jvmArgs.Add("-Djx.monitor=$Monitor") }
     if ($Name -eq "javafx" -and -not [string]::IsNullOrWhiteSpace($JavaFxModulePath)) {
         $jvmArgs.Add("--module-path"); $jvmArgs.Add("`"$JavaFxModulePath`"")
         $jvmArgs.Add("--add-modules"); $jvmArgs.Add("javafx.controls")
@@ -83,7 +85,7 @@ $results = [System.Collections.Generic.List[object]]::new()
 for ($r = 1; $r -le $Runs; $r++) {
     Write-Host "[$r/$Runs] JavaFX..."
     $results.Add((Invoke-StressCase "javafx" $JavaFxClasspath "com.jxparallel.examples.JavaFxStressRunner" $r))
-    Write-Host "[$r/$Runs] JXParallel native (Skia + OpenGL)..."
+    Write-Host "[$r/$Runs] JXParallel native..."
     $results.Add((Invoke-StressCase "jxparallel-native" $nativeCp "com.jxparallel.examples.nativeui.NativeStressRunner" $r))
 }
 
