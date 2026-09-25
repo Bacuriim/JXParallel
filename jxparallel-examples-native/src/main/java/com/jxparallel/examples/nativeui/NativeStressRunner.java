@@ -96,6 +96,14 @@ public final class NativeStressRunner {
         }
         long stressEnd = System.nanoTime();
 
+        // The label phase runs first, with cold JIT; repeat it warm to separate the two effects.
+        long warmLabelStart = System.nanoTime();
+        for (int i = 0; i < REFRESH_COUNT; i++) {
+            statusLabel.setText("Label again #" + i);
+            push();
+        }
+        metric("stress_label_warm_ns", System.nanoTime() - warmLabelStart);
+
         metric("stress_label_ns", btnStart - labelStart);
         metric("stress_button_ns", listStart - btnStart);
         metric("stress_list_ns", inputStart - listStart);

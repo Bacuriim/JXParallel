@@ -299,6 +299,61 @@ da máquina.
 
 ---
 
+## 2026-09-25: atualização incremental da árvore de UI
+
+**Diagnóstico antes de mudar.** Um microbenchmark separou o custo de cada atualização em render
+(criar a árvore de `JXElement`), montagem (criar a árvore nativa) e layout. Com os 5 nós do teste,
+os três juntos custavam só 6 µs por atualização, contra cerca de 60 µs medidos no teste de
+estresse. O custo que faltava vinha de `requestRender()`, que chamava `glfwPostEmptyEvent()` (uma
+chamada ao sistema) a cada atualização. Em telas grandes o problema era outro: com 2005 nós, cada
+atualização custava 0.25 ms e crescia linearmente com o tamanho da tela.
+
+**Primeira tentativa, insuficiente.** Reconciliação sozinha (`JXNativeNode.reconcile`: reaproveitar
+nós do mesmo tipo e só trocar as props) não reduziu o custo com 2005 nós (127 ms contra 122 ms em
+500 atualizações), porque o `render()` ainda recriava todos os elementos e a reconciliação
+precisava percorrer todos.
+
+**Solução.** Três partes:
+1. Pedidos de redesenho agrupados com `AtomicBoolean`: só o primeiro pedido após um quadro acorda
+   o laço de renderização.
+2. Memoização por controle (`JXRenderMemo`): `render()` devolve a mesma instância enquanto o estado
+   lido na hora não muda. A chave é o estado atual, não listeners, então não há como a tela ficar
+   desatualizada.
+3. Atalho por identidade na reconciliação: se o elemento é a mesma instância do render anterior, a
+   subárvore inteira é pulada. O layout só é invalidado quando a estrutura muda. Efeito colateral
+   positivo: o nó com foco deixa de ser perdido a cada atualização.
+
+**Microbenchmark** (500 atualizações de label, render + árvore nativa + layout, Java 17):
+
+| Tamanho da tela | Antes | Depois |
+|---|---:|---:|
+| 5 nós | 5.6 ms | 1.6 ms |
+| 205 nós | 17.8 ms | 4.4 ms |
+| 2005 nós | 127.4 ms | 30.9 ms |
+
+**Achado metodológico.** A fase de label é a primeira do teste de estresse e roda com o JIT frio. O
+botão, que faz mais trabalho e vem depois, era mais rápido que o label. Os dois runners passaram a
+repetir a fase de label no fim (`stress_label_warm_ns`), de forma simétrica, sem alterar as métricas
+existentes.
+
+**Resultado no teste de estresse** (x86: 10 execuções; x64: 5; carga de fundo 10 a 37%):
+
+| Métrica | JavaFX 8 x86 | JXParallel x86 | JavaFX 21 x64 | JXParallel x64 |
+|---|---:|---:|---:|---:|
+| Label 500x, JIT frio | 11.4 ms | 10.3 ms | 10.3 ms | 10.7 ms |
+| Label 500x, quente | 2.57 ms | 0.93 ms | 3.34 ms | 2.59 ms |
+| Rajada total | 147.0 ms | 25.2 ms | 234.8 ms | 33.2 ms |
+| Pior quadro | 31.1 ms | 23.6 ms | 56.9 ms | 13.1 ms |
+| Quadros acima de 25 ms | 1 | 0 | 2 | 0 |
+
+O label deixou de ser ponto fraco: empate com JIT frio e vantagem com JIT quente.
+
+**Pior quadro do NanoVG.** Com 10 execuções, o pior quadro do NanoVG ficou entre 21.1 e 25.2 ms em
+todas, com zero quadros acima de 25 ms em 9 delas. Os 40.2 ms da bateria anterior foram um caso
+isolado. Não houve mudança de código específica para isso.
+
+---
+
 ## Evolução das métricas principais
 
 | Data | Métrica | JavaFX | JXParallel | Observação |
@@ -315,6 +370,9 @@ da máquina.
 | 25/09 | CPU por quadro, Java 8 x86 | 3.9 ms | 1.5 ms | JavaFX 8 contra NanoVG |
 | 25/09 | CPU por quadro, Java 17 x64 | 11.3 ms | 2.9 ms | JavaFX 21 contra Skia, FPS válido |
 | 25/09 | Heap vivo após GC, x86 | 7.6 MB | 2.1 MB | JavaFX 8 contra NanoVG |
+| 25/09 | Label 500x quente, x64 | 3.34 ms | 2.59 ms | após atualização incremental |
+| 25/09 | Label 500x quente, x86 | 2.57 ms | 0.93 ms | após atualização incremental |
+| 25/09 | Pior quadro NanoVG x86 | 31.1 ms | 23.6 ms | 10 execuções |
 
 ## Ameaças à validade (para o capítulo de metodologia)
 
@@ -328,9 +386,7 @@ da máquina.
 
 ## Pendências
 
-- Atualização incremental da árvore de UI.
 - Cache de FXML com template já interpretado, ou compilação de FXML para Java.
-- Mais execuções em 32 bits para confirmar o pior quadro do NanoVG.
 - HarfBuzz/FreeType para texto e Yoga para layout.
 - Lista e tabela virtualizadas, com benchmark de 100 mil linhas contra o `TableView`.
 - Repetir as baterias com a sessão do Windows desbloqueada e a máquina ociosa (FPS válido).

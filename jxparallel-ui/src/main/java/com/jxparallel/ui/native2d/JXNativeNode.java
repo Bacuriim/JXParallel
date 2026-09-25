@@ -11,7 +11,8 @@ public final class JXNativeNode {
     private static final int UNKNOWN = -1;
 
     private final String type;
-    private final Map<String, Object> props;
+    private Map<String, Object> props;
+    private JXElement source;
     private final List<JXNativeNode> children = new ArrayList<JXNativeNode>();
     private final List<JXNativeNode> unmodifiableChildren;
     private int x;
@@ -23,6 +24,7 @@ public final class JXNativeNode {
     private boolean layoutDirty = true;
 
     JXNativeNode(JXElement element) {
+        this.source = element;
         this.type = element.getType();
         this.props = element.getProps().asMap();
         for (JXElement child : element.getChildren()) {
@@ -40,6 +42,56 @@ public final class JXNativeNode {
 
     public void layoutForBackend(int width, int height) {
         layout(0, 0, width, height);
+    }
+
+    /**
+     * Updates this tree in place to match {@code element}: nodes of the same type are reused and
+     * only get their props replaced, which keeps their layout and preferred-size caches. Layout is
+     * invalidated only where the structure changed (children added, removed or of another type, or
+     * a different {@code gap}). Returns {@code false} when the root type differs; the caller must
+     * then mount a new tree.
+     */
+    public boolean reconcile(JXElement element) {
+        if (element == null || !type.equals(element.getType())) {
+            return false;
+        }
+        reconcileInPlace(element);
+        return true;
+    }
+
+    /** Returns true if this node's preferred size may have changed. */
+    private boolean reconcileInPlace(JXElement element) {
+        if (element == source) {
+            return false; // same immutable element (memoized render): nothing below changed
+        }
+        source = element;
+        Map<String, Object> next = element.getProps().asMap();
+        boolean changed = propertyAsInt(next, "gap", 0) != propertyAsInt(props, "gap", 0);
+        props = next;
+        List<JXElement> nextChildren = element.getChildren();
+        int common = Math.min(children.size(), nextChildren.size());
+        for (int i = 0; i < common; i++) {
+            JXElement childElement = nextChildren.get(i);
+            JXNativeNode child = children.get(i);
+            if (child.type.equals(childElement.getType())) {
+                changed |= child.reconcileInPlace(childElement);
+            } else {
+                children.set(i, new JXNativeNode(childElement));
+                changed = true;
+            }
+        }
+        for (int i = common; i < nextChildren.size(); i++) {
+            children.add(new JXNativeNode(nextChildren.get(i)));
+            changed = true;
+        }
+        while (children.size() > nextChildren.size()) {
+            children.remove(children.size() - 1);
+            changed = true;
+        }
+        if (changed) {
+            invalidateLayout();
+        }
+        return changed;
     }
 
     public String getType() {
@@ -203,6 +255,10 @@ public final class JXNativeNode {
     }
 
     private int propertyAsInt(String name, int fallback) {
+        return propertyAsInt(props, name, fallback);
+    }
+
+    private static int propertyAsInt(Map<String, Object> props, String name, int fallback) {
         Object value = props.get(name);
         if (value instanceof Number) {
             return Math.max(0, ((Number) value).intValue());

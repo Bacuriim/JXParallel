@@ -6,6 +6,7 @@ import com.jxparallel.ui.JXElement;
 import com.jxparallel.ui.JXProps;
 
 public final class JXTextArea implements JXComponent {
+    private final JXRenderMemo memo = new JXRenderMemo();
     private final JXStringProperty text = new JXStringProperty("");
     private final JXStringProperty promptText = new JXStringProperty("");
 
@@ -23,9 +24,10 @@ public final class JXTextArea implements JXComponent {
 
     @Override
     public JXElement render() {
-        return JXElement.of("textarea", JXProps.builder()
-                .set("value", getText())
-                .set("placeholder", promptText.get())
-                .build());
+        return memo.render(() -> JXElement.of("textarea", JXProps.builder()
+                        .set("value", getText())
+                        .set("placeholder", promptText.get())
+                        .build()),
+                getText(), promptText.get());
     }
 }

@@ -18,9 +18,9 @@ native JXParallel UI, which draws with Skia or NanoVG on OpenGL and does not dep
 |---|---:|---:|
 | Load 20 FXML screens with controllers (warm) | 665 ms | **194 ms** |
 | FX thread blocked while loading those screens (cold) | 1163 ms | **0 ms** |
-| CPU per frame, 600 animated frames, Java 17 x64 | 11.3 ms | **2.9 ms** |
-| CPU per frame, 600 animated frames, Java 8 x86 | 3.9 ms | **1.5 ms** |
-| Peak RAM of the same UI test, Java 17 x64 | 247.5 MB | **160.1 MB** |
+| CPU per frame, 600 animated frames, Java 17 x64 | 10.4 ms | **2.9 ms** |
+| CPU per frame, 600 animated frames, Java 8 x86 | 4.1 ms | **1.4 ms** |
+| Peak RAM of the same UI test, Java 17 x64 | 249.9 MB | **154.2 MB** |
 
 > **Status: pre-1.0.** The scheduler, properties, events and FXML loading are tested and usable.
 > The native UI covers basic controls and layouts; CSS, virtualized lists and tables, and full
@@ -355,23 +355,26 @@ linked reports.
 
 | Metric | JavaFX 8 x86 | JXParallel NanoVG x86 | JavaFX 21 x64 | JXParallel Skia x64 |
 |---|---:|---:|---:|---:|
-| JVM start to first frame | 777 ms | **609 ms** | 1494 ms | **840 ms** |
-| Peak working set | 97.3 MB | **89.3 MB** | 247.5 MB | **160.1 MB** |
+| JVM start to first frame | 855 ms | **761 ms** | 1568 ms | **888 ms** |
+| Peak working set | 97.4 MB | **89.5 MB** | 249.9 MB | **154.2 MB** |
 | Heap live after GC | 7.6 MB | **2.1 MB** | 10.6 MB | **2.1 MB** |
-| CPU per frame | 3.9 ms | **1.5 ms** | 11.3 ms | **2.9 ms** |
-| Allocation over 600 frames | 24.5 MB | **3.9 MB** | 34.1 MB | **5.0 MB** |
-| Frames per second | 118.2 | 118.5 | 117.3 | 118.7 |
-| 500 label updates | **13.8 ms** | 30.8 ms | **14.7 ms** | 17.6 ms |
+| CPU per frame | 4.1 ms | **1.4 ms** | 10.4 ms | **2.9 ms** |
+| Allocation over 600 frames | 24.5 MB | **3.5 MB** | 34.1 MB | **4.8 MB** |
+| Worst frame | 31.1 ms | **23.6 ms** | 56.9 ms | **13.1 ms** |
+| 500 label updates, warm | 2.57 ms | **0.93 ms** | 3.34 ms | **2.59 ms** |
+| 500 label updates, cold JIT | 11.4 ms | **10.3 ms** | **10.3 ms** | 10.7 ms |
+| Frames per second | 118.3 | 119.3 | 118.4 | 120.3 |
 
 ```mermaid
 xychart-beta
     title "CPU per animated frame, ms (lower is better)"
     x-axis ["JavaFX 8 x86", "JXParallel x86", "JavaFX 21 x64", "JXParallel x64"]
     y-axis "ms" 0 --> 12
-    bar [3.9, 1.5, 11.3, 2.9]
+    bar [4.1, 1.4, 10.4, 2.9]
 ```
 
-Report: [ui-comparison-2026-09-25.md](docs/ui-comparison-2026-09-25.md).
+x86 columns: 10 runs; x64: 5 runs; after the incremental-update changes. "Cold JIT" is the
+first update phase of each run. Report: [ui-comparison-2026-09-25.md](docs/ui-comparison-2026-09-25.md).
 
 ### FXML: 20 form screens with controllers
 
@@ -394,8 +397,6 @@ Report: [fxml-load-comparison.md](docs/fxml-load-comparison.md).
 
 ### Where JXParallel is not ahead yet
 
-- **Label updates are slower.** Each change rebuilds the element tree; JavaFX invalidates only
-  the changed node. Incremental updates are the next item on the roadmap.
 - **JavaFX draws more.** CSS, skins, LCD text and a real `ListView` cost JavaFX memory and CPU
   that the native renderer does not spend yet. Part of every gap above comes from that.
 - **Parallel FXML loading peaks higher in memory** (+24%) because several screens are built at
@@ -553,7 +554,7 @@ mvn -Plegacy-javafx test      # plus jxparallel-javafx, jxparallel-fxml, example
 | Properties, events, observable collections | Tested |
 | FX thread dispatch and parallel FXML loading | Tested; cache stores bytes only |
 | Native window (Skia 64-bit, NanoVG 32-bit) | Working; basic controls and layouts |
-| Incremental UI updates | Planned (tree is rebuilt on each change today) |
+| Incremental UI updates | Implemented: memoized render and in-place reconciliation |
 | Virtualized list, table and tree | Planned |
 | CSS replacement and full accessibility | Not implemented |
 

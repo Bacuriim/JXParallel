@@ -6,6 +6,7 @@ import com.jxparallel.ui.JXElement;
 import com.jxparallel.ui.JXProps;
 
 public final class JXLabel implements JXComponent {
+    private final JXRenderMemo memo = new JXRenderMemo();
     private final JXStringProperty text;
 
     public JXLabel() {
@@ -30,6 +31,7 @@ public final class JXLabel implements JXComponent {
 
     @Override
     public JXElement render() {
-        return JXElement.text(getText());
+        return memo.render(() -> JXElement.text(getText()),
+                getText());
     }
 }
