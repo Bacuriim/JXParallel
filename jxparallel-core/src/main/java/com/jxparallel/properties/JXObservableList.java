@@ -24,9 +24,13 @@ public class JXObservableList<E> extends AbstractList<E> {
     }
 
     @Override
-    public synchronized boolean add(E value) {
-        delegate.add(value);
-        notifyListeners(new JXListChangeEvent<E>(JXListChangeEvent.Type.ADD, delegate.size() - 1, value, null));
+    public boolean add(E value) {
+        JXListChangeEvent<E> event;
+        synchronized (this) {
+            delegate.add(value);
+            event = new JXListChangeEvent<E>(JXListChangeEvent.Type.ADD, delegate.size() - 1, value, null);
+        }
+        notifyListeners(event);
         return true;
     }
 
@@ -50,7 +54,7 @@ public class JXObservableList<E> extends AbstractList<E> {
     }
 
     @Override
-    public synchronized boolean addAll(java.util.Collection<? extends E> values) {
+    public boolean addAll(java.util.Collection<? extends E> values) {
         if (values == null || values.isEmpty()) {
             return false;
         }
@@ -62,22 +66,28 @@ public class JXObservableList<E> extends AbstractList<E> {
     }
 
     @Override
-    public synchronized void clear() {
-        while (!delegate.isEmpty()) {
-            remove(delegate.size() - 1);
+    public void clear() {
+        while (size() > 0) {
+            remove(size() - 1);
         }
     }
 
     @Override
-    public synchronized E set(int index, E element) {
-        E old = delegate.set(index, element);
+    public E set(int index, E element) {
+        E old;
+        synchronized (this) {
+            old = delegate.set(index, element);
+        }
         notifyListeners(new JXListChangeEvent<E>(JXListChangeEvent.Type.UPDATE, index, element, old));
         return old;
     }
 
     @Override
-    public synchronized E remove(int index) {
-        E old = delegate.remove(index);
+    public E remove(int index) {
+        E old;
+        synchronized (this) {
+            old = delegate.remove(index);
+        }
         notifyListeners(new JXListChangeEvent<E>(JXListChangeEvent.Type.REMOVE, index, null, old));
         return old;
     }

@@ -28,12 +28,7 @@ public final class JXParallel {
     }
 
     public static void start() {
-        AdaptiveWorkerPool pool = POOL.get();
-        if (pool == null || !pool.isRunning()) {
-            pool = new AdaptiveWorkerPool(ACTIVE_CONFIG);
-            POOL.set(pool);
-        }
-        pool.start();
+        getCurrentPool().start();
     }
 
     public static void shutdown() {
