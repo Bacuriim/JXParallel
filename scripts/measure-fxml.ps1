@@ -5,7 +5,8 @@ param(
     [int]$Runs    = 5,
     [int]$Screens = 20,
     [int]$Passes  = 3,
-    [string]$Output = "docs\fxml-load-results.csv"
+    [string]$Output = "docs\fxml-load-results.csv",
+    [string[]]$Modes = @("javafx", "jxparallel")
 )
 
 # Runs FxmlLoadBenchmark in "javafx" and "jxparallel" modes alternately, each in a fresh JVM.
@@ -50,7 +51,7 @@ function Invoke-Case([string]$Mode, [int]$Run) {
 
 $results = [System.Collections.Generic.List[object]]::new()
 for ($r = 1; $r -le $Runs; $r++) {
-    foreach ($mode in "javafx", "jxparallel") {
+    foreach ($mode in $Modes) {
         Write-Host "[$r/$Runs] $mode..."
         $results.Add((Invoke-Case $mode $r))
     }
@@ -60,7 +61,7 @@ $columns = $results | ForEach-Object { $_.PSObject.Properties.Name } | Select-Ob
 $results | Select-Object $columns | Export-Csv -Path $Output -NoTypeInformation -Encoding UTF8
 $summary = foreach ($column in $columns | Where-Object { $_ -notin "implementation", "run" }) {
     $line = [ordered]@{ metric = $column }
-    foreach ($mode in "javafx", "jxparallel") {
+    foreach ($mode in $Modes) {
         $values = @($results | Where-Object implementation -eq $mode | ForEach-Object { $_.$column } |
                     Where-Object { $_ -ne $null } | Sort-Object)
         $line[$mode] = if ($values.Count) { $values[[int][math]::Floor(($values.Count - 1) / 2)] } else { $null }

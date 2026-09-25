@@ -354,6 +354,46 @@ isolado. Não houve mudança de código específica para isso.
 
 ---
 
+## 2026-09-25: cache de FXML com template pré-interpretado
+
+**Problema.** O cache antigo guardava os bytes do arquivo, e as passadas quentes alocavam o mesmo
+que o JavaFX (cerca de 223 MB para 20 telas). O custo estava no parse do XML, nas buscas por
+reflexão e na maquinaria do `FXMLLoader` (builders, expressões), repetidos a cada carga.
+
+**Estratégia.** `FxmlTemplate`: na primeira carga, o FXML é lido com DOM e vira um plano imutável,
+com classes resolvidas, construtor escolhido (inclusive `@NamedArg`, preferindo `int` a `double`
+quando o valor permite), setters, propriedades estáticas (`GridPane.rowIndex`), propriedade
+padrão (`@DefaultProperty`), campos `@FXML` do controller e métodos de evento. Os valores dos
+atributos já são convertidos nessa etapa. As cargas seguintes só chamam construtores e setters.
+O que o template não implementa (`fx:include`, `fx:define`, expressões, `%recursos`,
+`@locais`, scripts, texto dentro de elementos) cai no `FXMLLoader`, então nunca fica pior que antes.
+
+**Bug encontrado pela validação.** Na primeira execução, o template parecia 20x mais rápido, mas
+nenhuma tela passava na checagem de controller inicializado. O `FXMLLoader` também copia o `fx:id`
+para o `id` do nó (é isso que faz `lookup("#status")` funcionar), e o template não fazia isso.
+Depois da correção, foi acrescentada ao benchmark uma impressão digital estrutural: contagem de
+todos os nós alcançáveis e somas dos valores dos `Spinner` e dos índices de linha do `GridPane`.
+Os três modos deram 2300 nós, 4320 e 12600 em todas as passadas. Lição: um ganho grande demais
+pede uma checagem de equivalência, não só de "rodou sem erro".
+
+**Resultado** (mediana de 5; terceiro modo isola o template: mesmo pool com `FXMLLoader` dentro):
+
+| Métrica | JavaFX sequencial | Pool + `FXMLLoader` | Pool + template |
+|---|---:|---:|---:|
+| 20 telas, quente | 692 ms | 258 ms | 31 ms |
+| 20 telas, frio | 1467 ms | 818 ms | 538 ms |
+| Primeira tela, quente | 40.7 ms | 36.3 ms | 7.8 ms |
+| CPU, passada quente | 2.28 s | 1.95 s | 0.30 s |
+| Alocação, passada quente | 223.5 MB | 225.0 MB | 9.8 MB |
+| Alocação, passada fria | 245.4 MB | 248.2 MB | 318.7 MB |
+| Pico de working set | 330 MB | 412 MB | 322 MB |
+
+A tela individual passou a ser 5x mais rápida que no JavaFX (antes só o lote ganhava), e o pico de
+memória deixou de ficar acima do JavaFX. Custo: a primeira carga de cada arquivo aloca mais, e os
+templates em cache retêm cerca de 1.5 MB a mais de heap.
+
+---
+
 ## Evolução das métricas principais
 
 | Data | Métrica | JavaFX | JXParallel | Observação |
@@ -373,6 +413,8 @@ isolado. Não houve mudança de código específica para isso.
 | 25/09 | Label 500x quente, x64 | 3.34 ms | 2.59 ms | após atualização incremental |
 | 25/09 | Label 500x quente, x86 | 2.57 ms | 0.93 ms | após atualização incremental |
 | 25/09 | Pior quadro NanoVG x86 | 31.1 ms | 23.6 ms | 10 execuções |
+| 25/09 | FXML 20 telas, quente | 692 ms | 31 ms | template pré-interpretado |
+| 25/09 | FXML uma tela, quente | 40.7 ms | 7.8 ms | template pré-interpretado |
 
 ## Ameaças à validade (para o capítulo de metodologia)
 
@@ -386,7 +428,7 @@ isolado. Não houve mudança de código específica para isso.
 
 ## Pendências
 
-- Cache de FXML com template já interpretado, ou compilação de FXML para Java.
+- Compilação de FXML para Java no build (removeria o custo da primeira carga).
 - HarfBuzz/FreeType para texto e Yoga para layout.
 - Lista e tabela virtualizadas, com benchmark de 100 mil linhas contra o `TableView`.
 - Repetir as baterias com a sessão do Windows desbloqueada e a máquina ociosa (FPS válido).

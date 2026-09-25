@@ -30,25 +30,49 @@ public class FXMLLoaderService {
         return JXParallel.background(() -> load(resourcePath));
     }
 
+    /**
+     * Builds a new view and controller. The first load parses the FXML into an {@link FxmlTemplate}
+     * and caches it, so later loads skip XML parsing and reflective lookups. FXML that uses a
+     * feature the template does not support is loaded with {@link FXMLLoader}, as before.
+     * {@code -Djx.fxml.template=false} always uses {@link FXMLLoader}.
+     */
     public Parent load(String resourcePath) {
         if (resourcePath == null || resourcePath.trim().isEmpty()) {
             throw new IllegalArgumentException("Resource path must not be empty");
         }
         try {
-            byte[] source = source(resourcePath);
-            FXMLLoader loader = new FXMLLoader(getClass().getResource(resourcePath));
+            URL location = getClass().getResource(resourcePath);
+            Object cached = cache.get(resourcePath);
+            if (cached instanceof FxmlTemplate) {
+                return ((FxmlTemplate) cached).instantiate();
+            }
+            byte[] source = cached instanceof byte[] ? (byte[]) cached : read(location, resourcePath);
+            if (!(cached instanceof byte[]) && TEMPLATES_ENABLED) {
+                try {
+                    FxmlTemplate template = FxmlTemplate.parse(source, location, classLoader());
+                    cache.put(resourcePath, template);
+                    return template.instantiate();
+                } catch (FxmlTemplate.Unsupported unsupported) {
+                    // Uses a feature the template does not implement: FXMLLoader from now on.
+                }
+            }
+            cache.put(resourcePath, source);
+            FXMLLoader loader = new FXMLLoader(location);
             return loader.load(new ByteArrayInputStream(source));
         } catch (IOException | IllegalStateException e) {
             throw new RuntimeException("Unable to load FXML resource: " + resourcePath, e);
         }
     }
 
-    private byte[] source(String resourcePath) throws IOException {
-        Object cached = cache.get(resourcePath);
-        if (cached instanceof byte[]) {
-            return (byte[]) cached;
-        }
-        URL resource = getClass().getResource(resourcePath);
+    private static final boolean TEMPLATES_ENABLED =
+            !"false".equalsIgnoreCase(System.getProperty("jx.fxml.template"));
+
+    private ClassLoader classLoader() {
+        ClassLoader context = Thread.currentThread().getContextClassLoader();
+        return context != null ? context : getClass().getClassLoader();
+    }
+
+    private static byte[] read(URL resource, String resourcePath) throws IOException {
         if (resource == null) {
             throw new IOException("FXML resource not found: " + resourcePath);
         }
@@ -59,9 +83,7 @@ public class FXMLLoaderService {
             while ((read = input.read(buffer)) >= 0) {
                 output.write(buffer, 0, read);
             }
-            byte[] source = output.toByteArray();
-            cache.put(resourcePath, source);
-            return source;
+            return output.toByteArray();
         }
     }
 
