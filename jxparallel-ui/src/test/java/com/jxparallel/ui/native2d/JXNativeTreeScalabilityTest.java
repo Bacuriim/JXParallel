@@ -4,7 +4,7 @@ import org.junit.jupiter.api.Test;
 
 import com.jxparallel.ui.JXElement;
 import com.jxparallel.ui.JXProps;
-import com.jxparallel.ui.vulkan.JXVulkanRenderer;
+
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 
@@ -16,10 +16,10 @@ class JXNativeTreeScalabilityTest {
             children[index] = JXElement.of("button",
                     JXProps.builder().set("label", String.valueOf(index)).build());
         }
-        JXNativeNode root = JXVulkanRenderer.mount(
+        JXNativeNode root = JXSkiaRenderer.mount(
                 JXElement.of("column", JXProps.builder().set("gap", 1).build(), children));
 
-        JXVulkanRenderer.layout(root, 800, 10000);
+        JXSkiaRenderer.layout(root, 800, 10000);
 
         assertEquals(10000, root.getChildren().size());
         assertEquals(800, root.getBounds().width);

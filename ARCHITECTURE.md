@@ -18,7 +18,7 @@
    - lifecycle
 2. `jxparallel-ui`
    - native scene graph
-   - Skia renderer through Skija
+   - Skia renderer through Skija on a GLFW/OpenGL window (LWJGL)
    - controls, layout, input, accessibility, styling, animation
 3. `jxparallel-properties`
    - property system for future control implementations
@@ -33,13 +33,13 @@
 7. `jxparallel-benchmarks`
    - JMH-based performance evaluation
 8. `jxparallel-lwjgl` (optional profile)
-   - experimental GLFW/OpenGL and GLFW/Vulkan backends
+   - experimental raw GLFW/OpenGL backend (no Skia)
 
 The default Maven reactor does not include or resolve OpenJFX. JavaFX modules are migration
-adapters and are built only with `-Plegacy-javafx`. The native UI requires Java 11 or newer
-because current Skija artifacts target Java 11; the core runtime remains Java 8 compatible.
-The LWJGL backends are isolated behind `-Plwjgl-opengl` or `-Plwjgl-vulkan` and are not part of
-the default build. Both reuse the same native scene graph and components.
+adapters and are built only with `-Plegacy-javafx`. All modules compile to Java 8 bytecode, but the native
+window needs a 64-bit JVM because Skija ships no 32-bit natives; the core runtime runs on Java 8 32-bit.
+The raw OpenGL backend is isolated behind `-Plwjgl-opengl` and is not part of the default build.
+It reuses the same native scene graph and components.
 
 ## Compatibility rule
 
