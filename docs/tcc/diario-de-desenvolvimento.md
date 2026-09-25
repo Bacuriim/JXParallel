@@ -124,9 +124,10 @@ em vez de inferir o estado da tela por processos.
 `lwjgl`, `glfw`, `opengl`, `nanovg`, `stb`, `freetype`, `harfbuzz` e `yoga`. O Skija não tem
 (`skija-windows-x86` retorna 404).
 
-**Restrição da plataforma.** O port Windows x86 foi removido do JDK na versão 24 (JEP 479). O
-último JDK com build 32-bit para Windows é o 21. A matriz real é: x86 de 8 a 21, x64 de 8 até
-a mais recente.
+**Restrição da plataforma.** O port Windows x86 foi descontinuado no JDK 21 (JEP 449) e removido
+no 24 (JEP 479). *Correção em 2026-09-25:* a primeira execução da CI mostrou que nenhuma das
+distribuições usadas (Temurin, Zulu) publica JDK 21 de 32 bits para Windows; o último é o 17.
+A matriz real é: x86 de 8 a 17, x64 de 8 até a mais recente.
 
 **Decisão proposta (pendente).** Trocar o Skia por NanoVG para formas, HarfBuzz + FreeType para
 texto e Yoga para layout, todos via LWJGL, cobrindo a matriz inteira com um único renderer.

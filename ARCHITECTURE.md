@@ -35,7 +35,7 @@
 
 The default Maven reactor does not include or resolve OpenJFX. JavaFX modules are migration
 adapters and are built only with `-Plegacy-javafx`. All modules compile to Java 8 bytecode. Skija ships no 32-bit natives, so on
-32-bit JVMs (Java 8 to 21) the window paints with NanoVG; `-Djx.renderer=skia|nanovg` forces one.
+32-bit JVMs (Java 8 to 17) the window paints with NanoVG; `-Djx.renderer=skia|nanovg` forces one.
 
 ## Compatibility rule
 

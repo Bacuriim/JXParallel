@@ -50,7 +50,7 @@
         </dependency>
     </dependencies>
 
-    <!-- Natives follow the JVM running Maven. 64-bit: Skia + LWJGL. 32-bit (Java 8 to 21):
+    <!-- Natives follow the JVM running Maven. 64-bit: Skia + LWJGL. 32-bit (Java 8 to 17):
          Skija ships no x86 natives, so JXWindow uses NanoVG and only LWJGL natives are needed. -->
     <profiles>
         <profile>
