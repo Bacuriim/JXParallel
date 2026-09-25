@@ -7,6 +7,7 @@ import com.jxparallel.ui.JXElement;
 import com.jxparallel.ui.JXProps;
 
 public final class JXToggleButton implements JXComponent {
+    private final JXRenderMemo memo = new JXRenderMemo();
     private final JXStringProperty text;
     private final JXBooleanProperty selected = new JXBooleanProperty(false);
 
@@ -40,9 +41,10 @@ public final class JXToggleButton implements JXComponent {
 
     @Override
     public JXElement render() {
-        return JXElement.of("toggle", JXProps.builder()
-                .set("label", getText())
-                .set("selected", isSelected())
-                .build());
+        return memo.render(() -> JXElement.of("toggle", JXProps.builder()
+                        .set("label", getText())
+                        .set("selected", isSelected())
+                        .build()),
+                getText(), isSelected());
     }
 }

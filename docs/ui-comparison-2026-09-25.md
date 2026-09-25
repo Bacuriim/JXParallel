@@ -64,12 +64,34 @@ Display at about 118 Hz, session unlocked, 5 to 23% background CPU.
   large in private bytes, heap and allocation.** JavaFX 8 on the client VM is lean; the gain comes
   from allocating less (24.5 vs 3.9 MB over 600 frames) and loading half the classes.
 - **CPU per frame is 2.5x to 4x lower** on both platforms, with the same frame rate.
-- **Label updates are still slower** because each change rebuilds the element tree: +124% on
-  32-bit, +20% on 64-bit. The 64-bit value has ranged from 12.7 to 30.0 ms across batches, so
-  treat it as noisy; incremental tree updates are the fix.
+- **Label updates were slower** in this first batch (+124% on 32-bit, +20% on 64-bit) because each
+  change rebuilt the element tree. Fixed later the same day; see the next section.
 - **NanoVG had one worse worst-frame** (40 vs 30 ms) on 32-bit; p95 and p99 are better. One
   outlier per 600 frames on both sides, so this needs more runs before drawing a conclusion.
 - JavaFX draws more (CSS, skins, a real `ListView`); part of every gap comes from that.
+
+## After incremental updates (same day, later)
+
+Changes: `JXWindow.setContent` reconciles the new tree with the current one instead of
+rebuilding it, every control memoizes its rendered element, and render requests are coalesced
+(one wake-up per frame instead of one per update). Both runners now also repeat the label phase
+at the end, with warm JIT (`stress_label_warm_ns`); the first label phase runs with cold JIT.
+
+| Metric | JavaFX 8 x86 | JXParallel NanoVG x86 | JavaFX 21 x64 | JXParallel Skia x64 |
+|---|---:|---:|---:|---:|
+| 500 label updates, cold | 11.4 ms | **10.3 ms** | **10.3 ms** | 10.7 ms |
+| 500 label updates, warm | 2.57 ms | **0.93 ms** | 3.34 ms | **2.59 ms** |
+| Burst total | 147.0 ms | **25.2 ms** | 234.8 ms | **33.2 ms** |
+| Worst frame | 31.1 ms | **23.6 ms** | 56.9 ms | **13.1 ms** |
+| Frames over 25 ms | 1 | **0** | 2 | **0** |
+| GC collections | 12 | **4** | 2 | **0** |
+
+x86: 10 runs ([CSV](ui-stress-results-x86-incremental-2026-09-25.csv)); worst frame per NanoVG
+run 21.1 to 25.2 ms, so the earlier 40.2 ms was a single outlier. x64: 5 runs
+([CSV](ui-stress-results-x64-incremental-2026-09-25.csv)). Background load 10 to 37%.
+
+Update cost alone (microbenchmark, 500 label updates, render plus push to the native tree plus
+layout, Java 17): 5 nodes 5.6 to 1.6 ms, 205 nodes 17.8 to 4.4 ms, 2005 nodes 127.4 to 30.9 ms.
 
 ## Reproduce
 

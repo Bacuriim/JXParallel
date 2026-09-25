@@ -6,6 +6,7 @@ import com.jxparallel.ui.JXElement;
 import com.jxparallel.ui.JXProps;
 
 public final class JXSlider implements JXComponent {
+    private final JXRenderMemo memo = new JXRenderMemo();
     private final JXDoubleProperty min = new JXDoubleProperty(0.0);
     private final JXDoubleProperty max = new JXDoubleProperty(100.0);
     private final JXDoubleProperty value = new JXDoubleProperty(0.0);
@@ -42,10 +43,11 @@ public final class JXSlider implements JXComponent {
 
     @Override
     public JXElement render() {
-        return JXElement.of("slider", JXProps.builder()
-                .set("min", getMin())
-                .set("max", getMax())
-                .set("value", getValue())
-                .build());
+        return memo.render(() -> JXElement.of("slider", JXProps.builder()
+                        .set("min", getMin())
+                        .set("max", getMax())
+                        .set("value", getValue())
+                        .build()),
+                getMin(), getMax(), getValue());
     }
 }

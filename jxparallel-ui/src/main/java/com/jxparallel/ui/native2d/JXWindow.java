@@ -2,6 +2,7 @@ package com.jxparallel.ui.native2d;
 
 import java.util.Locale;
 import java.util.concurrent.ConcurrentLinkedQueue;
+import java.util.concurrent.atomic.AtomicBoolean;
 
 import com.jxparallel.ui.JXElement;
 import com.jxparallel.ui.input.JXClipboard;
@@ -28,7 +29,7 @@ public final class JXWindow implements AutoCloseable {
     private final String title;
     private final String rendererName = selectRenderer();
     private final ConcurrentLinkedQueue<Runnable> pendingActions = new ConcurrentLinkedQueue<Runnable>();
-    private volatile boolean renderRequested = true;
+    private final AtomicBoolean renderRequested = new AtomicBoolean(true);
     private volatile long window = MemoryUtil.NULL;
     private JXNativeNode root;
     private JXNativeNode focusedNode;
@@ -58,9 +59,16 @@ public final class JXWindow implements AutoCloseable {
         return is32Bit ? NANOVG : SKIA;
     }
 
+    /**
+     * Shows {@code element}. Calling it again with a new tree reconciles in place: unchanged nodes,
+     * their layout caches and the focused node are kept. Call from the window thread
+     * ({@link #invokeLater}) once the window is shown.
+     */
     public void setContent(JXElement element) {
-        root = JXNativeNode.createBackendNode(element);
-        focusedNode = null;
+        if (root == null || !root.reconcile(element)) {
+            root = JXNativeNode.createBackendNode(element);
+            focusedNode = null;
+        }
         requestRender();
     }
 
@@ -81,9 +89,9 @@ public final class JXWindow implements AutoCloseable {
         requestRender();
     }
 
+    /** Coalesced: only the first request after a frame wakes the render loop. Safe from any thread. */
     public void requestRender() {
-        renderRequested = true;
-        if (window != MemoryUtil.NULL) {
+        if (renderRequested.compareAndSet(false, true) && window != MemoryUtil.NULL) {
             GLFW.glfwPostEmptyEvent();
         }
     }
@@ -186,8 +194,7 @@ public final class JXWindow implements AutoCloseable {
             while ((action = pendingActions.poll()) != null) {
                 action.run();
             }
-            if (renderRequested) {
-                renderRequested = false;
+            if (renderRequested.getAndSet(false)) {
                 drawFrame();
             }
             GLFW.glfwWaitEvents();

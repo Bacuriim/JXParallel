@@ -7,6 +7,7 @@ import com.jxparallel.ui.JXElement;
 import com.jxparallel.ui.JXProps;
 
 public final class JXButton implements JXComponent {
+    private final JXRenderMemo memo = new JXRenderMemo();
     private final JXStringProperty text;
     private final JXBooleanProperty disabled = new JXBooleanProperty(false);
     private Runnable onAction;
@@ -59,10 +60,11 @@ public final class JXButton implements JXComponent {
 
     @Override
     public JXElement render() {
-        return JXElement.of("button", JXProps.builder()
-                .set("label", getText())
-                .set("disabled", isDisable())
-                .set("onAction", onAction)
-                .build());
+        return memo.render(() -> JXElement.of("button", JXProps.builder()
+                        .set("label", getText())
+                        .set("disabled", isDisable())
+                        .set("onAction", onAction)
+                        .build()),
+                getText(), isDisable(), onAction);
     }
 }

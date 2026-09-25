@@ -6,6 +6,7 @@ import com.jxparallel.ui.JXElement;
 import com.jxparallel.ui.JXProps;
 
 public final class JXProgressBar implements JXComponent {
+    private final JXRenderMemo memo = new JXRenderMemo();
     private final JXDoubleProperty progress = new JXDoubleProperty(0.0);
 
     public double getProgress() {
@@ -22,6 +23,7 @@ public final class JXProgressBar implements JXComponent {
 
     @Override
     public JXElement render() {
-        return JXElement.of("progress", JXProps.builder().set("progress", getProgress()).build());
+        return memo.render(() -> JXElement.of("progress", JXProps.builder().set("progress", getProgress()).build()),
+                getProgress());
     }
 }
