@@ -2,6 +2,7 @@
 
 ## Unreleased
 
+- NanoVG renderer for 32-bit JVMs; 64-bit keeps Skia (`-Djx.renderer` forces one)
 - fixed `AdaptiveWorkerPool` never growing past `threads.min` and leaking queue permits in `poll(timeout)`
 - removed the Vulkan backend; `JXWindow` now renders with Skia (Skija) on a GLFW/OpenGL context
 - added independent Skia native UI module through Skija and executable native example

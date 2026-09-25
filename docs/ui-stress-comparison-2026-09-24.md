@@ -59,8 +59,9 @@ Heap, non-heap and direct memory are sampled inside the JVM every 10 ms.
 
 ### Rerun on an idle machine, 2026-09-25
 
-Background load 2 to 9%, IDE and browser closed, but the Windows session was **locked**, which
-throttles frame presentation for both sides (about 30 and 25 fps, worst frame 0.54 s).
+Background load 2 to 9%, IDE and browser closed, but frame presentation was throttled for both
+sides (most likely the monitor had turned off while the author followed remotely; it was first
+misread as a locked session) (about 30 and 25 fps, worst frame 0.54 s).
 Frame pacing from this run is not valid; memory, CPU and burst numbers are.
 Data: [ui-stress-results-2026-09-25.csv](ui-stress-results-2026-09-25.csv).
 
@@ -90,8 +91,8 @@ Peak working set over the 5 runs: JavaFX 228 to 239 MB, JXParallel 155 to 156 MB
 - Committed heap is identical (252 MB) because both use the JVM's default sizing; compare used
   and live heap, not committed.
 - Windows reports process CPU in 15.6 ms steps, so CPU values under about 50 ms are coarse.
-- The native side needs a 64-bit JVM (Skija has no 32-bit natives), so this comparison cannot
-  run on the Java 8 32-bit target.
+- These runs used Skia on a 64-bit JVM. Since 2026-09-25, 32-bit JVMs use a NanoVG renderer,
+  so the Java 8 32-bit target can be compared too (not yet part of this report).
 
 ## Reproduce
 

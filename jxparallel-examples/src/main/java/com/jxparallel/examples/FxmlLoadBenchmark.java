@@ -20,8 +20,8 @@ import javafx.scene.control.Label;
  * one JVM. Pass 1 is cold (class loading, JIT off), later passes are warm.
  * <ul>
  *   <li>{@code javafx}: plain {@link FXMLLoader}, sequential, on the FX thread (typical usage).</li>
- *   <li>{@code jxparallel}: {@link FXMLLoaderService#loadAsync} for all screens at once on the
- *       JXParallel worker pool, with its FXML cache.</li>
+ *   <li>{@code jxparallel}: {@link FXMLLoaderService#loadAsync} on the JXParallel worker pool,
+ *       with its FXML cache: the first screen alone, then the other screens in parallel.</li>
  * </ul>
  * Run each mode in a fresh JVM. Emits {@code JX_METRIC key=value} lines.
  */
@@ -94,15 +94,19 @@ public final class FxmlLoadBenchmark {
         return views;
     }
 
+    /**
+     * The screen the user opened is loaded alone first, so it does not compete for cores with
+     * the others; the remaining screens are then preloaded in parallel.
+     */
     private static List<Parent> loadParallel(FXMLLoaderService service, long[] firstReady) {
-        List<CompletableFuture<Parent>> futures = new ArrayList<CompletableFuture<Parent>>(SCREENS);
-        for (int i = 1; i <= SCREENS; i++) {
-            futures.add(service.loadAsync(path(i)));
-        }
-        CompletableFuture.anyOf(futures.toArray(new CompletableFuture[0])).join();
-        firstReady[0] = System.nanoTime();
         List<Parent> views = new ArrayList<Parent>(SCREENS);
-        for (CompletableFuture<Parent> future : futures) {
+        views.add(service.loadAsync(path(1)).join());
+        firstReady[0] = System.nanoTime();
+        List<CompletableFuture<Parent>> rest = new ArrayList<CompletableFuture<Parent>>(SCREENS - 1);
+        for (int i = 2; i <= SCREENS; i++) {
+            rest.add(service.loadAsync(path(i)));
+        }
+        for (CompletableFuture<Parent> future : rest) {
             views.add(future.join());
         }
         return views;

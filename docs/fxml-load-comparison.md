@@ -47,9 +47,12 @@ direction (1.6 to 3x); it was discarded.
 
 1. **Parallel loading is 1.6x faster cold and 3.4x faster warm** for the full set, and it never
    blocks the FX thread. With plain JavaFX the UI is frozen for the whole load.
-2. **The first screen arrives later.** All 20 loads compete for the same cores, so the one the
-   user is waiting for is not favoured. The pool already supports priorities; the screen being
-   opened should be submitted with `TaskPriority.HIGH` and the rest in the background.
+2. **The first screen arrived later** when all 20 loads started together (72 vs 30 ms warm):
+   they compete for the same cores. Task priority does not help, since with 8 workers the first
+   screen already starts at once. Fixed on 2026-09-25 by loading the opened screen alone, then
+   preloading the other 19 in parallel: first screen 59 vs 64 ms warm, 468 vs 512 ms cold, and
+   the full set still 3.7x (warm) and 2.0x (cold) faster. That batch ran with 27 to 33% background
+   load, so compare ratios, not absolute times.
 3. **The FXML cache does not help.** It stores the file bytes (40 hits in 60 loads), but reading
    bytes is not the cost: warm passes allocate the same 213 to 215 MB as JavaFX. The cost is
    XML parsing, reflection to build nodes, and `@FXML` injection.
