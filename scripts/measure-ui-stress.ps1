@@ -8,7 +8,9 @@ param(
     [int]$RefreshCount    = 500,
     [int]$SustainedFrames = 600,
     [int]$Monitor         = -1,   # >= 0 opens both windows on that monitor (0 = primary)
-    [string]$Output       = "docs\ui-stress-results.csv"
+    [string]$Output       = "docs\ui-stress-results.csv",
+    # javafx, jxparallel-native (renderer chosen by the JVM), native-skia, native-nanovg
+    [string[]]$Cases      = @("javafx", "jxparallel-native")
 )
 
 # Runs JavaFxStressRunner and NativeStressRunner alternately in fresh JVMs.
@@ -27,6 +29,7 @@ function Invoke-StressCase([string]$Name, [string]$Classpath, [string]$MainClass
     $jvmArgs.Add("-Djx.stress.refreshCount=$RefreshCount")
     $jvmArgs.Add("-Djx.sustained.frames=$SustainedFrames")
     if ($Monitor -ge 0) { $jvmArgs.Add("-Djx.monitor=$Monitor") }
+    if ($Name -like "native-*") { $jvmArgs.Add("-Djx.renderer=$($Name.Substring(7))") }
     if ($Name -eq "javafx" -and -not [string]::IsNullOrWhiteSpace($JavaFxModulePath)) {
         $jvmArgs.Add("--module-path"); $jvmArgs.Add("`"$JavaFxModulePath`"")
         $jvmArgs.Add("--add-modules"); $jvmArgs.Add("javafx.controls")
@@ -75,7 +78,7 @@ function Invoke-StressCase([string]$Name, [string]$Classpath, [string]$MainClass
     return [pscustomobject]$row
 }
 
-if ([string]::IsNullOrWhiteSpace($JavaFxClasspath)) {
+if ($Cases -contains "javafx" -and [string]::IsNullOrWhiteSpace($JavaFxClasspath)) {
     throw "Provide -JavaFxClasspath (jxparallel-examples\target\classes) and -JavaFxModulePath (OpenJFX jars)"
 }
 $nativeCp = $NativeClasspath
@@ -83,10 +86,14 @@ if (-not [string]::IsNullOrWhiteSpace($NativeDependencies)) { $nativeCp += ";$Na
 
 $results = [System.Collections.Generic.List[object]]::new()
 for ($r = 1; $r -le $Runs; $r++) {
-    Write-Host "[$r/$Runs] JavaFX..."
-    $results.Add((Invoke-StressCase "javafx" $JavaFxClasspath "com.jxparallel.examples.JavaFxStressRunner" $r))
-    Write-Host "[$r/$Runs] JXParallel native..."
-    $results.Add((Invoke-StressCase "jxparallel-native" $nativeCp "com.jxparallel.examples.nativeui.NativeStressRunner" $r))
+    foreach ($case in $Cases) {
+        Write-Host "[$r/$Runs] $case..."
+        if ($case -eq "javafx") {
+            $results.Add((Invoke-StressCase $case $JavaFxClasspath "com.jxparallel.examples.JavaFxStressRunner" $r))
+        } else {
+            $results.Add((Invoke-StressCase $case $nativeCp "com.jxparallel.examples.nativeui.NativeStressRunner" $r))
+        }
+    }
 }
 
 # Every run gets every column, so Export-Csv does not drop late keys.
@@ -96,7 +103,7 @@ $results | Select-Object $columns | Export-Csv -Path $Output -NoTypeInformation 
 # Median per metric per implementation.
 $summary = foreach ($column in $columns | Where-Object { $_ -notin "implementation", "run" }) {
     $line = [ordered]@{ metric = $column }
-    foreach ($impl in "javafx", "jxparallel-native") {
+    foreach ($impl in $Cases) {
         $values = @($results | Where-Object implementation -eq $impl | ForEach-Object { $_.$column } |
                     Where-Object { $_ -ne $null } | Sort-Object)
         $line[$impl] = if ($values.Count) { $values[[int][math]::Floor(($values.Count - 1) / 2)] } else { $null }
