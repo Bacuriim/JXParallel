@@ -18,16 +18,17 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
 class FxmlTemplateTest {
     private static final String FXML =
             "<?xml version=\"1.0\" encoding=\"UTF-8\"?>\n"
-            + "<?import com.jxparallel.fxml.template.TemplateBeans.*?>\n"
+            + "<?import com.jxparallel.fxml.template.TemplateBeans.Box?>\n"
+            + "<?import com.jxparallel.fxml.template.TemplateBeans.Item?>\n"
             + "<?import com.jxparallel.fxml.template.TemplateBeans.Grid?>\n"
-            + "<Box xmlns:fx=\"http://javafx.com/fxml\" fx:controller=\"com.jxparallel.fxml.template.TemplateBeans$Controller\"\n"
+            + "<TemplateBeans.Box xmlns:fx=\"http://javafx.com/fxml\" fx:controller=\"com.jxparallel.fxml.template.TemplateBeans$Controller\"\n"
             + "     title=\"Root\" size=\"3\" color=\"#ff0000\">\n"
-            + "  <Box fx:id=\"inner\" title=\"Inner\" onAction=\"#onAction\">\n"
-            + "    <Item fx:id=\"first\" a=\"1\" b=\"2\" Grid.rank=\"7\"/>\n"
-            + "    <Item fx:id=\"notAnnotated\" a=\"1.5\" b=\"2\"/>\n"
-            + "  </Box>\n"
-            + "  <footer><Item a=\"9\" b=\"9\"/></footer>\n"
-            + "</Box>\n";
+            + "  <TemplateBeans.Box fx:id=\"inner\" title=\"Inner\" onAction=\"#onAction\">\n"
+            + "    <TemplateBeans.Item fx:id=\"first\" a=\"1\" b=\"2\" TemplateBeans.Grid.rank=\"7\"/>\n"
+            + "    <TemplateBeans.Item fx:id=\"notAnnotated\" a=\"1.5\" b=\"2\"/>\n"
+            + "  </TemplateBeans.Box>\n"
+            + "  <footer><TemplateBeans.Item a=\"9\" b=\"9\"/></footer>\n"
+            + "</TemplateBeans.Box>\n";
 
     private static FxmlTemplate template(String fxml) throws FxmlTemplate.Unsupported {
         return FxmlTemplate.parse(fxml.getBytes(StandardCharsets.UTF_8), null, FxmlTemplateTest.class.getClassLoader());
@@ -47,7 +48,7 @@ class FxmlTemplateTest {
         assertEquals(Double.valueOf(1.5), second.getA(), "double constructor when the value needs it");
         assertEquals(Integer.valueOf(7), Grid.getRank(first));
         assertTrue(root.getFooter() instanceof Item);
-        assertEquals("inner", inner.getId(), "fx:id also sets the id property, like FXMLLoader");
+        assertNull(inner.getId(), "like FXMLLoader, fx:id sets id only on @IDProperty classes such as Node");
 
         Controller controller = Controller.CREATED.get(Controller.CREATED.size() - 1);
         assertTrue(controller.isInitialized(), "fields injected before initialize()");
@@ -79,5 +80,16 @@ class FxmlTemplateTest {
         assertThrows(FxmlTemplate.Unsupported.class, () -> template(include));
         assertThrows(FxmlTemplate.Unsupported.class, () -> template(expression));
         assertThrows(FxmlTemplate.Unsupported.class, () -> template(resource));
+    }
+
+    @Test
+    void nestedClassNamesFollowFxmlLoaderRules() {
+        // FXMLLoader rejects both: a wildcard import is a package, and an imported nested class
+        // keeps its Outer.Inner name.
+        String wildcard = "<?import com.jxparallel.fxml.template.TemplateBeans.*?>\n<Box/>";
+        String shortName = "<?import com.jxparallel.fxml.template.TemplateBeans.Box?>\n<Box/>";
+
+        assertThrows(FxmlTemplate.Unsupported.class, () -> template(wildcard));
+        assertThrows(FxmlTemplate.Unsupported.class, () -> template(shortName));
     }
 }

@@ -157,6 +157,23 @@ public final class FxmlTemplate {
         return null;
     }
 
+    /**
+     * The property named by JavaFX's internal {@code com.sun.javafx.beans.IDProperty} (inherited,
+     * {@code "id"} on Node), or null. FXMLLoader copies fx:id only into that property.
+     */
+    private static String idProperty(Class<?> type) {
+        for (Annotation annotation : type.getAnnotations()) {
+            if ("com.sun.javafx.beans.IDProperty".equals(annotation.annotationType().getName())) {
+                try {
+                    return (String) annotation.annotationType().getMethod("value").invoke(annotation);
+                } catch (ReflectiveOperationException | RuntimeException notExported) {
+                    return "id"; // module path without access to com.sun.javafx.beans; Node's value
+                }
+            }
+        }
+        return null;
+    }
+
     private static Field findField(Class<?> type, String name, Class<?> fieldType) {
         for (Class<?> c = type; c != null && c != Object.class; c = c.getSuperclass()) {
             try {
@@ -250,41 +267,53 @@ public final class FxmlTemplate {
             }
         }
 
-        /** Loads a class by name, also trying nested classes (a.b.Outer.Inner -> a.b.Outer$Inner). */
-        Class<?> tryLoad(String name) {
-            String candidate = name;
-            while (true) {
-                try {
-                    return Class.forName(candidate, false, loader);
-                } catch (ClassNotFoundException e) {
-                    int dot = candidate.lastIndexOf('.');
-                    if (dot < 0) {
-                        return null;
-                    }
-                    candidate = candidate.substring(0, dot) + '$' + candidate.substring(dot + 1);
-                }
+        Class<?> tryLoad(String packageName, String className) {
+            try {
+                return Class.forName(packageName + "." + className.replace('.', '$'), false, loader);
+            } catch (ClassNotFoundException e) {
+                return null;
             }
         }
 
-        Class<?> resolve(String simpleName) throws Unsupported {
-            Class<?> known = classes.get(simpleName);
+        /** FXMLLoader's split: the package ends before the first segment that starts upper case. */
+        static int packageEnd(String name) {
+            int i = name.indexOf('.');
+            while (i != -1 && i + 1 < name.length() && Character.isLowerCase(name.charAt(i + 1))) {
+                i = name.indexOf('.', i + 1);
+            }
+            return i;
+        }
+
+        /** Same rules as FXMLLoader.getType, so FXML that loads here also loads with FXMLLoader. */
+        Class<?> resolve(String name) throws Unsupported {
+            Class<?> known = classes.get(name);
             if (known != null) {
                 return known;
             }
-            for (String entry : imports) {
-                String candidate = null;
-                if (entry.endsWith(".*")) {
-                    candidate = entry.substring(0, entry.length() - 1) + simpleName;
-                } else if (entry.endsWith("." + simpleName)) {
-                    candidate = entry;
-                }
-                Class<?> type = candidate == null ? null : tryLoad(candidate);
-                if (type != null) {
-                    classes.put(simpleName, type);
-                    return type;
+            Class<?> type = null;
+            if (Character.isLowerCase(name.charAt(0))) {
+                int end = packageEnd(name);
+                type = end < 1 ? null : tryLoad(name.substring(0, end), name.substring(end + 1));
+            } else {
+                for (String entry : imports) {
+                    if (entry.endsWith(".*")) {
+                        type = tryLoad(entry.substring(0, entry.length() - 2), name);
+                    } else {
+                        int end = packageEnd(entry);
+                        if (end > 0 && entry.substring(end + 1).equals(name)) {
+                            type = tryLoad(entry.substring(0, end), name);
+                        }
+                    }
+                    if (type != null) {
+                        break;
+                    }
                 }
             }
-            throw new Unsupported("Unresolved element <" + simpleName + ">");
+            if (type == null) {
+                throw new Unsupported("Unresolved element <" + name + ">");
+            }
+            classes.put(name, type);
+            return type;
         }
 
         ObjectPlan object(Element element) throws Unsupported {
@@ -335,13 +364,10 @@ public final class FxmlTemplate {
             for (String[] entry : statics) {
                 plan.steps.add(staticProperty(entry[0], entry[1]));
             }
-            if (fxId != null && !plain.containsKey("id")) {
-                // Like FXMLLoader: fx:id also becomes the node id, so lookup("#name") works.
-                try {
-                    plan.steps.add(0, property(type, "id", fxId));
-                } catch (Unsupported noIdProperty) {
-                    // not every object has an id property
-                }
+            String idProperty = fxId == null ? null : idProperty(type);
+            if (idProperty != null && !plain.containsKey(idProperty)) {
+                // Like FXMLLoader: fx:id also sets the @IDProperty (Node.id), so lookup("#name") works.
+                plan.steps.add(0, property(type, idProperty, fxId));
             }
             children(element, type, plan);
             if (fxId != null && controllerType != null) {

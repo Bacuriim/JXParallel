@@ -5,3 +5,5 @@ target/
 .vscode/
 .DS_Store
 hs_err_pid*.log
+.jqwik-database
+cp.txt

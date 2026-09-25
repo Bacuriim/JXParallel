@@ -322,7 +322,7 @@ public class AdaptiveWorkerPool {
         return null;
     }
 
-    private static final class BoundedPriorityBlockingQueue extends PriorityBlockingQueue<Runnable> {
+    static final class BoundedPriorityBlockingQueue extends PriorityBlockingQueue<Runnable> {
         private final Semaphore permits;
 
         BoundedPriorityBlockingQueue(int capacity, java.util.Comparator<Runnable> comparator) {

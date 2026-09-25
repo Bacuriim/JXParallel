@@ -392,7 +392,110 @@ A tela individual passou a ser 5x mais rápida que no JavaFX (antes só o lote g
 memória deixou de ficar acima do JavaFX. Custo: a primeira carga de cada arquivo aloca mais, e os
 templates em cache retêm cerca de 1.5 MB a mais de heap.
 
+## 2026-09-25: estratégia de testes em cinco camadas, comparada com o OpenJFX
+
+**Pergunta.** Dá para copiar os testes do JavaFX trocando os componentes? Não: o OpenJFX é GPLv2
+com Classpath Exception (copiar o código tornaria esses arquivos GPL num projeto MIT) e os testes
+dependem de internos do JavaFX (skins, CSS, pulse, `com.sun.*`). A estratégia foi reimplementada.
+
+**Como o OpenJFX testa** (repositório `openjdk/jfx`, branch `master`, JavaFX 28 em
+desenvolvimento, lido em 25/09 via Sourcegraph, `build.gradle`, `verification-metadata.xml` e
+`submit.yml`): 1.192 arquivos de teste unitário nos módulos, rodando sem tela com o `StubToolkit`
+e 182 classes "shim" injetadas por `--patch-module`; 499 arquivos de teste de sistema, 174 com
+`Robot` e checagem de cor em pontos escolhidos, só com `-PFULL_TEST=true -PUSE_ROBOT=true`;
+257 arquivos de teste manual; 11 arquivos de apps de desempenho, sem JMH; 28 arquivos com teste de
+vazamento no padrão JMemoryBuddy. A única biblioteca de teste declarada é o JUnit 6.1.3. Não há
+jqwik, jcstress, JMH, ArchUnit nem JaCoCo; cobertura só com JCov em builds fechados da Oracle.
+Propriedades e coleções do JavaFX não são thread-safe (só a FX thread), então não há contrato de
+concorrência para testar.
+
+**Estratégia.** Cinco camadas usadas em bibliotecas grandes (Guava, Caffeine, Netty, o próprio
+JDK), cada uma validada injetando um bug de propósito e vendo o teste falhar:
+
+1. **Propriedades (jqwik).** Reconcile de árvore aleatória contra montagem do zero, e o
+   `FxmlTemplate` contra o `FXMLLoader` em FXML aleatório (teste diferencial: o `FXMLLoader` é a
+   especificação). Um bug injetado (ignorar mudança de `gap`) passou por 500 pares de árvores
+   independentes e só foi pego pela propriedade de "pequenas edições", que o jqwik reduziu ao caso
+   mínimo em 19 passos. Lição: o gerador precisa imitar o uso real.
+2. **Concorrência (jcstress, ferramenta do OpenJDK).** Cinco testes, dezenas de milhões de
+   execuções cada.
+3. **Snapshot e interação.** Layout em texto, imagem golden do Skia renderizada em memória (sem
+   GPU) e um teste de clique ponta a ponta sem janela. Mudar o azul do botão em 9 níveis gera
+   11.911 pixels diferentes e falha o teste.
+4. **Regressão de desempenho (JMH + gate na CI).** O gate compara razões entre benchmarks da mesma
+   execução, que não dependem da velocidade da máquina. Tirar o atalho de identidade do reconcile
+   derrubou as razões de 57x e 23.978x para 6,0x e 4,7x e o gate falhou.
+5. **Contrato.** ArchUnit (sem AWT/Swing/JavaFX, core sem renderer, só `native2d` fala com
+   GLFW/Skia/NanoVG, sem ciclos), vazamento de memória, JaCoCo e PIT.
+
+**Bugs encontrados** (todos corrigidos, todos com teste):
+
+| Camada | Bug | Evidência |
+|---|---|---|
+| 1 | `FxmlTemplate` copiava `fx:id` para qualquer `id`; o `FXMLLoader` só copia com `@IDProperty` | caso mínimo: `<Box fx:id="a">` aninhado |
+| 1 | `FxmlTemplate` aceitava nomes de classe aninhada que o `FXMLLoader` rejeita | FXML feito para o JX não abria no JavaFX puro |
+| 2 | `JXObservableList` entregava eventos fora de ordem | 28.027 em 30,4 milhões |
+| 2 | `JXProperty` notificava duas vezes a mesma mudança | 2.956.817 em 46,8 milhões (6,3%) |
+| 2 | `JXProperty` e `JXState`: último valor visto pelo listener diferente do valor atual | 66.544 e 9.926 |
+| 3 | Nenhum botão da UI nativa respondia a clique (`onAction` gravado, `onClick` lido) | teste de clique |
+| 3 | Botão desabilitado receberia clique (o JavaFX não entrega) | teste de clique |
+| 5 | `JXProperty` ligado com `bind` e esquecido nunca era coletado (o JavaFX usa referência fraca) | teste de vazamento |
+
+**Correção de concorrência e custo.** Mudança e notificação passaram a acontecer sob o mesmo lock
+(na lista, um lock de escrita separado para `get`/`size` não esperarem listeners lentos), e as
+listas de listeners viraram `CopyOnWriteArrayList`. Depois: zero estados proibidos em cerca de
+419 milhões de amostras. Custo medido com JMH, thread única, código antigo e novo em seguida:
+
+| Operação com um listener | Antes | Depois |
+|---|---:|---:|
+| `JXObservableList` add + remove | 105,9 ns | 64,9 ns |
+| `JXProperty.set` | 37,8 ns | 28,8 ns |
+| `JXState.set` | 31,6 ns | 24,2 ns |
+
+Ficou thread-safe e mais rápido: o lock custa menos que a cópia da lista de listeners que cada
+notificação fazia. Uma primeira medição do "antes" (279,6 ns na lista, erro de ±59) foi descartada
+por ruído.
+
+**Cobertura e mutação.** JaCoCo: core 74,2% das linhas (53,8% dos ramos), UI 52,2% (42,6%); os
+caminhos OpenGL não rodam sem GPU. PIT antes dos testes direcionados: core 152 de 389 mutantes
+mortos (39,1%), `JXNativeNode` + `JXRenderMemo` 89 de 115 (77,4%). O PIT mostrou que apagar a
+chamada de notificação em `add` ou `remove` da lista não quebrava nenhum teste. Depois de testes para esses casos e de testes de layout com resposta
+calculada à mão: core 172 de 389 (44,2%), UI 103 de 115 (89,6%).
+Lição para o capítulo de método: teste de propriedade que compara dois caminhos não pega bug no
+código que os dois compartilham (fórmula de tamanho preferido); para isso servem testes com
+resposta conhecida (oráculo).
+
+**Limitações.** O jcstress 0.16 não roda no Java 8 (usa `Thread.onSpinWait`); os testes rodam no
+JDK 17 contra o mesmo bytecode Java 8. A imagem golden só vale para Windows 64 bits (fontes do
+sistema); o NanoVG precisa de contexto OpenGL e ainda não tem golden. O japicmp fica para depois
+da versão 0.1.0, quando houver versão anterior para comparar.
+
 ---
+
+## 2026-09-25: Skia contra NanoVG na mesma JVM 64 bits
+
+**Pergunta.** Vale trocar o Skia pelo NanoVG também em 64 bits e ficar com um renderer só?
+
+**Medição.** Mesmo teste de stress (500 atualizações por componente, depois 600 quadros), JDK
+17.0.12 x64, `-Djx.renderer` alternando a cada execução, JVM nova por execução, 5 execuções,
+segundo monitor, 26% de CPU de outros processos. Dados:
+`docs/ui-stress-results-renderers-x64-2026-09-25.csv`.
+
+| Métrica (mediana) | Skia | NanoVG | Faixas se sobrepõem? |
+|---|---:|---:|---|
+| FPS sustentado | 120,2 | 120,3 | limitado pelo vsync |
+| CPU por quadro | 3,0 ms | 2,7 ms | sim |
+| Pior quadro | 12,5 ms | 12,4 ms | sim |
+| Rajada de 2000 atualizações | 32,8 ms | 37,2 ms | sim |
+| Início até o primeiro quadro | 787 ms | 716 ms | sim |
+| Pico de working set | 161 MB | 156 MB | **não** (−4%) |
+| Tamanho dos natives no Windows x64 | 9,2 MB | 0,4 MB | |
+
+**Conclusão.** Em desempenho é empate: só a memória ficou fora do ruído, e a diferença é de 5 MB.
+A troca só se justificaria por simplicidade e tamanho do pacote. Contra ela: o Skia tem o que a
+paridade com o JavaFX vai exigir (sombras e desfoque como `DropShadow`/`GaussianBlur`, caminhos
+complexos, filtros, codecs de imagem, texto com hinting), e o NanoVG tem só o básico (gradientes e
+sombra de caixa simples). Decisão do autor: manter Skia em 64 bits e NanoVG em 32 bits.
 
 ## Evolução das métricas principais
 
@@ -416,6 +519,16 @@ templates em cache retêm cerca de 1.5 MB a mais de heap.
 | 25/09 | FXML 20 telas, quente | 692 ms | 31 ms | template pré-interpretado |
 | 25/09 | FXML uma tela, quente | 40.7 ms | 7.8 ms | template pré-interpretado |
 
+Métricas de qualidade (JXParallel apenas; o JavaFX não tem contrato de concorrência):
+
+| Data | Métrica | Antes | Depois | Observação |
+|---|---|---:|---:|---|
+| 25/09 | Estados proibidos no jcstress | 3.061.314 | 0 | 5 testes, cerca de 419 milhões de amostras no depois |
+| 25/09 | `JXObservableList` add + remove | 105,9 ns | 64,9 ns | JMH, com um listener |
+| 25/09 | `JXProperty.set` | 37,8 ns | 28,8 ns | JMH, com um listener |
+| 25/09 | Mutantes mortos, core | 39,1% | 44,2% | PIT 1.15.8 |
+| 25/09 | Mutantes mortos, `JXNativeNode` | 77,4% | 89,6% | PIT 1.15.8 |
+
 ## Ameaças à validade (para o capítulo de metodologia)
 
 - Os dois lados não desenham a mesma coisa: o JavaFX aplica CSS, skins, texto LCD e um
@@ -432,3 +545,6 @@ templates em cache retêm cerca de 1.5 MB a mais de heap.
 - HarfBuzz/FreeType para texto e Yoga para layout.
 - Lista e tabela virtualizadas, com benchmark de 100 mil linhas contra o `TableView`.
 - Repetir as baterias com a sessão do Windows desbloqueada e a máquina ociosa (FPS válido).
+- Imagem golden do NanoVG (precisa de contexto OpenGL fora da tela).
+- japicmp na CI depois da versão 0.1.0.
+- Subir a taxa de mutantes mortos do `AdaptiveWorkerPool` e do `JXParallelConfig`.
