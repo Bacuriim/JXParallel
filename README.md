@@ -1,5 +1,7 @@
 # JXParallel
 
+![JXParallel](docs/assets/jxparallel-banner.png)
+
 ## JavaFX-compatible runtime for safer parallel work
 
 > **Same API. Same concepts. Better internals.**
@@ -57,7 +59,6 @@ JavaFX integration is now a separate legacy compatibility module. It is not requ
 - JavaFX dispatcher that fails explicitly when the toolkit is unavailable
 - asynchronous FXML loading with `NONE`, `LRU`, `TTL`, and `LRU_TTL` cache strategies
 - independent Skia scene foundation through Skija, hosted by AWT
-- optional experimental LWJGL/OpenGL backend
 - independent native window lifecycle
 - native declarative layouts and initial controls
 - optional modern variants, density, focus, hover, and fade-in styling
@@ -240,6 +241,8 @@ workload. The following data is a real Windows Java 21 GUI comparison, not a uni
 
 ### Equivalent JavaFX versus native Skia workload
 
+Historical (2026-09-22): the native side then drew with Skia into an AWT window.
+
 Environment:
 
 ```text
@@ -346,92 +349,31 @@ The benchmark compares the internal `AdaptiveWorkerPool` against the JVM's defau
 Do not use a single benchmark run to claim general superiority. The workload and configuration
 must match the application being optimized.
 
-### UI stress load test — JavaFX vs JXParallel native
+### JavaFX vs JXParallel: UI and FXML loading (2026-09-24/25)
 
-This test measures **usability stress**: 500 rapid refreshes per component (label update,
-button toggle, list swap, text field reset) performed on the UI thread without pauses — the
-pattern seen in live data feeds, dashboards, and reactive forms.
+Each side runs in a fresh JVM, 5 runs alternating, medians reported. JDK 17 x64,
+OpenJFX 21.0.2, Core i7-1255U. The JXParallel window is GLFW/OpenGL painted with Skia
+(64-bit JVMs) or NanoVG (32-bit JVMs); these runs used Skia.
 
-Two isolated processes. No shared code at runtime:
+| Metric | JavaFX | JXParallel |
+|---|---:|---:|
+| UI test: peak working set | 248.6 MB | 159.8 MB |
+| UI test: CPU per frame (600 frames, vsync) | 10.6 ms | 3.0 ms |
+| UI test: worst frame | 53.2 ms | 21.4 ms |
+| UI test: label update 500x | 11.6 ms | 30.0 ms |
+| FXML: 20 screens with controllers, warm | 665 ms | 194 ms |
+| FXML: 20 screens with controllers, cold | 1163 ms | 725 ms |
+| FXML: FX thread blocked while loading (cold) | 1163 ms | 0 ms |
 
-- **JavaFX**: `JavaFxStressRunner` — only `javafx.*`, zero JXParallel dependency.
-- **JXParallel native**: `NativeStressRunner` — only `com.jxparallel.*`, zero JavaFX dependency.
+JavaFX draws more (CSS, skins, a real `ListView`), which accounts for part of the memory and CPU
+gap. Label updates are slower in JXParallel because each change rebuilds the element tree.
+The first UI stress report (2026-09-22) was withdrawn: its native side never pushed
+`setText` to the renderer, so it measured only a field write.
 
-Environment: Java 21.0.8 x64, OpenJFX 21.0.2, Windows, 5 independent runs.
-
-```mermaid
-xychart-beta
-    title "Stress total — 500 refreshes x 4 components (ms, median, lower is better)"
-    x-axis ["JavaFX", "JXParallel native"]
-    y-axis "milliseconds" 0 --> 550
-    bar [483.9, 290.2]
-```
-
-```mermaid
-xychart-beta
-    title "Label refresh 500x setText (ms, median, lower is better)"
-    x-axis ["JavaFX", "JXParallel native"]
-    y-axis "milliseconds" 0 --> 16
-    bar [13.0, 3.3]
-```
-
-```mermaid
-xychart-beta
-    title "ListView full-swap 500x (ms, median, lower is better)"
-    x-axis ["JavaFX", "JXParallel native"]
-    y-axis "milliseconds" 0 --> 450
-    bar [417.0, 270.5]
-```
-
-```mermaid
-xychart-beta
-    title "Process CPU — stress run (ms, median, lower is better)"
-    x-axis ["JavaFX", "JXParallel native"]
-    y-axis "milliseconds" 0 --> 1000
-    bar [812.5, 453.1]
-```
-
-```mermaid
-xychart-beta
-    title "Java heap delta — stress run (MB, median, lower is better)"
-    x-axis ["JavaFX", "JXParallel native"]
-    y-axis "megabytes" 0 --> 12
-    bar [8.68, 3.99]
-```
-
-| Metric | JavaFX | JXParallel native | Difference |
-|---|---:|---:|---:|
-| Stress total time | 483.9 ms | 290.2 ms | **JXParallel −40.0%** |
-| Label refresh 500× | 13.0 ms | 3.3 ms | **JXParallel −74.6%** |
-| Button toggle 500× | 18.9 ms | 4.8 ms | **JXParallel −74.6%** |
-| ListView swap 500× | 417.0 ms | 270.5 ms | **JXParallel −35.1%** |
-| TextField refresh 500× | 34.8 ms | 11.6 ms | **JXParallel −66.7%** |
-| Process CPU | 812.5 ms | 453.1 ms | **JXParallel −44.2%** |
-| Java heap delta | 8.68 MB | 3.99 MB | **JXParallel −54.0%** |
-| Peak working set | 142.4 MB | 144.1 MB | Effectively equal |
-
-**Why is state update faster in JXParallel?** JavaFX propagates each `setText()` or
-`setDisable()` through an `ObservableValue` chain (`StringProperty` → skin → CSS
-pseudo-class invalidation → layout pulse). JXParallel native writes a field and raises a
-single `renderRequested` flag — no property listener cascade, no CSS engine, no scheduled
-pulse.
-
-**Why does the ListView gap shrink to 35%?** The dominant cost becomes object creation
-(`ArrayList` + item strings), which is identical in both runtimes. The remaining gap is
-the `ObservableList` + `ListChangeListener` notification chain in JavaFX.
-
-**GC pressure**: at 8.68 MB vs 3.99 MB heap delta per 2000 operations, a 60 fps
-dashboard updating 100 labels per frame would generate roughly **104 MB/s churn** with
-JavaFX vs **48 MB/s with JXParallel native** — halving GC pause frequency under
-continuous load.
-
-Full analysis, raw data, and reproduction instructions:
-[UI stress load report](docs/ui-stress-load-report.md)
-
-> [!NOTE]
-> **Backend Implementation Status**: The UI component stress timings reflect in-memory component updates and layout tree invalidation. The native window renders the scene graph with Skia (Skija) on a GLFW/OpenGL context and requires a 64-bit JVM.
-
-
+- [UI comparison, 32-bit and 64-bit (2026-09-25)](docs/ui-comparison-2026-09-25.md)
+- [UI comparison](docs/ui-stress-comparison-2026-09-24.md)
+- [FXML loading comparison](docs/fxml-load-comparison.md)
+- [Development log (pt-BR)](docs/tcc/diario-de-desenvolvimento.md)
 
 ## Architecture
 
@@ -535,7 +477,6 @@ JavaFX remains optional and is tested separately with `-Plegacy-javafx`.
 |---|---|
 | Core scheduler lifecycle | `FULL` for the documented JXParallel contract |
 | Native Skia foundation through Skija | `EXPERIMENTAL` |
-| LWJGL/OpenGL backend | `EXPERIMENTAL / OPTIONAL` |
 | JavaFX compatibility module | `LEGACY / PARTIAL` |
 | Native initial controls and layouts | `EXPERIMENTAL` |
 | FXML loader and cache | `EXPERIMENTAL` |
@@ -556,10 +497,10 @@ The native architecture and migration rules are documented in
 - [Declarative UI model](docs/ui-model.md)
 - [Performance methodology](docs/metrics-comparison.md)
 - [Native Skia UI architecture](docs/native-ui.md)
-- [Experimental LWJGL/OpenGL backend](docs/lwjgl-backend.md)
 - [Java 8 32-bit comparison](docs/java8-32bit-comparison.md)
 - [Scalability QA report](docs/qa-scalability-report.md)
-- [UI stress load report](docs/ui-stress-load-report.md)
+- [UI comparison](docs/ui-stress-comparison-2026-09-24.md)
+- [FXML loading comparison](docs/fxml-load-comparison.md)
 - [Native UI progress](docs/native-ui-progress.md)
 - [Roadmap](docs/roadmap.md)
 - [Changelog](CHANGELOG.md)
