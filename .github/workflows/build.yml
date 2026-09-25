@@ -10,7 +10,7 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        # Supported range: x86 from Java 8 to 21 (Windows x86 JDKs end at 21, JEP 479),
+        # Supported range: x86 from Java 8 to 17 (newest Windows x86 JDK published by Temurin/Zulu),
         # x64 from Java 8 to the latest release.
         include:
           - os: ubuntu-latest
@@ -38,8 +38,9 @@ jobs:
             java: 8
             arch: x86
             command: mvn --batch-mode --no-transfer-progress -pl jxparallel-core,jxparallel-ui -am test
+          # Newest Windows x86 JDK that Temurin and Zulu publish is 17 (the port was deprecated in 21).
           - os: windows-latest
-            java: 21
+            java: 17
             arch: x86
             command: mvn --batch-mode --no-transfer-progress test
           - os: windows-latest
