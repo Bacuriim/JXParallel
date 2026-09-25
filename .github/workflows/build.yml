@@ -8,22 +8,43 @@ jobs:
   test:
     runs-on: ${{ matrix.os }}
     strategy:
+      fail-fast: false
       matrix:
+        # Supported range: x86 from Java 8 to 21 (Windows x86 JDKs end at 21, JEP 479),
+        # x64 from Java 8 to the latest release.
         include:
           - os: ubuntu-latest
             java: 8
+            arch: x64
             command: mvn --batch-mode --no-transfer-progress -pl jxparallel-core -am test
           - os: ubuntu-latest
             java: 11
+            arch: x64
             command: mvn --batch-mode --no-transfer-progress test
           - os: ubuntu-latest
             java: 17
+            arch: x64
             command: mvn --batch-mode --no-transfer-progress test
           - os: ubuntu-latest
             java: 21
+            arch: x64
             command: mvn --batch-mode --no-transfer-progress test
           - os: windows-latest
             java: 17
+            arch: x64
+            command: mvn --batch-mode --no-transfer-progress test
+          # Mockito 5 needs Java 11, so Java 8 builds only the runtime modules.
+          - os: windows-latest
+            java: 8
+            arch: x86
+            command: mvn --batch-mode --no-transfer-progress -pl jxparallel-core,jxparallel-ui -am test
+          - os: windows-latest
+            java: 21
+            arch: x86
+            command: mvn --batch-mode --no-transfer-progress test
+          - os: windows-latest
+            java: 25
+            arch: x64
             command: mvn --batch-mode --no-transfer-progress test
     steps:
       - uses: actions/checkout@v4
@@ -31,6 +52,7 @@ jobs:
         with:
           distribution: temurin
           java-version: ${{ matrix.java }}
+          architecture: ${{ matrix.arch }}
           cache: maven
       - name: Test
         run: ${{ matrix.command }}
