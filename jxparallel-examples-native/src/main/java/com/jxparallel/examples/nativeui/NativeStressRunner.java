@@ -51,6 +51,8 @@ public final class NativeStressRunner {
     }
 
     private void run() {
+        metric("renderer_nanovg", JXWindow.NANOVG.equals(window.getRendererName()) ? 1 : 0);
+        metric("jvm_32bit", "32".equals(System.getProperty("sun.arch.data.model")) ? 1 : 0);
         window.setContent(content.render());
         window.setOnFirstPaint(() -> {
             metric("first_paint_ns", System.nanoTime());

@@ -17,6 +17,8 @@ import javafx.scene.control.Label;
 import javafx.scene.control.ListView;
 import javafx.scene.control.TextField;
 import javafx.scene.layout.VBox;
+import javafx.geometry.Rectangle2D;
+import javafx.stage.Screen;
 import javafx.stage.Stage;
 
 /**
@@ -61,6 +63,12 @@ public final class JavaFxStressRunner extends Application {
 
         stage.setTitle("JavaFX Stress Runner");
         stage.setScene(new Scene(root));
+        Integer monitor = Integer.getInteger("jx.monitor"); // same option as JXWindow
+        if (monitor != null && monitor >= 0 && monitor < Screen.getScreens().size()) {
+            Rectangle2D bounds = Screen.getScreens().get(monitor).getBounds();
+            stage.setX(bounds.getMinX() + 100);
+            stage.setY(bounds.getMinY() + 100);
+        }
         stage.show();
 
         new AnimationTimer() {
