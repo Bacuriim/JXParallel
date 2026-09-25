@@ -2,6 +2,7 @@
 
 ## Unreleased
 
+- FXML template cache: `FXMLLoaderService` parses each file once and instantiates from a pre-resolved plan, with `FXMLLoader` fallback
 - incremental UI updates: `JXWindow.setContent` reconciles in place, controls memoize `render()`, render requests are coalesced
 - NanoVG renderer for 32-bit JVMs; 64-bit keeps Skia (`-Djx.renderer` forces one)
 - fixed `AdaptiveWorkerPool` never growing past `threads.min` and leaking queue permits in `poll(timeout)`

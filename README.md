@@ -16,7 +16,8 @@ native JXParallel UI, which draws with Skia or NanoVG on OpenGL and does not dep
 
 | Measured against JavaFX (medians of 5 runs, [details](#performance)) | JavaFX | JXParallel |
 |---|---:|---:|
-| Load 20 FXML screens with controllers (warm) | 665 ms | **194 ms** |
+| Load 20 FXML screens with controllers (warm) | 692 ms | **31 ms** |
+| Open one FXML screen with its controller (warm) | 40.7 ms | **7.8 ms** |
 | FX thread blocked while loading those screens (cold) | 1163 ms | **0 ms** |
 | CPU per frame, 600 animated frames, Java 17 x64 | 10.4 ms | **2.9 ms** |
 | CPU per frame, 600 animated frames, Java 8 x86 | 4.1 ms | **1.4 ms** |
@@ -208,10 +209,10 @@ loader.loadAsync("/views/reports.fxml");
 </tr>
 </table>
 
-Load the screen the user is waiting for first, then preload the rest. Starting all of them at
-once makes the first one compete for cores with the others; measured on 20 screens, the first
-screen went from 72 ms to 59 ms warm (JavaFX: 64 ms) with this order, and the full set stayed
-3.7x faster than sequential `FXMLLoader`.
+Load the screen the user is waiting for first, then preload the rest, so the first one does not
+compete for cores with the others. After the first load, each file is kept as a pre-parsed
+template: later loads skip XML parsing and reflective lookups. Measured on 20 form screens: one
+screen in 7.8 ms instead of 40.7 ms, all 20 in 31 ms instead of 692 ms (warm).
 
 ### Level 3: a native screen, no JavaFX
 
@@ -380,17 +381,19 @@ first update phase of each run. Report: [ui-comparison-2026-09-25.md](docs/ui-co
 
 | Metric | JavaFX `FXMLLoader` | JXParallel `FXMLLoaderService` |
 |---|---:|---:|
-| 20 screens, cold JVM | 1163 ms | **725 ms** |
-| 20 screens, warm | 665 ms | **194 ms** |
-| FX thread blocked (cold) | 1163 ms | **0 ms** |
-| Peak working set | **319 MB** | 395 MB |
+| 20 screens, cold JVM | 1467 ms | **538 ms** |
+| 20 screens, warm | 692 ms | **31 ms** |
+| One screen, warm | 40.7 ms | **7.8 ms** |
+| Allocated per warm pass | 223.5 MB | **9.8 MB** |
+| FX thread blocked (cold) | 1467 ms | **0 ms** |
+| Peak working set | 330 MB | **322 MB** |
 
 ```mermaid
 xychart-beta
     title "Load 20 FXML screens, warm, ms (lower is better)"
     x-axis ["JavaFX FXMLLoader", "JXParallel loadAsync"]
     y-axis "ms" 0 --> 700
-    bar [665, 194]
+    bar [692, 31]
 ```
 
 Report: [fxml-load-comparison.md](docs/fxml-load-comparison.md).
@@ -399,10 +402,9 @@ Report: [fxml-load-comparison.md](docs/fxml-load-comparison.md).
 
 - **JavaFX draws more.** CSS, skins, LCD text and a real `ListView` cost JavaFX memory and CPU
   that the native renderer does not spend yet. Part of every gap above comes from that.
-- **Parallel FXML loading peaks higher in memory** (+24%) because several screens are built at
-  the same time.
-- **The FXML cache stores file bytes**, which does not speed up loading; the cost is XML parsing
-  and reflection. A pre-parsed template cache is planned.
+- **The first load of each FXML file allocates more** (+30%): that is when the template is parsed.
+- **FXML templates cover the common subset.** `fx:include`, `fx:define`, expressions, `%resources`
+  and scripts fall back to `FXMLLoader`, so those files only get the parallel-loading gain.
 
 <details>
 <summary>Scheduler micro-benchmark and earlier measurements</summary>
@@ -552,7 +554,7 @@ mvn -Plegacy-javafx test      # plus jxparallel-javafx, jxparallel-fxml, example
 |---|---|
 | Worker pool, tasks, backpressure, lifecycle | Tested; used by all benchmarks |
 | Properties, events, observable collections | Tested |
-| FX thread dispatch and parallel FXML loading | Tested; cache stores bytes only |
+| FX thread dispatch and parallel FXML loading | Tested; pre-parsed templates with `FXMLLoader` fallback |
 | Native window (Skia 64-bit, NanoVG 32-bit) | Working; basic controls and layouts |
 | Incremental UI updates | Implemented: memoized render and in-place reconciliation |
 | Virtualized list, table and tree | Planned |
