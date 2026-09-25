@@ -7,6 +7,7 @@ import com.jxparallel.ui.JXElement;
 import com.jxparallel.ui.JXProps;
 
 public final class JXCheckBox implements JXComponent {
+    private final JXRenderMemo memo = new JXRenderMemo();
     private final JXStringProperty text;
     private final JXBooleanProperty selected = new JXBooleanProperty(false);
 
@@ -44,9 +45,10 @@ public final class JXCheckBox implements JXComponent {
 
     @Override
     public JXElement render() {
-        return JXElement.of("checkbox", JXProps.builder()
-                .set("label", getText())
-                .set("checked", isSelected())
-                .build());
+        return memo.render(() -> JXElement.of("checkbox", JXProps.builder()
+                        .set("label", getText())
+                        .set("checked", isSelected())
+                        .build()),
+                getText(), isSelected());
     }
 }

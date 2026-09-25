@@ -7,6 +7,7 @@ import com.jxparallel.ui.JXElement;
 import com.jxparallel.ui.JXProps;
 
 public final class JXTextField implements JXComponent {
+    private final JXRenderMemo memo = new JXRenderMemo();
     private final JXStringProperty text;
     private final JXStringProperty promptText;
     private final JXTextDocument document;
@@ -52,9 +53,10 @@ public final class JXTextField implements JXComponent {
 
     @Override
     public JXElement render() {
-        return JXElement.of("input", JXProps.builder()
-                .set("value", getText())
-                .set("placeholder", getPromptText())
-                .build());
+        return memo.render(() -> JXElement.of("input", JXProps.builder()
+                        .set("value", getText())
+                        .set("placeholder", getPromptText())
+                        .build()),
+                getText(), getPromptText());
     }
 }

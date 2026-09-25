@@ -1,11 +1,5 @@
 package com.jxparallel.ui.input;
 
-import java.awt.datatransfer.Clipboard;
-import java.awt.datatransfer.DataFlavor;
-import java.awt.datatransfer.StringSelection;
-import java.awt.datatransfer.UnsupportedFlavorException;
-import java.io.IOException;
-
 public final class JXTextDocument {
     private final StringBuilder text = new StringBuilder();
     private int caret;
@@ -85,22 +79,23 @@ public final class JXTextDocument {
         caret = text.length();
     }
 
-    public synchronized void copy(Clipboard clipboard) {
+    public synchronized void copy(JXClipboard clipboard) {
         if (clipboard != null && hasSelection()) {
-            clipboard.setContents(new StringSelection(getSelectedText()), null);
+            clipboard.setText(getSelectedText());
         }
     }
 
-    public synchronized void cut(Clipboard clipboard) {
+    public synchronized void cut(JXClipboard clipboard) {
         if (clipboard != null && hasSelection()) {
             copy(clipboard);
             replaceSelection("");
         }
     }
 
-    public synchronized void paste(Clipboard clipboard) throws UnsupportedFlavorException, IOException {
-        if (clipboard != null && clipboard.isDataFlavorAvailable(DataFlavor.stringFlavor)) {
-            insert(String.valueOf(clipboard.getData(DataFlavor.stringFlavor)));
+    public synchronized void paste(JXClipboard clipboard) {
+        String value = clipboard == null ? null : clipboard.getText();
+        if (value != null) {
+            insert(value);
         }
     }
 

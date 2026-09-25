@@ -1,7 +1,5 @@
 package com.jxparallel.ui.style;
 
-import java.awt.Color;
-import java.awt.Font;
 import java.util.Collections;
 import java.util.LinkedHashMap;
 import java.util.Map;
@@ -15,13 +13,10 @@ public final class JXStyle {
 
     public static Builder builder() { return new Builder(); }
     public Object get(String name) { return values.get(name); }
-    public Color color(String name, Color fallback) {
+    /** Colors are stored as ARGB ints (0xAARRGGBB), the format the renderer consumes. */
+    public int color(String name, int fallback) {
         Object value = get(name);
-        return value instanceof Color ? (Color) value : fallback;
-    }
-    public Font font(String name, Font fallback) {
-        Object value = get(name);
-        return value instanceof Font ? (Font) value : fallback;
+        return value instanceof Number ? ((Number) value).intValue() : fallback;
     }
 
     public JXStyle merge(JXStyle override) {

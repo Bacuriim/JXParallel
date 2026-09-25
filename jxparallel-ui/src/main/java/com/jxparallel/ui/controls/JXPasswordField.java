@@ -6,6 +6,7 @@ import com.jxparallel.ui.JXElement;
 import com.jxparallel.ui.JXProps;
 
 public final class JXPasswordField implements JXComponent {
+    private final JXRenderMemo memo = new JXRenderMemo();
     private final JXStringProperty text = new JXStringProperty("");
 
     public String getText() {
@@ -18,6 +19,7 @@ public final class JXPasswordField implements JXComponent {
 
     @Override
     public JXElement render() {
-        return JXElement.of("password", JXProps.builder().set("value", getText()).build());
+        return memo.render(() -> JXElement.of("password", JXProps.builder().set("value", getText()).build()),
+                getText());
     }
 }

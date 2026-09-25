@@ -2,6 +2,11 @@
 
 ## Unreleased
 
+- FXML template cache: `FXMLLoaderService` parses each file once and instantiates from a pre-resolved plan, with `FXMLLoader` fallback
+- incremental UI updates: `JXWindow.setContent` reconciles in place, controls memoize `render()`, render requests are coalesced
+- NanoVG renderer for 32-bit JVMs; 64-bit keeps Skia (`-Djx.renderer` forces one)
+- fixed `AdaptiveWorkerPool` never growing past `threads.min` and leaking queue permits in `poll(timeout)`
+- removed the Vulkan backend; `JXWindow` now renders with Skia (Skija) on a GLFW/OpenGL context
 - added independent Skia native UI module through Skija and executable native example
 - added optional experimental LWJGL/OpenGL backend with GLFW window lifecycle
 - added optional experimental direct LWJGL/Vulkan backend reusing the existing native components
