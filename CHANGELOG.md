@@ -2,6 +2,12 @@
 
 ## Unreleased
 
+- testing: jqwik property and differential tests, jcstress module, Skia golden image and click tests, JMH ratio gate in CI, ArchUnit rules, leak tests, `coverage` (JaCoCo) and `mutation` (PIT) profiles; see docs/testing-strategy.md
+- fixed: native buttons ignored clicks (`onAction` was set, `onClick` read); disabled nodes no longer get clicks
+- fixed: `JXProperty`, `JXState` and `JXObservableList` could notify out of order or twice under concurrent changes; changes and notifications are now serialized, readers never block
+- fixed: a forgotten `JXProperty` bound with `bind` was never garbage collected; bindings now hold the target weakly, like JavaFX
+- fixed: `FxmlTemplate` copied `fx:id` into `id` without `@IDProperty` and resolved nested class names more loosely than `FXMLLoader`
+
 - FXML template cache: `FXMLLoaderService` parses each file once and instantiates from a pre-resolved plan, with `FXMLLoader` fallback
 - incremental UI updates: `JXWindow.setContent` reconciles in place, controls memoize `render()`, render requests are coalesced
 - NanoVG renderer for 32-bit JVMs; 64-bit keeps Skia (`-Djx.renderer` forces one)

@@ -144,7 +144,11 @@ public final class JXNativeNode {
 
     @SuppressWarnings("unchecked")
     public void dispatchPointer(JXPointerEvent event) {
-        Object handler = props.get("onClick");
+        if (Boolean.TRUE.equals(props.get("disabled"))) {
+            return; // like JavaFX: disabled nodes get no mouse events
+        }
+        // Controls set onAction (JXButton, JXControls.button); onClick is for hand-built elements.
+        Object handler = props.containsKey("onClick") ? props.get("onClick") : props.get("onAction");
         if (handler instanceof JXNativeEventHandler) {
             ((JXNativeEventHandler<JXPointerEvent>) handler).handle(event);
         } else if (handler instanceof Runnable) {
