@@ -103,11 +103,16 @@
     </build>
 
     <profiles>
+        <!-- On JDK 9+, source/target 1.8 still links against the newer JDK API
+             (e.g. ByteBuffer.flip() returning ByteBuffer) and fails on Java 8 at runtime. -->
         <profile>
-            <id>lwjgl-opengl</id>
-            <modules>
-                <module>jxparallel-lwjgl</module>
-            </modules>
+            <id>release-8</id>
+            <activation>
+                <jdk>[9,)</jdk>
+            </activation>
+            <properties>
+                <maven.compiler.release>8</maven.compiler.release>
+            </properties>
         </profile>
         <profile>
             <id>legacy-javafx</id>
