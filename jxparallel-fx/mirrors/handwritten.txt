@@ -1,0 +1,8 @@
+# Written by hand in jxparallel-fx, not generated.
+javafx.collections.ObservableList
+javafx.fxml.FXMLLoader
+javafx.fxml.FXML
+javafx.application.Application
+javafx.application.Preloader
+javafx.scene.input.ClipboardContent
+javafx.scene.control.cell.PropertyValueFactory

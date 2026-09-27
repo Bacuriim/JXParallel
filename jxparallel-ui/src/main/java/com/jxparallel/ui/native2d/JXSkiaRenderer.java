@@ -95,6 +95,9 @@ public final class JXSkiaRenderer {
     }
 
     private static void paintNode(JXNativeNode node, Canvas canvas, Font font, Paint fill, Paint stroke) {
+        if (Boolean.TRUE.equals(node.getProperty("hidden"))) {
+            return; // invisible but managed: keeps its place in the layout, like JavaFX
+        }
         float x = node.getX();
         float y = node.getY();
         float w = node.getWidth();
@@ -105,12 +108,14 @@ public final class JXSkiaRenderer {
             canvas.drawRRect(bounds.withRadii(8.0f), fill.setColor(BLUE));
             drawCentered(canvas, text(node, "label"), bounds, font, fill.setColor(WHITE));
         } else if ("checkbox".equals(type)) {
-            Rect box = Rect.makeXYWH(x, y, 18, 18);
+            float s = JXNativeNode.CHECK_BOX;
+            float top = y + (h - s) / 2.0f;
+            Rect box = Rect.makeXYWH(x, top, s, s);
             canvas.drawRect(box, fill.setColor(WHITE));
             canvas.drawRect(box, stroke.setColor(0xFF5A5A5A));
             if (Boolean.TRUE.equals(node.getProperty("checked"))) {
-                canvas.drawLine(x + 3, y + 9, x + 8, y + 14, stroke);
-                canvas.drawLine(x + 8, y + 14, x + 15, y + 3, stroke);
+                canvas.drawLine(x + s * 0.17f, top + s * 0.5f, x + s * 0.44f, top + s * 0.78f, stroke);
+                canvas.drawLine(x + s * 0.44f, top + s * 0.78f, x + s * 0.83f, top + s * 0.17f, stroke);
             }
             drawText(canvas, text(node, "label"), x + JXNativeNode.CHECK_BOX + JXNativeNode.CHECK_GAP, y, h, font,
                     fill.setColor(DARK_GRAY));

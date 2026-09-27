@@ -57,6 +57,9 @@ public final class JXNanoVGRenderer {
     }
 
     private static void paintNode(JXNativeNode node, long vg, NVGColor color, boolean hasFont) {
+        if (Boolean.TRUE.equals(node.getProperty("hidden"))) {
+            return; // invisible but managed: keeps its place in the layout, like JavaFX
+        }
         float x = node.getX();
         float y = node.getY();
         float w = node.getWidth();
@@ -69,17 +72,20 @@ public final class JXNanoVGRenderer {
             centered(vg, color, hasFont, text(node, "label"), x, y, w, h, WHITE);
         } else if ("checkbox".equals(type)) {
             nvgBeginPath(vg);
-            nvgRect(vg, x + 0.5f, y + 0.5f, 17, 17);
+            float s = JXNativeNode.CHECK_BOX;
+            float top = y + (h - s) / 2.0f;
+            nvgRect(vg, x + 0.5f, top + 0.5f, s - 1, s - 1);
             fill(vg, color, WHITE);
             stroke(vg, color, 0xFF5A5A5A);
             if (Boolean.TRUE.equals(node.getProperty("checked"))) {
                 nvgBeginPath(vg);
-                nvgMoveTo(vg, x + 3, y + 9);
-                nvgLineTo(vg, x + 8, y + 14);
-                nvgLineTo(vg, x + 15, y + 3);
+                nvgMoveTo(vg, x + s * 0.17f, top + s * 0.5f);
+                nvgLineTo(vg, x + s * 0.44f, top + s * 0.78f);
+                nvgLineTo(vg, x + s * 0.83f, top + s * 0.17f);
                 stroke(vg, color, 0xFF5A5A5A);
             }
-            left(vg, color, hasFont, text(node, "label"), x + 24, y + JXTextEngine.get().baseline(h, JXTextEngine.DEFAULT_SIZE), DARK_GRAY);
+            left(vg, color, hasFont, text(node, "label"), x + JXNativeNode.CHECK_BOX + JXNativeNode.CHECK_GAP,
+                    y + JXTextEngine.get().baseline(h, JXTextEngine.DEFAULT_SIZE), DARK_GRAY);
         } else if ("input".equals(type) || "textarea".equals(type)
                 || "password".equals(type) || "select".equals(type)) {
             nvgBeginPath(vg);

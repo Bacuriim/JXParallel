@@ -1,0 +1,605 @@
+NATIVE 168
+GENERATED javafx.util.StringConverter
+GENERATED javafx.util.Pair
+GENERATED javafx.util.Duration
+GENERATED javafx.util.Callback
+GENERATED javafx.util.BuilderFactory
+SKIP (deprecated builder) javafx.util.Builder
+GENERATED javafx.stage.WindowEvent
+GENERATED javafx.event.Event
+GENERATED javafx.stage.StageStyle
+GENERATED javafx.stage.Stage
+GENERATED javafx.stage.Window
+GENERATED javafx.event.EventTarget
+GENERATED javafx.stage.Modality
+GENERATED javafx.stage.FileChooser
+GENERATED javafx.stage.FileChooser$ExtensionFilter
+SKIP (deprecated builder) javafx.stage.WindowBuilder
+SKIP (deprecated builder) javafx.stage.StageBuilder
+GENERATED javafx.stage.Screen
+SKIP (deprecated builder) javafx.stage.PopupWindowBuilder
+GENERATED javafx.stage.PopupWindow
+GENERATED javafx.stage.PopupWindow$AnchorLocation
+SKIP (deprecated builder) javafx.stage.PopupBuilder
+GENERATED javafx.stage.Popup
+SKIP (deprecated builder) javafx.stage.FileChooserBuilder
+SKIP (deprecated builder) javafx.stage.DirectoryChooserBuilder
+GENERATED javafx.stage.DirectoryChooser
+GENERATED javafx.scene.text.TextFlow
+GENERATED javafx.scene.layout.Pane
+GENERATED javafx.scene.layout.Region
+GENERATED javafx.scene.Parent
+GENERATED javafx.scene.Node
+GENERATED javafx.css.Styleable
+GENERATED javafx.scene.text.TextAlignment
+GENERATED javafx.scene.text.Text
+GENERATED javafx.scene.shape.Shape
+GENERATED javafx.scene.text.Font
+SKIP (deprecated builder) javafx.scene.text.TextBuilder
+GENERATED javafx.scene.text.TextBoundsType
+GENERATED javafx.scene.text.FontWeight
+GENERATED javafx.scene.text.FontSmoothingType
+GENERATED javafx.scene.text.FontPosture
+SKIP (deprecated builder) javafx.scene.text.FontBuilder
+GENERATED javafx.scene.paint.Color
+GENERATED javafx.animation.Interpolatable
+GENERATED javafx.scene.paint.Paint
+SKIP (deprecated builder) javafx.scene.paint.StopBuilder
+GENERATED javafx.scene.paint.Stop
+SKIP (deprecated builder) javafx.scene.paint.RadialGradientBuilder
+GENERATED javafx.scene.paint.RadialGradient
+GENERATED javafx.scene.paint.PhongMaterial
+GENERATED javafx.scene.paint.Material
+SKIP (deprecated builder) javafx.scene.paint.LinearGradientBuilder
+GENERATED javafx.scene.paint.LinearGradient
+SKIP (deprecated builder) javafx.scene.paint.ImagePatternBuilder
+GENERATED javafx.scene.paint.ImagePattern
+GENERATED javafx.scene.paint.CycleMethod
+SKIP (deprecated builder) javafx.scene.paint.ColorBuilder
+GENERATED javafx.scene.layout.VBox
+GENERATED javafx.scene.layout.StackPane
+GENERATED javafx.scene.layout.RowConstraints
+GENERATED javafx.scene.layout.ConstraintsBase
+GENERATED javafx.scene.layout.HBox
+GENERATED javafx.scene.layout.GridPane
+GENERATED javafx.scene.layout.ColumnConstraints
+GENERATED javafx.scene.layout.BorderPane
+GENERATED javafx.scene.layout.Border
+GENERATED javafx.scene.layout.AnchorPane
+SKIP (deprecated builder) javafx.scene.layout.VBoxBuilder
+SKIP (deprecated builder) javafx.scene.layout.TilePaneBuilder
+GENERATED javafx.scene.layout.TilePane
+SKIP (deprecated builder) javafx.scene.layout.StackPaneBuilder
+SKIP (deprecated builder) javafx.scene.layout.RowConstraintsBuilder
+SKIP (deprecated builder) javafx.scene.layout.RegionBuilder
+GENERATED javafx.scene.layout.Priority
+SKIP (deprecated builder) javafx.scene.layout.PaneBuilder
+SKIP (deprecated builder) javafx.scene.layout.HBoxBuilder
+SKIP (deprecated builder) javafx.scene.layout.GridPaneBuilder
+SKIP (deprecated builder) javafx.scene.layout.FlowPaneBuilder
+GENERATED javafx.scene.layout.FlowPane
+SKIP (CSS converter internals) javafx.scene.layout.CornerRadiiConverter
+GENERATED javafx.scene.layout.CornerRadii
+SKIP (deprecated builder) javafx.scene.layout.ColumnConstraintsBuilder
+GENERATED javafx.scene.layout.BorderWidths
+GENERATED javafx.scene.layout.BorderStrokeStyle
+GENERATED javafx.scene.layout.BorderStroke
+GENERATED javafx.scene.layout.BorderRepeat
+SKIP (deprecated builder) javafx.scene.layout.BorderPaneBuilder
+GENERATED javafx.scene.layout.BorderImage
+SKIP (not public) javafx.scene.layout.BorderConverter
+GENERATED javafx.scene.layout.BackgroundSize
+GENERATED javafx.scene.layout.BackgroundRepeat
+GENERATED javafx.scene.layout.BackgroundPosition
+GENERATED javafx.scene.layout.BackgroundImage
+GENERATED javafx.scene.layout.BackgroundFill
+SKIP (not public) javafx.scene.layout.BackgroundConverter
+GENERATED javafx.scene.layout.Background
+SKIP (deprecated builder) javafx.scene.layout.AnchorPaneBuilder
+GENERATED javafx.scene.input.TransferMode
+GENERATED javafx.scene.input.ScrollEvent
+GENERATED javafx.scene.input.ScrollEvent$VerticalTextScrollUnits
+GENERATED javafx.scene.input.ScrollEvent$HorizontalTextScrollUnits
+GENERATED javafx.scene.input.GestureEvent
+GENERATED javafx.scene.input.InputEvent
+GENERATED javafx.scene.input.MouseEvent
+GENERATED javafx.scene.input.KeyEvent
+GENERATED javafx.scene.input.KeyCode
+GENERATED javafx.scene.input.Dragboard
+GENERATED javafx.scene.input.Clipboard
+GENERATED javafx.scene.input.DragEvent
+GENERATED javafx.scene.input.DataFormat
+GENERATED javafx.scene.input.ZoomEvent
+GENERATED javafx.scene.input.TouchPoint
+GENERATED javafx.scene.input.TouchPoint$State
+GENERATED javafx.scene.input.TouchEvent
+GENERATED javafx.scene.input.SwipeEvent
+GENERATED javafx.scene.input.RotateEvent
+GENERATED javafx.scene.input.PickResult
+GENERATED javafx.scene.input.MouseDragEvent
+GENERATED javafx.scene.input.MouseButton
+SKIP (deprecated builder) javafx.scene.input.MnemonicBuilder
+GENERATED javafx.scene.input.Mnemonic
+GENERATED javafx.scene.input.KeyCombination
+GENERATED javafx.scene.input.KeyCombination$ModifierValue
+GENERATED javafx.scene.input.KeyCombination$Modifier
+SKIP (deprecated builder) javafx.scene.input.KeyCodeCombinationBuilder
+GENERATED javafx.scene.input.KeyCodeCombination
+SKIP (deprecated builder) javafx.scene.input.KeyCharacterCombinationBuilder
+GENERATED javafx.scene.input.KeyCharacterCombination
+GENERATED javafx.scene.input.InputMethodTextRun
+GENERATED javafx.scene.input.InputMethodRequests
+GENERATED javafx.scene.input.InputMethodHighlight
+GENERATED javafx.scene.input.InputMethodEvent
+GENERATED javafx.scene.input.ContextMenuEvent
+SKIP (deprecated builder) javafx.scene.input.ClipboardContentBuilder
+GENERATED javafx.scene.image.ImageView
+GENERATED javafx.scene.image.Image
+GENERATED javafx.scene.image.WritablePixelFormat
+GENERATED javafx.scene.image.PixelFormat
+GENERATED javafx.scene.image.PixelFormat$Type
+GENERATED javafx.scene.image.WritableImage
+GENERATED javafx.scene.image.PixelWriter
+GENERATED javafx.scene.image.PixelReader
+SKIP (deprecated builder) javafx.scene.image.ImageViewBuilder
+GENERATED javafx.scene.effect.GaussianBlur
+GENERATED javafx.scene.effect.Effect
+GENERATED javafx.scene.control.cell.TreeItemPropertyValueFactory
+GENERATED javafx.scene.control.cell.TextFieldTreeTableCell
+GENERATED javafx.scene.control.TreeTableCell
+GENERATED javafx.scene.control.IndexedCell
+GENERATED javafx.scene.control.Cell
+GENERATED javafx.scene.control.Labeled
+GENERATED javafx.scene.control.Control
+GENERATED javafx.scene.control.Skinnable
+SKIP (deprecated builder) javafx.scene.control.cell.TextFieldTreeCellBuilder
+GENERATED javafx.scene.control.cell.TextFieldTreeCell
+SKIP (not public) javafx.scene.control.cell.DefaultTreeCell
+SKIP (deprecated builder) javafx.scene.control.cell.TextFieldTableCellBuilder
+GENERATED javafx.scene.control.cell.TextFieldTableCell
+GENERATED javafx.scene.control.TableCell
+SKIP (deprecated builder) javafx.scene.control.cell.TextFieldListCellBuilder
+GENERATED javafx.scene.control.cell.TextFieldListCell
+GENERATED javafx.scene.control.ListCell
+SKIP (deprecated builder) javafx.scene.control.cell.PropertyValueFactoryBuilder
+GENERATED javafx.scene.control.cell.ProgressBarTreeTableCell
+GENERATED javafx.scene.control.cell.ProgressBarTableCell
+GENERATED javafx.scene.control.cell.MapValueFactory
+GENERATED javafx.scene.control.cell.ComboBoxTreeTableCell
+SKIP (deprecated builder) javafx.scene.control.cell.ComboBoxTreeCellBuilder
+GENERATED javafx.scene.control.cell.ComboBoxTreeCell
+SKIP (deprecated builder) javafx.scene.control.cell.ComboBoxTableCellBuilder
+GENERATED javafx.scene.control.cell.ComboBoxTableCell
+SKIP (deprecated builder) javafx.scene.control.cell.ComboBoxListCellBuilder
+GENERATED javafx.scene.control.cell.ComboBoxListCell
+GENERATED javafx.scene.control.cell.ChoiceBoxTreeTableCell
+SKIP (deprecated builder) javafx.scene.control.cell.ChoiceBoxTreeCellBuilder
+GENERATED javafx.scene.control.cell.ChoiceBoxTreeCell
+SKIP (deprecated builder) javafx.scene.control.cell.ChoiceBoxTableCellBuilder
+GENERATED javafx.scene.control.cell.ChoiceBoxTableCell
+SKIP (deprecated builder) javafx.scene.control.cell.ChoiceBoxListCellBuilder
+GENERATED javafx.scene.control.cell.ChoiceBoxListCell
+GENERATED javafx.scene.control.cell.CheckBoxTreeTableCell
+SKIP (deprecated builder) javafx.scene.control.cell.CheckBoxTreeCellBuilder
+GENERATED javafx.scene.control.cell.CheckBoxTreeCell
+SKIP (deprecated builder) javafx.scene.control.cell.CheckBoxTableCellBuilder
+GENERATED javafx.scene.control.cell.CheckBoxTableCell
+SKIP (deprecated builder) javafx.scene.control.cell.CheckBoxListCellBuilder
+GENERATED javafx.scene.control.cell.CheckBoxListCell
+SKIP (not public) javafx.scene.control.cell.CellUtils
+GENERATED javafx.scene.control.Tooltip
+GENERATED javafx.scene.control.PopupControl
+GENERATED javafx.scene.control.ToggleGroup
+GENERATED javafx.scene.control.TitledPane
+GENERATED javafx.scene.control.TextFormatter
+GENERATED javafx.scene.control.TextFormatter$Change
+GENERATED javafx.scene.control.TextField
+GENERATED javafx.scene.control.TextInputControl
+GENERATED javafx.scene.control.TextArea
+GENERATED javafx.scene.control.TableView
+GENERATED javafx.scene.control.TableView$TableViewSelectionModel
+GENERATED javafx.scene.control.TableSelectionModel
+SKIP (not public) javafx.scene.control.MultipleSelectionModelBase
+GENERATED javafx.scene.control.TableView$TableViewFocusModel
+GENERATED javafx.scene.control.TableFocusModel
+GENERATED javafx.scene.control.FocusModel
+GENERATED javafx.scene.control.TableView$ResizeFeatures
+GENERATED javafx.scene.control.ResizeFeaturesBase
+GENERATED javafx.scene.control.TableRow
+GENERATED javafx.scene.control.TableColumn
+GENERATED javafx.scene.control.TableColumn$SortType
+GENERATED javafx.scene.control.TableColumn$CellEditEvent
+GENERATED javafx.scene.control.TableColumn$CellDataFeatures
+GENERATED javafx.scene.control.TableColumnBase
+GENERATED javafx.scene.control.TabPane
+GENERATED javafx.scene.control.TabPane$TabClosingPolicy
+GENERATED javafx.scene.control.Tab
+GENERATED javafx.scene.control.SpinnerValueFactory
+GENERATED javafx.scene.control.SpinnerValueFactory$ListSpinnerValueFactory
+GENERATED javafx.scene.control.SpinnerValueFactory$IntegerSpinnerValueFactory
+GENERATED javafx.scene.control.SpinnerValueFactory$DoubleSpinnerValueFactory
+GENERATED javafx.scene.control.Spinner
+GENERATED javafx.scene.control.Skin
+GENERATED javafx.scene.control.Separator
+GENERATED javafx.scene.control.ScrollPane
+GENERATED javafx.scene.control.ScrollPane$ScrollBarPolicy
+GENERATED javafx.scene.control.RadioButton
+GENERATED javafx.scene.control.ToggleButton
+GENERATED javafx.scene.control.Toggle
+GENERATED javafx.scene.control.ButtonBase
+GENERATED javafx.scene.control.ProgressIndicator
+GENERATED javafx.scene.control.ProgressBar
+GENERATED javafx.scene.control.PasswordField
+GENERATED javafx.scene.control.Pagination
+GENERATED javafx.scene.control.MultipleSelectionModel
+GENERATED javafx.scene.control.SelectionModel
+GENERATED javafx.scene.control.ListView
+GENERATED javafx.scene.control.ListView$EditEvent
+GENERATED javafx.scene.control.Label
+GENERATED javafx.scene.control.Hyperlink
+GENERATED javafx.scene.control.Dialog
+GENERATED javafx.scene.control.DatePicker
+GENERATED javafx.scene.control.ComboBoxBase
+GENERATED javafx.scene.control.DateCell
+GENERATED javafx.scene.control.ContentDisplay
+GENERATED javafx.scene.control.ComboBox
+GENERATED javafx.scene.control.CheckBox
+GENERATED javafx.scene.control.ButtonType
+GENERATED javafx.scene.control.ButtonBar
+GENERATED javafx.scene.control.ButtonBar$ButtonData
+GENERATED javafx.scene.control.Button
+GENERATED javafx.scene.control.Alert
+GENERATED javafx.scene.control.Alert$AlertType
+GENERATED javafx.scene.control.Accordion
+SKIP (deprecated builder) javafx.scene.control.TreeViewBuilder
+GENERATED javafx.scene.control.TreeView
+GENERATED javafx.scene.control.TreeView$EditEvent
+SKIP (not public) javafx.scene.control.TreeUtil
+GENERATED javafx.scene.control.TreeTableView
+GENERATED javafx.scene.control.TreeTableView$TreeTableViewSelectionModel
+GENERATED javafx.scene.control.TreeTableView$TreeTableViewFocusModel
+GENERATED javafx.scene.control.TreeTableView$ResizeFeatures
+GENERATED javafx.scene.control.TreeTableView$EditEvent
+GENERATED javafx.scene.control.TreeTableRow
+GENERATED javafx.scene.control.TreeTablePosition
+GENERATED javafx.scene.control.TablePositionBase
+GENERATED javafx.scene.control.TreeTableColumn
+GENERATED javafx.scene.control.TreeTableColumn$SortType
+GENERATED javafx.scene.control.TreeTableColumn$CellEditEvent
+GENERATED javafx.scene.control.TreeTableColumn$CellDataFeatures
+GENERATED javafx.scene.control.TreeSortMode
+SKIP (deprecated builder) javafx.scene.control.TreeItemBuilder
+GENERATED javafx.scene.control.TreeItem
+GENERATED javafx.scene.control.TreeItem$TreeModificationEvent
+SKIP (deprecated builder) javafx.scene.control.TreeCellBuilder
+GENERATED javafx.scene.control.TreeCell
+SKIP (deprecated builder) javafx.scene.control.TooltipBuilder
+SKIP (deprecated builder) javafx.scene.control.ToolBarBuilder
+GENERATED javafx.scene.control.ToolBar
+SKIP (deprecated builder) javafx.scene.control.ToggleGroupBuilder
+SKIP (deprecated builder) javafx.scene.control.ToggleButtonBuilder
+SKIP (deprecated builder) javafx.scene.control.TitledPaneBuilder
+GENERATED javafx.scene.control.TextInputDialog
+SKIP (deprecated builder) javafx.scene.control.TextInputControlBuilder
+SKIP (deprecated builder) javafx.scene.control.TextFieldBuilder
+SKIP (deprecated builder) javafx.scene.control.TextAreaBuilder
+SKIP (deprecated builder) javafx.scene.control.TableViewBuilder
+SKIP (not public) javafx.scene.control.TableUtil
+SKIP (deprecated builder) javafx.scene.control.TableRowBuilder
+SKIP (deprecated builder) javafx.scene.control.TablePositionBuilder
+GENERATED javafx.scene.control.TablePosition
+SKIP (deprecated builder) javafx.scene.control.TableColumnBuilder
+SKIP (deprecated builder) javafx.scene.control.TableCellBuilder
+SKIP (deprecated builder) javafx.scene.control.TabPaneBuilder
+SKIP (deprecated builder) javafx.scene.control.TabBuilder
+SKIP (deprecated builder) javafx.scene.control.SplitPaneBuilder
+GENERATED javafx.scene.control.SplitPane
+GENERATED javafx.scene.control.SplitPane$Divider
+SKIP (deprecated builder) javafx.scene.control.SplitMenuButtonBuilder
+GENERATED javafx.scene.control.SplitMenuButton
+GENERATED javafx.scene.control.MenuButton
+GENERATED javafx.scene.control.SortEvent
+SKIP (deprecated builder) javafx.scene.control.SliderBuilder
+GENERATED javafx.scene.control.Slider
+GENERATED javafx.scene.control.SkinBase
+GENERATED javafx.scene.control.SingleSelectionModel
+SKIP (deprecated builder) javafx.scene.control.SeparatorMenuItemBuilder
+GENERATED javafx.scene.control.SeparatorMenuItem
+GENERATED javafx.scene.control.CustomMenuItem
+GENERATED javafx.scene.control.MenuItem
+SKIP (deprecated builder) javafx.scene.control.SeparatorBuilder
+GENERATED javafx.scene.control.SelectionMode
+GENERATED javafx.scene.control.ScrollToEvent
+SKIP (deprecated builder) javafx.scene.control.ScrollPaneBuilder
+SKIP (deprecated builder) javafx.scene.control.ScrollBarBuilder
+GENERATED javafx.scene.control.ScrollBar
+SKIP (deprecated builder) javafx.scene.control.RadioMenuItemBuilder
+GENERATED javafx.scene.control.RadioMenuItem
+SKIP (deprecated builder) javafx.scene.control.RadioButtonBuilder
+SKIP (deprecated builder) javafx.scene.control.ProgressIndicatorBuilder
+SKIP (deprecated builder) javafx.scene.control.ProgressBarBuilder
+SKIP (deprecated builder) javafx.scene.control.PopupControlBuilder
+SKIP (deprecated builder) javafx.scene.control.PasswordFieldBuilder
+SKIP (deprecated builder) javafx.scene.control.PaginationBuilder
+GENERATED javafx.scene.control.OverrunStyle
+SKIP (deprecated builder) javafx.scene.control.MultipleSelectionModelBuilder
+SKIP (deprecated builder) javafx.scene.control.MenuItemBuilder
+SKIP (deprecated builder) javafx.scene.control.MenuButtonBuilder
+SKIP (deprecated builder) javafx.scene.control.MenuBuilder
+SKIP (deprecated builder) javafx.scene.control.MenuBarBuilder
+GENERATED javafx.scene.control.MenuBar
+GENERATED javafx.scene.control.Menu
+SKIP (deprecated builder) javafx.scene.control.ListViewBuilder
+SKIP (deprecated builder) javafx.scene.control.ListCellBuilder
+SKIP (deprecated builder) javafx.scene.control.LabeledBuilder
+SKIP (deprecated builder) javafx.scene.control.LabelBuilder
+SKIP (deprecated builder) javafx.scene.control.IndexedCellBuilder
+SKIP (deprecated builder) javafx.scene.control.IndexRangeBuilder
+GENERATED javafx.scene.control.IndexRange
+SKIP (deprecated builder) javafx.scene.control.HyperlinkBuilder
+SKIP (not public) javafx.scene.control.HeavyweightDialog
+SKIP (not public) javafx.scene.control.FXDialog
+GENERATED javafx.scene.control.DialogPane
+GENERATED javafx.scene.control.DialogEvent
+SKIP (deprecated builder) javafx.scene.control.CustomMenuItemBuilder
+SKIP (not public) javafx.scene.control.ControlUtils
+SKIP (deprecated builder) javafx.scene.control.ControlBuilder
+SKIP (deprecated builder) javafx.scene.control.ContextMenuBuilder
+GENERATED javafx.scene.control.ContextMenu
+SKIP (deprecated builder) javafx.scene.control.ComboBoxBuilder
+SKIP (deprecated builder) javafx.scene.control.ComboBoxBaseBuilder
+SKIP (deprecated builder) javafx.scene.control.ColorPickerBuilder
+GENERATED javafx.scene.control.ColorPicker
+GENERATED javafx.scene.control.ChoiceDialog
+SKIP (deprecated builder) javafx.scene.control.ChoiceBoxBuilder
+GENERATED javafx.scene.control.ChoiceBox
+SKIP (deprecated builder) javafx.scene.control.CheckMenuItemBuilder
+GENERATED javafx.scene.control.CheckMenuItem
+SKIP (deprecated builder) javafx.scene.control.CheckBoxTreeItemBuilder
+GENERATED javafx.scene.control.CheckBoxTreeItem
+GENERATED javafx.scene.control.CheckBoxTreeItem$TreeModificationEvent
+SKIP (deprecated builder) javafx.scene.control.CheckBoxBuilder
+SKIP (deprecated builder) javafx.scene.control.CellBuilder
+SKIP (deprecated builder) javafx.scene.control.ButtonBuilder
+SKIP (deprecated builder) javafx.scene.control.ButtonBaseBuilder
+SKIP (deprecated builder) javafx.scene.control.AccordionBuilder
+GENERATED javafx.scene.Scene
+GENERATED javafx.scene.Group
+GENERATED javafx.scene.SubScene
+GENERATED javafx.scene.SnapshotResult
+SKIP (deprecated builder) javafx.scene.SnapshotParametersBuilder
+GENERATED javafx.scene.SnapshotParameters
+SKIP (deprecated builder) javafx.scene.SceneBuilder
+GENERATED javafx.scene.SceneAntialiasing
+SKIP (not public) javafx.scene.PropertyHelper
+GENERATED javafx.scene.PointLight
+GENERATED javafx.scene.LightBase
+SKIP (deprecated builder) javafx.scene.PerspectiveCameraBuilder
+GENERATED javafx.scene.PerspectiveCamera
+GENERATED javafx.scene.Camera
+SKIP (deprecated builder) javafx.scene.ParentBuilder
+GENERATED javafx.scene.ParallelCamera
+SKIP (deprecated builder) javafx.scene.NodeBuilder
+SKIP (deprecated builder) javafx.scene.ImageCursorBuilder
+GENERATED javafx.scene.ImageCursor
+GENERATED javafx.scene.Cursor
+SKIP (deprecated builder) javafx.scene.GroupBuilder
+GENERATED javafx.scene.DepthTest
+SKIP (not public) javafx.scene.CssStyleHelper
+GENERATED javafx.scene.CacheHint
+GENERATED javafx.scene.AmbientLight
+GENERATED javafx.scene.AccessibleRole
+GENERATED javafx.scene.AccessibleAttribute
+GENERATED javafx.scene.AccessibleAction
+GENERATED javafx.geometry.Pos
+GENERATED javafx.geometry.Orientation
+GENERATED javafx.geometry.Insets
+GENERATED javafx.geometry.VerticalDirection
+GENERATED javafx.geometry.VPos
+GENERATED javafx.geometry.Side
+SKIP (deprecated builder) javafx.geometry.Rectangle2DBuilder
+GENERATED javafx.geometry.Rectangle2D
+SKIP (deprecated builder) javafx.geometry.Point3DBuilder
+GENERATED javafx.geometry.Point3D
+SKIP (deprecated builder) javafx.geometry.Point2DBuilder
+GENERATED javafx.geometry.Point2D
+GENERATED javafx.geometry.NodeOrientation
+SKIP (deprecated builder) javafx.geometry.InsetsBuilder
+GENERATED javafx.geometry.HorizontalDirection
+GENERATED javafx.geometry.HPos
+SKIP (deprecated builder) javafx.geometry.Dimension2DBuilder
+GENERATED javafx.geometry.Dimension2D
+GENERATED javafx.geometry.Bounds
+SKIP (deprecated builder) javafx.geometry.BoundingBoxBuilder
+GENERATED javafx.geometry.BoundingBox
+GENERATED javafx.fxml.Initializable
+GENERATED javafx.event.EventHandler
+GENERATED javafx.event.ActionEvent
+GENERATED javafx.event.WeakEventHandler
+GENERATED javafx.event.EventType
+GENERATED javafx.event.EventDispatcher
+GENERATED javafx.event.EventDispatchChain
+GENERATED javafx.concurrent.Task
+GENERATED javafx.concurrent.Worker
+GENERATED javafx.concurrent.Worker$State
+GENERATED javafx.concurrent.WorkerStateEvent
+GENERATED javafx.concurrent.Service
+GENERATED javafx.concurrent.ScheduledService
+SKIP (not public) javafx.concurrent.EventHelper
+GENERATED javafx.collections.ListChangeListener
+GENERATED javafx.collections.ListChangeListener$Change
+GENERATED javafx.collections.FXCollections
+GENERATED javafx.collections.WeakSetChangeListener
+GENERATED javafx.beans.WeakListener
+GENERATED javafx.collections.SetChangeListener
+GENERATED javafx.collections.SetChangeListener$Change
+GENERATED javafx.collections.WeakMapChangeListener
+GENERATED javafx.collections.MapChangeListener
+GENERATED javafx.collections.MapChangeListener$Change
+GENERATED javafx.collections.WeakListChangeListener
+SKIP (a java.util collection) javafx.collections.ObservableSet
+SKIP (a java.util collection) javafx.collections.ObservableMap
+SKIP (a java.util collection) javafx.collections.ObservableListBase
+GENERATED javafx.collections.ObservableIntegerArray
+GENERATED javafx.collections.ObservableArray
+GENERATED javafx.beans.Observable
+GENERATED javafx.collections.ObservableFloatArray
+GENERATED javafx.collections.ObservableArrayBase
+SKIP (a java.util collection) javafx.collections.ModifiableObservableListBase
+SKIP (not public) javafx.collections.ListChangeBuilder
+GENERATED javafx.collections.ArrayChangeListener
+GENERATED javafx.beans.value.ObservableValue
+GENERATED javafx.beans.value.ChangeListener
+GENERATED javafx.beans.value.WritableValue
+GENERATED javafx.beans.value.WritableStringValue
+GENERATED javafx.beans.value.WritableObjectValue
+SKIP (a java.util collection) javafx.beans.value.WritableSetValue
+GENERATED javafx.beans.value.WritableNumberValue
+SKIP (a java.util collection) javafx.beans.value.WritableMapValue
+GENERATED javafx.beans.value.WritableLongValue
+SKIP (a java.util collection) javafx.beans.value.WritableListValue
+GENERATED javafx.beans.value.WritableIntegerValue
+GENERATED javafx.beans.value.WritableFloatValue
+GENERATED javafx.beans.value.WritableDoubleValue
+GENERATED javafx.beans.value.WritableBooleanValue
+GENERATED javafx.beans.value.WeakChangeListener
+GENERATED javafx.beans.value.ObservableValueBase
+GENERATED javafx.beans.value.ObservableStringValue
+GENERATED javafx.beans.value.ObservableObjectValue
+SKIP (a java.util collection) javafx.beans.value.ObservableSetValue
+GENERATED javafx.beans.value.ObservableNumberValue
+SKIP (a java.util collection) javafx.beans.value.ObservableMapValue
+GENERATED javafx.beans.value.ObservableLongValue
+SKIP (a java.util collection) javafx.beans.value.ObservableListValue
+GENERATED javafx.beans.value.ObservableIntegerValue
+GENERATED javafx.beans.value.ObservableFloatValue
+GENERATED javafx.beans.value.ObservableDoubleValue
+GENERATED javafx.beans.value.ObservableBooleanValue
+GENERATED javafx.beans.property.StringProperty
+GENERATED javafx.beans.property.Property
+GENERATED javafx.beans.property.ReadOnlyProperty
+GENERATED javafx.beans.property.ReadOnlyStringProperty
+GENERATED javafx.beans.binding.StringExpression
+GENERATED javafx.beans.property.SimpleStringProperty
+GENERATED javafx.beans.property.StringPropertyBase
+GENERATED javafx.beans.property.SimpleLongProperty
+GENERATED javafx.beans.property.LongPropertyBase
+GENERATED javafx.beans.property.LongProperty
+GENERATED javafx.beans.property.ReadOnlyLongProperty
+GENERATED javafx.beans.binding.LongExpression
+GENERATED javafx.beans.binding.NumberExpressionBase
+GENERATED javafx.beans.binding.NumberExpression
+GENERATED javafx.beans.property.SimpleBooleanProperty
+GENERATED javafx.beans.property.BooleanPropertyBase
+GENERATED javafx.beans.property.BooleanProperty
+GENERATED javafx.beans.property.ReadOnlyBooleanProperty
+GENERATED javafx.beans.binding.BooleanExpression
+SKIP (a java.util collection) javafx.beans.property.SimpleSetProperty
+GENERATED javafx.beans.property.SimpleObjectProperty
+GENERATED javafx.beans.property.ObjectPropertyBase
+GENERATED javafx.beans.property.ObjectProperty
+GENERATED javafx.beans.property.ReadOnlyObjectProperty
+GENERATED javafx.beans.binding.ObjectExpression
+SKIP (a java.util collection) javafx.beans.property.SimpleMapProperty
+SKIP (a java.util collection) javafx.beans.property.SimpleListProperty
+GENERATED javafx.beans.property.SimpleIntegerProperty
+GENERATED javafx.beans.property.IntegerPropertyBase
+GENERATED javafx.beans.property.IntegerProperty
+GENERATED javafx.beans.property.ReadOnlyIntegerProperty
+GENERATED javafx.beans.binding.IntegerExpression
+GENERATED javafx.beans.property.SimpleFloatProperty
+GENERATED javafx.beans.property.FloatPropertyBase
+GENERATED javafx.beans.property.FloatProperty
+GENERATED javafx.beans.property.ReadOnlyFloatProperty
+GENERATED javafx.beans.binding.FloatExpression
+GENERATED javafx.beans.property.SimpleDoubleProperty
+GENERATED javafx.beans.property.DoublePropertyBase
+GENERATED javafx.beans.property.DoubleProperty
+GENERATED javafx.beans.property.ReadOnlyDoubleProperty
+GENERATED javafx.beans.binding.DoubleExpression
+SKIP (a java.util collection) javafx.beans.property.SetPropertyBase
+SKIP (a java.util collection) javafx.beans.property.SetProperty
+GENERATED javafx.beans.property.ReadOnlyStringWrapper
+GENERATED javafx.beans.property.ReadOnlyStringPropertyBase
+SKIP (a java.util collection) javafx.beans.property.ReadOnlySetWrapper
+SKIP (a java.util collection) javafx.beans.property.ReadOnlySetPropertyBase
+SKIP (a java.util collection) javafx.beans.property.ReadOnlySetProperty
+GENERATED javafx.beans.property.ReadOnlyObjectWrapper
+GENERATED javafx.beans.property.ReadOnlyObjectPropertyBase
+SKIP (a java.util collection) javafx.beans.property.ReadOnlyMapWrapper
+SKIP (a java.util collection) javafx.beans.property.ReadOnlyMapPropertyBase
+SKIP (a java.util collection) javafx.beans.property.ReadOnlyMapProperty
+GENERATED javafx.beans.property.ReadOnlyLongWrapper
+GENERATED javafx.beans.property.ReadOnlyLongPropertyBase
+SKIP (a java.util collection) javafx.beans.property.ReadOnlyListWrapper
+SKIP (a java.util collection) javafx.beans.property.ReadOnlyListPropertyBase
+SKIP (a java.util collection) javafx.beans.property.ReadOnlyListProperty
+GENERATED javafx.beans.property.ReadOnlyIntegerWrapper
+GENERATED javafx.beans.property.ReadOnlyIntegerPropertyBase
+GENERATED javafx.beans.property.ReadOnlyFloatWrapper
+GENERATED javafx.beans.property.ReadOnlyFloatPropertyBase
+GENERATED javafx.beans.property.ReadOnlyDoubleWrapper
+GENERATED javafx.beans.property.ReadOnlyDoublePropertyBase
+GENERATED javafx.beans.property.ReadOnlyBooleanWrapper
+GENERATED javafx.beans.property.ReadOnlyBooleanPropertyBase
+SKIP (a java.util collection) javafx.beans.property.MapPropertyBase
+SKIP (a java.util collection) javafx.beans.property.MapProperty
+SKIP (a java.util collection) javafx.beans.property.ListPropertyBase
+SKIP (a java.util collection) javafx.beans.property.ListProperty
+GENERATED javafx.beans.binding.When
+GENERATED javafx.beans.binding.StringBinding
+GENERATED javafx.beans.binding.Binding
+SKIP (a java.util collection) javafx.beans.binding.SetExpression
+SKIP (a java.util collection) javafx.beans.binding.SetBinding
+GENERATED javafx.beans.binding.ObjectBinding
+GENERATED javafx.beans.binding.NumberBinding
+SKIP (a java.util collection) javafx.beans.binding.MapExpression
+SKIP (a java.util collection) javafx.beans.binding.MapBinding
+GENERATED javafx.beans.binding.LongBinding
+SKIP (a java.util collection) javafx.beans.binding.ListExpression
+SKIP (a java.util collection) javafx.beans.binding.ListBinding
+GENERATED javafx.beans.binding.IntegerBinding
+GENERATED javafx.beans.binding.FloatBinding
+GENERATED javafx.beans.binding.DoubleBinding
+GENERATED javafx.beans.binding.BooleanBinding
+GENERATED javafx.beans.binding.Bindings
+GENERATED javafx.beans.WeakInvalidationListener
+GENERATED javafx.beans.InvalidationListener
+SKIP (annotation) javafx.beans.NamedArg
+SKIP (annotation) javafx.beans.DefaultProperty
+GENERATED javafx.application.Platform
+GENERATED javafx.animation.FadeTransition
+GENERATED javafx.animation.Transition
+GENERATED javafx.animation.Animation
+GENERATED javafx.animation.Animation$Status
+SKIP (deprecated builder) javafx.animation.TranslateTransitionBuilder
+GENERATED javafx.animation.TranslateTransition
+SKIP (deprecated builder) javafx.animation.TransitionBuilder
+SKIP (deprecated builder) javafx.animation.TimelineBuilder
+GENERATED javafx.animation.Timeline
+SKIP (deprecated builder) javafx.animation.StrokeTransitionBuilder
+GENERATED javafx.animation.StrokeTransition
+SKIP (deprecated builder) javafx.animation.SequentialTransitionBuilder
+GENERATED javafx.animation.SequentialTransition
+SKIP (deprecated builder) javafx.animation.ScaleTransitionBuilder
+GENERATED javafx.animation.ScaleTransition
+SKIP (deprecated builder) javafx.animation.RotateTransitionBuilder
+GENERATED javafx.animation.RotateTransition
+SKIP (deprecated builder) javafx.animation.PauseTransitionBuilder
+GENERATED javafx.animation.PauseTransition
+SKIP (deprecated builder) javafx.animation.PathTransitionBuilder
+GENERATED javafx.animation.PathTransition
+GENERATED javafx.animation.PathTransition$OrientationType
+SKIP (deprecated builder) javafx.animation.ParallelTransitionBuilder
+GENERATED javafx.animation.ParallelTransition
+GENERATED javafx.animation.KeyValue
+GENERATED javafx.animation.KeyValue$Type
+GENERATED javafx.animation.KeyFrame
+GENERATED javafx.animation.Interpolator
+SKIP (deprecated builder) javafx.animation.FillTransitionBuilder
+GENERATED javafx.animation.FillTransition
+SKIP (deprecated builder) javafx.animation.FadeTransitionBuilder
+GENERATED javafx.animation.AnimationTimer
+SKIP (deprecated builder) javafx.animation.AnimationBuilder
+SKIP (not public) javafx.animation.AnimationAccessorImpl
+MAPPED 423

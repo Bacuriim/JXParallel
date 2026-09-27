@@ -2,13 +2,14 @@
 
 Ratios between benchmarks of the same run do not depend on how fast the CI machine is, so they
 can gate a build where absolute times cannot. Floors sit well below the measured ratios
-(2026-09-25, JDK 17, i7-1255U: 57x and about 20000x) to absorb runner noise.
+(2026-09-25, JDK 17, i7-1255U, JavaFX-exact layout: about 14x and 50000x) to absorb runner noise;
+losing incremental updates drops the first ratio to about 1x.
 """
 import json
 import sys
 
 FLOORS = [
-    ("ReconcileBenchmark.mountFresh", "ReconcileBenchmark.reconcileOneLabel", 10),
+    ("ReconcileBenchmark.mountFresh", "ReconcileBenchmark.reconcileOneLabel", 5),
     ("ReconcileBenchmark.mountFresh", "ReconcileBenchmark.reconcileUnchanged", 1000),
 ]
 
