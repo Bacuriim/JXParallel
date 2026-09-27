@@ -68,6 +68,15 @@ Bugs it found in `FxmlTemplate`:
    before the first segment that starts upper case, and nested classes keep their `Outer.Inner`
    name.
 
+`JXLayoutDifferentialTest` (jxparallel-javafx) does the same for layout, with four properties of
+1000 random trees each: VBox/HBox/StackPane/BorderPane; GridPane (constraints, spans, percents);
+Pane/AnchorPane; FlowPane/TilePane as the root. Sizes, grow priorities, spacing, alignment, fill
+flags, padding and margins are random. Real JavaFX 21 and the native layout must give every node the
+same position and size. At least one deliberate bug per container fails it, for example rounding
+the extra space portions to nearest instead of down (shrunk to a row of two `ALWAYS` regions 3 px
+wide) or ignoring grid spans. The generators never mutate generated values: jqwik shares them while
+shrinking, and an early version produced impossible trees (two BorderPane tops) that way.
+
 After the fixes the differential test passes and the 20-screen FXML benchmark still loads all
 screens from templates (`templates_cached=20`, same structural fingerprint).
 

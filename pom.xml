@@ -196,12 +196,26 @@
                 <maven.compiler.release>8</maven.compiler.release>
             </properties>
         </profile>
+        <!-- JDKs 8 that bundle JavaFX (Oracle, Zulu FX) build the JavaFX-compatible API too. -->
+        <profile>
+            <id>javafx8</id>
+            <activation>
+                <file>
+                    <exists>${java.home}/lib/ext/jfxrt.jar</exists>
+                </file>
+            </activation>
+            <modules>
+                <module>jxparallel-fx</module>
+                <module>jxparallel-fx-controlsfx</module>
+            </modules>
+        </profile>
         <profile>
             <id>legacy-javafx</id>
             <modules>
                 <module>jxparallel-javafx</module>
                 <module>jxparallel-fxml</module>
                 <module>jxparallel-examples</module>
+                <module>jxparallel-fx</module>
             </modules>
             <dependencyManagement>
                 <dependencies>

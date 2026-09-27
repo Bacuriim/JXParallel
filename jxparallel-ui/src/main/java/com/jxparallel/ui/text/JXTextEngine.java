@@ -28,7 +28,7 @@ import static org.lwjgl.util.harfbuzz.HarfBuzz.hb_shape;
  */
 public final class JXTextEngine {
     /** Default text size in pixels, used by the layout and both renderers. */
-    public static final float DEFAULT_SIZE = 13.0f;
+    public static final float DEFAULT_SIZE = 12.0f;
 
     /** Candidate system fonts; {@code -Djx.font=path} takes precedence. */
     private static final String[] FONT_CANDIDATES = {
@@ -171,8 +171,12 @@ public final class JXTextEngine {
         return (boxHeight - lineHeight(size)) / 2.0f + ascent(size);
     }
 
-    /** Height of one line: ascent, descent and the font's line gap. */
+    /**
+     * Height of one line. Ascent and descent are each rounded up, which is what JavaFX 21 reports
+     * (17 px for Segoe UI at 12 px, where the exact sum is 15.96).
+     */
     public float lineHeight(float size) {
-        return (ascender + descender + lineGap) * size / unitsPerEm;
+        return (float) (Math.ceil(ascender * size / unitsPerEm) + Math.ceil(descender * size / unitsPerEm)
+                + lineGap * size / unitsPerEm);
     }
 }
