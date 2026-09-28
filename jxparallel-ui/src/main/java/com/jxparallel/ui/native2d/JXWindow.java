@@ -6,6 +6,7 @@ import java.util.concurrent.atomic.AtomicBoolean;
 
 import com.jxparallel.ui.JXElement;
 import com.jxparallel.ui.input.JXClipboard;
+import com.jxparallel.ui.text.JXTextEngine;
 
 import org.lwjgl.glfw.GLFW;
 import org.lwjgl.glfw.GLFWErrorCallback;
@@ -56,7 +57,9 @@ public final class JXWindow implements AutoCloseable {
         String arch = System.getProperty("os.arch", "");
         boolean is32Bit = "32".equals(dataModel)
                 || (dataModel == null && (arch.equals("x86") || arch.matches("i[3-6]86")));
-        return is32Bit ? NANOVG : SKIA;
+        // Skija 0.116 crashes the JVM while loading its library on Java 8 (checked on 8u202 x64).
+        boolean java8 = System.getProperty("java.specification.version", "").startsWith("1.");
+        return is32Bit || java8 ? NANOVG : SKIA;
     }
 
     /**
@@ -113,6 +116,63 @@ public final class JXWindow implements AutoCloseable {
                 GLFW.glfwSetClipboardString(window, value == null ? "" : value);
             }
         };
+    }
+
+    /**
+     * Paints {@code element} with NanoVG in a hidden window and returns the pixels, ARGB, row by row
+     * from the top. For screen comparisons on JVMs where only NanoVG runs (32-bit, Java 8).
+     */
+    public static int[] captureNanoVG(JXElement element, int width, int height) {
+        GLFWErrorCallback.createPrint(System.err).set();
+        if (!GLFW.glfwInit()) {
+            throw new IllegalStateException("Unable to initialize GLFW");
+        }
+        long hidden = MemoryUtil.NULL;
+        try {
+            GLFW.glfwDefaultWindowHints();
+            GLFW.glfwWindowHint(GLFW.GLFW_VISIBLE, GLFW.GLFW_FALSE);
+            GLFW.glfwWindowHint(GLFW.GLFW_STENCIL_BITS, 8);
+            hidden = GLFW.glfwCreateWindow(width, height, "capture", MemoryUtil.NULL, MemoryUtil.NULL);
+            if (hidden == MemoryUtil.NULL) {
+                throw new IllegalStateException("Unable to create GLFW window");
+            }
+            GLFW.glfwMakeContextCurrent(hidden);
+            GL.createCapabilities();
+            int[] fbw = new int[1];
+            int[] fbh = new int[1];
+            GLFW.glfwGetFramebufferSize(hidden, fbw, fbh);
+            NanoVGBackend backend = new NanoVGBackend();
+            try {
+                backend.render(JXNativeNode.createBackendNode(element), fbw[0], fbh[0], width, height);
+                GL11.glFinish();
+                java.nio.ByteBuffer rgba = MemoryUtil.memAlloc(fbw[0] * fbh[0] * 4);
+                try {
+                    GL11.glReadPixels(0, 0, fbw[0], fbh[0], GL11.GL_RGBA, GL11.GL_UNSIGNED_BYTE, rgba);
+                    int[] argb = new int[width * height];
+                    for (int y = 0; y < height && y < fbh[0]; y++) {
+                        int row = (fbh[0] - 1 - y) * fbw[0] * 4;
+                        for (int x = 0; x < width && x < fbw[0]; x++) {
+                            int i = row + x * 4;
+                            argb[y * width + x] = 0xFF000000 | (rgba.get(i) & 0xFF) << 16 | (rgba.get(i + 1) & 0xFF) << 8 | (rgba.get(i + 2) & 0xFF);
+                        }
+                    }
+                    return argb;
+                } finally {
+                    MemoryUtil.memFree(rgba);
+                }
+            } finally {
+                backend.close();
+            }
+        } finally {
+            if (hidden != MemoryUtil.NULL) {
+                GLFW.glfwDestroyWindow(hidden);
+            }
+            GLFW.glfwTerminate();
+            GLFWErrorCallback previous = GLFW.glfwSetErrorCallback(null);
+            if (previous != null) {
+                previous.free();
+            }
+        }
     }
 
     public void show() {
@@ -315,7 +375,7 @@ public final class JXWindow implements AutoCloseable {
             if (vg == MemoryUtil.NULL) {
                 throw new IllegalStateException("Unable to create NanoVG context (OpenGL 3 required)");
             }
-            String font = JXNanoVGRenderer.findFont();
+            String font = JXTextEngine.get().getFontFile();
             hasFont = font != null && NanoVG.nvgCreateFont(vg, JXNanoVGRenderer.FONT, font) >= 0;
             if (!hasFont) {
                 System.err.println("JXParallel: no TrueType font found, text will not be drawn; set -Djx.font=<path>");

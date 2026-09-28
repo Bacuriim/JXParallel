@@ -538,6 +538,7 @@ compile; the JavaFX comparison runners also run on the JavaFX 8 bundled with Ora
 | `jxparallel-fxml` | `FXMLLoaderService` with parallel loading and cache | yes |
 | `jxparallel-junit4`, `-junit5`, `-mockito`, `-powermock` | test integrations | no |
 | `jxparallel-benchmarks` | JMH and runtime comparison runners | no |
+| `jxparallel-jcstress` | OpenJDK jcstress thread-safety tests (profile `jcstress`) | no |
 | `jxparallel-examples-native` | native examples and the UI stress runner | no |
 | `jxparallel-examples` | JavaFX comparison apps and benchmarks | yes |
 
@@ -546,7 +547,11 @@ The default build has no JavaFX dependency. JavaFX modules are built with a prof
 ```powershell
 mvn test                      # core, UI, test integrations, benchmarks
 mvn -Plegacy-javafx test      # plus jxparallel-javafx, jxparallel-fxml, examples
+mvn -Pcoverage test           # JaCoCo report in <module>/target/site/jacoco
 ```
+
+How the library itself is tested (property-based, jcstress, golden images, JMH gate, ArchUnit,
+mutation testing) and how that compares with OpenJFX: [testing-strategy.md](docs/testing-strategy.md).
 
 ## Project status
 
@@ -572,6 +577,7 @@ Roadmap: [roadmap.md](docs/roadmap.md). Changes: [CHANGELOG.md](CHANGELOG.md).
 | Native UI architecture | [native-ui.md](docs/native-ui.md) |
 | UI comparison, 32-bit and 64-bit | [ui-comparison-2026-09-25.md](docs/ui-comparison-2026-09-25.md) |
 | FXML loading comparison | [fxml-load-comparison.md](docs/fxml-load-comparison.md) |
+| Testing strategy, compared with OpenJFX | [testing-strategy.md](docs/testing-strategy.md) |
 | Development log (pt-BR) | [diario-de-desenvolvimento.md](docs/tcc/diario-de-desenvolvimento.md) |
 
 ## Contributing
