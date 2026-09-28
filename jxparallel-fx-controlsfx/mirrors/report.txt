@@ -1,0 +1,4 @@
+NATIVE 2
+GENERATED org.controlsfx.control.textfield.CustomTextField
+GENERATED org.controlsfx.control.Notifications
+MAPPED 2

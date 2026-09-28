@@ -31,5 +31,17 @@
             <artifactId>junit-jupiter</artifactId>
             <scope>test</scope>
         </dependency>
+        <!-- The native layout is tested against real JavaFX layout (JXLayoutDifferentialTest). -->
+        <dependency>
+            <groupId>com.jxparallel</groupId>
+            <artifactId>jxparallel-ui</artifactId>
+            <version>${project.version}</version>
+            <scope>test</scope>
+        </dependency>
+        <dependency>
+            <groupId>net.jqwik</groupId>
+            <artifactId>jqwik</artifactId>
+            <scope>test</scope>
+        </dependency>
     </dependencies>
 </project>

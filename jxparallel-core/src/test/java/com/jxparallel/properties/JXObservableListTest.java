@@ -41,6 +41,28 @@ class JXObservableListTest {
     }
 
     @Test
+    void everyChangeReportsTypeIndexAndValues() {
+        JXObservableList<String> list = new JXObservableList<String>();
+        StringBuilder events = new StringBuilder();
+        JXListChangeListener<String> listener = event -> events.append(event.getType()).append(event.getIndex())
+                .append(':').append(event.getOldValue()).append("->").append(event.getNewValue()).append(' ');
+        list.addListener(listener);
+
+        assertTrue(list.add("a"));
+        assertTrue(list.add("b"));
+        assertEquals("b", list.set(1, "c"));
+        assertEquals("a", list.remove(0));
+        list.clear();
+        list.removeListener(listener);
+        list.add("ignored");
+
+        assertEquals("ADD0:null->a ADD1:null->b UPDATE1:b->c REMOVE0:a->null REMOVE0:c->null ", events.toString());
+        assertEquals(1, list.size());
+        assertEquals("ignored", list.get(0));
+        assertEquals("ignored", list.iterator().next());
+    }
+
+    @Test
     void addAllShouldReportOneAddPerElementInOrder() {
         JXObservableList<String> list = new JXObservableList<String>();
         list.add("a");

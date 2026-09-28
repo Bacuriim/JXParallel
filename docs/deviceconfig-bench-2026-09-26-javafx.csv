@@ -1,0 +1,17 @@
+build,iteration,step,wall_ms,cpu_ms,alloc_mb,gc_ms,max_ui_gap_ms,heap_after_mb,items
+javafx,0,startup,378,125,10.4,4,36,3.7,1
+javafx,1,fxml_all,4682,5218,1433.4,372,40,19.9,232
+javafx,1,search,719,687,520.5,85,18,18.5,402
+javafx,1,open_record,1151,484,109.3,22,21,24.7,1
+javafx,2,fxml_all,3610,3875,1311.3,215,43,22.3,232
+javafx,2,search,688,531,516.5,77,16,19.2,402
+javafx,2,open_record,1185,562,104.6,26,48,24.7,1
+javafx,3,fxml_all,3245,3453,1313.5,210,55,22.3,232
+javafx,3,search,652,562,516.6,67,20,19.2,402
+javafx,3,open_record,1064,421,105.6,21,24,24.7,1
+javafx,4,fxml_all,3690,3921,1308.0,232,60,20.7,232
+javafx,4,search,859,765,517.5,84,631,19.2,402
+javafx,4,open_record,1089,390,105.1,18,16,24.8,1
+javafx,5,fxml_all,3435,3640,1308.6,209,54,20.9,232
+javafx,5,search,641,562,516.9,71,16,19.3,402
+javafx,5,open_record,1071,343,105.3,23,16,21.8,1

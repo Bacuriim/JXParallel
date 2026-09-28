@@ -392,7 +392,507 @@ A tela individual passou a ser 5x mais rápida que no JavaFX (antes só o lote g
 memória deixou de ficar acima do JavaFX. Custo: a primeira carga de cada arquivo aloca mais, e os
 templates em cache retêm cerca de 1.5 MB a mais de heap.
 
+## 2026-09-25: estratégia de testes em cinco camadas, comparada com o OpenJFX
+
+**Pergunta.** Dá para copiar os testes do JavaFX trocando os componentes? Não: o OpenJFX é GPLv2
+com Classpath Exception (copiar o código tornaria esses arquivos GPL num projeto MIT) e os testes
+dependem de internos do JavaFX (skins, CSS, pulse, `com.sun.*`). A estratégia foi reimplementada.
+
+**Como o OpenJFX testa** (repositório `openjdk/jfx`, branch `master`, JavaFX 28 em
+desenvolvimento, lido em 25/09 via Sourcegraph, `build.gradle`, `verification-metadata.xml` e
+`submit.yml`): 1.192 arquivos de teste unitário nos módulos, rodando sem tela com o `StubToolkit`
+e 182 classes "shim" injetadas por `--patch-module`; 499 arquivos de teste de sistema, 174 com
+`Robot` e checagem de cor em pontos escolhidos, só com `-PFULL_TEST=true -PUSE_ROBOT=true`;
+257 arquivos de teste manual; 11 arquivos de apps de desempenho, sem JMH; 28 arquivos com teste de
+vazamento no padrão JMemoryBuddy. A única biblioteca de teste declarada é o JUnit 6.1.3. Não há
+jqwik, jcstress, JMH, ArchUnit nem JaCoCo; cobertura só com JCov em builds fechados da Oracle.
+Propriedades e coleções do JavaFX não são thread-safe (só a FX thread), então não há contrato de
+concorrência para testar.
+
+**Estratégia.** Cinco camadas usadas em bibliotecas grandes (Guava, Caffeine, Netty, o próprio
+JDK), cada uma validada injetando um bug de propósito e vendo o teste falhar:
+
+1. **Propriedades (jqwik).** Reconcile de árvore aleatória contra montagem do zero, e o
+   `FxmlTemplate` contra o `FXMLLoader` em FXML aleatório (teste diferencial: o `FXMLLoader` é a
+   especificação). Um bug injetado (ignorar mudança de `gap`) passou por 500 pares de árvores
+   independentes e só foi pego pela propriedade de "pequenas edições", que o jqwik reduziu ao caso
+   mínimo em 19 passos. Lição: o gerador precisa imitar o uso real.
+2. **Concorrência (jcstress, ferramenta do OpenJDK).** Cinco testes, dezenas de milhões de
+   execuções cada.
+3. **Snapshot e interação.** Layout em texto, imagem golden do Skia renderizada em memória (sem
+   GPU) e um teste de clique ponta a ponta sem janela. Mudar o azul do botão em 9 níveis gera
+   11.911 pixels diferentes e falha o teste.
+4. **Regressão de desempenho (JMH + gate na CI).** O gate compara razões entre benchmarks da mesma
+   execução, que não dependem da velocidade da máquina. Tirar o atalho de identidade do reconcile
+   derrubou as razões de 57x e 23.978x para 6,0x e 4,7x e o gate falhou.
+5. **Contrato.** ArchUnit (sem AWT/Swing/JavaFX, core sem renderer, só `native2d` fala com
+   GLFW/Skia/NanoVG, sem ciclos), vazamento de memória, JaCoCo e PIT.
+
+**Bugs encontrados** (todos corrigidos, todos com teste):
+
+| Camada | Bug | Evidência |
+|---|---|---|
+| 1 | `FxmlTemplate` copiava `fx:id` para qualquer `id`; o `FXMLLoader` só copia com `@IDProperty` | caso mínimo: `<Box fx:id="a">` aninhado |
+| 1 | `FxmlTemplate` aceitava nomes de classe aninhada que o `FXMLLoader` rejeita | FXML feito para o JX não abria no JavaFX puro |
+| 2 | `JXObservableList` entregava eventos fora de ordem | 28.027 em 30,4 milhões |
+| 2 | `JXProperty` notificava duas vezes a mesma mudança | 2.956.817 em 46,8 milhões (6,3%) |
+| 2 | `JXProperty` e `JXState`: último valor visto pelo listener diferente do valor atual | 66.544 e 9.926 |
+| 3 | Nenhum botão da UI nativa respondia a clique (`onAction` gravado, `onClick` lido) | teste de clique |
+| 3 | Botão desabilitado receberia clique (o JavaFX não entrega) | teste de clique |
+| 5 | `JXProperty` ligado com `bind` e esquecido nunca era coletado (o JavaFX usa referência fraca) | teste de vazamento |
+
+**Correção de concorrência e custo.** Mudança e notificação passaram a acontecer sob o mesmo lock
+(na lista, um lock de escrita separado para `get`/`size` não esperarem listeners lentos), e as
+listas de listeners viraram `CopyOnWriteArrayList`. Depois: zero estados proibidos em cerca de
+419 milhões de amostras. Custo medido com JMH, thread única, código antigo e novo em seguida:
+
+| Operação com um listener | Antes | Depois |
+|---|---:|---:|
+| `JXObservableList` add + remove | 105,9 ns | 64,9 ns |
+| `JXProperty.set` | 37,8 ns | 28,8 ns |
+| `JXState.set` | 31,6 ns | 24,2 ns |
+
+Ficou thread-safe e mais rápido: o lock custa menos que a cópia da lista de listeners que cada
+notificação fazia. Uma primeira medição do "antes" (279,6 ns na lista, erro de ±59) foi descartada
+por ruído.
+
+**Cobertura e mutação.** JaCoCo: core 74,2% das linhas (53,8% dos ramos), UI 52,2% (42,6%); os
+caminhos OpenGL não rodam sem GPU. PIT antes dos testes direcionados: core 152 de 389 mutantes
+mortos (39,1%), `JXNativeNode` + `JXRenderMemo` 89 de 115 (77,4%). O PIT mostrou que apagar a
+chamada de notificação em `add` ou `remove` da lista não quebrava nenhum teste. Depois de testes para esses casos e de testes de layout com resposta
+calculada à mão: core 172 de 389 (44,2%), UI 103 de 115 (89,6%).
+Lição para o capítulo de método: teste de propriedade que compara dois caminhos não pega bug no
+código que os dois compartilham (fórmula de tamanho preferido); para isso servem testes com
+resposta conhecida (oráculo).
+
+**Limitações.** O jcstress 0.16 não roda no Java 8 (usa `Thread.onSpinWait`); os testes rodam no
+JDK 17 contra o mesmo bytecode Java 8. A imagem golden só vale para Windows 64 bits (fontes do
+sistema); o NanoVG precisa de contexto OpenGL e ainda não tem golden. O japicmp fica para depois
+da versão 0.1.0, quando houver versão anterior para comparar.
+
 ---
+
+## 2026-09-25: Skia contra NanoVG na mesma JVM 64 bits
+
+**Pergunta.** Vale trocar o Skia pelo NanoVG também em 64 bits e ficar com um renderer só?
+
+**Medição.** Mesmo teste de stress (500 atualizações por componente, depois 600 quadros), JDK
+17.0.12 x64, `-Djx.renderer` alternando a cada execução, JVM nova por execução, 5 execuções,
+segundo monitor, 26% de CPU de outros processos. Dados:
+`docs/ui-stress-results-renderers-x64-2026-09-25.csv`.
+
+| Métrica (mediana) | Skia | NanoVG | Faixas se sobrepõem? |
+|---|---:|---:|---|
+| FPS sustentado | 120,2 | 120,3 | limitado pelo vsync |
+| CPU por quadro | 3,0 ms | 2,7 ms | sim |
+| Pior quadro | 12,5 ms | 12,4 ms | sim |
+| Rajada de 2000 atualizações | 32,8 ms | 37,2 ms | sim |
+| Início até o primeiro quadro | 787 ms | 716 ms | sim |
+| Pico de working set | 161 MB | 156 MB | **não** (−4%) |
+| Tamanho dos natives no Windows x64 | 9,2 MB | 0,4 MB | |
+
+**Conclusão.** Em desempenho é empate: só a memória ficou fora do ruído, e a diferença é de 5 MB.
+A troca só se justificaria por simplicidade e tamanho do pacote. Contra ela: o Skia tem o que a
+paridade com o JavaFX vai exigir (sombras e desfoque como `DropShadow`/`GaussianBlur`, caminhos
+complexos, filtros, codecs de imagem, texto com hinting), e o NanoVG tem só o básico (gradientes e
+sombra de caixa simples). Decisão do autor: manter Skia em 64 bits e NanoVG em 32 bits.
+
+## 2026-09-25: texto medido de verdade (primeiro passo da UI nativa no nível do JavaFX)
+
+**Decisão do autor.** A 1.0 terá a UI nativa no nível do JavaFX. A ordem escolhida parte do
+texto, porque tudo depende dele: sem medir texto, nenhum tamanho de layout é real.
+
+**Problema.** O layout usava tamanhos fixos no código (botão 120x32, texto 100x24, caixa de
+seleção 160x24), e os dois renderers desenhavam com fontes diferentes: Skia com a fonte padrão a
+13 px, NanoVG com Segoe UI a 15 px. O mesmo programa tinha outra aparência em 32 e em 64 bits, e
+textos longos vazavam dos botões.
+
+**Estratégia.** `JXTextEngine` com HarfBuzz pelo LWJGL (o `HarfBuzz` do LWJGL carrega o FreeType
+junto; cerca de 1,5 MB de natives por plataforma, com x86). O HarfBuzz mede o texto shaped (kerning,
+ligaduras, acentos, outros alfabetos) direto das métricas OpenType, só com CPU: sem janela, sem GPU,
+e com o mesmo resultado em 32 e 64 bits. Os dois renderers passam a desenhar com o mesmo arquivo de
+fonte e tamanho. O Skia desenha texto shaped (`Shaper` do próprio Skia, que também usa HarfBuzz) em
+vez de `drawString`, que ignorava o kerning. O layout usa os padrões do JavaFX: `TextField` com 12
+colunas da largura de "W", `TextArea` com 40x10; botões, rótulos e caixas de seleção medem o texto.
+Campos de entrada não mudam de tamanho ao digitar, então digitar não refaz o layout.
+
+**Validação.**
+
+- O Skia chegou a desenhar "AVATAR Wave" 4 px mais largo do que o layout mediu, porque o
+  `drawString` não aplica kerning. Com texto shaped, as 6 frases de teste concordam em menos de 0,5 px.
+- O snapshot de layout gerado no Java 17 x64 bateu idêntico no Java 8 x86: o layout não depende
+  mais da arquitetura.
+- O teste de propriedade do reconcile passou a exercitar a invalidação por texto: trocar o texto de
+  um rótulo agora muda o tamanho dele, e o reconcile precisa refazer o layout.
+
+**Custo** (JMH, tela de 1001 nós, JDK 17):
+
+| Caso | Tamanho fixo | HarfBuzz sem cache | HarfBuzz com cache de largura |
+|---|---:|---:|---:|
+| Montar do zero | 65,5 µs | 759,7 µs | 68,3 µs |
+| Reconcile de um rótulo | 1,1 µs | 3,4 µs | 2,7 µs |
+
+O shaping custa cerca de 0,7 µs por texto. Como sem hinting a largura escala linearmente com o
+tamanho, o cache guarda a largura por texto uma vez só, e interfaces repetem muito os mesmos
+textos. A primeira vez que cada texto aparece continua custando os 0,7 µs. O gate da CI compara
+razões e não pegaria essa piora absoluta; fica registrado como limitação do gate.
+
+**Encontrado na janela real.** Numa coluna, o botão ocupa a largura toda. No JavaFX, o `Button`
+tem largura máxima igual à preferida e não estica numa `VBox`. É o próximo passo (motor de layout).
+
+**Limitação.** O NanoVG desenha com o shaping próprio (stb_truetype, só a tabela `kern`); em fontes
+com kerning só na tabela GPOS, o texto pode sair poucos pixels mais largo que o medido no 32-bit.
+
+## 2026-09-25: layout com os algoritmos do JavaFX, testado contra o JavaFX real
+
+**Problema.** O layout nativo tinha só tamanho preferido: numa coluna, todo filho ocupava a largura
+toda (um botão virava uma faixa azul de ponta a ponta), e filhos que não cabiam ficavam com tamanho
+zero. O JavaFX tem tamanho mínimo, preferido e máximo por nó, prioridade de crescimento
+(`Priority.ALWAYS`/`SOMETIMES`), alinhamento e `fillWidth`/`fillHeight`.
+
+**Decisão.** Implementar os algoritmos do próprio JavaFX (`VBox`, `HBox`, `StackPane`, JavaFX 21)
+em vez de usar o Yoga, que implementa flexbox: o `Priority` do JavaFX não é o `flex-grow`, e o
+Yoga não tem `GridPane`. O código-fonte do OpenJFX foi lido como especificação (não copiado:
+GPLv2), inclusive o arredondamento para pixel: tamanhos para cima, posições para o inteiro mais
+próximo, espaço extra distribuído em porções inteiras arredondadas para baixo, primeiro para
+`ALWAYS`, depois `SOMETIMES`; quando falta espaço, todos encolhem até o mínimo e o resto transborda.
+
+**Fatos medidos no JavaFX 21** (programa de sonda, Windows, fonte padrão System 12 px): Label,
+Button, CheckBox, ComboBox, ProgressBar e ToggleButton têm máximo igual ao preferido; TextField,
+PasswordField e Slider esticam na largura; TextArea e Region esticam nos dois eixos; a altura de
+linha de Segoe UI 12 px é 17 px, que é `ceil(ascent) + ceil(descent)`. Com isso a fonte padrão
+passou de 13 para 12 px e os tamanhos batem com o JavaFX: Label "Customers" 57x17, Button "Save"
+41x25, TextField 149 (JavaFX: 148,5), ProgressBar 100x18, Slider 14 de altura. CheckBox ficou 1 px
+menor.
+
+**Teste diferencial.** `JXLayoutDifferentialTest` gera 1000 árvores aleatórias de
+VBox/HBox/StackPane/Region com tamanhos mínimo/preferido/máximo, prioridades, alinhamentos,
+espaçamentos e flags aleatórios, monta a mesma árvore no JavaFX real e no JX e exige posição e
+tamanho idênticos em todos os nós. Passou nas 1000. Para confirmar que o teste é sensível, trocar o
+arredondamento das porções (`floor` por `round`) o fez falhar, com o caso mínimo em 22 passos: uma
+linha com duas regiões `ALWAYS` em 3 px (o JavaFX dá 1 e 2 px).
+
+**Custo e otimização.** A primeira versão ficou 2,5x mais lenta para montar uma tela de 1001 nós
+(62 contra 158 µs). O JFR mostrou a causa: ler as props de layout percorria o mapa imutável, criando
+um objeto por entrada, e cada rótulo media também "..." (para o tamanho mínimo). Com `Map.forEach`
++ `switch` de string e a largura de "..." calculada uma vez: 108 µs. O reconcile de um rótulo foi de
+2,8 para 7,8 µs, porque o algoritmo do JavaFX repassa todos os filhos quando um tamanho muda.
+
+**Melhoria sobre o JavaFX.** No JavaFX, `requestLayout()` sempre sobe até a raiz. No JX, a mudança
+para no primeiro nó cujos tamanhos mínimo/preferido/máximo saem iguais: o pai mantém o layout e só
+a subárvore alterada é refeita. O teste de propriedade do reconcile cobre isso; desligar a descida
+até os filhos sujos o fez falhar.
+
+**Responsividade (sugestão do autor, 25/09).** O padrão fica igual ao JavaFX (para FXML e apps
+existentes se comportarem igual e para o teste diferencial continuar tendo oráculo). Melhorias
+opcionais planejadas: `overflow` (cortar ou rolar), quebra de linha em `row`, breakpoints e
+prioridade de exibição com menu de itens ocultos.
+
+## 2026-09-25/26: todos os containers de layout do JavaFX
+
+**Escopo.** Depois de `VBox`/`HBox`/`StackPane`: padding e margens, `BorderPane`, `GridPane`,
+`Pane`, `AnchorPane`, `FlowPane` e `TilePane`. Cada algoritmo foi portado lendo o código do
+OpenJFX 21 como especificação (não copiado).
+
+**Verificação.** O teste diferencial virou quatro propriedades de 1000 árvores aleatórias cada
+(caixas com `BorderPane`; grids; `Pane`/`AnchorPane`; `FlowPane`/`TilePane` como raiz), montadas no
+JavaFX real e no JX, com posição e tamanho idênticos em todos os nós. Para cada container, pelo
+menos uma mutação proposital foi pega: margem ignorada no posicionamento, `BorderPane` sem o piso de
+tamanho mínimo, spans ignorados no grid, arredondamento dos percentuais do grid, resto da divisão
+distribuído de 2 em 2 px, âncora direita sem o padding, condição de quebra do `FlowPane` e
+alinhamento da última linha do `TilePane`.
+
+**O `GridPane` é o mais complexo:** cerca de 1.500 linhas no OpenJFX, com uma estrutura própria
+(`CompositeSize`) para células que ocupam várias linhas ou colunas, distribuição por percentual com
+acúmulo de resto, e um laço de crescer/encolher diferente do da `VBox` (trata o resto da divisão
+pixel a pixel). As versões de linha e de coluna foram comparadas por diff depois de renomear os
+identificadores; eram simétricas, e a portagem ficou com um eixo parametrizado.
+
+**Dois achados do próprio teste.**
+
+1. O gerador alterava objetos já gerados (`props.put`). O jqwik reaproveita esses objetos ao reduzir
+   um caso, e surgiu um `BorderPane` com dois filhos em `top`, algo que o gerador não produziria.
+   Correção: os geradores passaram a criar cópias. Lição: em teste de propriedade, o gerador precisa
+   ser imutável.
+2. Num `AnchorPane` menor que as âncoras, o JavaFX dá largura negativa ao filho (-2), e o filho do
+   filho fica em x = -1. O JX cortava tamanhos para 0. Agora aceita tamanho negativo, como o JavaFX.
+
+**Limitações registradas.** *Content bias* (altura que depende da largura, caso do `FlowPane`,
+`TilePane` e texto com quebra) ainda não é repassado pelos pais: um `FlowPane` dentro de uma `VBox`
+recebe a altura do `prefWrapLength`, não a da largura real. Alinhamento por baseline,
+`USE_PREF_SIZE` nas restrições e span `REMAINING` também faltam.
+
+**Custo.** A máquina estava cerca de 2x mais lenta nesta medição (o commit anterior, que media
+62 µs, deu 130 µs), então vale a razão contra o commit anterior nas mesmas condições: montar a tela
+de 1001 nós ficou 2,3x mais caro e o reconcile de um rótulo 3,0x. Duas otimizações guiadas pelo JFR
+entraram: a comparação de props no reconcile passou a percorrer só as chaves presentes, e o tipo do
+container virou um inteiro calculado uma vez (antes, cada layout comparava strings em cadeia).
+
+## 2026-09-26: DeviceConfig como critério de fechamento da 1.0
+
+**Decisão.** A 1.0 (e a prova de conceito do TCC) só fecha quando o DeviceConfig, sistema real da
+empresa com 232 telas FXML feitas em parte no Scene Builder, rodar inteiro sobre o JXParallel. A
+migração deve mudar o mínimo: trocar imports nos controllers (ou o nome da classe pelo prefixo JX),
+com os FXML intactos. No DeviceConfig só se mexe em UI, e problemas antigos ficam como estão, para
+que a comparação de desempenho antes e depois meça só a troca de framework.
+
+**Inventário.** Uma varredura sobre a branch `dev` (detalhes em `docs/migracao-deviceconfig.md`)
+mostrou que o sistema usa quase toda a API de controles do JavaFX, 1001 listeners, 208
+`Platform.runLater`, 80 fábricas de células, CSS em 406 chamadas `setStyle`, ControlsFX
+(`Notifications`, 71 arquivos) e API interna `com.sun.javafx` (`ScrollPaneSkin`, 32 arquivos). Isso
+muda a escala da 1.0: de "controles básicos" para "API do JavaFX usada por um sistema real".
+
+**Preparação.** Branch `feature/jx-parallel-refactoring` criada a partir de `dev` num worktree
+separado, para não tocar no checkout de trabalho. O projeto compila sem mudanças com o JDK 8u51
+32 bits. A suíte de testes do frontend é longa e só será rodada depois da migração; o estado
+anterior é conferido manualmente se preciso.
+
+**Fase 1: trocar os imports sem trocar a implementação.** Foi criado o módulo `jxparallel-fx`, com
+uma classe `com.jxparallel.fx.X` para cada `javafx.X` usada pelo DeviceConfig, gerada por reflexão
+sobre o JavaFX 8 e por enquanto herdando da classe do JavaFX. O `FXMLLoader` do JX troca as classes
+dos FXML por meio de um ClassLoader, e o `FXMLLoader` do JavaFX repassa esse ClassLoader aos
+`fx:include`, então os 232 FXML não mudaram. Um script trocou os imports de 438 arquivos sem tocar
+em nenhum outro byte (o encoding de cada arquivo ficou igual).
+
+Resultado medido: o código compila sem erros, os testes compilam, e as 232 telas carregadas com o
+código original e com o migrado dão o mesmo resultado tela a tela (229 carregam, as mesmas 3 falham
+por falta de ambiente). 2582 dos 3867 imports `javafx.*` (67%) viraram JX, e 314 dos 512 nós criados
+pelos FXML já são classes JX.
+
+**O que não deu para trocar, e por quê.** A compilação mostrou quatro grupos: tipos que o próprio
+JavaFX devolve (`getItems()` devolve um `ObservableList` do JavaFX, `start(Stage)` recebe o `Stage`
+dele), classes base (o `Label` do JX herda do `Label` do JavaFX, então não é um `Node` do JX, e o
+Java não tem apelido de tipo), genéricos que precisam bater exatamente (`Callback<TableColumn,
+TableCell>`), e o que não se estende (enums, eventos, classes `final`, a anotação `@FXML`). Os quatro
+têm a mesma causa: herdar do JavaFX. A fase 2 resolve todos, porque as classes JX passam a formar uma
+hierarquia própria que devolve os próprios tipos. Isso responde à pergunta da migração: trocar só
+imports é viável para o sistema inteiro, mas exige a API JX completa, não um verniz sobre o JavaFX.
+
+**Fase 1, falha que a compilação não mostrou.** 32 controllers leem por reflexão o campo interno
+`viewRect` do `ScrollPaneSkin` e fazem cast para `StackPane`. Com a fase 1, esse `StackPane` passou a
+ser a classe JX, então o código compila mas daria `ClassCastException` quando a skin fosse criada, o
+que só acontece com a tela exibida (o teste de carga dos FXML não chega lá). É mais um caso de tipo
+devolvido pelo JavaFX, e a fase 2 o resolve do mesmo jeito que os outros.
+
+**Duas camadas de componentes (decisão do autor).** Projetos que já usam JavaFX migram pela camada
+de compatibilidade, `com.jxparallel.fx`, com os mesmos nomes do JavaFX (`Label`, `VBox`) e o mesmo
+contrato. Projetos novos, ou refatorações maiores, usam a camada nativa `com.jxparallel.ui`, com
+prefixo JX (`JXLabel`, `JXButton`), comportamento mais completo e liberdade para divergir do JavaFX.
+A camada de compatibilidade vai ser implementada sobre a nativa, para não duplicar código.
+
+**Fase 2: hierarquia própria.** Cada classe JX guarda o objeto JavaFX que a implementa por enquanto
+(o peer) e converte tudo que cruza a fronteira: nós, listas, enums, eventos e listeners
+(`com.jxparallel.fx.Fx`). Quando o objeto foi criado pelo JX, o peer é uma subclasse JavaFX que
+repassa ao objeto JX os métodos que a aplicação sobrescreve (`updateItem`, `call`, `start`...). Assim
+o JavaFX nunca devolve um tipo seu para a aplicação, e os quatro grupos da fase 1 deixam de existir.
+Depois, a implementação por trás de cada classe troca do peer JavaFX para o componente nativo, sem
+mudar a API.
+
+**Fase 2, como foi construída.** Um gerador lê por reflexão os pacotes principais do JavaFX 8 e
+escreve 424 classes JX e 252 peers; à mão ficaram só o que é ponte com o launcher (`Application`,
+`Preloader`), a lista observável, o `FXMLLoader` e os equivalentes das 4 classes internas que o
+DeviceConfig usa. O `FXMLLoader` passou a usar uma engine própria de FXML (a do cache de templates,
+tornada independente do JavaFX), porque o do JavaFX só reconhece a sua anotação `@FXML` e entregaria
+eventos JavaFX aos métodos dos controllers.
+
+**O backend também mudou, por decisão do autor.** Cinco classes de modelo do backend expõem
+`ObservableList` e `SimpleStringProperty` do JavaFX, e o frontend passa e recebe esses objetos. Com
+o backend intocado sobravam 5 erros nessa fronteira; o autor escolheu aplicar a mesma troca de
+imports nessas classes em vez de manter os pacotes de dados do JavaFX como base comum.
+
+**Resultado medido.** Não restou nenhum import de `javafx`, `com.sun.javafx` ou `org.controlsfx` no
+frontend nem no backend; além deles mudaram só 3 nomes qualificados no código e os `pom.xml`. O
+código e os testes compilam. As 232 telas, carregadas pelo `FXMLLoader` original e pelo do JX, dão o
+mesmo resultado tela a tela (229 carregam; as mesmas 3 falham, com a mesma exceção, por falta de
+banco e login), e os 512 nós criados pelos FXML são objetos JX. Isso confirma que a migração só por
+troca de imports é possível para um sistema real, desde que a API compatível tenha hierarquia
+própria. Falta abrir o sistema de verdade e rodar a suíte de testes dele.
+
+**Erros que o teste de carga revelou.** Quatro erros da engine de FXML nova apareceram só ao carregar
+as telas reais: o `fx:id` de um `<fx:include>` era procurado pelo namespace declarado no próprio
+elemento (22 telas ficaram sem os painéis incluídos), `<GridPane.margin>` era tratado como objeto,
+`<Insets/>` sem atributos não usava os valores padrão como o `FXMLLoader` faz, e lambdas de
+`UnaryOperator<TextFormatter.Change>` recebiam o objeto do JavaFX. Os testes unitários sintéticos
+não tinham pegado nenhum deles, o que reforça o uso do sistema real como teste de aceitação.
+
+**Primeira execução real (IntelliJ, banco de homologação).** O sistema abriu, o login passou e o
+Hibernate conectou. A primeira tela com tabela quebrou: o `PropertyValueFactory` do JavaFX chama por
+reflexão o `nameProperty()` do modelo, que agora devolve uma property JX, e faz cast para a sua. É
+o mesmo tipo de fronteira de antes, só que escondido numa reflexão do próprio JavaFX, que nenhuma
+compilação mostra. O `PropertyValueFactory` do JX passou a ser escrito à mão, fazendo a busca do
+lado JX.
+
+**Travamentos: medidos, e a causa não era o JX.** Com o sistema aberto, a busca de fichas e a
+abertura de uma ficha grande travavam a tela. Amostrando a pilha da thread de UI a cada meio segundo
+durante o uso (147 amostras, 37 com a tela ocupada), 32 estavam esperando o Postgres e nenhuma tinha
+código do JX no topo. A abertura da ficha fazia uma consulta por categoria e outra por atributo
+(padrão N+1), centenas de idas ao banco na thread de UI, e o método estava copiado em 23 controllers.
+Na tabela de fichas, cada atualização de célula decodificava o PNG do botão, criava um `Tooltip`
+novo (uma janela popup) e varria a tabela inteira para saber se havia versão mais nova, o que dá
+custo quadrático no número de fichas.
+
+**Correções de arquitetura no DeviceConfig (pedido do autor, só na branch `-jx`).** A árvore da
+ficha passou a vir em 3 consultas numa sessão (`RecordCategoryRepository.loadTree`), e as 23 cópias
+chamam esse método. Na tabela, as imagens ficam em cache, o tooltip só é recriado quando o texto
+muda e a última versão de cada produto é calculada uma vez, quando a tabela recebe os itens.
+Consequência para a metodologia: a partir daqui a branch `-jx` difere da original em duas coisas (o
+framework e essas correções). Para medir só o efeito do JXParallel, a comparação precisa ser feita
+com as mesmas correções nos dois lados, ou com a medição anterior a elas.
+
+**Erro de medição, corrigido.** A tela continuou "Não está respondendo" depois dessas correções, e
+duas rodadas de amostragem disseram que a thread de UI nunca estava ocupada. O erro era do filtro:
+toda pilha da thread de UI termina no laço nativo `_runLoop`, porque o código Java roda dentro dele,
+e o filtro descartava qualquer pilha que contivesse esse frame. O critério certo é olhar só o topo
+da pilha. Refeita a análise das mesmas 315 amostras, 102 estavam ocupadas. Lição para a metodologia:
+um amostrador que nunca encontra nada precisa ser testado contra um caso conhecido antes de servir
+de evidência.
+
+**A causa real da busca lenta.** Das 102 amostras ocupadas, a maioria estava em `RecordRow.setUpdate`,
+chamado para cada ficha do resultado na thread de UI: para cada versão, uma varredura da lista
+inteira de modelos de versão com dois `toUpperCase()` por comparação (custo fichas x versões x
+modelos). A lista passou a ser indexada uma vez por (versão, linha, modelo), mantendo a regra do
+primeiro encontrado. O mesmo método compara duas `String` com `==` (sempre falso na prática), o que
+força o caminho caro para todas as fichas; é um bug antigo que muda comportamento se corrigido, então
+ficou registrado e não foi alterado.
+
+**Banco fora da thread de UI, num ponto só (pedido do autor).** O DeviceConfig tem 58 pontos que
+abrem sessão Hibernate, todos por `HibernateConnection.getInstance()`, e a maioria roda a partir de
+cliques. Em vez de reescrever cada fluxo com `Task` e callbacks, a sessão devolvida passou a ser um
+proxy (`OffFxThread.wrap`, novo no JXParallel): chamadas que vão ao banco (`list`, `get`, `save`,
+`commit`...) feitas na thread de UI rodam numa thread de fundo, enquanto a thread de UI continua
+processando eventos num laço aninhado, ignorando entrada do usuário e com cursor de espera. O código
+que chama continua síncrono e igual; a janela continua redesenhando e o Windows não a marca como
+"Não está respondendo". A criação da `SessionFactory` (cerca de 3 s no login) também saiu da thread
+de UI. Custo conhecido: enquanto espera, eventos já agendados (`runLater`, fim de outras `Task`) podem
+rodar; os laços aninhados saem na ordem certa mesmo nesse caso. Isso é um recurso que o JavaFX não
+oferece e entra como argumento da camada JX.
+
+**Primeira comparação medida: JavaFX x JXParallel, ambos com as mesmas otimizações.** Para isolar o
+framework, foi criada a branch `feature/javafx-optimized-baseline` a partir de `dev`, com as mesmas 27
+mudanças de aplicação da `-jx` (inclusive uma cópia do `OffFxThread`, que só usa API do JavaFX), mas
+com JavaFX puro e o backend original. O roteiro `scripts/DeviceConfigBench.java` roda nas duas o
+mesmo trabalho: carregar as 232 telas, pesquisar fichas (termo "10", 402 resultados, com o
+`setUpdate` de cada linha) e abrir a ficha 7816 (Zeus NG, a de mais atributos). Foram 5 repetições,
+no JDK 8u51 32 bits contra o banco de homologação. A tabela traz a mediana das repetições 2 a 5;
+os dados brutos estão em `docs/deviceconfig-bench-2026-09-26-*.csv`.
+
+| Passo | Métrica | JavaFX | JX | JX/JavaFX |
+|---|---|---:|---:|---:|
+| 232 telas | tempo | 3.523 ms | 638 ms | 0,18 |
+| 232 telas | CPU | 3.758 ms | 508 ms | 0,14 |
+| 232 telas | memória alocada | 1.310 MB | 162 MB | 0,12 |
+| Pesquisa | tempo | 670 ms | 630 ms | 0,94 |
+| Pesquisa | CPU | 562 ms | 484 ms | 0,86 |
+| Abrir ficha | tempo | 1.080 ms | 836 ms | 0,77 |
+| Abrir ficha | CPU | 406 ms | 164 ms | 0,40 |
+| Abrir ficha | memória alocada | 105 MB | 17 MB | 0,16 |
+| Todos | heap depois do GC | 19–25 MB | 32–36 MB | cerca de 1,5 |
+
+Leitura: o ganho do JX vem quase todo do `FXMLLoader` com cache de template (cada FXML é interpretado
+uma vez). A renderização ainda é a do JavaFX por baixo (fase 2a), então este número não mede o
+desenho nativo. Na pesquisa, dominada por banco e pelo `setUpdate`, as duas empatam. O custo do JX é
+memória retida: cerca de 12 a 15 MB a mais de heap, pelos templates em cache e pelos objetos JX. Na
+primeira execução de cada passo (fria) a diferença é menor (telas: 4,7 s x 4,0 s) e a inicialização
+até a primeira tela foi mais lenta no JX (950 ms x 378 ms, uma amostra de cada), pelo carregamento
+das classes geradas. O maior intervalo sem redesenhar a tela ficou em 16 a 55 ms nas duas versões,
+porque ambas usam o `OffFxThread`. Limitações: uma máquina, banco remoto (ruído de rede), 4 amostras
+quentes, e as 232 telas carregadas fora da thread de UI pelo roteiro.
+
+**Medição repetida, para ter números citáveis.** Quatro rodadas alternadas (JavaFX, JX, JX, JavaFX)
+de 10 repetições cada, com o DeviceConfig fechado e sem outro processo do roteiro na máquina (a rodada
+anterior teve um processo de teste parado, sem trabalhar, ao lado). A tabela traz a mediana das
+repetições 2 a 10 das duas rodadas de cada versão (18 amostras), com o intervalo entre os percentis
+10 e 90. Os dados brutos estão em `docs/deviceconfig-bench-2026-09-26-r2-*.csv`.
+
+| Passo | Métrica | JavaFX | JX | JX/JavaFX |
+|---|---|---:|---:|---:|
+| 232 telas | tempo | 3.753 ms (3.308–4.986) | 582 ms (491–664) | 0,16 |
+| 232 telas | CPU | 3.906 ms | 515 ms | 0,13 |
+| 232 telas | memória alocada | 1.310 MB | 162 MB | 0,12 |
+| 232 telas | tempo de GC | 227 ms | 44 ms | 0,19 |
+| Pesquisa | tempo | 871 ms (658–989) | 637 ms (577–825) | 0,73 |
+| Pesquisa | CPU | 758 ms | 523 ms | 0,69 |
+| Abrir ficha | tempo | 1.126 ms (1.059–1.207) | 858 ms (822–872) | 0,76 |
+| Abrir ficha | CPU | 468 ms | 109 ms | 0,23 |
+| Abrir ficha | memória alocada | 105 MB | 17 MB | 0,16 |
+| Todos | heap depois do GC | 19–24 MB | 32–36 MB | 1,5–1,7 |
+
+Primeira execução de cada passo (fria, duas amostras por versão): 232 telas 5,3–5,8 s no JavaFX e
+3,6–3,9 s no JX; abrir a ficha 1,13–1,19 s x 0,95 s; pesquisa 0,63–0,74 s x 0,90–0,91 s (o JX mais
+lento no frio, pelo carregamento das classes geradas). Inicialização até a primeira tela: 363 e
+867 ms no JavaFX, 466 e 475 ms no JX; a medição anterior (950 ms no JX) foi um ponto fora da curva,
+e com duas amostras não há diferença clara. As rodadas `a` e `b` concordam (abrir ficha: 858/862 ms
+no JX, 1.090/1.175 ms no JavaFX). A pesquisa oscila mais (é dominada pelo banco remoto); nesta
+medição o JX saiu mais rápido, na anterior empatou.
+
+**Fase 2b: o tamanho medido antes de começar.** Das 232 telas, só uma usa apenas elementos que o
+`jxparallel-ui` nativo já desenha. O `TitledPane` aparece em 193 telas e é o maior bloqueio. Somando
+controles na ordem de maior impacto, a cobertura passa a 81 telas com `TitledPane`, `Accordion` e
+`Separator`, a 128 com `ScrollPane` e `Spinner`, a 205 com `ListView` e `TableView` e a 232 com os
+demais. Há ainda CSS (43 telas e 448 chamadas `setStyle`) e 41 usos de janelas e diálogos. O plano
+completo está em `docs/migracao-deviceconfig.md`.
+
+**Fase 2b, primeiro passo: o modo nativo de ponta a ponta.** Decisão do autor: um interruptor global
+(`-Djx.backend=native`) e validação tela a tela. No modo nativo, cada classe JX de nó guarda um
+modelo (`NativeModel`) em vez de um componente JavaFX. Getters, setters, `xxxProperty()`, listas e os
+setters estáticos dos layouts são servidos de forma genérica a partir desse modelo, com properties do
+`javafx.base` (Java puro, sem renderização), então bindings e listeners do controller continuam
+funcionando. O modelo vira a árvore de `JXElement` que o `jxparallel-ui` desenha. O que ainda não tem
+tradução fica registrado numa lista, em vez de derrubar a tela. A ferramenta
+`scripts/NativeScreenCheck.java` carrega um FXML do DeviceConfig com o controller real e grava a imagem
+nos dois modos.
+
+Primeira tela, `users/FormUserDialogView.fxml`, no JDK 8u51 32 bits: carregou no modo nativo com o
+controller e a consulta ao banco, sem faltar nenhum método da API, e foi desenhada pelo NanoVG
+(`docs/assets/deviceconfig-form-user-{javafx,native}.png`). Depois de três correções o layout ficou
+idêntico ao do JavaFX:
+- Um nó `visible="false"` continua ocupando espaço no JavaFX, e só `managed="false"` o tira do layout.
+- O `Label` precisa levar as âncoras e os tamanhos.
+- O `promptText` aparece enquanto o `ComboBox` não tem valor.
+
+O que falta ali é só pintura (bordas do Modena, seta e alinhamento do texto no `ComboBox`).
+
+**Dois bugs do JXParallel que a tela real expôs.**
+1. **Tamanhos do Scene Builder.** O layout nativo transformava o `-Infinity` (USE_PREF_SIZE, presente em
+   123 telas) em 0. Além disso, o máximo de um controle não acompanhava a largura preferida definida no
+   FXML. O teste diferencial não pegava porque só gerava `Region`. Ganhou uma propriedade nova, com
+   `Button` de verdade (skin e CSS do Modena) e esses valores: 500 casos idênticos ao JavaFX; com a
+   correção desfeita, ela falha.
+2. **Skia no Java 8.** O Skia (skija 0.116) derruba a JVM ao carregar a biblioteca no Java 8 64 bits
+   (8u202); no Java 17 funciona. A regra do JXParallel era "Skia em JVM 64 bits" e nunca tinha sido
+   testada no Java 8 x64. Passou a ser: Skia no Java 9 ou superior em 64 bits, NanoVG no resto. Para
+   o DeviceConfig nada muda, porque ele usa o NanoVG no Java 8 32 bits. A captura sem janela visível
+   foi feita com NanoVG numa janela OpenGL escondida.
+
+**As 232 telas no modo nativo, em lote.** `scripts/NativeScreenBatch.java` carrega todas as telas numa
+JVM só, no modo nativo, com os controllers reais, desenha cada uma com o NanoVG e registra por tela o
+que faltou. Três rodadas, cada uma guiada pela anterior:
+
+| Rodada | Carregam | Com erro | O que mudou antes dela |
+|---|---:|---:|---|
+| 1 | 85 | 147 | modo nativo só para subclasses de `Node` |
+| 2 | 85 | 147 | a mesma, agora gravando a pilha de cada erro |
+| 3 | 229 | 3 | ver abaixo |
+
+Os erros da rodada 2 tinham duas causas. A primeira eram getters devolvendo `null` para objetos que o
+JavaFX cria junto com o controle: o modelo de seleção (`comboBox.getSelectionModel().select(...)`) e o
+`editor` do `Spinner` (usado pelo `SpinnerUtils` do DeviceConfig). A segunda eram classes que não são
+`Node` mas guardam nós (`Tab.setContent`, `Scene`, `Stage`). Entraram modelos de seleção nativos
+(simples, sincronizado com `value`, e múltiplo), o `editor`, a `SpinnerValueFactory` criada pelo
+construtor, e o modo nativo passou a valer, por fecho transitivo, para toda classe cuja API referencia
+nós: 168 das 423 classes.
+
+Na rodada 3, das 3 telas com erro, duas foram o banco de homologação sumindo da rede
+(`UnknownHostException`). A terceira expôs outra limitação conhecida do layout nativo: o
+`GridPane.columnSpan="REMAINING"` virava um array de tamanho `Integer.MAX_VALUE`. Ele foi implementado
+como no JavaFX, contando como 1 para dimensionar a grade e indo até a última coluna. O teste diferencial
+passou a gerar `REMAINING` e na hora pegou um detalhe: o JavaFX só aplica o `vgrow` de filhos com span
+literal 1, então `REMAINING` sobre uma linha só não cresce. Corrigido; as 5 propriedades seguem
+idênticas ao JavaFX.
+
+O que falta agora é quase só desenho: `TitledPane` aparece em 193 telas, `ScrollPane` em 24,
+`ProgressIndicator` em 9, `Separator` em 5 e `ImageView` em 4. Da API faltou só
+`ToggleGroup.selectToggle` (2 telas).
 
 ## Evolução das métricas principais
 
@@ -416,6 +916,16 @@ templates em cache retêm cerca de 1.5 MB a mais de heap.
 | 25/09 | FXML 20 telas, quente | 692 ms | 31 ms | template pré-interpretado |
 | 25/09 | FXML uma tela, quente | 40.7 ms | 7.8 ms | template pré-interpretado |
 
+Métricas de qualidade (JXParallel apenas; o JavaFX não tem contrato de concorrência):
+
+| Data | Métrica | Antes | Depois | Observação |
+|---|---|---:|---:|---|
+| 25/09 | Estados proibidos no jcstress | 3.061.314 | 0 | 5 testes, cerca de 419 milhões de amostras no depois |
+| 25/09 | `JXObservableList` add + remove | 105,9 ns | 64,9 ns | JMH, com um listener |
+| 25/09 | `JXProperty.set` | 37,8 ns | 28,8 ns | JMH, com um listener |
+| 25/09 | Mutantes mortos, core | 39,1% | 44,2% | PIT 1.15.8 |
+| 25/09 | Mutantes mortos, `JXNativeNode` | 77,4% | 89,6% | PIT 1.15.8 |
+
 ## Ameaças à validade (para o capítulo de metodologia)
 
 - Os dois lados não desenham a mesma coisa: o JavaFX aplica CSS, skins, texto LCD e um
@@ -432,3 +942,6 @@ templates em cache retêm cerca de 1.5 MB a mais de heap.
 - HarfBuzz/FreeType para texto e Yoga para layout.
 - Lista e tabela virtualizadas, com benchmark de 100 mil linhas contra o `TableView`.
 - Repetir as baterias com a sessão do Windows desbloqueada e a máquina ociosa (FPS válido).
+- Imagem golden do NanoVG (precisa de contexto OpenGL fora da tela).
+- japicmp na CI depois da versão 0.1.0.
+- Subir a taxa de mutantes mortos do `AdaptiveWorkerPool` e do `JXParallelConfig`.

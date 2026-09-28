@@ -39,4 +39,40 @@ class JXPropertyTest {
 
         assertEquals("b", target.get());
     }
+
+    @Test
+    void bindCopiesTheCurrentValueAndRebindingDropsTheOldSource() {
+        JXProperty<String> first = new JXProperty<String>("a");
+        JXProperty<String> second = new JXProperty<String>("x");
+        JXProperty<String> target = new JXProperty<String>();
+
+        target.bind(first);
+        assertEquals("a", target.get());
+        assertEquals("a", target.getValue());
+        target.bind(second);
+        first.set("changed");
+
+        assertEquals("x", target.get());
+    }
+
+    @Test
+    void deadBindingRemovesItselfFromTheSource() {
+        AtomicReference<JXChangeListener> removed = new AtomicReference<JXChangeListener>();
+        JXProperty<String> source = new JXProperty<String>("a") {
+            @Override
+            public void removeListener(JXChangeListener listener) {
+                removed.set(listener);
+                super.removeListener(listener);
+            }
+        };
+        JXProperty<String> target = new JXProperty<String>();
+        target.bind(source);
+        java.lang.ref.WeakReference<JXProperty<String>> reference = new java.lang.ref.WeakReference<JXProperty<String>>(target);
+        target = null;
+        JXPropertyLeakTest.assertCollectable(reference);
+
+        source.set("b");
+
+        assertEquals(true, removed.get() != null, "the listener of the collected target was removed");
+    }
 }
