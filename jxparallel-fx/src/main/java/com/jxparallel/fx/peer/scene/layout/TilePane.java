@@ -5,12 +5,16 @@ package com.jxparallel.fx.peer.scene.layout;
 public class TilePane extends javafx.scene.layout.TilePane implements com.jxparallel.fx.Fx.Owned {
     private Object jxOwner;
 
-    public TilePane(javafx.scene.Node... arg0) {
-        super(arg0);
-    }
-
     public TilePane() {
         super();
+    }
+
+    public TilePane(double arg0, double arg1) {
+        super(arg0, arg1);
+    }
+
+    public TilePane(double arg0, double arg1, javafx.scene.Node... arg2) {
+        super(arg0, arg1, arg2);
     }
 
     public TilePane(javafx.geometry.Orientation arg0) {
@@ -21,20 +25,16 @@ public class TilePane extends javafx.scene.layout.TilePane implements com.jxpara
         super(arg0, arg1, arg2);
     }
 
-    public TilePane(double arg0, double arg1) {
-        super(arg0, arg1);
-    }
-
     public TilePane(javafx.geometry.Orientation arg0, double arg1, double arg2, javafx.scene.Node... arg3) {
         super(arg0, arg1, arg2, arg3);
     }
 
-    public TilePane(double arg0, double arg1, javafx.scene.Node... arg2) {
-        super(arg0, arg1, arg2);
-    }
-
     public TilePane(javafx.geometry.Orientation arg0, javafx.scene.Node... arg1) {
         super(arg0, arg1);
+    }
+
+    public TilePane(javafx.scene.Node... arg0) {
+        super(arg0);
     }
 
     @Override

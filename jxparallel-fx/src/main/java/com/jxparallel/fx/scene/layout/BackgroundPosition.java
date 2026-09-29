@@ -16,17 +16,17 @@ public class BackgroundPosition implements com.jxparallel.fx.Fx.Backed {
 
     @Override
     public boolean equals(Object o) {
-        return o == this || fxPeer.equals(com.jxparallel.fx.Fx.fx(o));
+        return o == this || fxPeer().equals(com.jxparallel.fx.Fx.fx(o));
     }
 
     @Override
     public int hashCode() {
-        return fxPeer.hashCode();
+        return fxPeer().hashCode();
     }
 
     @Override
     public String toString() {
-        return fxPeer.toString();
+        return fxPeer().toString();
     }
 
     public BackgroundPosition(@javafx.beans.NamedArg(value = "horizontalSide") com.jxparallel.fx.geometry.Side arg0, @javafx.beans.NamedArg(value = "horizontalPosition") double arg1, @javafx.beans.NamedArg(value = "horizontalAsPercentage") boolean arg2, @javafx.beans.NamedArg(value = "verticalSide") com.jxparallel.fx.geometry.Side arg3, @javafx.beans.NamedArg(value = "verticalPosition") double arg4, @javafx.beans.NamedArg(value = "verticalAsPercentage") boolean arg5) {

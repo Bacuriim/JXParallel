@@ -20,6 +20,22 @@ public class SetChangeListener_Change<E> extends javafx.collections.SetChangeLis
     }
 
     @Override
+    public E getElementAdded() {
+        if (jxOwner == null) {
+            throw new IllegalStateException("getElementAdded before the JX object exists");
+        }
+        return (E) com.jxparallel.fx.Fx.fx(com.jxparallel.fx.collections.SetChangeListener.Change.$hook(jxOwner, "getElementAdded()", new Object[] {}));
+    }
+
+    @Override
+    public E getElementRemoved() {
+        if (jxOwner == null) {
+            throw new IllegalStateException("getElementRemoved before the JX object exists");
+        }
+        return (E) com.jxparallel.fx.Fx.fx(com.jxparallel.fx.collections.SetChangeListener.Change.$hook(jxOwner, "getElementRemoved()", new Object[] {}));
+    }
+
+    @Override
     public boolean wasAdded() {
         if (jxOwner == null) {
             throw new IllegalStateException("wasAdded before the JX object exists");
@@ -33,22 +49,6 @@ public class SetChangeListener_Change<E> extends javafx.collections.SetChangeLis
             throw new IllegalStateException("wasRemoved before the JX object exists");
         }
         return (Boolean) com.jxparallel.fx.Fx.fx(com.jxparallel.fx.collections.SetChangeListener.Change.$hook(jxOwner, "wasRemoved()", new Object[] {}));
-    }
-
-    @Override
-    public E getElementRemoved() {
-        if (jxOwner == null) {
-            throw new IllegalStateException("getElementRemoved before the JX object exists");
-        }
-        return (E) com.jxparallel.fx.Fx.fx(com.jxparallel.fx.collections.SetChangeListener.Change.$hook(jxOwner, "getElementRemoved()", new Object[] {}));
-    }
-
-    @Override
-    public E getElementAdded() {
-        if (jxOwner == null) {
-            throw new IllegalStateException("getElementAdded before the JX object exists");
-        }
-        return (E) com.jxparallel.fx.Fx.fx(com.jxparallel.fx.collections.SetChangeListener.Change.$hook(jxOwner, "getElementAdded()", new Object[] {}));
     }
 
     @Override

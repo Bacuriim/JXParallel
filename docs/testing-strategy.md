@@ -146,7 +146,25 @@ native UI reacted to clicks**: `JXButton` and `JXControls.button` store the hand
 `onAction`, and `JXNativeNode.dispatchPointer` read only `onClick`. It also found that disabled
 buttons would have received clicks, which JavaFX does not deliver. Both fixed.
 
-NanoVG (32-bit) needs an OpenGL context, so it has no golden image yet.
+Phase 2b (native mode of `jxparallel-fx`) added two kinds of golden files for the painting code
+(`JXPaint`), which both renderers share:
+
+- **`controls-skia.png`** (`JXControlsSnapshotTest`): every element type in its states (hover,
+  pressed, focused, default, disabled, selected, indeterminate, open popups, calendar, tooltip),
+  with the same tolerance as above.
+- **Primitive recordings** (`JXPaintRecordingTest`): a `JXPainter` that writes every call
+  (`fillRoundRect 10.00 20.00 ...`, `text "OK" ...`) as a line, for three scenes (controls,
+  states, texts), compared exactly with `controls-paint.txt`, `states-paint.txt` and
+  `texts-paint.txt`. Antialiasing tolerance cannot hide a one-pixel slip here, and a failure
+  names the primitive that moved. Indeterminate progress animates with the clock, so the test
+  fixes `JXPaint.clock`.
+
+Reviewing the new images found two bugs: tooltips had no size (only their text was drawn, white on
+the window) and labels with `wrapText` never wrapped (the check compared the already ellipsized
+width). The wrapped label height is now checked against JavaFX (`JXControlSizesDifferentialTest`).
+
+NanoVG (32-bit) needs an OpenGL context, so it has no golden image yet; it draws through the same
+`JXPaint` calls the recordings pin.
 
 OpenJFX checks pixels in robot tests (for example `RectangleTest`, `StageRobotTest`) by sampling
 colours at chosen points; it has no golden image files.
@@ -181,5 +199,36 @@ The JDK itself keeps JMH benchmarks in `test/micro` but does not gate CI on them
   branches; jxparallel-ui 52.2% and 42.6%. The OpenGL paths of `JXWindow` and both renderers'
   window setup do not run without a GPU.
 - **Mutation testing (PIT 1.15.8,** `-Pmutation`): PIT changes the code (flips a condition, removes a call, changes a constant) and checks that some test fails. First run: core 152 of 389 mutants killed (39.1%), `JXNativeNode` and `JXRenderMemo` 89 of 115 (77.4%). It showed that deleting the listener call in `JXObservableList.add` or `remove` broke no test, and that no test checked the value copied by `bind`. After adding tests for those and hand-computed layout answers: core 172 of 389 (44.2%), UI 103 of 115 (89.6%). The remaining core survivors are mostly in `AdaptiveWorkerPool` and `JXParallelConfig`. Property tests that compare two code paths cannot kill a mutant in code both paths share (the preferred-size formula); tests with known answers can.
+- **Mutation testing of phase 2b.** `jxparallel-ui` (`JXControlLayout`, `JXTextLayout`,
+  `JXTextHit`, `JXCalendar`, `JXKeys`, `JXTitledLayout`, `JXPaint`): the first run killed 60% of
+  the layout, text and hit-testing mutants (549 of 921). Most survivors were exact edges (a
+  click half a pixel inside or outside, a caret at the end of a line, a line exactly as wide as
+  the text) and controls placed at (0, 0), where `x + padding` and `x - padding` cannot be told
+  apart. `JXBoundariesTest` and `JXControlLayoutEdgesTest` place controls away from the origin
+  and test both sides of each limit; the recordings pin `JXPaint`. Result: 1822 of 1922 killed
+  (95%, test strength 95%). Removing dead code the survivors pointed to (two identical branches
+  in `viewport`, `viewW -= 0`, an unused parameter, an unreachable default size) removed its
+  mutants too. `jxparallel-fx` native runtime (`com.jxparallel.fx.nativeimpl`, JDK 8,
+  `mvn -Pmutation -pl jxparallel-fx test-compile org.pitest:pitest-maven:mutationCoverage`):
+  the first run killed 46% (1523 of 3279): 861 mutants were in code no test reached (keyboard
+  handling of whole controls, scroll bars, selection model methods, dialog kinds, notifications,
+  much of the API applications call directly). New suites (`NativeBehaviorTest`,
+  `NativeBehaviorEdgesTest`, `NativeSelectionTest`, `NativeDialogKindsTest`, `NativeEventsTest`,
+  `NativeApiTest`, `NativeCellsTest`, `NativeTextAndLayoutTest`, `NativeOverlayTest`) raised it to
+  2463 of 3174 (78%, test strength 82%). `register()` is excluded: it runs once from a static
+  initializer, so PIT's hot-swapped mutants of it never execute (the lambdas it registers are
+  mutated). Writing these tests against JavaFX's documented behavior found 16 divergences, all
+  fixed: consuming an event skipped the other handlers of the same node (JavaFX runs them all);
+  `RadioButton.fire()` outside a group did not toggle; `selectPrevious()` from nothing did nothing;
+  a `ComboBox.setValue` outside the items kept the old index; a new `TabPane` had no selection and
+  selecting through its model did not update the tabs; slider arrow keys ignored the orientation;
+  getters of values never set returned Java's zero instead of JavaFX's default (a `TitledPane` was
+  not expanded, a `Slider`'s max was 0); a combo box's cell factory got the combo box instead of a
+  `ListView`; `MapValueFactory` showed nothing; `fireEvent` copies reported the original source;
+  window and dialog events named a stand-in source; dialog `onShowing`/`onHidden` handlers never
+  ran; `ScrollPane` values ignored `vmin`/`vmax`; `GridPane.addRow`/`addColumn` ignored spans;
+  a spinner's editor lagged `increment()`; and `Scene.getAccelerators()`/`Node.getProperties()`
+  returned an adapter the API could not cast. Headless tests also never touch the user's clipboard
+  now (an in-memory one stands in).
 - **API compatibility (japicmp):** skipped until 0.1.0 is released, since there is no earlier
   version to compare with.

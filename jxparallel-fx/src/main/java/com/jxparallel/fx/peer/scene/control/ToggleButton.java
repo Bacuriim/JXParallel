@@ -5,16 +5,16 @@ package com.jxparallel.fx.peer.scene.control;
 public class ToggleButton extends javafx.scene.control.ToggleButton implements com.jxparallel.fx.Fx.Owned {
     private Object jxOwner;
 
-    public ToggleButton(java.lang.String arg0, javafx.scene.Node arg1) {
-        super(arg0, arg1);
+    public ToggleButton() {
+        super();
     }
 
     public ToggleButton(java.lang.String arg0) {
         super(arg0);
     }
 
-    public ToggleButton() {
-        super();
+    public ToggleButton(java.lang.String arg0, javafx.scene.Node arg1) {
+        super(arg0, arg1);
     }
 
     @Override

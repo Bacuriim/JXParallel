@@ -16,17 +16,17 @@ public class SelectionModel<T> implements com.jxparallel.fx.Fx.Backed {
 
     @Override
     public boolean equals(Object o) {
-        return o == this || fxPeer.equals(com.jxparallel.fx.Fx.fx(o));
+        return o == this || fxPeer().equals(com.jxparallel.fx.Fx.fx(o));
     }
 
     @Override
     public int hashCode() {
-        return fxPeer.hashCode();
+        return fxPeer().hashCode();
     }
 
     @Override
     public String toString() {
-        return fxPeer.toString();
+        return fxPeer().toString();
     }
 
     public SelectionModel() {
@@ -145,34 +145,34 @@ public class SelectionModel<T> implements com.jxparallel.fx.Fx.Backed {
         switch (method) {
             case "isEmpty()":
                 return (Object) jx.isEmpty();
-            case "select(int)":
-                jx.select((Integer) a[0]);
-                return null;
-            case "select(Object)":
-                jx.select((java.lang.Object) a[0]);
-                return null;
             case "isSelected(int)":
                 return (Object) jx.isSelected((Integer) a[0]);
+            case "clearAndSelect(int)":
+                jx.clearAndSelect((Integer) a[0]);
+                return null;
             case "clearSelection()":
                 jx.clearSelection();
                 return null;
             case "clearSelection(int)":
                 jx.clearSelection((Integer) a[0]);
                 return null;
+            case "select(Object)":
+                jx.select((java.lang.Object) a[0]);
+                return null;
+            case "select(int)":
+                jx.select((Integer) a[0]);
+                return null;
             case "selectFirst()":
                 jx.selectFirst();
                 return null;
-            case "clearAndSelect(int)":
-                jx.clearAndSelect((Integer) a[0]);
-                return null;
-            case "selectPrevious()":
-                jx.selectPrevious();
+            case "selectLast()":
+                jx.selectLast();
                 return null;
             case "selectNext()":
                 jx.selectNext();
                 return null;
-            case "selectLast()":
-                jx.selectLast();
+            case "selectPrevious()":
+                jx.selectPrevious();
                 return null;
             default:
                 throw new IllegalArgumentException(method);

@@ -8,7 +8,7 @@ public class SeparatorMenuItem extends com.jxparallel.fx.scene.control.CustomMen
     }
 
     public SeparatorMenuItem() {
-        this(com.jxparallel.fx.Fx.WRAP, new com.jxparallel.fx.peer.scene.control.SeparatorMenuItem());
+        this(com.jxparallel.fx.Fx.WRAP, com.jxparallel.fx.Fx.NATIVE ? com.jxparallel.fx.nativeimpl.Native.create(javafx.scene.control.SeparatorMenuItem.class, new String[] {}, new Object[] {}) : new com.jxparallel.fx.peer.scene.control.SeparatorMenuItem());
         com.jxparallel.fx.Fx.own(fxPeer(), this);
     }
 }

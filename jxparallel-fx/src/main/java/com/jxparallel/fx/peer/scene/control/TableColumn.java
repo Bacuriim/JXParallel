@@ -5,12 +5,12 @@ package com.jxparallel.fx.peer.scene.control;
 public class TableColumn<S, T> extends javafx.scene.control.TableColumn<S, T> implements com.jxparallel.fx.Fx.Owned {
     private Object jxOwner;
 
-    public TableColumn(java.lang.String arg0) {
-        super(arg0);
-    }
-
     public TableColumn() {
         super();
+    }
+
+    public TableColumn(java.lang.String arg0) {
+        super(arg0);
     }
 
     @Override

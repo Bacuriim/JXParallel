@@ -17,21 +17,26 @@ public class Scene implements com.jxparallel.fx.event.EventTarget, com.jxparalle
 
     @Override
     public boolean equals(Object o) {
-        return o == this || fxPeer.equals(com.jxparallel.fx.Fx.fx(o));
+        return o == this || fxPeer().equals(com.jxparallel.fx.Fx.fx(o));
     }
 
     @Override
     public int hashCode() {
-        return fxPeer.hashCode();
+        return fxPeer().hashCode();
     }
 
     @Override
     public String toString() {
-        return fxPeer.toString();
+        return fxPeer().toString();
     }
 
-    public Scene(@javafx.beans.NamedArg(value = "root") com.jxparallel.fx.scene.Parent arg0, @javafx.beans.NamedArg(value = "width") double arg1, @javafx.beans.NamedArg(value = "height") double arg2, @javafx.beans.NamedArg(value = "fill", defaultValue = "WHITE") com.jxparallel.fx.scene.paint.Paint arg3) {
-        this(com.jxparallel.fx.Fx.WRAP, com.jxparallel.fx.Fx.NATIVE ? com.jxparallel.fx.nativeimpl.Native.create(javafx.scene.Scene.class, new String[] {"root", "width", "height", "fill"}, new Object[] {arg0, arg1, arg2, arg3}) : new com.jxparallel.fx.peer.scene.Scene((javafx.scene.Parent) com.jxparallel.fx.Fx.fx(arg0), arg1, arg2, (javafx.scene.paint.Paint) com.jxparallel.fx.Fx.fx(arg3)));
+    public Scene(@javafx.beans.NamedArg(value = "root") com.jxparallel.fx.scene.Parent arg0) {
+        this(com.jxparallel.fx.Fx.WRAP, com.jxparallel.fx.Fx.NATIVE ? com.jxparallel.fx.nativeimpl.Native.create(javafx.scene.Scene.class, new String[] {"root"}, new Object[] {arg0}) : new com.jxparallel.fx.peer.scene.Scene((javafx.scene.Parent) com.jxparallel.fx.Fx.fx(arg0)));
+        com.jxparallel.fx.Fx.own(fxPeer(), this);
+    }
+
+    public Scene(@javafx.beans.NamedArg(value = "root") com.jxparallel.fx.scene.Parent arg0, @javafx.beans.NamedArg(value = "width") double arg1, @javafx.beans.NamedArg(value = "height") double arg2) {
+        this(com.jxparallel.fx.Fx.WRAP, com.jxparallel.fx.Fx.NATIVE ? com.jxparallel.fx.nativeimpl.Native.create(javafx.scene.Scene.class, new String[] {"root", "width", "height"}, new Object[] {arg0, arg1, arg2}) : new com.jxparallel.fx.peer.scene.Scene((javafx.scene.Parent) com.jxparallel.fx.Fx.fx(arg0), arg1, arg2));
         com.jxparallel.fx.Fx.own(fxPeer(), this);
     }
 
@@ -45,13 +50,8 @@ public class Scene implements com.jxparallel.fx.event.EventTarget, com.jxparalle
         com.jxparallel.fx.Fx.own(fxPeer(), this);
     }
 
-    public Scene(@javafx.beans.NamedArg(value = "root") com.jxparallel.fx.scene.Parent arg0) {
-        this(com.jxparallel.fx.Fx.WRAP, com.jxparallel.fx.Fx.NATIVE ? com.jxparallel.fx.nativeimpl.Native.create(javafx.scene.Scene.class, new String[] {"root"}, new Object[] {arg0}) : new com.jxparallel.fx.peer.scene.Scene((javafx.scene.Parent) com.jxparallel.fx.Fx.fx(arg0)));
-        com.jxparallel.fx.Fx.own(fxPeer(), this);
-    }
-
-    public Scene(@javafx.beans.NamedArg(value = "root") com.jxparallel.fx.scene.Parent arg0, @javafx.beans.NamedArg(value = "width") double arg1, @javafx.beans.NamedArg(value = "height") double arg2) {
-        this(com.jxparallel.fx.Fx.WRAP, com.jxparallel.fx.Fx.NATIVE ? com.jxparallel.fx.nativeimpl.Native.create(javafx.scene.Scene.class, new String[] {"root", "width", "height"}, new Object[] {arg0, arg1, arg2}) : new com.jxparallel.fx.peer.scene.Scene((javafx.scene.Parent) com.jxparallel.fx.Fx.fx(arg0), arg1, arg2));
+    public Scene(@javafx.beans.NamedArg(value = "root") com.jxparallel.fx.scene.Parent arg0, @javafx.beans.NamedArg(value = "width") double arg1, @javafx.beans.NamedArg(value = "height") double arg2, @javafx.beans.NamedArg(value = "fill", defaultValue = "WHITE") com.jxparallel.fx.scene.paint.Paint arg3) {
+        this(com.jxparallel.fx.Fx.WRAP, com.jxparallel.fx.Fx.NATIVE ? com.jxparallel.fx.nativeimpl.Native.create(javafx.scene.Scene.class, new String[] {"root", "width", "height", "fill"}, new Object[] {arg0, arg1, arg2, arg3}) : new com.jxparallel.fx.peer.scene.Scene((javafx.scene.Parent) com.jxparallel.fx.Fx.fx(arg0), arg1, arg2, (javafx.scene.paint.Paint) com.jxparallel.fx.Fx.fx(arg3)));
         com.jxparallel.fx.Fx.own(fxPeer(), this);
     }
 

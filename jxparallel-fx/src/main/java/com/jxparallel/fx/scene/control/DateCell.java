@@ -40,11 +40,11 @@ public class DateCell extends com.jxparallel.fx.scene.control.Cell<java.time.Loc
             case "updateItem(LocalDate,boolean)":
                 jx.updateItem((java.time.LocalDate) a[0], (Boolean) a[1]);
                 return null;
-            case "commitEdit(Object)":
-                jx.commitEdit((java.time.LocalDate) a[0]);
-                return null;
             case "cancelEdit()":
                 jx.cancelEdit();
+                return null;
+            case "commitEdit(Object)":
+                jx.commitEdit((java.time.LocalDate) a[0]);
                 return null;
             case "startEdit()":
                 jx.startEdit();

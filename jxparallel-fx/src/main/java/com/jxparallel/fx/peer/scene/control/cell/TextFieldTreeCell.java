@@ -24,15 +24,6 @@ public class TextFieldTreeCell<T> extends javafx.scene.control.cell.TextFieldTre
     }
 
     @Override
-    public void updateItem(T arg0, boolean arg1) {
-        if (jxOwner == null) {
-            super.updateItem(arg0, arg1);
-            return;
-        }
-        com.jxparallel.fx.scene.control.cell.TextFieldTreeCell.$hook(jxOwner, "updateItem(Object,boolean)", new Object[] {com.jxparallel.fx.Fx.jx(arg0), arg1});
-    }
-
-    @Override
     public void cancelEdit() {
         if (jxOwner == null) {
             super.cancelEdit();
@@ -48,6 +39,15 @@ public class TextFieldTreeCell<T> extends javafx.scene.control.cell.TextFieldTre
             return;
         }
         com.jxparallel.fx.scene.control.cell.TextFieldTreeCell.$hook(jxOwner, "startEdit()", new Object[] {});
+    }
+
+    @Override
+    public void updateItem(T arg0, boolean arg1) {
+        if (jxOwner == null) {
+            super.updateItem(arg0, arg1);
+            return;
+        }
+        com.jxparallel.fx.scene.control.cell.TextFieldTreeCell.$hook(jxOwner, "updateItem(Object,boolean)", new Object[] {com.jxparallel.fx.Fx.jx(arg0), arg1});
     }
 
     @Override
@@ -81,14 +81,14 @@ public class TextFieldTreeCell<T> extends javafx.scene.control.cell.TextFieldTre
     public Object callSuper(String method, Object[] a) {
         try {
         switch (method) {
-            case "updateItem(Object,boolean)":
-                super.updateItem((T) a[0], (Boolean) a[1]);
-                return null;
             case "cancelEdit()":
                 super.cancelEdit();
                 return null;
             case "startEdit()":
                 super.startEdit();
+                return null;
+            case "updateItem(Object,boolean)":
+                super.updateItem((T) a[0], (Boolean) a[1]);
                 return null;
             case "commitEdit(Object)":
                 super.commitEdit((T) a[0]);

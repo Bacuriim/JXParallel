@@ -20,14 +20,6 @@ public class Bounds extends javafx.geometry.Bounds implements com.jxparallel.fx.
     }
 
     @Override
-    public boolean contains(double arg0, double arg1, double arg2) {
-        if (jxOwner == null) {
-            throw new IllegalStateException("contains before the JX object exists");
-        }
-        return (Boolean) com.jxparallel.fx.Fx.fx(com.jxparallel.fx.geometry.Bounds.$hook(jxOwner, "contains(double,double,double)", new Object[] {arg0, arg1, arg2}));
-    }
-
-    @Override
     public boolean contains(double arg0, double arg1) {
         if (jxOwner == null) {
             throw new IllegalStateException("contains before the JX object exists");
@@ -36,27 +28,11 @@ public class Bounds extends javafx.geometry.Bounds implements com.jxparallel.fx.
     }
 
     @Override
-    public boolean contains(javafx.geometry.Point3D arg0) {
+    public boolean contains(double arg0, double arg1, double arg2) {
         if (jxOwner == null) {
             throw new IllegalStateException("contains before the JX object exists");
         }
-        return (Boolean) com.jxparallel.fx.Fx.fx(com.jxparallel.fx.geometry.Bounds.$hook(jxOwner, "contains(Point3D)", new Object[] {com.jxparallel.fx.Fx.jx(arg0)}));
-    }
-
-    @Override
-    public boolean contains(javafx.geometry.Point2D arg0) {
-        if (jxOwner == null) {
-            throw new IllegalStateException("contains before the JX object exists");
-        }
-        return (Boolean) com.jxparallel.fx.Fx.fx(com.jxparallel.fx.geometry.Bounds.$hook(jxOwner, "contains(Point2D)", new Object[] {com.jxparallel.fx.Fx.jx(arg0)}));
-    }
-
-    @Override
-    public boolean contains(javafx.geometry.Bounds arg0) {
-        if (jxOwner == null) {
-            throw new IllegalStateException("contains before the JX object exists");
-        }
-        return (Boolean) com.jxparallel.fx.Fx.fx(com.jxparallel.fx.geometry.Bounds.$hook(jxOwner, "contains(Bounds)", new Object[] {com.jxparallel.fx.Fx.jx(arg0)}));
+        return (Boolean) com.jxparallel.fx.Fx.fx(com.jxparallel.fx.geometry.Bounds.$hook(jxOwner, "contains(double,double,double)", new Object[] {arg0, arg1, arg2}));
     }
 
     @Override
@@ -76,11 +52,27 @@ public class Bounds extends javafx.geometry.Bounds implements com.jxparallel.fx.
     }
 
     @Override
-    public boolean isEmpty() {
+    public boolean contains(javafx.geometry.Bounds arg0) {
         if (jxOwner == null) {
-            throw new IllegalStateException("isEmpty before the JX object exists");
+            throw new IllegalStateException("contains before the JX object exists");
         }
-        return (Boolean) com.jxparallel.fx.Fx.fx(com.jxparallel.fx.geometry.Bounds.$hook(jxOwner, "isEmpty()", new Object[] {}));
+        return (Boolean) com.jxparallel.fx.Fx.fx(com.jxparallel.fx.geometry.Bounds.$hook(jxOwner, "contains(Bounds)", new Object[] {com.jxparallel.fx.Fx.jx(arg0)}));
+    }
+
+    @Override
+    public boolean contains(javafx.geometry.Point2D arg0) {
+        if (jxOwner == null) {
+            throw new IllegalStateException("contains before the JX object exists");
+        }
+        return (Boolean) com.jxparallel.fx.Fx.fx(com.jxparallel.fx.geometry.Bounds.$hook(jxOwner, "contains(Point2D)", new Object[] {com.jxparallel.fx.Fx.jx(arg0)}));
+    }
+
+    @Override
+    public boolean contains(javafx.geometry.Point3D arg0) {
+        if (jxOwner == null) {
+            throw new IllegalStateException("contains before the JX object exists");
+        }
+        return (Boolean) com.jxparallel.fx.Fx.fx(com.jxparallel.fx.geometry.Bounds.$hook(jxOwner, "contains(Point3D)", new Object[] {com.jxparallel.fx.Fx.jx(arg0)}));
     }
 
     @Override
@@ -105,6 +97,14 @@ public class Bounds extends javafx.geometry.Bounds implements com.jxparallel.fx.
             throw new IllegalStateException("intersects before the JX object exists");
         }
         return (Boolean) com.jxparallel.fx.Fx.fx(com.jxparallel.fx.geometry.Bounds.$hook(jxOwner, "intersects(Bounds)", new Object[] {com.jxparallel.fx.Fx.jx(arg0)}));
+    }
+
+    @Override
+    public boolean isEmpty() {
+        if (jxOwner == null) {
+            throw new IllegalStateException("isEmpty before the JX object exists");
+        }
+        return (Boolean) com.jxparallel.fx.Fx.fx(com.jxparallel.fx.geometry.Bounds.$hook(jxOwner, "isEmpty()", new Object[] {}));
     }
 
     @Override

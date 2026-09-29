@@ -5,16 +5,16 @@ package com.jxparallel.fx.peer.scene.image;
 public class WritableImage extends javafx.scene.image.WritableImage implements com.jxparallel.fx.Fx.Owned {
     private Object jxOwner;
 
-    public WritableImage(@javafx.beans.NamedArg(value = "reader") javafx.scene.image.PixelReader arg0, @javafx.beans.NamedArg(value = "x") int arg1, @javafx.beans.NamedArg(value = "y") int arg2, @javafx.beans.NamedArg(value = "width") int arg3, @javafx.beans.NamedArg(value = "height") int arg4) {
-        super(arg0, arg1, arg2, arg3, arg4);
+    public WritableImage(@javafx.beans.NamedArg(value = "width") int arg0, @javafx.beans.NamedArg(value = "height") int arg1) {
+        super(arg0, arg1);
     }
 
     public WritableImage(@javafx.beans.NamedArg(value = "reader") javafx.scene.image.PixelReader arg0, @javafx.beans.NamedArg(value = "width") int arg1, @javafx.beans.NamedArg(value = "height") int arg2) {
         super(arg0, arg1, arg2);
     }
 
-    public WritableImage(@javafx.beans.NamedArg(value = "width") int arg0, @javafx.beans.NamedArg(value = "height") int arg1) {
-        super(arg0, arg1);
+    public WritableImage(@javafx.beans.NamedArg(value = "reader") javafx.scene.image.PixelReader arg0, @javafx.beans.NamedArg(value = "x") int arg1, @javafx.beans.NamedArg(value = "y") int arg2, @javafx.beans.NamedArg(value = "width") int arg3, @javafx.beans.NamedArg(value = "height") int arg4) {
+        super(arg0, arg1, arg2, arg3, arg4);
     }
 
     @Override

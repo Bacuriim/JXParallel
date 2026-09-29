@@ -5,12 +5,12 @@ package com.jxparallel.fx.peer.scene.control;
 public class ComboBox<T> extends javafx.scene.control.ComboBox<T> implements com.jxparallel.fx.Fx.Owned {
     private Object jxOwner;
 
-    public ComboBox(javafx.collections.ObservableList<T> arg0) {
-        super(arg0);
-    }
-
     public ComboBox() {
         super();
+    }
+
+    public ComboBox(javafx.collections.ObservableList<T> arg0) {
+        super(arg0);
     }
 
     @Override

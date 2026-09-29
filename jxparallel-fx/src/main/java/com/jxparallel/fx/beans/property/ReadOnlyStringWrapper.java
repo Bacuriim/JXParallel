@@ -7,8 +7,8 @@ public class ReadOnlyStringWrapper extends com.jxparallel.fx.beans.property.Simp
         super(wrap, peer);
     }
 
-    public ReadOnlyStringWrapper(java.lang.Object arg0, java.lang.String arg1, java.lang.String arg2) {
-        this(com.jxparallel.fx.Fx.WRAP, new com.jxparallel.fx.peer.beans.property.ReadOnlyStringWrapper((java.lang.Object) com.jxparallel.fx.Fx.fx(arg0), arg1, arg2));
+    public ReadOnlyStringWrapper() {
+        this(com.jxparallel.fx.Fx.WRAP, new com.jxparallel.fx.peer.beans.property.ReadOnlyStringWrapper());
         com.jxparallel.fx.Fx.own(fxPeer(), this);
     }
 
@@ -17,13 +17,13 @@ public class ReadOnlyStringWrapper extends com.jxparallel.fx.beans.property.Simp
         com.jxparallel.fx.Fx.own(fxPeer(), this);
     }
 
-    public ReadOnlyStringWrapper(java.lang.String arg0) {
-        this(com.jxparallel.fx.Fx.WRAP, new com.jxparallel.fx.peer.beans.property.ReadOnlyStringWrapper(arg0));
+    public ReadOnlyStringWrapper(java.lang.Object arg0, java.lang.String arg1, java.lang.String arg2) {
+        this(com.jxparallel.fx.Fx.WRAP, new com.jxparallel.fx.peer.beans.property.ReadOnlyStringWrapper((java.lang.Object) com.jxparallel.fx.Fx.fx(arg0), arg1, arg2));
         com.jxparallel.fx.Fx.own(fxPeer(), this);
     }
 
-    public ReadOnlyStringWrapper() {
-        this(com.jxparallel.fx.Fx.WRAP, new com.jxparallel.fx.peer.beans.property.ReadOnlyStringWrapper());
+    public ReadOnlyStringWrapper(java.lang.String arg0) {
+        this(com.jxparallel.fx.Fx.WRAP, new com.jxparallel.fx.peer.beans.property.ReadOnlyStringWrapper(arg0));
         com.jxparallel.fx.Fx.own(fxPeer(), this);
     }
 

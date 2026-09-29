@@ -5,8 +5,12 @@ package com.jxparallel.fx.peer.scene;
 public class Scene extends javafx.scene.Scene implements com.jxparallel.fx.Fx.Owned {
     private Object jxOwner;
 
-    public Scene(@javafx.beans.NamedArg(value = "root") javafx.scene.Parent arg0, @javafx.beans.NamedArg(value = "width") double arg1, @javafx.beans.NamedArg(value = "height") double arg2, @javafx.beans.NamedArg(value = "fill", defaultValue = "WHITE") javafx.scene.paint.Paint arg3) {
-        super(arg0, arg1, arg2, arg3);
+    public Scene(@javafx.beans.NamedArg(value = "root") javafx.scene.Parent arg0) {
+        super(arg0);
+    }
+
+    public Scene(@javafx.beans.NamedArg(value = "root") javafx.scene.Parent arg0, @javafx.beans.NamedArg(value = "width") double arg1, @javafx.beans.NamedArg(value = "height") double arg2) {
+        super(arg0, arg1, arg2);
     }
 
     public Scene(@javafx.beans.NamedArg(value = "root") javafx.scene.Parent arg0, @javafx.beans.NamedArg(value = "width", defaultValue = "-1") double arg1, @javafx.beans.NamedArg(value = "height", defaultValue = "-1") double arg2, @javafx.beans.NamedArg(value = "depthBuffer") boolean arg3) {
@@ -17,12 +21,8 @@ public class Scene extends javafx.scene.Scene implements com.jxparallel.fx.Fx.Ow
         super(arg0, arg1, arg2, arg3, arg4);
     }
 
-    public Scene(@javafx.beans.NamedArg(value = "root") javafx.scene.Parent arg0) {
-        super(arg0);
-    }
-
-    public Scene(@javafx.beans.NamedArg(value = "root") javafx.scene.Parent arg0, @javafx.beans.NamedArg(value = "width") double arg1, @javafx.beans.NamedArg(value = "height") double arg2) {
-        super(arg0, arg1, arg2);
+    public Scene(@javafx.beans.NamedArg(value = "root") javafx.scene.Parent arg0, @javafx.beans.NamedArg(value = "width") double arg1, @javafx.beans.NamedArg(value = "height") double arg2, @javafx.beans.NamedArg(value = "fill", defaultValue = "WHITE") javafx.scene.paint.Paint arg3) {
+        super(arg0, arg1, arg2, arg3);
     }
 
     public Scene(@javafx.beans.NamedArg(value = "root") javafx.scene.Parent arg0, @javafx.beans.NamedArg(value = "fill", defaultValue = "WHITE") javafx.scene.paint.Paint arg1) {

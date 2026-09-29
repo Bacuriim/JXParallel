@@ -5,24 +5,24 @@ package com.jxparallel.fx.peer.scene.control;
 public class CheckBoxTreeItem<T> extends javafx.scene.control.CheckBoxTreeItem<T> implements com.jxparallel.fx.Fx.Owned {
     private Object jxOwner;
 
-    public CheckBoxTreeItem(T arg0, javafx.scene.Node arg1, boolean arg2, boolean arg3) {
-        super(arg0, arg1, arg2, arg3);
-    }
-
-    public CheckBoxTreeItem(T arg0, javafx.scene.Node arg1) {
-        super(arg0, arg1);
+    public CheckBoxTreeItem() {
+        super();
     }
 
     public CheckBoxTreeItem(T arg0) {
         super(arg0);
     }
 
-    public CheckBoxTreeItem() {
-        super();
+    public CheckBoxTreeItem(T arg0, javafx.scene.Node arg1) {
+        super(arg0, arg1);
     }
 
     public CheckBoxTreeItem(T arg0, javafx.scene.Node arg1, boolean arg2) {
         super(arg0, arg1, arg2);
+    }
+
+    public CheckBoxTreeItem(T arg0, javafx.scene.Node arg1, boolean arg2, boolean arg3) {
+        super(arg0, arg1, arg2, arg3);
     }
 
     @Override

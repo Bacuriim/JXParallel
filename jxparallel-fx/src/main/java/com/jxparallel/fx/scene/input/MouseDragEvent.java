@@ -8,12 +8,12 @@ public final class MouseDragEvent extends com.jxparallel.fx.scene.input.MouseEve
     }
 
     public MouseDragEvent(@javafx.beans.NamedArg(value = "source") java.lang.Object arg0, @javafx.beans.NamedArg(value = "target") com.jxparallel.fx.event.EventTarget arg1, @javafx.beans.NamedArg(value = "eventType") com.jxparallel.fx.event.EventType<com.jxparallel.fx.scene.input.MouseDragEvent> arg2, @javafx.beans.NamedArg(value = "x") double arg3, @javafx.beans.NamedArg(value = "y") double arg4, @javafx.beans.NamedArg(value = "screenX") double arg5, @javafx.beans.NamedArg(value = "screenY") double arg6, @javafx.beans.NamedArg(value = "button") com.jxparallel.fx.scene.input.MouseButton arg7, @javafx.beans.NamedArg(value = "clickCount") int arg8, @javafx.beans.NamedArg(value = "shiftDown") boolean arg9, @javafx.beans.NamedArg(value = "controlDown") boolean arg10, @javafx.beans.NamedArg(value = "altDown") boolean arg11, @javafx.beans.NamedArg(value = "metaDown") boolean arg12, @javafx.beans.NamedArg(value = "primaryButtonDown") boolean arg13, @javafx.beans.NamedArg(value = "middleButtonDown") boolean arg14, @javafx.beans.NamedArg(value = "secondaryButtonDown") boolean arg15, @javafx.beans.NamedArg(value = "synthesized") boolean arg16, @javafx.beans.NamedArg(value = "popupTrigger") boolean arg17, @javafx.beans.NamedArg(value = "pickResult") com.jxparallel.fx.scene.input.PickResult arg18, @javafx.beans.NamedArg(value = "gestureSource") java.lang.Object arg19) {
-        this(com.jxparallel.fx.Fx.WRAP, com.jxparallel.fx.Fx.NATIVE ? com.jxparallel.fx.nativeimpl.Native.create(javafx.scene.input.MouseDragEvent.class, new String[] {"source", "target", "eventType", "x", "y", "screenX", "screenY", "button", "clickCount", "shiftDown", "controlDown", "altDown", "metaDown", "primaryButtonDown", "middleButtonDown", "secondaryButtonDown", "synthesized", "popupTrigger", "pickResult", "gestureSource"}, new Object[] {arg0, arg1, arg2, arg3, arg4, arg5, arg6, arg7, arg8, arg9, arg10, arg11, arg12, arg13, arg14, arg15, arg16, arg17, arg18, arg19}) : new javafx.scene.input.MouseDragEvent((java.lang.Object) com.jxparallel.fx.Fx.fx(arg0), (javafx.event.EventTarget) com.jxparallel.fx.Fx.fx(arg1), (javafx.event.EventType) com.jxparallel.fx.Fx.fx(arg2), arg3, arg4, arg5, arg6, (javafx.scene.input.MouseButton) com.jxparallel.fx.Fx.fx(arg7), arg8, arg9, arg10, arg11, arg12, arg13, arg14, arg15, arg16, arg17, (javafx.scene.input.PickResult) com.jxparallel.fx.Fx.fx(arg18), (java.lang.Object) com.jxparallel.fx.Fx.fx(arg19)));
+        this(com.jxparallel.fx.Fx.WRAP, new javafx.scene.input.MouseDragEvent((java.lang.Object) com.jxparallel.fx.Fx.fx(arg0), (javafx.event.EventTarget) com.jxparallel.fx.Fx.fx(arg1), (javafx.event.EventType) com.jxparallel.fx.Fx.fx(arg2), arg3, arg4, arg5, arg6, (javafx.scene.input.MouseButton) com.jxparallel.fx.Fx.fx(arg7), arg8, arg9, arg10, arg11, arg12, arg13, arg14, arg15, arg16, arg17, (javafx.scene.input.PickResult) com.jxparallel.fx.Fx.fx(arg18), (java.lang.Object) com.jxparallel.fx.Fx.fx(arg19)));
         com.jxparallel.fx.Fx.own(fxPeer(), this);
     }
 
     public MouseDragEvent(@javafx.beans.NamedArg(value = "eventType") com.jxparallel.fx.event.EventType<com.jxparallel.fx.scene.input.MouseDragEvent> arg0, @javafx.beans.NamedArg(value = "x") double arg1, @javafx.beans.NamedArg(value = "y") double arg2, @javafx.beans.NamedArg(value = "screenX") double arg3, @javafx.beans.NamedArg(value = "screenY") double arg4, @javafx.beans.NamedArg(value = "button") com.jxparallel.fx.scene.input.MouseButton arg5, @javafx.beans.NamedArg(value = "clickCount") int arg6, @javafx.beans.NamedArg(value = "shiftDown") boolean arg7, @javafx.beans.NamedArg(value = "controlDown") boolean arg8, @javafx.beans.NamedArg(value = "altDown") boolean arg9, @javafx.beans.NamedArg(value = "metaDown") boolean arg10, @javafx.beans.NamedArg(value = "primaryButtonDown") boolean arg11, @javafx.beans.NamedArg(value = "middleButtonDown") boolean arg12, @javafx.beans.NamedArg(value = "secondaryButtonDown") boolean arg13, @javafx.beans.NamedArg(value = "synthesized") boolean arg14, @javafx.beans.NamedArg(value = "popupTrigger") boolean arg15, @javafx.beans.NamedArg(value = "pickResult") com.jxparallel.fx.scene.input.PickResult arg16, @javafx.beans.NamedArg(value = "gestureSource") java.lang.Object arg17) {
-        this(com.jxparallel.fx.Fx.WRAP, com.jxparallel.fx.Fx.NATIVE ? com.jxparallel.fx.nativeimpl.Native.create(javafx.scene.input.MouseDragEvent.class, new String[] {"eventType", "x", "y", "screenX", "screenY", "button", "clickCount", "shiftDown", "controlDown", "altDown", "metaDown", "primaryButtonDown", "middleButtonDown", "secondaryButtonDown", "synthesized", "popupTrigger", "pickResult", "gestureSource"}, new Object[] {arg0, arg1, arg2, arg3, arg4, arg5, arg6, arg7, arg8, arg9, arg10, arg11, arg12, arg13, arg14, arg15, arg16, arg17}) : new javafx.scene.input.MouseDragEvent((javafx.event.EventType) com.jxparallel.fx.Fx.fx(arg0), arg1, arg2, arg3, arg4, (javafx.scene.input.MouseButton) com.jxparallel.fx.Fx.fx(arg5), arg6, arg7, arg8, arg9, arg10, arg11, arg12, arg13, arg14, arg15, (javafx.scene.input.PickResult) com.jxparallel.fx.Fx.fx(arg16), (java.lang.Object) com.jxparallel.fx.Fx.fx(arg17)));
+        this(com.jxparallel.fx.Fx.WRAP, new javafx.scene.input.MouseDragEvent((javafx.event.EventType) com.jxparallel.fx.Fx.fx(arg0), arg1, arg2, arg3, arg4, (javafx.scene.input.MouseButton) com.jxparallel.fx.Fx.fx(arg5), arg6, arg7, arg8, arg9, arg10, arg11, arg12, arg13, arg14, arg15, (javafx.scene.input.PickResult) com.jxparallel.fx.Fx.fx(arg16), (java.lang.Object) com.jxparallel.fx.Fx.fx(arg17)));
         com.jxparallel.fx.Fx.own(fxPeer(), this);
     }
 
@@ -32,30 +32,18 @@ public final class MouseDragEvent extends com.jxparallel.fx.scene.input.MouseEve
     public static final com.jxparallel.fx.event.EventType<com.jxparallel.fx.scene.input.MouseDragEvent> MOUSE_DRAG_EXITED = (com.jxparallel.fx.event.EventType) com.jxparallel.fx.Fx.jx(javafx.scene.input.MouseDragEvent.MOUSE_DRAG_EXITED);
 
     public com.jxparallel.fx.scene.input.MouseDragEvent copyFor(java.lang.Object arg0, com.jxparallel.fx.event.EventTarget arg1) {
-        if (com.jxparallel.fx.Fx.NATIVE) {
-            return (com.jxparallel.fx.scene.input.MouseDragEvent) com.jxparallel.fx.nativeimpl.Native.call(this, com.jxparallel.fx.scene.input.MouseDragEvent.class, "copyFor", new Class<?>[] {java.lang.Object.class, com.jxparallel.fx.event.EventTarget.class}, com.jxparallel.fx.scene.input.MouseDragEvent.class, arg0, arg1);
-        }
         return (com.jxparallel.fx.scene.input.MouseDragEvent) com.jxparallel.fx.Fx.jx(((javafx.scene.input.MouseDragEvent) fxPeer()).copyFor((java.lang.Object) com.jxparallel.fx.Fx.fx(arg0), (javafx.event.EventTarget) com.jxparallel.fx.Fx.fx(arg1)));
     }
 
     public com.jxparallel.fx.scene.input.MouseDragEvent copyFor(java.lang.Object arg0, com.jxparallel.fx.event.EventTarget arg1, com.jxparallel.fx.event.EventType<? extends com.jxparallel.fx.scene.input.MouseEvent> arg2) {
-        if (com.jxparallel.fx.Fx.NATIVE) {
-            return (com.jxparallel.fx.scene.input.MouseDragEvent) com.jxparallel.fx.nativeimpl.Native.call(this, com.jxparallel.fx.scene.input.MouseDragEvent.class, "copyFor", new Class<?>[] {java.lang.Object.class, com.jxparallel.fx.event.EventTarget.class, com.jxparallel.fx.event.EventType.class}, com.jxparallel.fx.scene.input.MouseDragEvent.class, arg0, arg1, arg2);
-        }
         return (com.jxparallel.fx.scene.input.MouseDragEvent) com.jxparallel.fx.Fx.jx(((javafx.scene.input.MouseDragEvent) fxPeer()).copyFor((java.lang.Object) com.jxparallel.fx.Fx.fx(arg0), (javafx.event.EventTarget) com.jxparallel.fx.Fx.fx(arg1), (javafx.event.EventType) com.jxparallel.fx.Fx.fx(arg2)));
     }
 
     public com.jxparallel.fx.event.EventType<com.jxparallel.fx.scene.input.MouseDragEvent> getEventType() {
-        if (com.jxparallel.fx.Fx.NATIVE) {
-            return (com.jxparallel.fx.event.EventType) com.jxparallel.fx.nativeimpl.Native.call(this, com.jxparallel.fx.scene.input.MouseDragEvent.class, "getEventType", new Class<?>[] {}, com.jxparallel.fx.event.EventType.class);
-        }
         return (com.jxparallel.fx.event.EventType) com.jxparallel.fx.Fx.jx(((javafx.scene.input.MouseDragEvent) fxPeer()).getEventType());
     }
 
     public java.lang.Object getGestureSource() {
-        if (com.jxparallel.fx.Fx.NATIVE) {
-            return (java.lang.Object) com.jxparallel.fx.nativeimpl.Native.call(this, com.jxparallel.fx.scene.input.MouseDragEvent.class, "getGestureSource", new Class<?>[] {}, java.lang.Object.class);
-        }
         return (java.lang.Object) com.jxparallel.fx.Fx.jx(((javafx.scene.input.MouseDragEvent) fxPeer()).getGestureSource());
     }
 }

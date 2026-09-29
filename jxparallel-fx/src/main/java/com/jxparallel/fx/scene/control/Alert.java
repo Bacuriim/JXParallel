@@ -8,28 +8,41 @@ public class Alert extends com.jxparallel.fx.scene.control.Dialog<com.jxparallel
     }
 
     public Alert(@javafx.beans.NamedArg(value = "alertType") com.jxparallel.fx.scene.control.Alert.AlertType arg0) {
-        this(com.jxparallel.fx.Fx.WRAP, new com.jxparallel.fx.peer.scene.control.Alert((javafx.scene.control.Alert.AlertType) com.jxparallel.fx.Fx.fx(arg0)));
+        this(com.jxparallel.fx.Fx.WRAP, com.jxparallel.fx.Fx.NATIVE ? com.jxparallel.fx.nativeimpl.Native.create(javafx.scene.control.Alert.class, new String[] {"alertType"}, new Object[] {arg0}) : new com.jxparallel.fx.peer.scene.control.Alert((javafx.scene.control.Alert.AlertType) com.jxparallel.fx.Fx.fx(arg0)));
         com.jxparallel.fx.Fx.own(fxPeer(), this);
     }
 
     public Alert(@javafx.beans.NamedArg(value = "alertType") com.jxparallel.fx.scene.control.Alert.AlertType arg0, @javafx.beans.NamedArg(value = "contentText") java.lang.String arg1, com.jxparallel.fx.scene.control.ButtonType... arg2) {
-        this(com.jxparallel.fx.Fx.WRAP, new com.jxparallel.fx.peer.scene.control.Alert((javafx.scene.control.Alert.AlertType) com.jxparallel.fx.Fx.fx(arg0), arg1, (javafx.scene.control.ButtonType[]) com.jxparallel.fx.Fx.fxArray(arg2, javafx.scene.control.ButtonType.class)));
+        this(com.jxparallel.fx.Fx.WRAP, com.jxparallel.fx.Fx.NATIVE ? com.jxparallel.fx.nativeimpl.Native.create(javafx.scene.control.Alert.class, new String[] {"alertType", "contentText", null}, new Object[] {arg0, arg1, arg2}) : new com.jxparallel.fx.peer.scene.control.Alert((javafx.scene.control.Alert.AlertType) com.jxparallel.fx.Fx.fx(arg0), arg1, (javafx.scene.control.ButtonType[]) com.jxparallel.fx.Fx.fxArray(arg2, javafx.scene.control.ButtonType.class)));
         com.jxparallel.fx.Fx.own(fxPeer(), this);
     }
 
     public com.jxparallel.fx.beans.property.ObjectProperty<com.jxparallel.fx.scene.control.Alert.AlertType> alertTypeProperty() {
+        if (com.jxparallel.fx.Fx.NATIVE) {
+            return (com.jxparallel.fx.beans.property.ObjectProperty) com.jxparallel.fx.nativeimpl.Native.call(this, com.jxparallel.fx.scene.control.Alert.class, "alertTypeProperty", new Class<?>[] {}, com.jxparallel.fx.beans.property.ObjectProperty.class);
+        }
         return (com.jxparallel.fx.beans.property.ObjectProperty) com.jxparallel.fx.Fx.jx(((javafx.scene.control.Alert) fxPeer()).alertTypeProperty());
     }
 
     public com.jxparallel.fx.scene.control.Alert.AlertType getAlertType() {
+        if (com.jxparallel.fx.Fx.NATIVE) {
+            return (com.jxparallel.fx.scene.control.Alert.AlertType) com.jxparallel.fx.nativeimpl.Native.call(this, com.jxparallel.fx.scene.control.Alert.class, "getAlertType", new Class<?>[] {}, com.jxparallel.fx.scene.control.Alert.AlertType.class);
+        }
         return (com.jxparallel.fx.scene.control.Alert.AlertType) com.jxparallel.fx.Fx.jx(((javafx.scene.control.Alert) fxPeer()).getAlertType());
     }
 
     public com.jxparallel.fx.collections.ObservableList<com.jxparallel.fx.scene.control.ButtonType> getButtonTypes() {
+        if (com.jxparallel.fx.Fx.NATIVE) {
+            return (com.jxparallel.fx.collections.ObservableList) com.jxparallel.fx.nativeimpl.Native.call(this, com.jxparallel.fx.scene.control.Alert.class, "getButtonTypes", new Class<?>[] {}, com.jxparallel.fx.collections.ObservableList.class);
+        }
         return (com.jxparallel.fx.collections.ObservableList) com.jxparallel.fx.Fx.jx(((javafx.scene.control.Alert) fxPeer()).getButtonTypes());
     }
 
     public void setAlertType(com.jxparallel.fx.scene.control.Alert.AlertType arg0) {
+        if (com.jxparallel.fx.Fx.NATIVE) {
+            com.jxparallel.fx.nativeimpl.Native.call(this, com.jxparallel.fx.scene.control.Alert.class, "setAlertType", new Class<?>[] {com.jxparallel.fx.scene.control.Alert.AlertType.class}, void.class, arg0);
+            return;
+        }
         ((javafx.scene.control.Alert) fxPeer()).setAlertType((javafx.scene.control.Alert.AlertType) com.jxparallel.fx.Fx.fx(arg0));
     }
 

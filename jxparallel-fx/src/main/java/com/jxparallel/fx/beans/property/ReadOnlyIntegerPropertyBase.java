@@ -39,10 +39,10 @@ public class ReadOnlyIntegerPropertyBase extends com.jxparallel.fx.beans.propert
         switch (method) {
             case "get()":
                 return (Object) jx.get();
-            case "getName()":
-                return jx.getName();
             case "getBean()":
                 return jx.getBean();
+            case "getName()":
+                return jx.getName();
             default:
                 throw new IllegalArgumentException(method);
         }

@@ -7,7 +7,8 @@ import com.jxparallel.fx.scene.control.TitledPane;
 public class TitledPaneSkin extends SkinWrapper<TitledPane> {
 
     public TitledPaneSkin(TitledPane titledPane) {
-        this(Fx.WRAP, new com.sun.javafx.scene.control.skin.TitledPaneSkin((javafx.scene.control.TitledPane) Fx.fx(titledPane)));
+        this(Fx.WRAP, Fx.NATIVE ? new NativeSkin(titledPane)
+                : new com.sun.javafx.scene.control.skin.TitledPaneSkin((javafx.scene.control.TitledPane) Fx.fx(titledPane)));
     }
 
     protected TitledPaneSkin(Fx.Wrap wrap, Object peer) {

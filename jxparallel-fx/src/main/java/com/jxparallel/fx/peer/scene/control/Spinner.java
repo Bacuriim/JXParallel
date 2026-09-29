@@ -5,16 +5,16 @@ package com.jxparallel.fx.peer.scene.control;
 public class Spinner<T> extends javafx.scene.control.Spinner<T> implements com.jxparallel.fx.Fx.Owned {
     private Object jxOwner;
 
-    public Spinner(@javafx.beans.NamedArg(value = "items") javafx.collections.ObservableList<T> arg0) {
-        super(arg0);
-    }
-
-    public Spinner(@javafx.beans.NamedArg(value = "valueFactory") javafx.scene.control.SpinnerValueFactory<T> arg0) {
-        super(arg0);
-    }
-
     public Spinner() {
         super();
+    }
+
+    public Spinner(@javafx.beans.NamedArg(value = "min") double arg0, @javafx.beans.NamedArg(value = "max") double arg1, @javafx.beans.NamedArg(value = "initialValue") double arg2) {
+        super(arg0, arg1, arg2);
+    }
+
+    public Spinner(@javafx.beans.NamedArg(value = "min") double arg0, @javafx.beans.NamedArg(value = "max") double arg1, @javafx.beans.NamedArg(value = "initialValue") double arg2, @javafx.beans.NamedArg(value = "amountToStepBy") double arg3) {
+        super(arg0, arg1, arg2, arg3);
     }
 
     public Spinner(@javafx.beans.NamedArg(value = "min") int arg0, @javafx.beans.NamedArg(value = "max") int arg1, @javafx.beans.NamedArg(value = "initialValue") int arg2) {
@@ -25,12 +25,12 @@ public class Spinner<T> extends javafx.scene.control.Spinner<T> implements com.j
         super(arg0, arg1, arg2, arg3);
     }
 
-    public Spinner(@javafx.beans.NamedArg(value = "min") double arg0, @javafx.beans.NamedArg(value = "max") double arg1, @javafx.beans.NamedArg(value = "initialValue") double arg2) {
-        super(arg0, arg1, arg2);
+    public Spinner(@javafx.beans.NamedArg(value = "items") javafx.collections.ObservableList<T> arg0) {
+        super(arg0);
     }
 
-    public Spinner(@javafx.beans.NamedArg(value = "min") double arg0, @javafx.beans.NamedArg(value = "max") double arg1, @javafx.beans.NamedArg(value = "initialValue") double arg2, @javafx.beans.NamedArg(value = "amountToStepBy") double arg3) {
-        super(arg0, arg1, arg2, arg3);
+    public Spinner(@javafx.beans.NamedArg(value = "valueFactory") javafx.scene.control.SpinnerValueFactory<T> arg0) {
+        super(arg0);
     }
 
     @Override

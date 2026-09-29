@@ -16,17 +16,17 @@ public class FXCollections implements com.jxparallel.fx.Fx.Backed {
 
     @Override
     public boolean equals(Object o) {
-        return o == this || fxPeer.equals(com.jxparallel.fx.Fx.fx(o));
+        return o == this || fxPeer().equals(com.jxparallel.fx.Fx.fx(o));
     }
 
     @Override
     public int hashCode() {
-        return fxPeer.hashCode();
+        return fxPeer().hashCode();
     }
 
     @Override
     public String toString() {
-        return fxPeer.toString();
+        return fxPeer().toString();
     }
 
     public static <E> com.jxparallel.fx.collections.ObservableList<E> checkedObservableList(com.jxparallel.fx.collections.ObservableList<E> arg0, java.lang.Class<E> arg1) {

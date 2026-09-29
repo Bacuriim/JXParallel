@@ -5,20 +5,20 @@ package com.jxparallel.fx.peer.scene.input;
 public class GestureEvent extends javafx.scene.input.GestureEvent implements com.jxparallel.fx.Fx.Owned {
     private Object jxOwner;
 
-    public GestureEvent(javafx.event.EventType<? extends javafx.scene.input.GestureEvent> arg0, double arg1, double arg2, double arg3, double arg4, boolean arg5, boolean arg6, boolean arg7, boolean arg8, boolean arg9, boolean arg10, javafx.scene.input.PickResult arg11) {
-        super(arg0, arg1, arg2, arg3, arg4, arg5, arg6, arg7, arg8, arg9, arg10, arg11);
+    public GestureEvent(java.lang.Object arg0, javafx.event.EventTarget arg1, javafx.event.EventType<? extends javafx.scene.input.GestureEvent> arg2) {
+        super(arg0, arg1, arg2);
     }
 
     public GestureEvent(java.lang.Object arg0, javafx.event.EventTarget arg1, javafx.event.EventType<? extends javafx.scene.input.GestureEvent> arg2, double arg3, double arg4, double arg5, double arg6, boolean arg7, boolean arg8, boolean arg9, boolean arg10, boolean arg11, boolean arg12, javafx.scene.input.PickResult arg13) {
         super(arg0, arg1, arg2, arg3, arg4, arg5, arg6, arg7, arg8, arg9, arg10, arg11, arg12, arg13);
     }
 
-    public GestureEvent(java.lang.Object arg0, javafx.event.EventTarget arg1, javafx.event.EventType<? extends javafx.scene.input.GestureEvent> arg2) {
-        super(arg0, arg1, arg2);
-    }
-
     public GestureEvent(javafx.event.EventType<? extends javafx.scene.input.GestureEvent> arg0) {
         super(arg0);
+    }
+
+    public GestureEvent(javafx.event.EventType<? extends javafx.scene.input.GestureEvent> arg0, double arg1, double arg2, double arg3, double arg4, boolean arg5, boolean arg6, boolean arg7, boolean arg8, boolean arg9, boolean arg10, javafx.scene.input.PickResult arg11) {
+        super(arg0, arg1, arg2, arg3, arg4, arg5, arg6, arg7, arg8, arg9, arg10, arg11);
     }
 
     @Override

@@ -16,17 +16,17 @@ public class Service<V> implements com.jxparallel.fx.concurrent.Worker<V>, com.j
 
     @Override
     public boolean equals(Object o) {
-        return o == this || fxPeer.equals(com.jxparallel.fx.Fx.fx(o));
+        return o == this || fxPeer().equals(com.jxparallel.fx.Fx.fx(o));
     }
 
     @Override
     public int hashCode() {
-        return fxPeer.hashCode();
+        return fxPeer().hashCode();
     }
 
     @Override
     public String toString() {
-        return fxPeer.toString();
+        return fxPeer().toString();
     }
 
     protected Service() {
@@ -291,23 +291,23 @@ public class Service<V> implements com.jxparallel.fx.concurrent.Worker<V>, com.j
         Service jx = (Service) self;
         try {
         switch (method) {
-            case "running()":
-                jx.running();
-                return null;
+            case "createTask()":
+                return jx.createTask();
             case "cancelled()":
                 jx.cancelled();
-                return null;
-            case "succeeded()":
-                jx.succeeded();
-                return null;
-            case "scheduled()":
-                jx.scheduled();
                 return null;
             case "failed()":
                 jx.failed();
                 return null;
-            case "createTask()":
-                return jx.createTask();
+            case "running()":
+                jx.running();
+                return null;
+            case "scheduled()":
+                jx.scheduled();
+                return null;
+            case "succeeded()":
+                jx.succeeded();
+                return null;
             default:
                 throw new IllegalArgumentException(method);
         }

@@ -20,35 +20,11 @@ public class TableView_TableViewSelectionModel<S> extends javafx.scene.control.T
     }
 
     @Override
-    public void select(int arg0, javafx.scene.control.TableColumn<S, ?> arg1) {
-        if (jxOwner == null) {
-            throw new IllegalStateException("select before the JX object exists");
-        }
-        com.jxparallel.fx.scene.control.TableView.TableViewSelectionModel.$hook(jxOwner, "select(int,TableColumn)", new Object[] {arg0, com.jxparallel.fx.Fx.jx(arg1)});
-    }
-
-    @Override
     public boolean isSelected(int arg0, javafx.scene.control.TableColumn<S, ?> arg1) {
         if (jxOwner == null) {
             throw new IllegalStateException("isSelected before the JX object exists");
         }
         return (Boolean) com.jxparallel.fx.Fx.fx(com.jxparallel.fx.scene.control.TableView.TableViewSelectionModel.$hook(jxOwner, "isSelected(int,TableColumn)", new Object[] {arg0, com.jxparallel.fx.Fx.jx(arg1)}));
-    }
-
-    @Override
-    public void clearSelection(int arg0, javafx.scene.control.TableColumn<S, ?> arg1) {
-        if (jxOwner == null) {
-            throw new IllegalStateException("clearSelection before the JX object exists");
-        }
-        com.jxparallel.fx.scene.control.TableView.TableViewSelectionModel.$hook(jxOwner, "clearSelection(int,TableColumn)", new Object[] {arg0, com.jxparallel.fx.Fx.jx(arg1)});
-    }
-
-    @Override
-    public void clearAndSelect(int arg0, javafx.scene.control.TableColumn<S, ?> arg1) {
-        if (jxOwner == null) {
-            throw new IllegalStateException("clearAndSelect before the JX object exists");
-        }
-        com.jxparallel.fx.scene.control.TableView.TableViewSelectionModel.$hook(jxOwner, "clearAndSelect(int,TableColumn)", new Object[] {arg0, com.jxparallel.fx.Fx.jx(arg1)});
     }
 
     @Override
@@ -60,11 +36,35 @@ public class TableView_TableViewSelectionModel<S> extends javafx.scene.control.T
     }
 
     @Override
-    public void selectLeftCell() {
+    public void clearAndSelect(int arg0, javafx.scene.control.TableColumn<S, ?> arg1) {
         if (jxOwner == null) {
-            throw new IllegalStateException("selectLeftCell before the JX object exists");
+            throw new IllegalStateException("clearAndSelect before the JX object exists");
         }
-        com.jxparallel.fx.scene.control.TableView.TableViewSelectionModel.$hook(jxOwner, "selectLeftCell()", new Object[] {});
+        com.jxparallel.fx.scene.control.TableView.TableViewSelectionModel.$hook(jxOwner, "clearAndSelect(int,TableColumn)", new Object[] {arg0, com.jxparallel.fx.Fx.jx(arg1)});
+    }
+
+    @Override
+    public void clearSelection(int arg0, javafx.scene.control.TableColumn<S, ?> arg1) {
+        if (jxOwner == null) {
+            throw new IllegalStateException("clearSelection before the JX object exists");
+        }
+        com.jxparallel.fx.scene.control.TableView.TableViewSelectionModel.$hook(jxOwner, "clearSelection(int,TableColumn)", new Object[] {arg0, com.jxparallel.fx.Fx.jx(arg1)});
+    }
+
+    @Override
+    public void select(int arg0, javafx.scene.control.TableColumn<S, ?> arg1) {
+        if (jxOwner == null) {
+            throw new IllegalStateException("select before the JX object exists");
+        }
+        com.jxparallel.fx.scene.control.TableView.TableViewSelectionModel.$hook(jxOwner, "select(int,TableColumn)", new Object[] {arg0, com.jxparallel.fx.Fx.jx(arg1)});
+    }
+
+    @Override
+    public void selectAboveCell() {
+        if (jxOwner == null) {
+            throw new IllegalStateException("selectAboveCell before the JX object exists");
+        }
+        com.jxparallel.fx.scene.control.TableView.TableViewSelectionModel.$hook(jxOwner, "selectAboveCell()", new Object[] {});
     }
 
     @Override
@@ -76,19 +76,19 @@ public class TableView_TableViewSelectionModel<S> extends javafx.scene.control.T
     }
 
     @Override
+    public void selectLeftCell() {
+        if (jxOwner == null) {
+            throw new IllegalStateException("selectLeftCell before the JX object exists");
+        }
+        com.jxparallel.fx.scene.control.TableView.TableViewSelectionModel.$hook(jxOwner, "selectLeftCell()", new Object[] {});
+    }
+
+    @Override
     public void selectRightCell() {
         if (jxOwner == null) {
             throw new IllegalStateException("selectRightCell before the JX object exists");
         }
         com.jxparallel.fx.scene.control.TableView.TableViewSelectionModel.$hook(jxOwner, "selectRightCell()", new Object[] {});
-    }
-
-    @Override
-    public void selectAboveCell() {
-        if (jxOwner == null) {
-            throw new IllegalStateException("selectAboveCell before the JX object exists");
-        }
-        com.jxparallel.fx.scene.control.TableView.TableViewSelectionModel.$hook(jxOwner, "selectAboveCell()", new Object[] {});
     }
 
     @Override

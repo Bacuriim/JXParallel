@@ -39,6 +39,19 @@ public final class Fx {
     /** -Djx.backend=native: node classes run on the native renderer instead of JavaFX. */
     public static final boolean NATIVE = "native".equals(System.getProperty("jx.backend"));
 
+    static {
+        if (NATIVE && System.getProperty("prism.order") == null) {
+            // In native mode JavaFX is only the event loop and never draws: its software pipeline
+            // spares a Direct3D/OpenGL device next to the native renderer's (measured on Java 8
+            // 32-bit: 16 MB less working set, 46 MB less private memory, 10% less CPU).
+            System.setProperty("prism.order", "sw");
+        }
+        if (NATIVE) {
+            // window system, graphics driver and fonts warm up while the application builds its screen
+            com.jxparallel.ui.native2d.JXDisplay.prewarm();
+        }
+    }
+
     /** Implemented by every JX object backed by a JavaFX object. */
     public interface Backed {
         Object fxPeer();
@@ -158,8 +171,20 @@ public final class Fx {
         }
         if (fx instanceof Owned) {
             Object owner = ((Owned) fx).jxOwner();
-            if (owner != null) {
+            if (owner != null && (!(owner instanceof Backed) || ((Backed) owner).fxPeer() == fx)) {
                 return owner;
+            }
+            if (owner != null) {
+                // a clone of an owned peer (Event.copyFor clones the event with its owner field):
+                // it is another object, so it gets its own wrapper of the owner's class
+                WeakReference<Object> cached = WRAPPERS.get(fx);
+                Object wrapper = cached == null ? null : cached.get();
+                Constructor<?> c = WRAPPER.get(owner.getClass());
+                if (wrapper == null && c != null) {
+                    wrapper = newInstance(c, WRAP, fx);
+                    WRAPPERS.put(fx, new WeakReference<>(wrapper));
+                }
+                return wrapper != null ? wrapper : owner;
             }
         }
         if (fx instanceof Enum) {
@@ -390,6 +415,24 @@ public final class Fx {
             return new java.util.concurrent.ConcurrentHashMap<>();
         }
     };
+
+    /**
+     * The peer as the JavaFX type a generated method needs. In native mode a native model stands
+     * where a plain superclass expects its JavaFX object (FadeTransition's inherited Animation.play()),
+     * and the native layer supplies that object.
+     */
+    public static Object peerAs(Object peer, Class<?> type) {
+        return !NATIVE || type.isInstance(peer) ? peer : com.jxparallel.fx.nativeimpl.Native.adapter(peer, type);
+    }
+
+    /**
+     * {@link #fx} for an argument of a plain JavaFX class whose type is a node class: in native mode
+     * the JX object has no JavaFX counterpart, so the JavaFX method gets {@code null}.
+     */
+    public static Object fxAs(Object jx, Class<?> type) {
+        Object fx = fx(jx);
+        return NATIVE && fx != null && !type.isInstance(fx) ? null : fx;
+    }
 
     /** Calls a non-public JavaFX method on an object JX did not create (for example a protected hook). */
     public static Object invoke(Object target, Class<?> declaring, String name, Class<?>[] types, Object... args) {

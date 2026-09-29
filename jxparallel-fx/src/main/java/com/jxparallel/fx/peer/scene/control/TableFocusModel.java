@@ -44,11 +44,11 @@ public class TableFocusModel<T, TC extends javafx.scene.control.TableColumnBase<
     }
 
     @Override
-    public void focusRightCell() {
+    public void focusBelowCell() {
         if (jxOwner == null) {
-            throw new IllegalStateException("focusRightCell before the JX object exists");
+            throw new IllegalStateException("focusBelowCell before the JX object exists");
         }
-        com.jxparallel.fx.scene.control.TableFocusModel.$hook(jxOwner, "focusRightCell()", new Object[] {});
+        com.jxparallel.fx.scene.control.TableFocusModel.$hook(jxOwner, "focusBelowCell()", new Object[] {});
     }
 
     @Override
@@ -60,11 +60,11 @@ public class TableFocusModel<T, TC extends javafx.scene.control.TableColumnBase<
     }
 
     @Override
-    public void focusBelowCell() {
+    public void focusRightCell() {
         if (jxOwner == null) {
-            throw new IllegalStateException("focusBelowCell before the JX object exists");
+            throw new IllegalStateException("focusRightCell before the JX object exists");
         }
-        com.jxparallel.fx.scene.control.TableFocusModel.$hook(jxOwner, "focusBelowCell()", new Object[] {});
+        com.jxparallel.fx.scene.control.TableFocusModel.$hook(jxOwner, "focusRightCell()", new Object[] {});
     }
 
     @Override

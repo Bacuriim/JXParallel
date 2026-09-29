@@ -18,13 +18,13 @@ public class HBox extends com.jxparallel.fx.scene.layout.Pane {
         com.jxparallel.fx.Fx.own(fxPeer(), this);
     }
 
-    public HBox(com.jxparallel.fx.scene.Node... arg0) {
-        this(com.jxparallel.fx.Fx.WRAP, com.jxparallel.fx.Fx.NATIVE ? com.jxparallel.fx.nativeimpl.Native.create(javafx.scene.layout.HBox.class, new String[] {null}, new Object[] {arg0}) : new com.jxparallel.fx.peer.scene.layout.HBox((javafx.scene.Node[]) com.jxparallel.fx.Fx.fxArray(arg0, javafx.scene.Node.class)));
+    public HBox(double arg0, com.jxparallel.fx.scene.Node... arg1) {
+        this(com.jxparallel.fx.Fx.WRAP, com.jxparallel.fx.Fx.NATIVE ? com.jxparallel.fx.nativeimpl.Native.create(javafx.scene.layout.HBox.class, new String[] {null, null}, new Object[] {arg0, arg1}) : new com.jxparallel.fx.peer.scene.layout.HBox(arg0, (javafx.scene.Node[]) com.jxparallel.fx.Fx.fxArray(arg1, javafx.scene.Node.class)));
         com.jxparallel.fx.Fx.own(fxPeer(), this);
     }
 
-    public HBox(double arg0, com.jxparallel.fx.scene.Node... arg1) {
-        this(com.jxparallel.fx.Fx.WRAP, com.jxparallel.fx.Fx.NATIVE ? com.jxparallel.fx.nativeimpl.Native.create(javafx.scene.layout.HBox.class, new String[] {null, null}, new Object[] {arg0, arg1}) : new com.jxparallel.fx.peer.scene.layout.HBox(arg0, (javafx.scene.Node[]) com.jxparallel.fx.Fx.fxArray(arg1, javafx.scene.Node.class)));
+    public HBox(com.jxparallel.fx.scene.Node... arg0) {
+        this(com.jxparallel.fx.Fx.WRAP, com.jxparallel.fx.Fx.NATIVE ? com.jxparallel.fx.nativeimpl.Native.create(javafx.scene.layout.HBox.class, new String[] {null}, new Object[] {arg0}) : new com.jxparallel.fx.peer.scene.layout.HBox((javafx.scene.Node[]) com.jxparallel.fx.Fx.fxArray(arg0, javafx.scene.Node.class)));
         com.jxparallel.fx.Fx.own(fxPeer(), this);
     }
 

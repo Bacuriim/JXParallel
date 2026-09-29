@@ -5,20 +5,20 @@ package com.jxparallel.fx.peer.beans.property;
 public class ReadOnlyLongWrapper extends javafx.beans.property.ReadOnlyLongWrapper implements com.jxparallel.fx.Fx.Owned {
     private Object jxOwner;
 
-    public ReadOnlyLongWrapper(java.lang.Object arg0, java.lang.String arg1, long arg2) {
-        super(arg0, arg1, arg2);
+    public ReadOnlyLongWrapper() {
+        super();
     }
 
     public ReadOnlyLongWrapper(java.lang.Object arg0, java.lang.String arg1) {
         super(arg0, arg1);
     }
 
-    public ReadOnlyLongWrapper(long arg0) {
-        super(arg0);
+    public ReadOnlyLongWrapper(java.lang.Object arg0, java.lang.String arg1, long arg2) {
+        super(arg0, arg1, arg2);
     }
 
-    public ReadOnlyLongWrapper() {
-        super();
+    public ReadOnlyLongWrapper(long arg0) {
+        super(arg0);
     }
 
     @Override

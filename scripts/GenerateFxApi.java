@@ -117,7 +117,7 @@ public class GenerateFxApi {
                 queue.add(c.getSuperclass());
             }
             queue.addAll(Arrays.asList(c.getInterfaces()));
-            for (Class<?> nested : c.getDeclaredClasses()) {
+            for (Class<?> nested : sorted(c.getDeclaredClasses())) {
                 if (Modifier.isPublic(nested.getModifiers()) && Modifier.isStatic(nested.getModifiers())) {
                     queue.add(nested);
                 }
@@ -164,7 +164,7 @@ public class GenerateFxApi {
             return false;
         }
         for (Class<?> k = c; k != null; k = k.getSuperclass()) {
-            for (Method m : k.getDeclaredMethods()) {
+            for (Method m : sorted(k.getDeclaredMethods())) {
                 if (Modifier.isAbstract(m.getModifiers()) && (m.getName().startsWith("impl_") || !visible(m)
                         || !isMapped(m.getDeclaringClass())) && implementation(c, m) == null) {
                     return false;
@@ -216,7 +216,7 @@ public class GenerateFxApi {
     }
 
     private void nested(Class<?> c, StringBuilder s, String indent) {
-        for (Class<?> n : c.getDeclaredClasses()) {
+        for (Class<?> n : sorted(c.getDeclaredClasses())) {
             if (mapped.contains(n)) {
                 s.append('\n');
                 type(n, s, indent + "    ");
@@ -343,11 +343,11 @@ public class GenerateFxApi {
                     .append(in).append("@Override\n").append(in).append("public Object fxPeer() {\n")
                     .append(in).append("    return fxPeer;\n").append(in).append("}\n\n")
                     .append(in).append("@Override\n").append(in).append("public boolean equals(Object o) {\n")
-                    .append(in).append("    return o == this || fxPeer.equals(com.jxparallel.fx.Fx.fx(o));\n").append(in).append("}\n\n")
+                    .append(in).append("    return o == this || fxPeer().equals(com.jxparallel.fx.Fx.fx(o));\n").append(in).append("}\n\n")
                     .append(in).append("@Override\n").append(in).append("public int hashCode() {\n")
-                    .append(in).append("    return fxPeer.hashCode();\n").append(in).append("}\n\n")
+                    .append(in).append("    return fxPeer().hashCode();\n").append(in).append("}\n\n")
                     .append(in).append("@Override\n").append(in).append("public String toString() {\n")
-                    .append(in).append("    return fxPeer.toString();\n").append(in).append("}\n");
+                    .append(in).append("    return fxPeer().toString();\n").append(in).append("}\n");
         } else {
             s.append(in).append("protected ").append(c.getSimpleName()).append("(com.jxparallel.fx.Fx.Wrap wrap, Object peer) {\n")
                     .append(in).append("    super(wrap, peer);\n").append(in).append("}\n");
@@ -369,27 +369,27 @@ public class GenerateFxApi {
             if (done.add(signature(m))) {
                 boolean isStatic = Modifier.isStatic(m.getModifiers());
                 String visibility = Modifier.isPublic(m.getModifiers()) ? "public " : "protected ";
-                method(m, s, indent, visibility + (isStatic ? "static " : ""), isStatic ? fx : "((" + fx + ") fxPeer())", isHook(m));
+                method(m, s, indent, visibility + (isStatic ? "static " : ""), isStatic ? fx : "((" + fx + ") " + peerRef() + ")", isHook(m));
             }
         }
         for (Type i : c.getGenericInterfaces()) {
             if (!isMapped(raw(i))) {
                 continue;
             }
-            for (Method m : raw(i).getMethods()) {
+            for (Method m : sorted(raw(i).getMethods())) {
                 if (Modifier.isAbstract(m.getModifiers()) && !isObjectMethod(m) && implementation(c, m) == null
                         && inheritedDeclaration(c, m) == null && done.add(signature(m))) {
                     env = allVars(c);
-                    method(m, s, indent, "public ", "((" + fx + ") fxPeer())", true);
+                    method(m, s, indent, "public ", "((" + fx + ") " + peerRef() + ")", true);
                     env = new HashMap<>();
                 }
             }
         }
         for (Class<?> j : javaSupers) {
-            for (Method m : j.getDeclaredMethods()) {
+            for (Method m : sorted(j.getDeclaredMethods())) {
                 if (Modifier.isPublic(m.getModifiers()) && !Modifier.isStatic(m.getModifiers()) && !m.isSynthetic()
                         && !isObjectMethod(m) && done.add(signature(m))) {
-                    method(m, s, indent, "public ", "((" + fx + ") fxPeer())", false);
+                    method(m, s, indent, "public ", "((" + fx + ") " + peerRef() + ")", false);
                 }
             }
         }
@@ -444,11 +444,69 @@ public class GenerateFxApi {
 
     /**
      * Classes with a native backend (-Djx.backend=native): nodes, and every class whose API mentions a
-     * node or another such class (Tab, Tooltip, Scene, Stage, ToggleGroup, events...). Plain values
-     * (Insets, Color, constraints, properties, collections) always use JavaFX.
+     * node or another such class (Tab, Tooltip, Scene, Stage, ToggleGroup...). Plain values (Insets,
+     * Color, constraints, properties, collections) always use JavaFX, and so do events: an event is
+     * a value handed to handlers, its base class Event is always JavaFX-backed, and the native layer
+     * creates real JavaFX events whose source and target are native nodes.
      */
     private boolean isNode(Class<?> c) {
         return c != null && nativeClasses().contains(c);
+    }
+
+    /**
+     * How generated methods reach the JavaFX peer. A plain class with native subclasses (Animation
+     * and Transition, above FadeTransition) sees a native model as its peer in native mode, which
+     * Fx.peerAs adapts to the JavaFX type (a transition that animates the model).
+     */
+    private String peerRef() {
+        return hasNativeSubclass(current) ? "com.jxparallel.fx.Fx.peerAs(fxPeer(), " + fxName(current) + ".class)" : "fxPeer()";
+    }
+
+    private boolean hasNativeSubclass(Class<?> c) {
+        if (c == null || c.isInterface() || isNode(c)) {
+            return false;
+        }
+        for (Class<?> n : nativeClasses()) {
+            if (n != c && c.isAssignableFrom(n)) {
+                return true;
+            }
+        }
+        return false;
+    }
+
+    /** Values handed around, never nodes, even though their API mentions one (a change's control, an event's target). */
+    private static boolean isValue(Class<?> c) {
+        return javafx.event.Event.class.isAssignableFrom(c) || c == javafx.scene.input.PickResult.class
+                || javafx.scene.effect.Effect.class.isAssignableFrom(c)
+                || c == javafx.scene.control.TextFormatter.class || c == javafx.scene.control.TextFormatter.Change.class
+                || c == javafx.scene.SnapshotParameters.class || c == javafx.scene.SnapshotResult.class
+                // selection and focus models extend plain JavaFX classes; the native layer subclasses them
+                || javafx.scene.control.SelectionModel.class.isAssignableFrom(c)
+                || javafx.scene.control.FocusModel.class.isAssignableFrom(c)
+                || javafx.scene.control.ResizeFeaturesBase.class.isAssignableFrom(c);
+    }
+
+    /** Reflection returns members in no fixed order; sorting keeps regenerated files stable. */
+    private static <T extends java.lang.reflect.Member> T[] sorted(T[] members) {
+        T[] copy = members.clone();
+        Arrays.sort(copy, java.util.Comparator.comparing(GenerateFxApi::signatureKey));
+        return copy;
+    }
+
+    private static String signatureKey(java.lang.reflect.Member m) {
+        if (m instanceof Method) {
+            return ((Method) m).toGenericString();
+        }
+        if (m instanceof Constructor) {
+            return ((Constructor<?>) m).toGenericString();
+        }
+        return m.toString();
+    }
+
+    private static Class<?>[] sorted(Class<?>[] classes) {
+        Class<?>[] copy = classes.clone();
+        Arrays.sort(copy, java.util.Comparator.comparing(Class::getName));
+        return copy;
     }
 
     private Set<Class<?>> nativeSet;
@@ -466,7 +524,9 @@ public class GenerateFxApi {
         for (boolean grew = true; grew; ) {
             grew = false;
             for (Class<?> c : mapped) {
-                if (!set.contains(c) && !c.isEnum() && !c.isInterface() && mentions(c, set)) {
+                // a subclass of a native class inherits native methods, so it must be native too (Alert of Dialog)
+                if (!set.contains(c) && !c.isEnum() && !c.isInterface() && !isValue(c)
+                        && (mentions(c, set) || set.contains(c.getSuperclass()))) {
                     set.add(c);
                     grew = true;
                 }
@@ -479,13 +539,13 @@ public class GenerateFxApi {
     /** Whether a public member of c takes or returns (also as a type argument) a class of the set. */
     private static boolean mentions(Class<?> c, Set<Class<?>> set) {
         List<Type> types = new ArrayList<>();
-        for (Method m : c.getDeclaredMethods()) {
+        for (Method m : sorted(c.getDeclaredMethods())) {
             if (Modifier.isPublic(m.getModifiers()) && !m.isSynthetic()) {
                 types.add(m.getGenericReturnType());
                 types.addAll(Arrays.asList(m.getGenericParameterTypes()));
             }
         }
-        for (Constructor<?> k : c.getConstructors()) {
+        for (Constructor<?> k : sorted(c.getConstructors())) {
             types.addAll(Arrays.asList(k.getGenericParameterTypes()));
         }
         for (Type t : types) {
@@ -599,7 +659,7 @@ public class GenerateFxApi {
             types.add(p.getCanonicalName() + ".class");
         }
         String args = fxArgs(m);
-        return "com.jxparallel.fx.Fx.invoke(fxPeer(), " + m.getDeclaringClass().getCanonicalName() + ".class, \"" + m.getName()
+        return "com.jxparallel.fx.Fx.invoke(" + peerRef() + ", " + m.getDeclaringClass().getCanonicalName() + ".class, \"" + m.getName()
                 + "\", new Class<?>[] {" + types + "}" + (args.isEmpty() ? "" : ", " + args) + ")";
     }
 
@@ -688,20 +748,20 @@ public class GenerateFxApi {
             }
         };
         for (Class<?> k = c; k != null && k != Object.class; k = k.getSuperclass()) {
-            for (Method m : k.getDeclaredMethods()) {
+            for (Method m : sorted(k.getDeclaredMethods())) {
                 if (isHook(m) && isMapped(m.getDeclaringClass())
                         && (!Modifier.isAbstract(m.getModifiers()) || implementation(c, m) == null)) {
                     out.putIfAbsent(signature(m), m);
                 }
             }
         }
-        for (Method m : c.getMethods()) {
+        for (Method m : sorted(c.getMethods())) {
             if (Modifier.isAbstract(m.getModifiers()) && isMapped(m.getDeclaringClass()) && !m.getDeclaringClass().isInterface()
                     && implementation(c, m) == null && !m.getName().startsWith("impl_")) {
                 out.putIfAbsent(signature(m), m);
             }
         }
-        for (Method m : c.getMethods()) {
+        for (Method m : sorted(c.getMethods())) {
             if (Modifier.isAbstract(m.getModifiers()) && isMapped(m.getDeclaringClass()) && m.getDeclaringClass().isInterface()
                     && implementation(c, m) == null) {
                 out.putIfAbsent(signature(m), m);
@@ -720,7 +780,7 @@ public class GenerateFxApi {
             }
             for (Type i : k.getGenericInterfaces()) {
                 if (isMapped(raw(i))) {
-                    for (Method d : raw(i).getMethods()) {
+                    for (Method d : sorted(raw(i).getMethods())) {
                         if (signature(d).equals(signature(m)) && implementation(k, d) == null) {
                             return d;
                         }
@@ -760,7 +820,7 @@ public class GenerateFxApi {
     /** Public and protected methods declared by c (no bridges, no impl_ internals). */
     private List<Method> declared(Class<?> c) {
         List<Method> out = new ArrayList<>();
-        for (Method m : c.getDeclaredMethods()) {
+        for (Method m : sorted(c.getDeclaredMethods())) {
             int mod = m.getModifiers();
             if ((Modifier.isPublic(mod) || Modifier.isProtected(mod)) && !m.isSynthetic() && !m.isBridge()
                     && (!m.getName().startsWith("impl_") || plainImpl(m)) && !isObjectMethod(m) && visible(m)) {
@@ -795,7 +855,7 @@ public class GenerateFxApi {
 
     private static boolean functional(Class<?> c) {
         int n = 0;
-        for (Method m : c.getMethods()) {
+        for (Method m : sorted(c.getMethods())) {
             if (Modifier.isAbstract(m.getModifiers()) && !isObjectMethod(m)) {
                 n++;
             }
@@ -808,7 +868,7 @@ public class GenerateFxApi {
         if (c.isInterface() || c.isEnum()) {
             return out;
         }
-        for (Constructor<?> k : c.getDeclaredConstructors()) {
+        for (Constructor<?> k : sorted(c.getDeclaredConstructors())) {
             int mod = k.getModifiers();
             if ((Modifier.isPublic(mod) || Modifier.isProtected(mod)) && !k.isSynthetic() && visible(k)) {
                 out.add(k);
@@ -930,6 +990,11 @@ public class GenerateFxApi {
         // An unbounded type variable keeps its name so generic JavaFX methods still infer; a bounded one
         // (C extends Control) differs between the JX and JavaFX declarations, so it is cast to the bound.
         String cast = type instanceof TypeVariable && raw == Object.class ? ((TypeVariable<?>) type).getName() : fxErasure(type, raw);
+        if (isNode(raw) && !isNode(current)) {
+            // a plain JavaFX class (a selection model) taking a native one (a column): in native mode
+            // there is no JavaFX object to hand over, so it gets null, which JavaFX reads as "any"
+            return "(" + cast + ") com.jxparallel.fx.Fx.fxAs(" + expr + ", " + raw.getCanonicalName() + ".class)";
+        }
         return "(" + cast + ") com.jxparallel.fx.Fx.fx(" + expr + ")";
     }
 

@@ -19,12 +19,52 @@
             <artifactId>jxparallel-core</artifactId>
             <version>${project.version}</version>
         </dependency>
+        <!-- native mode (-Djx.backend=native) draws with the jxparallel-ui renderer -->
+        <dependency>
+            <groupId>com.jxparallel</groupId>
+            <artifactId>jxparallel-ui</artifactId>
+            <version>${project.version}</version>
+        </dependency>
         <dependency>
             <groupId>org.junit.jupiter</groupId>
             <artifactId>junit-jupiter</artifactId>
             <scope>test</scope>
         </dependency>
     </dependencies>
+
+    <build>
+        <plugins>
+            <!-- Native mode is chosen when Fx is first loaded (-Djx.backend=native), so its tests run in
+                 their own JVM, headless (no window, same layout and input path). -->
+            <plugin>
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-surefire-plugin</artifactId>
+                <configuration>
+                    <excludes>
+                        <exclude>**/nativeimpl/**</exclude>
+                    </excludes>
+                </configuration>
+                <executions>
+                    <execution>
+                        <id>native-mode</id>
+                        <goals>
+                            <goal>test</goal>
+                        </goals>
+                        <configuration>
+                            <excludes combine.self="override"/>
+                            <includes>
+                                <include>**/nativeimpl/**/*Test.java</include>
+                            </includes>
+                            <systemPropertyVariables>
+                                <jx.backend>native</jx.backend>
+                                <jx.headless>true</jx.headless>
+                            </systemPropertyVariables>
+                        </configuration>
+                    </execution>
+                </executions>
+            </plugin>
+        </plugins>
+    </build>
 
     <profiles>
         <!-- JDK 8 builds against the JavaFX bundled in the JDK (jre/lib/ext/jfxrt.jar). -->
@@ -45,6 +85,40 @@
                     <version>${javafx.version}</version>
                 </dependency>
             </dependencies>
+        </profile>
+        <!-- Mutation testing of the native runtime (JDK 8):
+             mvn -Pmutation -pl jxparallel-fx test-compile org.pitest:pitest-maven:mutationCoverage -->
+        <profile>
+            <id>mutation</id>
+            <build>
+                <plugins>
+                    <plugin>
+                        <groupId>org.pitest</groupId>
+                        <artifactId>pitest-maven</artifactId>
+                        <configuration>
+                            <targetClasses>
+                                <param>com.jxparallel.fx.nativeimpl.*</param>
+                            </targetClasses>
+                            <targetTests>
+                                <param>com.jxparallel.fx.nativeimpl.*</param>
+                            </targetTests>
+                            <!-- register() runs once, from Native's static initializer: a mutant
+                                 hot-swapped into the loaded class never runs, so its mutants can
+                                 only survive. The lambdas it registers are mutated and tested. -->
+                            <excludedMethods>
+                                <param>register</param>
+                                <param>registerNotifications</param>
+                            </excludedMethods>
+                            <!-- surefire's default execution excludes the native tests -->
+                            <parseSurefireConfig>false</parseSurefireConfig>
+                            <jvmArgs>
+                                <value>-Djx.backend=native</value>
+                                <value>-Djx.headless=true</value>
+                            </jvmArgs>
+                        </configuration>
+                    </plugin>
+                </plugins>
+            </build>
         </profile>
     </profiles>
 </project>

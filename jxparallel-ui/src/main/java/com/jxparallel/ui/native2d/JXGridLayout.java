@@ -12,8 +12,10 @@ import java.util.TreeSet;
 /**
  * JavaFX 21 GridPane layout: column and row constraints (min, pref, max, percent, grow,
  * alignment, fill), children spanning several cells, gaps, padding and margins, with GridPane's
- * pixel snapping and its own grow/shrink loop. Baseline alignment, content bias, USE_PREF_SIZE in
- * constraints and REMAINING spans are not supported yet.
+ * pixel snapping and its own grow/shrink loop, and USE_PREF_SIZE (negative infinity) as a
+ * constraint's min or max. Baseline alignment and content bias are not supported yet, and a child
+ * that spans several tracks one of which is fixed (USE_PREF_SIZE) can end up a pixel off JavaFX in
+ * a centred grid: JavaFX gives that span's extra size to the tracks in a way not reproduced here.
  *
  * <p>Props on the grid: {@code hgap}, {@code vgap}, {@code alignment}, {@code padding},
  * {@code columns} and {@code rows} (lists of maps with the ColumnConstraints / RowConstraints
@@ -180,6 +182,19 @@ final class JXGridLayout {
                 return COMPUTED;
             }
             Object value = constraints.get(index).get(key);
+            if (value instanceof Number && ((Number) value).doubleValue() == Double.NEGATIVE_INFINITY && !key.startsWith("pref")) {
+                // USE_PREF_SIZE: a min or max that follows the pref ("new ColumnConstraints(50)" is a fixed width)
+                return value(index, horizontal ? "prefWidth" : "prefHeight");
+            }
+            return value instanceof Number && ((Number) value).doubleValue() >= 0 ? ((Number) value).doubleValue() : COMPUTED;
+        }
+
+        /** The max as set on the constraint, without resolving USE_PREF_SIZE; negative means unbounded. */
+        double rawMax(int index) {
+            if (index >= constraints.size()) {
+                return COMPUTED;
+            }
+            Object value = constraints.get(index).get(horizontal ? "maxWidth" : "maxHeight");
             return value instanceof Number && ((Number) value).doubleValue() >= 0 ? ((Number) value).doubleValue() : COMPUTED;
         }
 
@@ -391,7 +406,8 @@ final class JXGridLayout {
                 double portion = Math.floor(remaining / targets.size());
                 for (Iterator<Integer> it = targets.iterator(); it.hasNext();) {
                     int i = it.next();
-                    double maxOf = maxKey(i);
+                    // the raw constraint: GridPane reads getMaxWidth() here, so USE_PREF_SIZE (negative) is unbounded
+                    double maxOf = rawMax(i);
                     double actual = portion;
                     for (Map.Entry<Interval, Double> multi : sizes.multiSizes()) {
                         Interval interval = multi.getKey();

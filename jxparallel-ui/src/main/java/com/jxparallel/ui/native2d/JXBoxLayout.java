@@ -132,6 +132,14 @@ final class JXBoxLayout {
             JXFlowLayout.layoutChildren(node);
             return;
         }
+        if (kind == JXNativeNode.TITLED || kind == JXNativeNode.ACCORDION) {
+            JXTitledLayout.layoutChildren(node);
+            return;
+        }
+        if (kind == JXNativeNode.CONTROL) {
+            JXControlLayout.layoutChildren(node);
+            return;
+        }
         String alignment = node.alignment();
         char vpos = alignment.charAt(0);
         char hpos = alignment.charAt(1);

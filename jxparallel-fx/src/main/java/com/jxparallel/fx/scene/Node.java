@@ -16,17 +16,17 @@ public class Node implements com.jxparallel.fx.event.EventTarget, com.jxparallel
 
     @Override
     public boolean equals(Object o) {
-        return o == this || fxPeer.equals(com.jxparallel.fx.Fx.fx(o));
+        return o == this || fxPeer().equals(com.jxparallel.fx.Fx.fx(o));
     }
 
     @Override
     public int hashCode() {
-        return fxPeer.hashCode();
+        return fxPeer().hashCode();
     }
 
     @Override
     public String toString() {
-        return fxPeer.toString();
+        return fxPeer().toString();
     }
 
     public static final double BASELINE_OFFSET_SAME_AS_HEIGHT = javafx.scene.Node.BASELINE_OFFSET_SAME_AS_HEIGHT;

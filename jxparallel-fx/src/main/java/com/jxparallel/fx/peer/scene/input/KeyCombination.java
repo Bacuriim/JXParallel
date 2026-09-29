@@ -5,12 +5,12 @@ package com.jxparallel.fx.peer.scene.input;
 public class KeyCombination extends javafx.scene.input.KeyCombination implements com.jxparallel.fx.Fx.Owned {
     private Object jxOwner;
 
-    public KeyCombination(javafx.scene.input.KeyCombination.ModifierValue arg0, javafx.scene.input.KeyCombination.ModifierValue arg1, javafx.scene.input.KeyCombination.ModifierValue arg2, javafx.scene.input.KeyCombination.ModifierValue arg3, javafx.scene.input.KeyCombination.ModifierValue arg4) {
-        super(arg0, arg1, arg2, arg3, arg4);
-    }
-
     public KeyCombination(javafx.scene.input.KeyCombination.Modifier... arg0) {
         super(arg0);
+    }
+
+    public KeyCombination(javafx.scene.input.KeyCombination.ModifierValue arg0, javafx.scene.input.KeyCombination.ModifierValue arg1, javafx.scene.input.KeyCombination.ModifierValue arg2, javafx.scene.input.KeyCombination.ModifierValue arg3, javafx.scene.input.KeyCombination.ModifierValue arg4) {
+        super(arg0, arg1, arg2, arg3, arg4);
     }
 
     @Override

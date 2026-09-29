@@ -40,11 +40,11 @@ public class ProgressBarTreeTableCell<S> extends com.jxparallel.fx.scene.control
             case "updateItem(Double,boolean)":
                 jx.updateItem((java.lang.Double) a[0], (Boolean) a[1]);
                 return null;
-            case "commitEdit(Object)":
-                jx.commitEdit((java.lang.Double) a[0]);
-                return null;
             case "cancelEdit()":
                 jx.cancelEdit();
+                return null;
+            case "commitEdit(Object)":
+                jx.commitEdit((java.lang.Double) a[0]);
                 return null;
             case "startEdit()":
                 jx.startEdit();

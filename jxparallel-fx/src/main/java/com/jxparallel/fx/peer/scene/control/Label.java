@@ -5,16 +5,16 @@ package com.jxparallel.fx.peer.scene.control;
 public class Label extends javafx.scene.control.Label implements com.jxparallel.fx.Fx.Owned {
     private Object jxOwner;
 
-    public Label(java.lang.String arg0, javafx.scene.Node arg1) {
-        super(arg0, arg1);
+    public Label() {
+        super();
     }
 
     public Label(java.lang.String arg0) {
         super(arg0);
     }
 
-    public Label() {
-        super();
+    public Label(java.lang.String arg0, javafx.scene.Node arg1) {
+        super(arg0, arg1);
     }
 
     @Override

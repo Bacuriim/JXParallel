@@ -21,17 +21,17 @@ public interface MapChangeListener<K, V> {
 
         @Override
         public boolean equals(Object o) {
-            return o == this || fxPeer.equals(com.jxparallel.fx.Fx.fx(o));
+            return o == this || fxPeer().equals(com.jxparallel.fx.Fx.fx(o));
         }
 
         @Override
         public int hashCode() {
-            return fxPeer.hashCode();
+            return fxPeer().hashCode();
         }
 
         @Override
         public String toString() {
-            return fxPeer.toString();
+            return fxPeer().toString();
         }
 
         public Change(javafx.collections.ObservableMap<K, V> arg0) {
@@ -72,12 +72,12 @@ public interface MapChangeListener<K, V> {
                     return jx.getKey();
                 case "getValueAdded()":
                     return jx.getValueAdded();
+                case "getValueRemoved()":
+                    return jx.getValueRemoved();
                 case "wasAdded()":
                     return (Object) jx.wasAdded();
                 case "wasRemoved()":
                     return (Object) jx.wasRemoved();
-                case "getValueRemoved()":
-                    return jx.getValueRemoved();
                 default:
                     throw new IllegalArgumentException(method);
             }

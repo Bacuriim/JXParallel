@@ -16,17 +16,17 @@ public class ObservableArrayBase<T extends com.jxparallel.fx.collections.Observa
 
     @Override
     public boolean equals(Object o) {
-        return o == this || fxPeer.equals(com.jxparallel.fx.Fx.fx(o));
+        return o == this || fxPeer().equals(com.jxparallel.fx.Fx.fx(o));
     }
 
     @Override
     public int hashCode() {
-        return fxPeer.hashCode();
+        return fxPeer().hashCode();
     }
 
     @Override
     public String toString() {
-        return fxPeer.toString();
+        return fxPeer().toString();
     }
 
     public ObservableArrayBase() {
@@ -54,6 +54,10 @@ public class ObservableArrayBase<T extends com.jxparallel.fx.collections.Observa
         ((javafx.collections.ObservableArrayBase) fxPeer()).removeListener((javafx.beans.InvalidationListener) com.jxparallel.fx.Fx.fx(arg0));
     }
 
+    public int size() {
+        return (Integer) (fxPeer() instanceof com.jxparallel.fx.Fx.Owned ? ((com.jxparallel.fx.Fx.Owned) fxPeer()).callSuper("size()", new Object[] {}) : com.jxparallel.fx.Fx.invoke(fxPeer(), javafx.collections.ObservableArray.class, "size", new Class<?>[] {}));
+    }
+
     public void clear() {
         if (fxPeer() instanceof com.jxparallel.fx.Fx.Owned) {
             ((com.jxparallel.fx.Fx.Owned) fxPeer()).callSuper("clear()", new Object[] {});
@@ -62,23 +66,11 @@ public class ObservableArrayBase<T extends com.jxparallel.fx.collections.Observa
         }
     }
 
-    public int size() {
-        return (Integer) (fxPeer() instanceof com.jxparallel.fx.Fx.Owned ? ((com.jxparallel.fx.Fx.Owned) fxPeer()).callSuper("size()", new Object[] {}) : com.jxparallel.fx.Fx.invoke(fxPeer(), javafx.collections.ObservableArray.class, "size", new Class<?>[] {}));
-    }
-
     public void ensureCapacity(int arg0) {
         if (fxPeer() instanceof com.jxparallel.fx.Fx.Owned) {
             ((com.jxparallel.fx.Fx.Owned) fxPeer()).callSuper("ensureCapacity(int)", new Object[] {arg0});
         } else {
             com.jxparallel.fx.Fx.invoke(fxPeer(), javafx.collections.ObservableArray.class, "ensureCapacity", new Class<?>[] {int.class}, arg0);
-        }
-    }
-
-    public void trimToSize() {
-        if (fxPeer() instanceof com.jxparallel.fx.Fx.Owned) {
-            ((com.jxparallel.fx.Fx.Owned) fxPeer()).callSuper("trimToSize()", new Object[] {});
-        } else {
-            com.jxparallel.fx.Fx.invoke(fxPeer(), javafx.collections.ObservableArray.class, "trimToSize", new Class<?>[] {});
         }
     }
 
@@ -90,24 +82,32 @@ public class ObservableArrayBase<T extends com.jxparallel.fx.collections.Observa
         }
     }
 
+    public void trimToSize() {
+        if (fxPeer() instanceof com.jxparallel.fx.Fx.Owned) {
+            ((com.jxparallel.fx.Fx.Owned) fxPeer()).callSuper("trimToSize()", new Object[] {});
+        } else {
+            com.jxparallel.fx.Fx.invoke(fxPeer(), javafx.collections.ObservableArray.class, "trimToSize", new Class<?>[] {});
+        }
+    }
+
     /** Called by the peer: runs the JX (possibly overridden) method. */
     public static Object $hook(Object self, String method, Object[] a) {
         ObservableArrayBase jx = (ObservableArrayBase) self;
         try {
         switch (method) {
+            case "size()":
+                return (Object) jx.size();
             case "clear()":
                 jx.clear();
                 return null;
-            case "size()":
-                return (Object) jx.size();
             case "ensureCapacity(int)":
                 jx.ensureCapacity((Integer) a[0]);
                 return null;
-            case "trimToSize()":
-                jx.trimToSize();
-                return null;
             case "resize(int)":
                 jx.resize((Integer) a[0]);
+                return null;
+            case "trimToSize()":
+                jx.trimToSize();
                 return null;
             default:
                 throw new IllegalArgumentException(method);

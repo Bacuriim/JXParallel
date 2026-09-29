@@ -9,12 +9,12 @@ public class TreeItem<T> extends javafx.scene.control.TreeItem<T> implements com
         super();
     }
 
-    public TreeItem(T arg0, javafx.scene.Node arg1) {
-        super(arg0, arg1);
-    }
-
     public TreeItem(T arg0) {
         super(arg0);
+    }
+
+    public TreeItem(T arg0, javafx.scene.Node arg1) {
+        super(arg0, arg1);
     }
 
     @Override

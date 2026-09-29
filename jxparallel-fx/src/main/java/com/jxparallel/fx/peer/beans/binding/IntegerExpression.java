@@ -20,27 +20,11 @@ public class IntegerExpression extends javafx.beans.binding.IntegerExpression im
     }
 
     @Override
-    public void removeListener(javafx.beans.value.ChangeListener<? super java.lang.Number> arg0) {
+    public int get() {
         if (jxOwner == null) {
-            throw new IllegalStateException("removeListener before the JX object exists");
+            throw new IllegalStateException("get before the JX object exists");
         }
-        com.jxparallel.fx.beans.binding.IntegerExpression.$hook(jxOwner, "removeListener(ChangeListener)", new Object[] {com.jxparallel.fx.Fx.jx(arg0)});
-    }
-
-    @Override
-    public void addListener(javafx.beans.value.ChangeListener<? super java.lang.Number> arg0) {
-        if (jxOwner == null) {
-            throw new IllegalStateException("addListener before the JX object exists");
-        }
-        com.jxparallel.fx.beans.binding.IntegerExpression.$hook(jxOwner, "addListener(ChangeListener)", new Object[] {com.jxparallel.fx.Fx.jx(arg0)});
-    }
-
-    @Override
-    public void removeListener(javafx.beans.InvalidationListener arg0) {
-        if (jxOwner == null) {
-            throw new IllegalStateException("removeListener before the JX object exists");
-        }
-        com.jxparallel.fx.beans.binding.IntegerExpression.$hook(jxOwner, "removeListener(InvalidationListener)", new Object[] {com.jxparallel.fx.Fx.jx(arg0)});
+        return (Integer) com.jxparallel.fx.Fx.fx(com.jxparallel.fx.beans.binding.IntegerExpression.$hook(jxOwner, "get()", new Object[] {}));
     }
 
     @Override
@@ -52,11 +36,27 @@ public class IntegerExpression extends javafx.beans.binding.IntegerExpression im
     }
 
     @Override
-    public int get() {
+    public void removeListener(javafx.beans.InvalidationListener arg0) {
         if (jxOwner == null) {
-            throw new IllegalStateException("get before the JX object exists");
+            throw new IllegalStateException("removeListener before the JX object exists");
         }
-        return (Integer) com.jxparallel.fx.Fx.fx(com.jxparallel.fx.beans.binding.IntegerExpression.$hook(jxOwner, "get()", new Object[] {}));
+        com.jxparallel.fx.beans.binding.IntegerExpression.$hook(jxOwner, "removeListener(InvalidationListener)", new Object[] {com.jxparallel.fx.Fx.jx(arg0)});
+    }
+
+    @Override
+    public void addListener(javafx.beans.value.ChangeListener<? super java.lang.Number> arg0) {
+        if (jxOwner == null) {
+            throw new IllegalStateException("addListener before the JX object exists");
+        }
+        com.jxparallel.fx.beans.binding.IntegerExpression.$hook(jxOwner, "addListener(ChangeListener)", new Object[] {com.jxparallel.fx.Fx.jx(arg0)});
+    }
+
+    @Override
+    public void removeListener(javafx.beans.value.ChangeListener<? super java.lang.Number> arg0) {
+        if (jxOwner == null) {
+            throw new IllegalStateException("removeListener before the JX object exists");
+        }
+        com.jxparallel.fx.beans.binding.IntegerExpression.$hook(jxOwner, "removeListener(ChangeListener)", new Object[] {com.jxparallel.fx.Fx.jx(arg0)});
     }
 
     @Override

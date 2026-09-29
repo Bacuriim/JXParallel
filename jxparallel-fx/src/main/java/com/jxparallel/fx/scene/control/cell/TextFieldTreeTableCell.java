@@ -95,14 +95,14 @@ public class TextFieldTreeTableCell<S, T> extends com.jxparallel.fx.scene.contro
         TextFieldTreeTableCell jx = (TextFieldTreeTableCell) self;
         try {
         switch (method) {
-            case "updateItem(Object,boolean)":
-                jx.updateItem((java.lang.Object) a[0], (Boolean) a[1]);
-                return null;
             case "cancelEdit()":
                 jx.cancelEdit();
                 return null;
             case "startEdit()":
                 jx.startEdit();
+                return null;
+            case "updateItem(Object,boolean)":
+                jx.updateItem((java.lang.Object) a[0], (Boolean) a[1]);
                 return null;
             case "commitEdit(Object)":
                 jx.commitEdit((java.lang.Object) a[0]);

@@ -8,8 +8,8 @@ public class ToggleButton extends com.jxparallel.fx.scene.control.ButtonBase imp
         super(wrap, peer);
     }
 
-    public ToggleButton(java.lang.String arg0, com.jxparallel.fx.scene.Node arg1) {
-        this(com.jxparallel.fx.Fx.WRAP, com.jxparallel.fx.Fx.NATIVE ? com.jxparallel.fx.nativeimpl.Native.create(javafx.scene.control.ToggleButton.class, new String[] {null, null}, new Object[] {arg0, arg1}) : new com.jxparallel.fx.peer.scene.control.ToggleButton(arg0, (javafx.scene.Node) com.jxparallel.fx.Fx.fx(arg1)));
+    public ToggleButton() {
+        this(com.jxparallel.fx.Fx.WRAP, com.jxparallel.fx.Fx.NATIVE ? com.jxparallel.fx.nativeimpl.Native.create(javafx.scene.control.ToggleButton.class, new String[] {}, new Object[] {}) : new com.jxparallel.fx.peer.scene.control.ToggleButton());
         com.jxparallel.fx.Fx.own(fxPeer(), this);
     }
 
@@ -18,8 +18,8 @@ public class ToggleButton extends com.jxparallel.fx.scene.control.ButtonBase imp
         com.jxparallel.fx.Fx.own(fxPeer(), this);
     }
 
-    public ToggleButton() {
-        this(com.jxparallel.fx.Fx.WRAP, com.jxparallel.fx.Fx.NATIVE ? com.jxparallel.fx.nativeimpl.Native.create(javafx.scene.control.ToggleButton.class, new String[] {}, new Object[] {}) : new com.jxparallel.fx.peer.scene.control.ToggleButton());
+    public ToggleButton(java.lang.String arg0, com.jxparallel.fx.scene.Node arg1) {
+        this(com.jxparallel.fx.Fx.WRAP, com.jxparallel.fx.Fx.NATIVE ? com.jxparallel.fx.nativeimpl.Native.create(javafx.scene.control.ToggleButton.class, new String[] {null, null}, new Object[] {arg0, arg1}) : new com.jxparallel.fx.peer.scene.control.ToggleButton(arg0, (javafx.scene.Node) com.jxparallel.fx.Fx.fx(arg1)));
         com.jxparallel.fx.Fx.own(fxPeer(), this);
     }
 

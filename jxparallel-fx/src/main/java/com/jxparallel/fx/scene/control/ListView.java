@@ -382,30 +382,21 @@ public class ListView<T> extends com.jxparallel.fx.scene.control.Control {
         }
 
         public EditEvent(com.jxparallel.fx.scene.control.ListView<T> arg0, com.jxparallel.fx.event.EventType<? extends com.jxparallel.fx.scene.control.ListView.EditEvent<T>> arg1, T arg2, int arg3) {
-            this(com.jxparallel.fx.Fx.WRAP, com.jxparallel.fx.Fx.NATIVE ? com.jxparallel.fx.nativeimpl.Native.create(javafx.scene.control.ListView.EditEvent.class, new String[] {null, null, null, null}, new Object[] {arg0, arg1, arg2, arg3}) : new com.jxparallel.fx.peer.scene.control.ListView_EditEvent((javafx.scene.control.ListView) com.jxparallel.fx.Fx.fx(arg0), (javafx.event.EventType) com.jxparallel.fx.Fx.fx(arg1), (T) com.jxparallel.fx.Fx.fx(arg2), arg3));
+            this(com.jxparallel.fx.Fx.WRAP, new com.jxparallel.fx.peer.scene.control.ListView_EditEvent((javafx.scene.control.ListView) com.jxparallel.fx.Fx.fxAs(arg0, javafx.scene.control.ListView.class), (javafx.event.EventType) com.jxparallel.fx.Fx.fx(arg1), (T) com.jxparallel.fx.Fx.fx(arg2), arg3));
             com.jxparallel.fx.Fx.own(fxPeer(), this);
         }
 
         public static final com.jxparallel.fx.event.EventType<?> ANY = (com.jxparallel.fx.event.EventType) com.jxparallel.fx.Fx.jx(javafx.scene.control.ListView.EditEvent.ANY);
 
         public int getIndex() {
-            if (com.jxparallel.fx.Fx.NATIVE) {
-                return (Integer) com.jxparallel.fx.nativeimpl.Native.call(this, com.jxparallel.fx.scene.control.ListView.EditEvent.class, "getIndex", new Class<?>[] {}, int.class);
-            }
             return ((javafx.scene.control.ListView.EditEvent) fxPeer()).getIndex();
         }
 
         public T getNewValue() {
-            if (com.jxparallel.fx.Fx.NATIVE) {
-                return (T) com.jxparallel.fx.nativeimpl.Native.call(this, com.jxparallel.fx.scene.control.ListView.EditEvent.class, "getNewValue", new Class<?>[] {}, java.lang.Object.class);
-            }
             return (T) com.jxparallel.fx.Fx.jx(((javafx.scene.control.ListView.EditEvent) fxPeer()).getNewValue());
         }
 
         public com.jxparallel.fx.scene.control.ListView<T> getSource() {
-            if (com.jxparallel.fx.Fx.NATIVE) {
-                return (com.jxparallel.fx.scene.control.ListView) com.jxparallel.fx.nativeimpl.Native.call(this, com.jxparallel.fx.scene.control.ListView.EditEvent.class, "getSource", new Class<?>[] {}, com.jxparallel.fx.scene.control.ListView.class);
-            }
             return (com.jxparallel.fx.scene.control.ListView) com.jxparallel.fx.Fx.jx(((javafx.scene.control.ListView.EditEvent) fxPeer()).getSource());
         }
     }

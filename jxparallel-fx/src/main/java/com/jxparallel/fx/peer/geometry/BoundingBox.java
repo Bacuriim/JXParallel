@@ -5,12 +5,12 @@ package com.jxparallel.fx.peer.geometry;
 public class BoundingBox extends javafx.geometry.BoundingBox implements com.jxparallel.fx.Fx.Owned {
     private Object jxOwner;
 
-    public BoundingBox(@javafx.beans.NamedArg(value = "minX") double arg0, @javafx.beans.NamedArg(value = "minY") double arg1, @javafx.beans.NamedArg(value = "minZ") double arg2, @javafx.beans.NamedArg(value = "width") double arg3, @javafx.beans.NamedArg(value = "height") double arg4, @javafx.beans.NamedArg(value = "depth") double arg5) {
-        super(arg0, arg1, arg2, arg3, arg4, arg5);
-    }
-
     public BoundingBox(@javafx.beans.NamedArg(value = "minX") double arg0, @javafx.beans.NamedArg(value = "minY") double arg1, @javafx.beans.NamedArg(value = "width") double arg2, @javafx.beans.NamedArg(value = "height") double arg3) {
         super(arg0, arg1, arg2, arg3);
+    }
+
+    public BoundingBox(@javafx.beans.NamedArg(value = "minX") double arg0, @javafx.beans.NamedArg(value = "minY") double arg1, @javafx.beans.NamedArg(value = "minZ") double arg2, @javafx.beans.NamedArg(value = "width") double arg3, @javafx.beans.NamedArg(value = "height") double arg4, @javafx.beans.NamedArg(value = "depth") double arg5) {
+        super(arg0, arg1, arg2, arg3, arg4, arg5);
     }
 
     @Override

@@ -24,8 +24,10 @@ native JXParallel UI, which draws with Skia or NanoVG on OpenGL and does not dep
 | Peak RAM of the same UI test, Java 17 x64 | 249.9 MB | **154.2 MB** |
 
 > **Status: pre-1.0.** The scheduler, properties, events and FXML loading are tested and usable.
-> The native UI covers basic controls and layouts; CSS, virtualized lists and tables, and full
-> accessibility are not implemented yet. See [project status](#project-status).
+> The JavaFX-compatible API (`jxparallel-fx`) runs natively with `-Djx.backend=native`: every
+> control DeviceConfig uses, virtualized lists and tables, events, a CSS subset, dialogs and
+> animations, sized like JavaFX 21. Trees, menu bars and accessibility are not implemented yet.
+> See [project status](#project-status).
 
 ## Contents
 
@@ -560,10 +562,12 @@ mutation testing) and how that compares with OpenJFX: [testing-strategy.md](docs
 | Worker pool, tasks, backpressure, lifecycle | Tested; used by all benchmarks |
 | Properties, events, observable collections | Tested |
 | FX thread dispatch and parallel FXML loading | Tested; pre-parsed templates with `FXMLLoader` fallback |
-| Native window (Skia 64-bit, NanoVG 32-bit) | Working; basic controls and layouts |
+| Native window (Skia 64-bit, NanoVG 32-bit) | Working; all controls and layouts DeviceConfig uses, Modena look |
+| Native mode of the JavaFX-compatible API (`-Djx.backend=native`) | Implemented and tested headless (phase 2b); not yet run on DeviceConfig's screens |
 | Incremental UI updates | Implemented: memoized render and in-place reconciliation |
-| Virtualized list, table and tree | Planned |
-| CSS replacement and full accessibility | Not implemented |
+| Virtualized list and table | Implemented (native mode); tree planned |
+| CSS | Subset: selectors with specificity, pseudo-classes, looked-up colors, inline styles |
+| Accessibility | Tree model only; no screen-reader adapter |
 
 Roadmap: [roadmap.md](docs/roadmap.md). Changes: [CHANGELOG.md](CHANGELOG.md).
 
@@ -576,6 +580,7 @@ Roadmap: [roadmap.md](docs/roadmap.md). Changes: [CHANGELOG.md](CHANGELOG.md).
 | Compatibility with JavaFX | [compatibility.md](docs/compatibility.md) |
 | Native UI architecture | [native-ui.md](docs/native-ui.md) |
 | UI comparison, 32-bit and 64-bit | [ui-comparison-2026-09-25.md](docs/ui-comparison-2026-09-25.md) |
+| Plain JavaFX vs JX on JavaFX vs JX native (DeviceConfig-shaped screen) | [fx-backends-comparison-2026-09-29.md](docs/fx-backends-comparison-2026-09-29.md) |
 | FXML loading comparison | [fxml-load-comparison.md](docs/fxml-load-comparison.md) |
 | Testing strategy, compared with OpenJFX | [testing-strategy.md](docs/testing-strategy.md) |
 | Development log (pt-BR) | [diario-de-desenvolvimento.md](docs/tcc/diario-de-desenvolvimento.md) |

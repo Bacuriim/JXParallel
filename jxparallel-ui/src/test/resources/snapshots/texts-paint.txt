@@ -1,0 +1,166 @@
+fillRoundRect 7.00 7.00 182.00 27.00 4.00 66039ed3
+fillRoundRect 8.00 8.00 180.00 25.00 3.00 ff039ed3
+fillRoundRect 9.00 9.00 178.00 23.00 2.00 ffffffff
+clip 30.00 8.00 138.00 25.00
+fillRect 40.18 12.00 16.20 17.00 ff0096c9
+text "left side" 31.00 24.95 12.00 false ff333333
+fillRect 40.00 12.00 1.00 17.00 ff333333
+restore
+fillRoundRect 15.00 15.00 12.00 12.00 0.00 ff808080
+fillRoundRect 171.00 16.00 10.00 10.00 0.00 ff404040
+fillRoundRect 7.00 38.00 182.00 27.00 4.00 66039ed3
+fillRoundRect 8.00 39.00 180.00 25.00 3.00 ff039ed3
+fillRoundRect 9.00 40.00 178.00 23.00 2.00 ffffffff
+clip 14.00 39.00 168.00 25.00
+fillRect -61.63 43.00 241.63 17.00 ff0096c9
+text "a long value that scrolls to keep the caret visible" -73.93 55.95 12.00 false ff333333
+fillRect 180.00 43.00 1.00 17.00 ff333333
+restore
+gradient 8.00 70.00 180.00 25.00 3.00 ffbbbbbb ffcfcfcf
+fillRoundRect 9.00 71.00 178.00 23.00 2.00 ffffffff
+gradient 9.00 71.00 178.00 5.00 2.00 ffe8e8e8 ffffffff
+clip 14.00 70.00 168.00 25.00
+text "a long value that scrolls to keep the caret visible" 15.00 86.95 12.00 false ff333333
+restore
+fillRoundRect 7.00 100.00 182.00 27.00 4.00 66039ed3
+fillRoundRect 8.00 101.00 180.00 25.00 3.00 ff039ed3
+fillRoundRect 9.00 102.00 178.00 23.00 2.00 ffffffff
+clip 14.00 101.00 168.00 25.00
+restore
+fillRoundRect 7.00 131.00 182.00 27.00 4.00 66039ed3
+fillRoundRect 8.00 132.00 180.00 25.00 3.00 ff039ed3
+fillRoundRect 9.00 133.00 178.00 23.00 2.00 ffffffff
+clip 14.00 132.00 168.00 25.00
+text "ctr" 91.11 148.95 12.00 false ff333333
+fillRect 96.00 136.00 1.00 17.00 ff333333
+restore
+fillRoundRect 7.00 162.00 182.00 27.00 4.00 66039ed3
+fillRoundRect 8.00 163.00 180.00 25.00 3.00 ff039ed3
+fillRoundRect 9.00 164.00 178.00 23.00 2.00 ffffffff
+clip 14.00 163.00 168.00 25.00
+fillRect 15.00 167.00 14.50 17.00 ff0096c9
+text "●●" 15.00 179.95 12.00 false ff333333
+fillRect 29.00 167.00 1.00 17.00 ff333333
+restore
+gradient 8.00 194.00 180.00 27.00 3.00 ffbbbbbb ffcfcfcf
+fillRoundRect 9.00 195.00 178.00 25.00 2.00 ffffffff
+gradient 9.00 195.00 178.00 5.00 2.00 ffe8e8e8 ffffffff
+clip 10.00 194.00 176.00 27.00
+text "bold big" 11.00 213.27 16.00 true ff1060a0
+restore
+fillRoundRect 199.00 7.00 152.00 62.00 4.00 66039ed3
+fillRoundRect 200.00 8.00 150.00 60.00 3.00 ff039ed3
+fillRoundRect 201.00 9.00 148.00 58.00 2.00 ffffffff
+clip 201.00 9.00 148.00 58.00
+fillRect 221.82 -7.00 6.28 17.00 ff0096c9
+text "one" 208.00 5.95 12.00 false ff333333
+fillRect 208.00 10.00 19.77 17.00 ff0096c9
+text "two" 208.00 22.95 12.00 false ff333333
+fillRect 208.00 27.00 15.03 17.00 ff0096c9
+text "three" 208.00 39.95 12.00 false ff333333
+fillRect 223.00 27.00 1.00 17.00 ff333333
+text "four" 208.00 56.95 12.00 false ff333333
+text "five" 208.00 73.95 12.00 false ff333333
+restore
+clip 201.00 9.00 148.00 58.00
+restore
+fillRoundRect 199.00 73.00 152.00 92.00 4.00 66039ed3
+fillRoundRect 200.00 74.00 150.00 90.00 3.00 ff039ed3
+fillRoundRect 201.00 75.00 148.00 88.00 2.00 ffffffff
+clip 201.00 75.00 148.00 88.00
+fillRect 256.15 79.00 70.21 17.00 ff0096c9
+text "wrap this text inside a " 208.00 91.95 12.00 false ff333333
+fillRect 256.00 79.00 1.00 17.00 ff333333
+fillRect 208.00 96.00 36.94 17.00 ff0096c9
+text "narrow area please" 208.00 108.95 12.00 false ff333333
+restore
+clip 201.00 75.00 148.00 88.00
+restore
+fillRoundRect 199.00 169.00 152.00 32.00 4.00 66039ed3
+fillRoundRect 200.00 170.00 150.00 30.00 3.00 ff039ed3
+fillRoundRect 201.00 171.00 148.00 28.00 2.00 ffffffff
+clip 201.00 171.00 148.00 28.00
+text "" 208.00 187.95 12.00 false ff333333
+restore
+clip 201.00 171.00 148.00 28.00
+restore
+fillRoundRect 199.00 205.00 152.00 32.00 4.00 66039ed3
+fillRoundRect 200.00 206.00 150.00 30.00 3.00 ff039ed3
+fillRoundRect 201.00 207.00 148.00 28.00 2.00 ffffffff
+clip 201.00 207.00 148.00 28.00
+fillRect 208.00 211.00 20.13 17.00 ff0096c9
+text "end" 208.00 223.95 12.00 false ff333333
+fillRect 228.00 211.00 1.00 17.00 ff333333
+restore
+clip 201.00 207.00 148.00 28.00
+restore
+fillRect 362.00 8.00 160.00 23.00 ffffffff
+clip 362.00 8.00 160.00 23.00
+text "centre" 425.44 23.95 12.00 false ff333333
+restore
+fillRect 362.00 33.00 160.00 23.00 ffffffff
+clip 362.00 33.00 160.00 23.00
+text "right" 490.00 48.95 12.00 false ff333333
+restore
+fillRect 362.00 58.00 160.00 23.00 ffffffff
+clip 362.00 58.00 160.00 23.00
+text "left" 369.00 73.95 12.00 false ff333333
+restore
+fillRect 362.00 83.00 160.00 23.00 ffffffff
+clip 362.00 83.00 160.00 23.00
+text "icon right" 464.44 98.95 12.00 false ff333333
+restore
+fillRoundRect 369.00 88.00 14.00 14.00 0.00 ff2d6cdf
+fillRect 362.00 108.00 160.00 23.00 ffffffff
+clip 362.00 108.00 160.00 23.00
+text "icon centre" 421.66 123.95 12.00 false ff333333
+restore
+fillRoundRect 369.00 113.00 14.00 14.00 0.00 ff2d6cdf
+fillRect 362.00 133.00 160.00 23.00 ffd3d3d3
+clip 362.00 133.00 160.00 23.00
+text "selected unfocused" 369.00 148.95 12.00 false ff333333
+restore
+fillRect 362.00 158.00 160.00 23.00 ffffffff
+clip 362.00 158.00 160.00 23.00
+text "underlined" 369.00 173.95 12.00 false ff333333
+fillRect 369.00 175.95 57.04 1.00 ff333333
+restore
+fillRoundRect 534.00 8.00 120.00 30.00 0.00 ffeeeeee
+text "top left" 534.00 20.95 12.00 false ff333333
+fillRoundRect 534.00 40.00 120.00 30.00 0.00 ffeeeeee
+text "bottom right" 586.13 65.95 12.00 false ff333333
+fillRoundRect 534.00 72.00 120.00 17.00 0.00 ffeeeeee
+text "centre" 577.44 84.95 12.00 false ff333333
+fillRoundRect 534.00 91.00 120.00 17.00 0.00 ffeeeeee
+text "text right" 605.79 103.95 12.00 false ff333333
+text "ellipsis for a lab..." 534.00 122.95 12.00 false ff333333
+fillRoundRect 534.00 129.00 90.00 34.00 0.00 ffeeeeee
+text "wrapped right" 549.31 141.95 12.00 false ff333333
+text "aligned text" 561.68 158.95 12.00 false ff333333
+fillRoundRect 534.00 166.00 90.00 25.00 3.00 baffffff
+fillRoundRect 534.00 165.00 90.00 25.00 3.00 ffb6b6b6
+gradient 535.00 166.00 88.00 23.00 2.00 fffdfdfd ffe2e2e2
+gradient 536.00 167.00 86.00 21.00 1.00 ffefefef ffd9d9d9
+text "a button lab..." 542.82 181.95 12.00 false ff333333
+fillRect 534.00 192.00 120.00 60.00 ffc9c9c9
+fillRect 535.00 193.00 118.00 58.00 ffffffff
+clip 535.00 217.00 118.00 34.00
+fillRect 572.00 217.00 1.00 24.00 ffededed
+fillRect 604.00 217.00 1.00 24.00 ffededed
+fillRect 535.00 241.00 118.00 24.00 fffafafa
+fillRect 572.00 241.00 1.00 24.00 ffededed
+fillRect 604.00 241.00 1.00 24.00 ffededed
+restore
+gradient 535.00 193.00 118.00 24.00 0.00 fffdfdfd ffe2e2e2
+gradient 535.00 194.00 118.00 23.00 0.00 ffefefef ffd9d9d9
+fillRect 535.00 216.00 118.00 1.00 ffc9c9c9
+clip 535.00 193.00 118.00 24.00
+clip 535.00 193.00 38.00 24.00
+text "Obj" 544.02 209.45 12.00 true ff333333
+restore
+fillRect 572.00 193.00 1.00 24.00 ffc9c9c9
+clip 573.00 193.00 32.00 24.00
+text "42" 582.10 209.45 12.00 true ff333333
+restore
+fillRect 604.00 193.00 1.00 24.00 ffc9c9c9
+restore

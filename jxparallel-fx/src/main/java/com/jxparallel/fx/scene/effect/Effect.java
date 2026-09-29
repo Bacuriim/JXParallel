@@ -16,38 +16,28 @@ public class Effect implements com.jxparallel.fx.Fx.Backed {
 
     @Override
     public boolean equals(Object o) {
-        return o == this || fxPeer.equals(com.jxparallel.fx.Fx.fx(o));
+        return o == this || fxPeer().equals(com.jxparallel.fx.Fx.fx(o));
     }
 
     @Override
     public int hashCode() {
-        return fxPeer.hashCode();
+        return fxPeer().hashCode();
     }
 
     @Override
     public String toString() {
-        return fxPeer.toString();
+        return fxPeer().toString();
     }
 
     public com.jxparallel.fx.beans.property.IntegerProperty impl_effectDirtyProperty() {
-        if (com.jxparallel.fx.Fx.NATIVE) {
-            return (com.jxparallel.fx.beans.property.IntegerProperty) com.jxparallel.fx.nativeimpl.Native.call(this, com.jxparallel.fx.scene.effect.Effect.class, "impl_effectDirtyProperty", new Class<?>[] {}, com.jxparallel.fx.beans.property.IntegerProperty.class);
-        }
         return (com.jxparallel.fx.beans.property.IntegerProperty) com.jxparallel.fx.Fx.jx(((javafx.scene.effect.Effect) fxPeer()).impl_effectDirtyProperty());
     }
 
     public boolean impl_isEffectDirty() {
-        if (com.jxparallel.fx.Fx.NATIVE) {
-            return (Boolean) com.jxparallel.fx.nativeimpl.Native.call(this, com.jxparallel.fx.scene.effect.Effect.class, "impl_isEffectDirty", new Class<?>[] {}, boolean.class);
-        }
         return ((javafx.scene.effect.Effect) fxPeer()).impl_isEffectDirty();
     }
 
     public void impl_sync() {
-        if (com.jxparallel.fx.Fx.NATIVE) {
-            com.jxparallel.fx.nativeimpl.Native.call(this, com.jxparallel.fx.scene.effect.Effect.class, "impl_sync", new Class<?>[] {}, void.class);
-            return;
-        }
         ((javafx.scene.effect.Effect) fxPeer()).impl_sync();
     }
 }

@@ -5,16 +5,16 @@ package com.jxparallel.fx.peer.scene;
 public class ImageCursor extends javafx.scene.ImageCursor implements com.jxparallel.fx.Fx.Owned {
     private Object jxOwner;
 
-    public ImageCursor(@javafx.beans.NamedArg(value = "image") javafx.scene.image.Image arg0, @javafx.beans.NamedArg(value = "hotspotX") double arg1, @javafx.beans.NamedArg(value = "hotspotY") double arg2) {
-        super(arg0, arg1, arg2);
+    public ImageCursor() {
+        super();
     }
 
     public ImageCursor(@javafx.beans.NamedArg(value = "image") javafx.scene.image.Image arg0) {
         super(arg0);
     }
 
-    public ImageCursor() {
-        super();
+    public ImageCursor(@javafx.beans.NamedArg(value = "image") javafx.scene.image.Image arg0, @javafx.beans.NamedArg(value = "hotspotX") double arg1, @javafx.beans.NamedArg(value = "hotspotY") double arg2) {
+        super(arg0, arg1, arg2);
     }
 
     @Override

@@ -68,7 +68,10 @@ controls, radio/toggle buttons, sliders, tabs, scroll panes, and separators.
 
 Focus: list/table/tree-heavy controls.
 
-Status: configurable source cache implemented.
+Status: native virtualized `ListView` and `TableView` (cell pools, cell factories, sorting,
+selection, constrained columns), `Spinner`, `DatePicker`, scroll panes and context menus are
+implemented in the native mode of `jxparallel-fx` (phase 2b of the DeviceConfig migration, see
+native-ui-progress.md). Trees and menu bars remain.
 
 ### Planned set
 - JXTableView
@@ -82,7 +85,7 @@ Status: configurable source cache implemented.
 
 Focus: safe concurrent FXML loading and cache invalidation.
 
-Status: planned.
+Status: implemented; preload support is still open.
 
 ### Goals
 - JXFXMLLoader
@@ -90,8 +93,9 @@ Status: planned.
 - preload support
 - resource cache and memory-safe invalidation
 
-The loader caches FXML source bytes rather than `Node` instances. Every load creates a
-new Scene Graph instance, avoiding illegal sharing of JavaFX nodes between parents.
+The loader caches each FXML as a pre-parsed template (`FxmlTemplate`) rather than `Node`
+instances, with `FXMLLoader` as the fallback. Every load creates a new Scene Graph instance,
+avoiding illegal sharing of JavaFX nodes between parents.
 
 ## Phase 7 — Testing and compatibility
 

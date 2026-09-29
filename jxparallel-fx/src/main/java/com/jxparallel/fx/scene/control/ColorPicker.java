@@ -7,13 +7,13 @@ public class ColorPicker extends com.jxparallel.fx.scene.control.ComboBoxBase<co
         super(wrap, peer);
     }
 
-    public ColorPicker(com.jxparallel.fx.scene.paint.Color arg0) {
-        this(com.jxparallel.fx.Fx.WRAP, com.jxparallel.fx.Fx.NATIVE ? com.jxparallel.fx.nativeimpl.Native.create(javafx.scene.control.ColorPicker.class, new String[] {null}, new Object[] {arg0}) : new com.jxparallel.fx.peer.scene.control.ColorPicker((javafx.scene.paint.Color) com.jxparallel.fx.Fx.fx(arg0)));
+    public ColorPicker() {
+        this(com.jxparallel.fx.Fx.WRAP, com.jxparallel.fx.Fx.NATIVE ? com.jxparallel.fx.nativeimpl.Native.create(javafx.scene.control.ColorPicker.class, new String[] {}, new Object[] {}) : new com.jxparallel.fx.peer.scene.control.ColorPicker());
         com.jxparallel.fx.Fx.own(fxPeer(), this);
     }
 
-    public ColorPicker() {
-        this(com.jxparallel.fx.Fx.WRAP, com.jxparallel.fx.Fx.NATIVE ? com.jxparallel.fx.nativeimpl.Native.create(javafx.scene.control.ColorPicker.class, new String[] {}, new Object[] {}) : new com.jxparallel.fx.peer.scene.control.ColorPicker());
+    public ColorPicker(com.jxparallel.fx.scene.paint.Color arg0) {
+        this(com.jxparallel.fx.Fx.WRAP, com.jxparallel.fx.Fx.NATIVE ? com.jxparallel.fx.nativeimpl.Native.create(javafx.scene.control.ColorPicker.class, new String[] {null}, new Object[] {arg0}) : new com.jxparallel.fx.peer.scene.control.ColorPicker((javafx.scene.paint.Color) com.jxparallel.fx.Fx.fx(arg0)));
         com.jxparallel.fx.Fx.own(fxPeer(), this);
     }
 

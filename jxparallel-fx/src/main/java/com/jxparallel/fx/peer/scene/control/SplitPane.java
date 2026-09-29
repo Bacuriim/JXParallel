@@ -5,12 +5,12 @@ package com.jxparallel.fx.peer.scene.control;
 public class SplitPane extends javafx.scene.control.SplitPane implements com.jxparallel.fx.Fx.Owned {
     private Object jxOwner;
 
-    public SplitPane(javafx.scene.Node... arg0) {
-        super(arg0);
-    }
-
     public SplitPane() {
         super();
+    }
+
+    public SplitPane(javafx.scene.Node... arg0) {
+        super(arg0);
     }
 
     @Override

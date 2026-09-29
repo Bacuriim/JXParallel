@@ -16,21 +16,21 @@ public final class Background implements com.jxparallel.fx.Fx.Backed {
 
     @Override
     public boolean equals(Object o) {
-        return o == this || fxPeer.equals(com.jxparallel.fx.Fx.fx(o));
+        return o == this || fxPeer().equals(com.jxparallel.fx.Fx.fx(o));
     }
 
     @Override
     public int hashCode() {
-        return fxPeer.hashCode();
+        return fxPeer().hashCode();
     }
 
     @Override
     public String toString() {
-        return fxPeer.toString();
+        return fxPeer().toString();
     }
 
-    public Background(@javafx.beans.NamedArg(value = "images") com.jxparallel.fx.scene.layout.BackgroundImage... arg0) {
-        this(com.jxparallel.fx.Fx.WRAP, new javafx.scene.layout.Background((javafx.scene.layout.BackgroundImage[]) com.jxparallel.fx.Fx.fxArray(arg0, javafx.scene.layout.BackgroundImage.class)));
+    public Background(@javafx.beans.NamedArg(value = "fills") java.util.List<com.jxparallel.fx.scene.layout.BackgroundFill> arg0, @javafx.beans.NamedArg(value = "images") java.util.List<com.jxparallel.fx.scene.layout.BackgroundImage> arg1) {
+        this(com.jxparallel.fx.Fx.WRAP, new javafx.scene.layout.Background((java.util.List) com.jxparallel.fx.Fx.fxCollection(arg0), (java.util.List) com.jxparallel.fx.Fx.fxCollection(arg1)));
         com.jxparallel.fx.Fx.own(fxPeer(), this);
     }
 
@@ -44,8 +44,8 @@ public final class Background implements com.jxparallel.fx.Fx.Backed {
         com.jxparallel.fx.Fx.own(fxPeer(), this);
     }
 
-    public Background(@javafx.beans.NamedArg(value = "fills") java.util.List<com.jxparallel.fx.scene.layout.BackgroundFill> arg0, @javafx.beans.NamedArg(value = "images") java.util.List<com.jxparallel.fx.scene.layout.BackgroundImage> arg1) {
-        this(com.jxparallel.fx.Fx.WRAP, new javafx.scene.layout.Background((java.util.List) com.jxparallel.fx.Fx.fxCollection(arg0), (java.util.List) com.jxparallel.fx.Fx.fxCollection(arg1)));
+    public Background(@javafx.beans.NamedArg(value = "images") com.jxparallel.fx.scene.layout.BackgroundImage... arg0) {
+        this(com.jxparallel.fx.Fx.WRAP, new javafx.scene.layout.Background((javafx.scene.layout.BackgroundImage[]) com.jxparallel.fx.Fx.fxArray(arg0, javafx.scene.layout.BackgroundImage.class)));
         com.jxparallel.fx.Fx.own(fxPeer(), this);
     }
 

@@ -5,16 +5,16 @@ package com.jxparallel.fx.peer.scene.paint;
 public class PhongMaterial extends javafx.scene.paint.PhongMaterial implements com.jxparallel.fx.Fx.Owned {
     private Object jxOwner;
 
-    public PhongMaterial(javafx.scene.paint.Color arg0, javafx.scene.image.Image arg1, javafx.scene.image.Image arg2, javafx.scene.image.Image arg3, javafx.scene.image.Image arg4) {
-        super(arg0, arg1, arg2, arg3, arg4);
+    public PhongMaterial() {
+        super();
     }
 
     public PhongMaterial(javafx.scene.paint.Color arg0) {
         super(arg0);
     }
 
-    public PhongMaterial() {
-        super();
+    public PhongMaterial(javafx.scene.paint.Color arg0, javafx.scene.image.Image arg1, javafx.scene.image.Image arg2, javafx.scene.image.Image arg3, javafx.scene.image.Image arg4) {
+        super(arg0, arg1, arg2, arg3, arg4);
     }
 
     @Override

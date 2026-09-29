@@ -16,171 +16,171 @@ public class Animation implements com.jxparallel.fx.Fx.Backed {
 
     @Override
     public boolean equals(Object o) {
-        return o == this || fxPeer.equals(com.jxparallel.fx.Fx.fx(o));
+        return o == this || fxPeer().equals(com.jxparallel.fx.Fx.fx(o));
     }
 
     @Override
     public int hashCode() {
-        return fxPeer.hashCode();
+        return fxPeer().hashCode();
     }
 
     @Override
     public String toString() {
-        return fxPeer.toString();
+        return fxPeer().toString();
     }
 
     public static final int INDEFINITE = javafx.animation.Animation.INDEFINITE;
 
     public com.jxparallel.fx.beans.property.BooleanProperty autoReverseProperty() {
-        return (com.jxparallel.fx.beans.property.BooleanProperty) com.jxparallel.fx.Fx.jx(((javafx.animation.Animation) fxPeer()).autoReverseProperty());
+        return (com.jxparallel.fx.beans.property.BooleanProperty) com.jxparallel.fx.Fx.jx(((javafx.animation.Animation) com.jxparallel.fx.Fx.peerAs(fxPeer(), javafx.animation.Animation.class)).autoReverseProperty());
     }
 
     public com.jxparallel.fx.beans.property.ReadOnlyDoubleProperty currentRateProperty() {
-        return (com.jxparallel.fx.beans.property.ReadOnlyDoubleProperty) com.jxparallel.fx.Fx.jx(((javafx.animation.Animation) fxPeer()).currentRateProperty());
+        return (com.jxparallel.fx.beans.property.ReadOnlyDoubleProperty) com.jxparallel.fx.Fx.jx(((javafx.animation.Animation) com.jxparallel.fx.Fx.peerAs(fxPeer(), javafx.animation.Animation.class)).currentRateProperty());
     }
 
     public com.jxparallel.fx.beans.property.ReadOnlyObjectProperty<com.jxparallel.fx.util.Duration> currentTimeProperty() {
-        return (com.jxparallel.fx.beans.property.ReadOnlyObjectProperty) com.jxparallel.fx.Fx.jx(((javafx.animation.Animation) fxPeer()).currentTimeProperty());
+        return (com.jxparallel.fx.beans.property.ReadOnlyObjectProperty) com.jxparallel.fx.Fx.jx(((javafx.animation.Animation) com.jxparallel.fx.Fx.peerAs(fxPeer(), javafx.animation.Animation.class)).currentTimeProperty());
     }
 
     public com.jxparallel.fx.beans.property.IntegerProperty cycleCountProperty() {
-        return (com.jxparallel.fx.beans.property.IntegerProperty) com.jxparallel.fx.Fx.jx(((javafx.animation.Animation) fxPeer()).cycleCountProperty());
+        return (com.jxparallel.fx.beans.property.IntegerProperty) com.jxparallel.fx.Fx.jx(((javafx.animation.Animation) com.jxparallel.fx.Fx.peerAs(fxPeer(), javafx.animation.Animation.class)).cycleCountProperty());
     }
 
     public com.jxparallel.fx.beans.property.ReadOnlyObjectProperty<com.jxparallel.fx.util.Duration> cycleDurationProperty() {
-        return (com.jxparallel.fx.beans.property.ReadOnlyObjectProperty) com.jxparallel.fx.Fx.jx(((javafx.animation.Animation) fxPeer()).cycleDurationProperty());
+        return (com.jxparallel.fx.beans.property.ReadOnlyObjectProperty) com.jxparallel.fx.Fx.jx(((javafx.animation.Animation) com.jxparallel.fx.Fx.peerAs(fxPeer(), javafx.animation.Animation.class)).cycleDurationProperty());
     }
 
     public com.jxparallel.fx.beans.property.ObjectProperty<com.jxparallel.fx.util.Duration> delayProperty() {
-        return (com.jxparallel.fx.beans.property.ObjectProperty) com.jxparallel.fx.Fx.jx(((javafx.animation.Animation) fxPeer()).delayProperty());
+        return (com.jxparallel.fx.beans.property.ObjectProperty) com.jxparallel.fx.Fx.jx(((javafx.animation.Animation) com.jxparallel.fx.Fx.peerAs(fxPeer(), javafx.animation.Animation.class)).delayProperty());
     }
 
     public javafx.collections.ObservableMap<java.lang.String, javafx.util.Duration> getCuePoints() {
-        return ((javafx.animation.Animation) fxPeer()).getCuePoints();
+        return ((javafx.animation.Animation) com.jxparallel.fx.Fx.peerAs(fxPeer(), javafx.animation.Animation.class)).getCuePoints();
     }
 
     public double getCurrentRate() {
-        return ((javafx.animation.Animation) fxPeer()).getCurrentRate();
+        return ((javafx.animation.Animation) com.jxparallel.fx.Fx.peerAs(fxPeer(), javafx.animation.Animation.class)).getCurrentRate();
     }
 
     public com.jxparallel.fx.util.Duration getCurrentTime() {
-        return (com.jxparallel.fx.util.Duration) com.jxparallel.fx.Fx.jx(((javafx.animation.Animation) fxPeer()).getCurrentTime());
+        return (com.jxparallel.fx.util.Duration) com.jxparallel.fx.Fx.jx(((javafx.animation.Animation) com.jxparallel.fx.Fx.peerAs(fxPeer(), javafx.animation.Animation.class)).getCurrentTime());
     }
 
     public int getCycleCount() {
-        return ((javafx.animation.Animation) fxPeer()).getCycleCount();
+        return ((javafx.animation.Animation) com.jxparallel.fx.Fx.peerAs(fxPeer(), javafx.animation.Animation.class)).getCycleCount();
     }
 
     public com.jxparallel.fx.util.Duration getCycleDuration() {
-        return (com.jxparallel.fx.util.Duration) com.jxparallel.fx.Fx.jx(((javafx.animation.Animation) fxPeer()).getCycleDuration());
+        return (com.jxparallel.fx.util.Duration) com.jxparallel.fx.Fx.jx(((javafx.animation.Animation) com.jxparallel.fx.Fx.peerAs(fxPeer(), javafx.animation.Animation.class)).getCycleDuration());
     }
 
     public com.jxparallel.fx.util.Duration getDelay() {
-        return (com.jxparallel.fx.util.Duration) com.jxparallel.fx.Fx.jx(((javafx.animation.Animation) fxPeer()).getDelay());
+        return (com.jxparallel.fx.util.Duration) com.jxparallel.fx.Fx.jx(((javafx.animation.Animation) com.jxparallel.fx.Fx.peerAs(fxPeer(), javafx.animation.Animation.class)).getDelay());
     }
 
     public com.jxparallel.fx.event.EventHandler<com.jxparallel.fx.event.ActionEvent> getOnFinished() {
-        return (com.jxparallel.fx.event.EventHandler) com.jxparallel.fx.Fx.jx(((javafx.animation.Animation) fxPeer()).getOnFinished());
+        return (com.jxparallel.fx.event.EventHandler) com.jxparallel.fx.Fx.jx(((javafx.animation.Animation) com.jxparallel.fx.Fx.peerAs(fxPeer(), javafx.animation.Animation.class)).getOnFinished());
     }
 
     public double getRate() {
-        return ((javafx.animation.Animation) fxPeer()).getRate();
+        return ((javafx.animation.Animation) com.jxparallel.fx.Fx.peerAs(fxPeer(), javafx.animation.Animation.class)).getRate();
     }
 
     public com.jxparallel.fx.animation.Animation.Status getStatus() {
-        return (com.jxparallel.fx.animation.Animation.Status) com.jxparallel.fx.Fx.jx(((javafx.animation.Animation) fxPeer()).getStatus());
+        return (com.jxparallel.fx.animation.Animation.Status) com.jxparallel.fx.Fx.jx(((javafx.animation.Animation) com.jxparallel.fx.Fx.peerAs(fxPeer(), javafx.animation.Animation.class)).getStatus());
     }
 
     public double getTargetFramerate() {
-        return ((javafx.animation.Animation) fxPeer()).getTargetFramerate();
+        return ((javafx.animation.Animation) com.jxparallel.fx.Fx.peerAs(fxPeer(), javafx.animation.Animation.class)).getTargetFramerate();
     }
 
     public com.jxparallel.fx.util.Duration getTotalDuration() {
-        return (com.jxparallel.fx.util.Duration) com.jxparallel.fx.Fx.jx(((javafx.animation.Animation) fxPeer()).getTotalDuration());
+        return (com.jxparallel.fx.util.Duration) com.jxparallel.fx.Fx.jx(((javafx.animation.Animation) com.jxparallel.fx.Fx.peerAs(fxPeer(), javafx.animation.Animation.class)).getTotalDuration());
     }
 
     public boolean isAutoReverse() {
-        return ((javafx.animation.Animation) fxPeer()).isAutoReverse();
+        return ((javafx.animation.Animation) com.jxparallel.fx.Fx.peerAs(fxPeer(), javafx.animation.Animation.class)).isAutoReverse();
     }
 
     public void jumpTo(com.jxparallel.fx.util.Duration arg0) {
-        ((javafx.animation.Animation) fxPeer()).jumpTo((javafx.util.Duration) com.jxparallel.fx.Fx.fx(arg0));
+        ((javafx.animation.Animation) com.jxparallel.fx.Fx.peerAs(fxPeer(), javafx.animation.Animation.class)).jumpTo((javafx.util.Duration) com.jxparallel.fx.Fx.fx(arg0));
     }
 
     public void jumpTo(java.lang.String arg0) {
-        ((javafx.animation.Animation) fxPeer()).jumpTo(arg0);
+        ((javafx.animation.Animation) com.jxparallel.fx.Fx.peerAs(fxPeer(), javafx.animation.Animation.class)).jumpTo(arg0);
     }
 
     public com.jxparallel.fx.beans.property.ObjectProperty<com.jxparallel.fx.event.EventHandler<com.jxparallel.fx.event.ActionEvent>> onFinishedProperty() {
-        return (com.jxparallel.fx.beans.property.ObjectProperty) com.jxparallel.fx.Fx.jx(((javafx.animation.Animation) fxPeer()).onFinishedProperty());
+        return (com.jxparallel.fx.beans.property.ObjectProperty) com.jxparallel.fx.Fx.jx(((javafx.animation.Animation) com.jxparallel.fx.Fx.peerAs(fxPeer(), javafx.animation.Animation.class)).onFinishedProperty());
     }
 
     public void pause() {
-        ((javafx.animation.Animation) fxPeer()).pause();
+        ((javafx.animation.Animation) com.jxparallel.fx.Fx.peerAs(fxPeer(), javafx.animation.Animation.class)).pause();
     }
 
     public void play() {
-        ((javafx.animation.Animation) fxPeer()).play();
+        ((javafx.animation.Animation) com.jxparallel.fx.Fx.peerAs(fxPeer(), javafx.animation.Animation.class)).play();
     }
 
     public void playFrom(com.jxparallel.fx.util.Duration arg0) {
-        ((javafx.animation.Animation) fxPeer()).playFrom((javafx.util.Duration) com.jxparallel.fx.Fx.fx(arg0));
+        ((javafx.animation.Animation) com.jxparallel.fx.Fx.peerAs(fxPeer(), javafx.animation.Animation.class)).playFrom((javafx.util.Duration) com.jxparallel.fx.Fx.fx(arg0));
     }
 
     public void playFrom(java.lang.String arg0) {
-        ((javafx.animation.Animation) fxPeer()).playFrom(arg0);
+        ((javafx.animation.Animation) com.jxparallel.fx.Fx.peerAs(fxPeer(), javafx.animation.Animation.class)).playFrom(arg0);
     }
 
     public void playFromStart() {
-        ((javafx.animation.Animation) fxPeer()).playFromStart();
+        ((javafx.animation.Animation) com.jxparallel.fx.Fx.peerAs(fxPeer(), javafx.animation.Animation.class)).playFromStart();
     }
 
     public com.jxparallel.fx.beans.property.DoubleProperty rateProperty() {
-        return (com.jxparallel.fx.beans.property.DoubleProperty) com.jxparallel.fx.Fx.jx(((javafx.animation.Animation) fxPeer()).rateProperty());
+        return (com.jxparallel.fx.beans.property.DoubleProperty) com.jxparallel.fx.Fx.jx(((javafx.animation.Animation) com.jxparallel.fx.Fx.peerAs(fxPeer(), javafx.animation.Animation.class)).rateProperty());
     }
 
     public void setAutoReverse(boolean arg0) {
-        ((javafx.animation.Animation) fxPeer()).setAutoReverse(arg0);
+        ((javafx.animation.Animation) com.jxparallel.fx.Fx.peerAs(fxPeer(), javafx.animation.Animation.class)).setAutoReverse(arg0);
     }
 
     public void setCycleCount(int arg0) {
-        ((javafx.animation.Animation) fxPeer()).setCycleCount(arg0);
+        ((javafx.animation.Animation) com.jxparallel.fx.Fx.peerAs(fxPeer(), javafx.animation.Animation.class)).setCycleCount(arg0);
     }
 
     protected void setCycleDuration(com.jxparallel.fx.util.Duration arg0) {
-        com.jxparallel.fx.Fx.invoke(fxPeer(), javafx.animation.Animation.class, "setCycleDuration", new Class<?>[] {javafx.util.Duration.class}, (javafx.util.Duration) com.jxparallel.fx.Fx.fx(arg0));
+        com.jxparallel.fx.Fx.invoke(com.jxparallel.fx.Fx.peerAs(fxPeer(), javafx.animation.Animation.class), javafx.animation.Animation.class, "setCycleDuration", new Class<?>[] {javafx.util.Duration.class}, (javafx.util.Duration) com.jxparallel.fx.Fx.fx(arg0));
     }
 
     public void setDelay(com.jxparallel.fx.util.Duration arg0) {
-        ((javafx.animation.Animation) fxPeer()).setDelay((javafx.util.Duration) com.jxparallel.fx.Fx.fx(arg0));
+        ((javafx.animation.Animation) com.jxparallel.fx.Fx.peerAs(fxPeer(), javafx.animation.Animation.class)).setDelay((javafx.util.Duration) com.jxparallel.fx.Fx.fx(arg0));
     }
 
     public void setOnFinished(com.jxparallel.fx.event.EventHandler<com.jxparallel.fx.event.ActionEvent> arg0) {
-        ((javafx.animation.Animation) fxPeer()).setOnFinished((javafx.event.EventHandler) com.jxparallel.fx.Fx.fx(arg0));
+        ((javafx.animation.Animation) com.jxparallel.fx.Fx.peerAs(fxPeer(), javafx.animation.Animation.class)).setOnFinished((javafx.event.EventHandler) com.jxparallel.fx.Fx.fx(arg0));
     }
 
     public void setRate(double arg0) {
-        ((javafx.animation.Animation) fxPeer()).setRate(arg0);
+        ((javafx.animation.Animation) com.jxparallel.fx.Fx.peerAs(fxPeer(), javafx.animation.Animation.class)).setRate(arg0);
     }
 
     protected void setStatus(com.jxparallel.fx.animation.Animation.Status arg0) {
-        com.jxparallel.fx.Fx.invoke(fxPeer(), javafx.animation.Animation.class, "setStatus", new Class<?>[] {javafx.animation.Animation.Status.class}, (javafx.animation.Animation.Status) com.jxparallel.fx.Fx.fx(arg0));
+        com.jxparallel.fx.Fx.invoke(com.jxparallel.fx.Fx.peerAs(fxPeer(), javafx.animation.Animation.class), javafx.animation.Animation.class, "setStatus", new Class<?>[] {javafx.animation.Animation.Status.class}, (javafx.animation.Animation.Status) com.jxparallel.fx.Fx.fx(arg0));
     }
 
     public com.jxparallel.fx.beans.property.ReadOnlyObjectProperty<com.jxparallel.fx.animation.Animation.Status> statusProperty() {
-        return (com.jxparallel.fx.beans.property.ReadOnlyObjectProperty) com.jxparallel.fx.Fx.jx(((javafx.animation.Animation) fxPeer()).statusProperty());
+        return (com.jxparallel.fx.beans.property.ReadOnlyObjectProperty) com.jxparallel.fx.Fx.jx(((javafx.animation.Animation) com.jxparallel.fx.Fx.peerAs(fxPeer(), javafx.animation.Animation.class)).statusProperty());
     }
 
     public void stop() {
         if (fxPeer() instanceof com.jxparallel.fx.Fx.Owned) {
             ((com.jxparallel.fx.Fx.Owned) fxPeer()).callSuper("stop()", new Object[] {});
         } else {
-            com.jxparallel.fx.Fx.invoke(fxPeer(), javafx.animation.Animation.class, "stop", new Class<?>[] {});
+            com.jxparallel.fx.Fx.invoke(com.jxparallel.fx.Fx.peerAs(fxPeer(), javafx.animation.Animation.class), javafx.animation.Animation.class, "stop", new Class<?>[] {});
         }
     }
 
     public com.jxparallel.fx.beans.property.ReadOnlyObjectProperty<com.jxparallel.fx.util.Duration> totalDurationProperty() {
-        return (com.jxparallel.fx.beans.property.ReadOnlyObjectProperty) com.jxparallel.fx.Fx.jx(((javafx.animation.Animation) fxPeer()).totalDurationProperty());
+        return (com.jxparallel.fx.beans.property.ReadOnlyObjectProperty) com.jxparallel.fx.Fx.jx(((javafx.animation.Animation) com.jxparallel.fx.Fx.peerAs(fxPeer(), javafx.animation.Animation.class)).totalDurationProperty());
     }
 
     public enum Status {

@@ -16,17 +16,17 @@ public class Bounds implements com.jxparallel.fx.Fx.Backed {
 
     @Override
     public boolean equals(Object o) {
-        return o == this || fxPeer.equals(com.jxparallel.fx.Fx.fx(o));
+        return o == this || fxPeer().equals(com.jxparallel.fx.Fx.fx(o));
     }
 
     @Override
     public int hashCode() {
-        return fxPeer.hashCode();
+        return fxPeer().hashCode();
     }
 
     @Override
     public String toString() {
-        return fxPeer.toString();
+        return fxPeer().toString();
     }
 
     protected Bounds(double arg0, double arg1, double arg2, double arg3, double arg4, double arg5) {
@@ -119,28 +119,28 @@ public class Bounds implements com.jxparallel.fx.Fx.Backed {
         Bounds jx = (Bounds) self;
         try {
         switch (method) {
-            case "contains(double,double,double)":
-                return (Object) jx.contains((Double) a[0], (Double) a[1], (Double) a[2]);
             case "contains(double,double)":
                 return (Object) jx.contains((Double) a[0], (Double) a[1]);
-            case "contains(Point3D)":
-                return (Object) jx.contains((com.jxparallel.fx.geometry.Point3D) a[0]);
-            case "contains(Point2D)":
-                return (Object) jx.contains((com.jxparallel.fx.geometry.Point2D) a[0]);
-            case "contains(Bounds)":
-                return (Object) jx.contains((com.jxparallel.fx.geometry.Bounds) a[0]);
+            case "contains(double,double,double)":
+                return (Object) jx.contains((Double) a[0], (Double) a[1], (Double) a[2]);
             case "contains(double,double,double,double)":
                 return (Object) jx.contains((Double) a[0], (Double) a[1], (Double) a[2], (Double) a[3]);
             case "contains(double,double,double,double,double,double)":
                 return (Object) jx.contains((Double) a[0], (Double) a[1], (Double) a[2], (Double) a[3], (Double) a[4], (Double) a[5]);
-            case "isEmpty()":
-                return (Object) jx.isEmpty();
+            case "contains(Bounds)":
+                return (Object) jx.contains((com.jxparallel.fx.geometry.Bounds) a[0]);
+            case "contains(Point2D)":
+                return (Object) jx.contains((com.jxparallel.fx.geometry.Point2D) a[0]);
+            case "contains(Point3D)":
+                return (Object) jx.contains((com.jxparallel.fx.geometry.Point3D) a[0]);
             case "intersects(double,double,double,double)":
                 return (Object) jx.intersects((Double) a[0], (Double) a[1], (Double) a[2], (Double) a[3]);
             case "intersects(double,double,double,double,double,double)":
                 return (Object) jx.intersects((Double) a[0], (Double) a[1], (Double) a[2], (Double) a[3], (Double) a[4], (Double) a[5]);
             case "intersects(Bounds)":
                 return (Object) jx.intersects((com.jxparallel.fx.geometry.Bounds) a[0]);
+            case "isEmpty()":
+                return (Object) jx.isEmpty();
             default:
                 throw new IllegalArgumentException(method);
         }

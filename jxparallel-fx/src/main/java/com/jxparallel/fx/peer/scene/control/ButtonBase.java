@@ -5,16 +5,16 @@ package com.jxparallel.fx.peer.scene.control;
 public class ButtonBase extends javafx.scene.control.ButtonBase implements com.jxparallel.fx.Fx.Owned {
     private Object jxOwner;
 
-    public ButtonBase(java.lang.String arg0, javafx.scene.Node arg1) {
-        super(arg0, arg1);
+    public ButtonBase() {
+        super();
     }
 
     public ButtonBase(java.lang.String arg0) {
         super(arg0);
     }
 
-    public ButtonBase() {
-        super();
+    public ButtonBase(java.lang.String arg0, javafx.scene.Node arg1) {
+        super(arg0, arg1);
     }
 
     @Override

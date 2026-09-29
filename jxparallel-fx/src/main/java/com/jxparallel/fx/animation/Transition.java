@@ -7,42 +7,42 @@ public class Transition extends com.jxparallel.fx.animation.Animation {
         super(wrap, peer);
     }
 
-    public Transition(double arg0) {
-        this(com.jxparallel.fx.Fx.WRAP, new com.jxparallel.fx.peer.animation.Transition(arg0));
-        com.jxparallel.fx.Fx.own(fxPeer(), this);
-    }
-
     public Transition() {
         this(com.jxparallel.fx.Fx.WRAP, new com.jxparallel.fx.peer.animation.Transition());
         com.jxparallel.fx.Fx.own(fxPeer(), this);
     }
 
+    public Transition(double arg0) {
+        this(com.jxparallel.fx.Fx.WRAP, new com.jxparallel.fx.peer.animation.Transition(arg0));
+        com.jxparallel.fx.Fx.own(fxPeer(), this);
+    }
+
     protected com.jxparallel.fx.animation.Interpolator getCachedInterpolator() {
-        return (com.jxparallel.fx.animation.Interpolator) com.jxparallel.fx.Fx.jx(com.jxparallel.fx.Fx.invoke(fxPeer(), javafx.animation.Transition.class, "getCachedInterpolator", new Class<?>[] {}));
+        return (com.jxparallel.fx.animation.Interpolator) com.jxparallel.fx.Fx.jx(com.jxparallel.fx.Fx.invoke(com.jxparallel.fx.Fx.peerAs(fxPeer(), javafx.animation.Transition.class), javafx.animation.Transition.class, "getCachedInterpolator", new Class<?>[] {}));
     }
 
     public com.jxparallel.fx.animation.Interpolator getInterpolator() {
-        return (com.jxparallel.fx.animation.Interpolator) com.jxparallel.fx.Fx.jx(((javafx.animation.Transition) fxPeer()).getInterpolator());
+        return (com.jxparallel.fx.animation.Interpolator) com.jxparallel.fx.Fx.jx(((javafx.animation.Transition) com.jxparallel.fx.Fx.peerAs(fxPeer(), javafx.animation.Transition.class)).getInterpolator());
     }
 
     protected com.jxparallel.fx.scene.Node getParentTargetNode() {
-        return (com.jxparallel.fx.scene.Node) com.jxparallel.fx.Fx.jx(com.jxparallel.fx.Fx.invoke(fxPeer(), javafx.animation.Transition.class, "getParentTargetNode", new Class<?>[] {}));
+        return (com.jxparallel.fx.scene.Node) com.jxparallel.fx.Fx.jx(com.jxparallel.fx.Fx.invoke(com.jxparallel.fx.Fx.peerAs(fxPeer(), javafx.animation.Transition.class), javafx.animation.Transition.class, "getParentTargetNode", new Class<?>[] {}));
     }
 
     protected void interpolate(double arg0) {
         if (fxPeer() instanceof com.jxparallel.fx.Fx.Owned) {
             ((com.jxparallel.fx.Fx.Owned) fxPeer()).callSuper("interpolate(double)", new Object[] {arg0});
         } else {
-            com.jxparallel.fx.Fx.invoke(fxPeer(), javafx.animation.Transition.class, "interpolate", new Class<?>[] {double.class}, arg0);
+            com.jxparallel.fx.Fx.invoke(com.jxparallel.fx.Fx.peerAs(fxPeer(), javafx.animation.Transition.class), javafx.animation.Transition.class, "interpolate", new Class<?>[] {double.class}, arg0);
         }
     }
 
     public com.jxparallel.fx.beans.property.ObjectProperty<com.jxparallel.fx.animation.Interpolator> interpolatorProperty() {
-        return (com.jxparallel.fx.beans.property.ObjectProperty) com.jxparallel.fx.Fx.jx(((javafx.animation.Transition) fxPeer()).interpolatorProperty());
+        return (com.jxparallel.fx.beans.property.ObjectProperty) com.jxparallel.fx.Fx.jx(((javafx.animation.Transition) com.jxparallel.fx.Fx.peerAs(fxPeer(), javafx.animation.Transition.class)).interpolatorProperty());
     }
 
     public void setInterpolator(com.jxparallel.fx.animation.Interpolator arg0) {
-        ((javafx.animation.Transition) fxPeer()).setInterpolator((javafx.animation.Interpolator) com.jxparallel.fx.Fx.fx(arg0));
+        ((javafx.animation.Transition) com.jxparallel.fx.Fx.peerAs(fxPeer(), javafx.animation.Transition.class)).setInterpolator((javafx.animation.Interpolator) com.jxparallel.fx.Fx.fx(arg0));
     }
 
     /** Called by the peer: runs the JX (possibly overridden) method. */

@@ -16,26 +16,21 @@ public final class EventType<T extends com.jxparallel.fx.event.Event> implements
 
     @Override
     public boolean equals(Object o) {
-        return o == this || fxPeer.equals(com.jxparallel.fx.Fx.fx(o));
+        return o == this || fxPeer().equals(com.jxparallel.fx.Fx.fx(o));
     }
 
     @Override
     public int hashCode() {
-        return fxPeer.hashCode();
+        return fxPeer().hashCode();
     }
 
     @Override
     public String toString() {
-        return fxPeer.toString();
+        return fxPeer().toString();
     }
 
-    public EventType(com.jxparallel.fx.event.EventType<? super T> arg0, java.lang.String arg1) {
-        this(com.jxparallel.fx.Fx.WRAP, new javafx.event.EventType((javafx.event.EventType) com.jxparallel.fx.Fx.fx(arg0), arg1));
-        com.jxparallel.fx.Fx.own(fxPeer(), this);
-    }
-
-    public EventType(com.jxparallel.fx.event.EventType<? super T> arg0) {
-        this(com.jxparallel.fx.Fx.WRAP, new javafx.event.EventType((javafx.event.EventType) com.jxparallel.fx.Fx.fx(arg0)));
+    public EventType() {
+        this(com.jxparallel.fx.Fx.WRAP, new javafx.event.EventType());
         com.jxparallel.fx.Fx.own(fxPeer(), this);
     }
 
@@ -44,8 +39,13 @@ public final class EventType<T extends com.jxparallel.fx.event.Event> implements
         com.jxparallel.fx.Fx.own(fxPeer(), this);
     }
 
-    public EventType() {
-        this(com.jxparallel.fx.Fx.WRAP, new javafx.event.EventType());
+    public EventType(com.jxparallel.fx.event.EventType<? super T> arg0) {
+        this(com.jxparallel.fx.Fx.WRAP, new javafx.event.EventType((javafx.event.EventType) com.jxparallel.fx.Fx.fx(arg0)));
+        com.jxparallel.fx.Fx.own(fxPeer(), this);
+    }
+
+    public EventType(com.jxparallel.fx.event.EventType<? super T> arg0, java.lang.String arg1) {
+        this(com.jxparallel.fx.Fx.WRAP, new javafx.event.EventType((javafx.event.EventType) com.jxparallel.fx.Fx.fx(arg0), arg1));
         com.jxparallel.fx.Fx.own(fxPeer(), this);
     }
 

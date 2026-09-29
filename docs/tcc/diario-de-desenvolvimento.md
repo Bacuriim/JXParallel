@@ -894,6 +894,253 @@ O que falta agora é quase só desenho: `TitledPane` aparece em 193 telas, `Scro
 `ProgressIndicator` em 9, `Separator` em 5 e `ImageView` em 4. Da API faltou só
 `ToggleGroup.selectToggle` (2 telas).
 
+## 2026-09-28/29: fase 2b concluída (desenho nativo de toda a API usada)
+
+**O que entrou.** Com `-Djx.backend=native`, cada nó JX do `jxparallel-fx` é um `NativeModel`
+desenhado pelo `jxparallel-ui`. Entraram todos os controles da lista da fase 2b (inclusive
+`ListView` e `TableView` virtualizados, com fábricas de células chamadas por reflexão no objeto JX,
+ordenação, seleção simples e múltipla e colunas restritas), eventos com a semântica do JavaFX
+(filtros da raiz para baixo, handlers do alvo para cima, `consume()`, aceleradores, Tab, botões
+padrão e de cancelamento, arrastar e soltar com dragboard próprio), um subconjunto de CSS com
+especificidade, diálogos num loop de eventos aninhado com a ordem de botões do Windows,
+`FileChooser` via tinyfd, notificações do ControlsFX, modalidade de janelas e as transições. O
+desenho de todos os elementos está num único código (`JXPaint`) sobre as primitivas que Skia e
+NanoVG implementam (`JXPainter`), então os dois renderizadores desenham as mesmas formas.
+
+**Achado: a altura de linha do JavaFX não sai da fonte.** O `Label` do JavaFX tem 17 px com Segoe UI
+a 12 px e 25 px a 16 px; as métricas da fonte escaladas dão 15,96 e 21,3. O JavaFX usa métricas com
+hinting do DirectWrite, que não se reproduzem a partir das unidades da fonte (a tentativa com a
+tabela VDMX também não bateu). A solução foi medir no próprio JavaFX em execução: o modo nativo
+cria um `Label` numa `Scene`, aplica o CSS e lê a altura e a linha de base uma vez por tamanho, e
+também a largura de textos em negrito ou fora dos 12 px. Com isso os testes diferenciais de
+tamanhos de controles passaram a bater em todos os casos.
+
+**Achados dos testes diferenciais de grade.** Duas divergências do `GridPane`: a distribuição de
+espaço de um filho com span usava o máximo já resolvido em vez do máximo declarado (corrigido), e
+um filho que ocupa uma faixa de tamanho fixo (`USE_PREF_SIZE`) numa grade centralizada fica 1 px
+deslocado em relação ao JavaFX (documentado como limitação; o gerador de casos evita esse caso).
+
+**Imagens de referência e gravações.** Uma imagem com todos os controles em todos os estados e três
+gravações exatas das primitivas de desenho (cada chamada de `JXPainter` vira uma linha de texto).
+Revisar a imagem nova mostrou dois defeitos: dicas (`Tooltip`) sem tamanho, só com o texto branco
+sobre a janela, e rótulos com `wrapText` que nunca quebravam linha (a condição comparava a largura
+já cortada com reticências). O rótulo com quebra agora é comparado com o JavaFX num `VBox`.
+
+**Teste de mutação.** No `jxparallel-ui` a primeira rodada sobre o código novo de layout, texto e
+teste de clique matou 60% dos mutantes (549 de 921). Os sobreviventes eram bordas exatas (clique
+meio pixel dentro ou fora, cursor no fim da linha, texto exatamente da largura da linha) e controles
+em (0, 0), onde `x + padding` e `x - padding` não se distinguem. Depois dos testes de bordas e das
+gravações: 1822 de 1922 (95%), incluindo o `JXPaint`. Os sobreviventes também apontaram código morto
+(dois ramos iguais, `viewW -= 0`, parâmetro sem uso, um `default` inalcançável), removido. No
+`jxparallel-fx` (runtime nativo, JDK 8): a primeira rodada matou
+46% (1523 de 3279), com 861 mutantes em código que nenhum teste alcançava: teclado de controles
+inteiros, barras de rolagem, métodos dos modelos de seleção, tipos de diálogo, notificações e boa
+parte da API que as aplicações chamam direto. Com nove suítes novas: 2463 de 3174 (78%, força dos
+testes 82%). O `register()` ficou fora: roda uma vez, no inicializador estático, então o mutante
+trocado a quente pelo PIT nunca executa (as lambdas que ele registra são testadas).
+
+**O que os testes de mutação acharam de errado de verdade.** Escrever os testes contra o
+comportamento documentado do JavaFX revelou 16 divergências, todas corrigidas. As mais sérias: um
+handler que consumia o evento impedia os outros handlers do mesmo nó (no JavaFX todos rodam; o
+consumo só impede o próximo nó); getters de valores nunca definidos devolviam o zero do Java em vez
+do padrão do JavaFX (um `TitledPane` não estava expandido, o máximo de um `Slider` era 0), agora
+lidos de um protótipo da classe JavaFX; a fábrica de células do `ComboBox` recebia o próprio combo
+em vez de uma `ListView` (quem declarava a lambda com `ListView` via células vazias); os handlers
+`onShowing`/`onHidden` de diálogos nunca rodavam; e o `vvalue` do `ScrollPane` ignorava
+`vmin`/`vmax`.
+
+**O que a troca de import não resolvia.** `FadeTransition` recebe um nó, então no modo nativo é um
+modelo nativo, mas herda `play()` de `Animation`, que não é: o gerador passou a acessar o par JavaFX
+dessas superclasses por `Fx.peerAs`, e o modo nativo entrega uma animação JavaFX real que escreve as
+propriedades do nó. E os 32 controllers que leem `ScrollPaneSkin.viewRect` por reflexão: o
+`ScrollPane` exibido no modo nativo recebe um skin cujo `viewRect` existe.
+
+**Falta.** Rodar as 232 telas do DeviceConfig no modo nativo e comparar com o JavaFX, o que depende
+do banco de homologação.
+
+## 2026-09-29: medição para o TCC (JavaFX puro, API JX sobre JavaFX e JX nativo)
+
+**Pergunta.** Quanto custa ou economiza rodar uma aplicação no modo nativo do JXParallel, em
+relação à mesma aplicação no JavaFX? As telas reais do DeviceConfig precisam do banco de
+homologação, então a medição usa uma tela montada como as dele: um acordeão de 6 painéis com 60
+campos (texto, combo, check box, spinner, date picker), uma tabela de 10 mil registros, uma lista e
+abas. O mesmo código roda em três pilhas: JavaFX puro (o DeviceConfig de hoje, gerado trocando só
+os imports), a API JX sobre JavaFX (fase 1) e o JX nativo (fase 2b). Foram 7 execuções por pilha,
+alternadas, uma JVM nova por execução, com a memória do processo amostrada por fora, no JDK 8u51
+32 bits (o do DeviceConfig) e no 8u421 64 bits. Detalhes e tabelas completas em
+`docs/fx-backends-comparison-2026-09-29.md`.
+
+**Resultado no 32 bits (nativo contra JavaFX puro).**
+
+| Métrica | JavaFX puro | JX nativo | Diferença |
+|---|---:|---:|---:|
+| Carregar 50 registros nos 60 campos (trabalho da aplicação) | 120 ms | 18 ms | -85% |
+| 30 trocas de aba | 477 ms | 322 ms | -33% |
+| 200 rolagens da tabela | 3216 ms | 1684 ms | -48% |
+| Intervalo entre quadros p99 | 7,9 ms | 4,4 ms | -44% |
+| CPU total do processo | 5,72 s | 5,03 s | -12% |
+| Classes carregadas | 3550 | 3210 | -10% |
+| Pico de heap | 58,8 MB | 50,6 MB | -14% |
+| Working set de pico | 141 MB | 159 MB | +12% |
+| Total alocado | 312 MB | 933 MB | +199% |
+| Montar a tela até o primeiro quadro | 709 ms | 835 ms | +18% |
+
+No 64 bits o nativo gasta 26% menos CPU no total e 47% menos atualizando a cada quadro, com o
+mesmo working set.
+
+**Onde o nativo perde, e por quê.** Aloca de 2 a 3 vezes mais, porque cada quadro reconstrói a
+árvore de elementos da tela visível e a reconcilia, enquanto o JavaFX só mexe nos nós que
+mudaram; no 32 bits isso vira 4 vezes mais coletas de lixo jovens. Também demora mais para montar
+a tela (+18 a 22%) e para trocar os itens por 100 mil linhas. A próxima otimização é memorizar os
+elementos de subárvores que não mudaram.
+
+**A medição guiou correções.** A primeira rodada no 32 bits mostrou o nativo gastando 38% mais
+CPU e alocando 7 vezes mais que a API JX sobre JavaFX. O profiler (`hprof`) apontou seis causas,
+todas corrigidas:
+
+- `getSimpleName()` sem cache no Java 8, chamado a cada chamada da API gerada;
+- padrões do JavaFX buscados por reflexão com exceção a cada leitura;
+- células de tabela chamando a fábrica de valores a cada quadro;
+- `glfwMakeContextCurrent` a cada quadro;
+- o JavaFX inicializando o Direct3D sem desenhar nada no modo nativo (agora `prism.order=sw`);
+- cópias e boxing por quadro.
+
+Resultado no nativo 32 bits: CPU de 7,92 para 5,03 s, alocação de 2,25 para 0,93 GB, coletas de
+317 para 138 e working set de 186 para 159 MB.
+
+**A camada JX sobre o JavaFX (fase 1) custa pouco:** 7 a 8% para montar a tela e 8 a 9% de
+working set. Os ganhos vêm do backend nativo, não da migração em si.
+
+**Ameaças à validade.** É uma tela no formato do DeviceConfig, não o DeviceConfig (sem banco,
+controllers ou CSS da aplicação). Os dados são de uma única máquina, com monitor de 239 Hz. A CPU
+do processo inclui as threads do driver de vídeo, que diferem entre Direct3D e OpenGL; as linhas
+de CPU das threads da JVM as excluem.
+
+## 2026-09-29 (tarde): renderização incremental
+
+**Problema.** A medição da manhã mostrou que o modo nativo reconstruía, a cada quadro, a árvore
+de elementos de toda a tela visível e a reconciliava, enquanto o JavaFX só sincroniza os nós que
+mudaram. Por isso alocava 16 vezes mais que o JavaFX atualizando a tela a cada quadro.
+
+**Solução.** Cada modelo nativo guarda o último elemento construído e um número de versão. Uma
+mudança incrementa a versão do nó e dos ancestrais; um quadro reconstrói só os nós com versão nova
+e devolve os outros como a mesma instância, que a reconciliação já pulava por identidade. O que
+invalida um elemento:
+
+- propriedade, lista ou estado do nó;
+- nos casos que o CSS enxerga por seletores de descendente ou que os filhos herdam (classes, id,
+  estilo, desabilitado, estados de pseudo-classe) e para um nó que mudou de pai, toda a subárvore;
+- hover, pressionado e foco;
+- o valor observado por uma célula de tabela, que agora escuta a propriedade da linha como o
+  `TableCell`;
+- a fábrica de valores do spinner;
+- uma imagem que terminou de carregar;
+- as folhas de estilo da cena, que invalidam tudo.
+
+Os testes novos (`NativeIncrementalTest`) confirmam a reutilização por identidade e cada caminho
+de invalidação.
+
+**Achado de passagem.** Adicionar a um pai um nó que já tinha outro pai o deixava nos dois, e ele
+era desenhado duas vezes. O JavaFX move o nó; agora o modo nativo também move.
+
+**Resultado (32 bits, por quadro, medianas de 5 execuções).** Ao atualizar a cada quadro, a
+alocação caiu de 360 para 38 MB e a CPU da thread da aplicação de 609 para 125 ms (o JavaFX puro
+gasta 266 ms). A alocação total caiu de 933 para 481 MB e as coletas de 138 para 40 (o JavaFX puro
+faz 36). A sessão do Windows estava bloqueada durante essas execuções, o que muda a cadência de
+quadros dos dois lados; a comparação completa das três pilhas precisa ser repetida com a sessão
+desbloqueada.
+
+## 2026-09-29 (noite): os pontos em que o nativo ainda perdia
+
+- **Montar a tela até o primeiro quadro (antes 18 a 22% mais lento que o JavaFX).** O tempo
+  quase todo não era montar elementos. A thread de desenho só começava no primeiro `show()` e
+  então carregava o driver OpenGL ao criar a janela, depois de a aplicação montar a tela. Agora o
+  modo nativo começa esse trabalho em segundo plano assim que inicia (`JXDisplay.prewarm()`:
+  GLFW, driver, fontes e classes de desenho), em paralelo ao `Application.start()`, como o JavaFX
+  faz com a sua thread de renderização. No 32 bits, com a sessão bloqueada, o nativo ficou em
+  cerca de 435 ms contra 670 ms do JavaFX puro; da partida da JVM ao primeiro quadro, 650 ms contra
+  1050 ms.
+- **Rolagem da tabela (alocava o dobro).** Linhas e células que saem da tela agora são
+  reaproveitadas para as que entram, como no `VirtualFlow` do JavaFX, em vez de criar uma linha de
+  células por linha exibida. A alocação caiu de 299 para 210 MB (JavaFX puro: 147 MB).
+- **100 mil linhas.** O nativo empata com a API JX sobre JavaFX (124 contra 125 ms). A diferença
+  para o JavaFX puro está nos objetos da própria aplicação: cada propriedade JX é um objeto sobre
+  um par do JavaFX. É custo da API da fase 1, não do desenho nativo.
+- **O quadro de 44 ms no 32 bits** precisa ser conferido com a sessão desbloqueada.
+
+## 2026-09-29 (noite): rolagem que move os nós em vez de refazê-los
+
+- **O problema.** A árvore de nós desenhados era reconciliada por posição. Ao rolar uma linha, o
+  nó da posição 0 recebia o elemento da linha que estava na posição 1, e assim por diante. Todas
+  as linhas visíveis eram atualizadas, mesmo sem nenhuma mudança nelas.
+- **A solução (reconciliação por chave, como a `key` do React).** Todo elemento leva uma chave,
+  que é o seu `NativeModel`. Quando os filhos têm chaves distintas, o `JXNativeNode` casa os
+  filhos pela chave. Uma linha que continua na tela mantém o seu nó e só é movida pelo layout. O
+  elemento dela é a mesma instância de antes, porque fica memorizado a partir da versão da linha,
+  da seleção, da paridade, do foco e dos elementos das células. Assim a reconciliação a pula. Só
+  as linhas que entram são atualizadas, como no `VirtualFlow`.
+- **Regressão encontrada na medição.** A célula referencia a sua tabela (`tableView`), e essa
+  referência era tratada como se a tabela tivesse mudado de pai. Com isso, a subárvore inteira da
+  tabela, incluindo o pool de células, era invalidada a cada vez. A alocação da rolagem subiu para
+  734 MB. A causa foi achada rastreando as pilhas das invalidações. Propriedades de referência
+  deixaram de contar como troca de pai, e um teste cobre o caso.
+- **Resultado (32 bits, sessão bloqueada).** Rolando de uma em uma linha, a alocação foi de
+  36,2 MB (reconciliação por posição) para 31,1 MB (por chave); o JavaFX puro aloca 26,0 MB. Em
+  saltos de 50 linhas, todas as linhas visíveis mudam, então a chave não ajuda: 206 MB contra
+  147 MB do JavaFX. O resto da diferença é o elemento de cada célula reaproveitada, refeito porque
+  ela passa a mostrar outro item.
+
+## 2026-09-29 (noite): fechando a diferença da rolagem
+
+- **Onde estava a alocação.** O benchmark passou a separar a alocação por thread. A thread da
+  aplicação respondia por quase tudo (186 MB contra 131 MB do JavaFX); a thread de desenho nativa
+  aloca menos que a do JavaFX. Os sítios do hprof contavam cerca de 8 vezes menos que o total, e o
+  JFR do 8u421 grava no formato antigo. Por isso cada fase da renderização foi medida com
+  `ThreadMXBean.getThreadAllocatedBytes`.
+- **O que foi corrigido, por peso:**
+  - Chaves de restrição de layout eram concatenadas a cada elemento (14 strings por célula).
+  - Cada linha passava por `CellDataFeatures` e dois adaptadores proxy até o
+    `PropertyValueFactory`, que agora é lido direto.
+  - Configurar as células deixava obsoleto o elemento da tabela em construção, e o quadro seguinte
+    visitava todas as células de novo.
+  - O CSS recalculava escopo, cores e declarações por célula; agora há cache por renderização.
+  - A reconciliação por chave criava dois mapas por linha.
+  - `JXProps` passou de `LinkedHashMap` para um array plano.
+  - Deixou de haver boxing nas propriedades numéricas e nas coordenadas.
+- **Bug encontrado no caminho:** linhas selecionadas de tabela não apareciam selecionadas no modo
+  nativo.
+- **Resultado (32 bits, mediana de 3):**
+  - Rolagem: 52 MB contra 148 MB do JavaFX puro; eram 206 MB antes.
+  - Alocação total da execução: 185 MB contra 313 MB.
+  - CPU da rolagem: 0,98 s contra 1,30 s.
+  - O nativo ainda perde na troca de abas (6,0 contra 1,9 MB), nas 100 mil linhas (55 contra 49 MB,
+    custo da API JX) e no pico de memória do processo (167 contra 147 MB).
+
+## 2026-09-29 (noite): as últimas perdas
+
+- **Troca de abas (6,0 contra 1,9 MB).** Havia duas causas:
+  - Selecionar uma `Tab` invalidava o formulário inteiro dela. No JavaFX, a `Tab` não é o pai
+    CSS do conteúdo; o pai é a região de conteúdo da `TabPane`. Agora só `disable` da aba chega
+    ao conteúdo.
+  - Os nós nativos da aba que saía eram descartados. A `TabPane` passou a guardá-los (até 16).
+
+  Além disso, o JavaFX monta todas as abas junto com a cena. O nativo passou a montar as abas
+  escondidas em tempo ocioso, uma por vez, 300 ms depois do primeiro quadro. Resultado: 1,24 MB
+  contra 1,88 MB.
+- **100 mil linhas (54,7 contra 48,7 MB).** Cada propriedade JX era um objeto JX mais um par
+  JavaFX. As `Simple*Property` passaram a criar o par só quando necessário (listener, bind,
+  JavaFX lendo); até lá guardam o próprio valor. Resultado: 42,2 contra 48,4 MB, com o heap vivo
+  em 32,5 contra 46,7 MB. A API JX sobre JavaFX também ganhou.
+- **CPU da abertura.** A thread de desenho gastava 453 ms porque criava dois contextos OpenGL: o
+  descartável do pré-aquecimento e o da janela. A janela pré-aquecida agora vira a primeira
+  janela. Nas threads Java, os dois empatam até o primeiro quadro (951 contra 952 ms); a sobra de
+  cerca de 100 ms no processo está nas threads do driver e no JIT. O primeiro quadro sai 140 ms
+  antes.
+- **O que ficou.** O pico de working set é cerca de 6 MB maior (153 contra 147 MB) quando as abas
+  são montadas em tempo ocioso. Um A/B mostrou que os bytes privados são iguais com e sem essa
+  montagem, e menores que os do JavaFX (178 contra 205 MB). A diferença é paginação do Windows,
+  não memória do processo.
+
 ## Evolução das métricas principais
 
 | Data | Métrica | JavaFX | JXParallel | Observação |
@@ -925,6 +1172,15 @@ Métricas de qualidade (JXParallel apenas; o JavaFX não tem contrato de concorr
 | 25/09 | `JXProperty.set` | 37,8 ns | 28,8 ns | JMH, com um listener |
 | 25/09 | Mutantes mortos, core | 39,1% | 44,2% | PIT 1.15.8 |
 | 25/09 | Mutantes mortos, `JXNativeNode` | 77,4% | 89,6% | PIT 1.15.8 |
+| 29/09 | Mutantes mortos, layout/texto/clique nativos | 59,6% | 95,0% | PIT 1.15.8; o depois inclui o `JXPaint` (1922 mutantes) |
+| 29/09 | Mutantes mortos, runtime nativo (`nativeimpl`) | 46,4% | 77,6% | PIT 1.15.8, JDK 8; 16 divergências do JavaFX corrigidas no caminho |
+| 29/09 | CPU do processo, tela tipo DeviceConfig, JX nativo 32 bits | 7,92 s | 5,03 s | JavaFX puro: 5,72 s; 7 execuções, mediana |
+| 29/09 | Alocação total, mesma medição | 2,25 GB | 0,93 GB | JavaFX puro: 0,31 GB |
+| 29/09 | Alocação da rolagem da tabela, JX nativo 32 bits | 206 MB | 52 MB | JavaFX puro: 148 MB; mediana de 3 |
+| 29/09 | Alocação total da execução, JX nativo 32 bits | 0,93 GB | 0,17 GB | JavaFX puro: 0,31 GB; mediana de 3 |
+| 29/09 | Troca de abas, alocação, JX nativo 32 bits | 6,0 MB | 1,24 MB | JavaFX puro: 1,88 MB |
+| 29/09 | 100 mil linhas, alocação, JX nativo 32 bits | 54,7 MB | 42,2 MB | JavaFX puro: 48,4 MB |
+| 29/09 | Heap vivo após GC, JX nativo 32 bits | 44,7 MB | 32,5 MB | JavaFX puro: 46,7 MB |
 
 ## Ameaças à validade (para o capítulo de metodologia)
 
@@ -940,7 +1196,9 @@ Métricas de qualidade (JXParallel apenas; o JavaFX não tem contrato de concorr
 
 - Compilação de FXML para Java no build (removeria o custo da primeira carga).
 - HarfBuzz/FreeType para texto e Yoga para layout.
-- Lista e tabela virtualizadas, com benchmark de 100 mil linhas contra o `TableView`.
+- Benchmark de 100 mil linhas da tabela virtualizada nativa contra o `TableView`.
+- Rodar as 232 telas do DeviceConfig no modo nativo (depende do banco de homologação).
+- Repetir a comparação das três pilhas com a sessão desbloqueada, depois da renderização incremental.
 - Repetir as baterias com a sessão do Windows desbloqueada e a máquina ociosa (FPS válido).
 - Imagem golden do NanoVG (precisa de contexto OpenGL fora da tela).
 - japicmp na CI depois da versão 0.1.0.

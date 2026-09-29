@@ -66,10 +66,10 @@ public class StringPropertyBase extends com.jxparallel.fx.beans.property.StringP
         StringPropertyBase jx = (StringPropertyBase) self;
         try {
         switch (method) {
-            case "getName()":
-                return jx.getName();
             case "getBean()":
                 return jx.getBean();
+            case "getName()":
+                return jx.getName();
             default:
                 throw new IllegalArgumentException(method);
         }

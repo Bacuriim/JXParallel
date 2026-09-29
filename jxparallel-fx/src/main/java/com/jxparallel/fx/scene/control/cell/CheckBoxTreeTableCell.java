@@ -115,11 +115,11 @@ public class CheckBoxTreeTableCell<S, T> extends com.jxparallel.fx.scene.control
             case "updateItem(Object,boolean)":
                 jx.updateItem((java.lang.Object) a[0], (Boolean) a[1]);
                 return null;
-            case "commitEdit(Object)":
-                jx.commitEdit((java.lang.Object) a[0]);
-                return null;
             case "cancelEdit()":
                 jx.cancelEdit();
+                return null;
+            case "commitEdit(Object)":
+                jx.commitEdit((java.lang.Object) a[0]);
                 return null;
             case "startEdit()":
                 jx.startEdit();

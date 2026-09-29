@@ -147,23 +147,23 @@ public class ScheduledService<V> extends com.jxparallel.fx.concurrent.Service<V>
         ScheduledService jx = (ScheduledService) self;
         try {
         switch (method) {
+            case "failed()":
+                jx.failed();
+                return null;
             case "succeeded()":
                 jx.succeeded();
                 return null;
-            case "failed()":
-                jx.failed();
+            case "createTask()":
+                return jx.createTask();
+            case "cancelled()":
+                jx.cancelled();
                 return null;
             case "running()":
                 jx.running();
                 return null;
-            case "cancelled()":
-                jx.cancelled();
-                return null;
             case "scheduled()":
                 jx.scheduled();
                 return null;
-            case "createTask()":
-                return jx.createTask();
             default:
                 throw new IllegalArgumentException(method);
         }

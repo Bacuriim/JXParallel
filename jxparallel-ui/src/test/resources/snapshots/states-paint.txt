@@ -1,0 +1,229 @@
+fillRoundRect 9.00 9.00 121.00 62.00 4.00 66039ed3
+fillRoundRect 10.00 10.00 119.00 60.00 3.00 ff039ed3
+fillRoundRect 11.00 11.00 117.00 58.00 2.00 ffffffff
+clip 11.00 11.00 117.00 58.00
+fillRect 28.83 11.00 31.32 17.00 ff0096c9
+text "first line" 18.00 23.95 12.00 false ff333333
+fillRect 28.00 11.00 1.00 17.00 ff333333
+fillRect 18.00 28.00 37.80 17.00 ff0096c9
+text "second line wraps " 18.00 40.95 12.00 false ff333333
+text "here" 18.00 57.95 12.00 false ff333333
+text "third" 18.00 74.95 12.00 false ff333333
+restore
+clip 11.00 11.00 117.00 58.00
+restore
+fillRoundRect 137.00 11.00 79.00 25.00 3.00 baffffff
+fillRoundRect 137.00 10.00 79.00 25.00 3.00 ffb6b6b6
+gradient 138.00 11.00 77.00 23.00 2.00 ffcacaca ffbcbcbc
+gradient 139.00 12.00 75.00 21.00 1.00 ffc6c6c6 ffb5b5b5
+clip 137.00 10.00 53.00 25.00
+text "Aberto" 145.00 26.95 12.00 false ff333333
+restore
+triangle 200.00 22.00 208.00 22.00 204.00 26.00 baffffff
+triangle 200.00 21.00 208.00 21.00 204.00 25.00 ff575757
+gradient 224.00 10.00 159.00 25.00 3.00 ffbbbbbb ffcfcfcf
+fillRoundRect 225.00 11.00 157.00 23.00 2.00 ffffffff
+gradient 225.00 11.00 157.00 5.00 2.00 ffe8e8e8 ffffffff
+clip 230.00 10.00 122.00 25.00
+text "01/01/2026" 231.00 26.95 12.00 false ff333333
+restore
+fillRoundRect 358.00 11.00 25.00 25.00 0.00 baffffff
+fillRoundRect 358.00 10.00 25.00 25.00 0.00 ffb6b6b6
+gradient 359.00 11.00 23.00 23.00 -1.00 ffcacaca ffbcbcbc
+gradient 360.00 12.00 21.00 21.00 0.00 ffc6c6c6 ffb5b5b5
+fillRect 365.00 17.50 11.00 10.00 ff575757
+fillRect 366.00 20.50 9.00 6.00 ffffffff
+fillRect 367.00 21.50 2.00 2.00 ff575757
+fillRect 370.00 21.50 2.00 2.00 ff575757
+fillRect 367.00 23.50 2.00 2.00 ff575757
+fillRoundRect 390.00 9.00 151.00 27.00 4.00 66039ed3
+fillRoundRect 391.00 10.00 149.00 25.00 3.00 ff039ed3
+fillRoundRect 392.00 11.00 147.00 23.00 2.00 ffffffff
+clip 397.00 10.00 113.00 25.00
+text "7" 398.00 26.95 12.00 false ff333333
+restore
+fillRect 516.00 10.00 24.00 25.00 ffb6b6b6
+gradient 517.00 11.00 22.00 11.00 0.00 fffdfdfd ffe2e2e2
+gradient 517.00 23.00 22.00 11.00 0.00 fffdfdfd ffeaeaea
+triangle 524.00 18.50 532.00 18.50 528.00 14.50 ff575757
+triangle 524.00 27.00 532.00 27.00 528.00 31.00 baffffff
+triangle 524.00 26.00 532.00 26.00 528.00 30.00 ff575757
+gradient 548.00 10.00 104.00 25.00 3.00 ffbbbbbb ffcfcfcf
+fillRoundRect 549.00 11.00 102.00 23.00 2.00 ffffffff
+gradient 549.00 11.00 102.00 5.00 2.00 ffe8e8e8 ffffffff
+clip 554.00 10.00 92.00 25.00
+text "centro" 583.06 26.95 12.00 false ff333333
+restore
+gradient 660.00 10.00 90.00 60.00 3.00 ffbbbbbb ffcfcfcf
+fillRoundRect 661.00 11.00 88.00 58.00 2.00 ffffffff
+gradient 661.00 11.00 88.00 5.00 2.00 ffe8e8e8 ffffffff
+clip 661.00 11.00 88.00 58.00
+text "Observações" 668.00 27.95 12.00 false ff999999
+text "" 668.00 27.95 12.00 false ff333333
+restore
+clip 661.00 11.00 88.00 58.00
+restore
+fillRect 10.00 80.00 110.00 195.00 ffc9c9c9
+fillRect 11.00 81.00 108.00 193.00 ffffffff
+clip 11.00 81.00 108.00 193.00
+fillRect 11.00 81.00 108.00 23.00 ffeaf4fa
+clip 11.00 81.00 108.00 23.00
+text "Opção 0" 18.00 96.95 12.00 false ff333333
+restore
+fillRect 11.00 104.00 108.00 23.00 fffafafa
+clip 11.00 104.00 108.00 23.00
+text "Opção 1" 18.00 119.95 12.00 false ff333333
+restore
+fillRect 11.00 127.00 108.00 23.00 ffd3d3d3
+clip 11.00 127.00 108.00 23.00
+text "Opção 2" 18.00 142.95 12.00 false ff333333
+restore
+fillRect 11.00 150.00 108.00 23.00 fffafafa
+fillRect 11.00 196.00 108.00 23.00 fffafafa
+fillRect 11.00 242.00 108.00 23.00 fffafafa
+restore
+fillRect 130.00 80.00 110.00 195.00 ffc9c9c9
+fillRect 131.00 81.00 108.00 193.00 ffffffff
+clip 131.00 81.00 108.00 193.00
+fillRect 131.00 81.00 108.00 23.00 ffeaf4fa
+clip 131.00 81.00 108.00 23.00
+text "Um" 138.00 96.95 12.00 false ff333333
+restore
+fillRect 131.00 104.00 108.00 23.00 ffffffff
+clip 131.00 104.00 108.00 23.00
+text "Dois" 138.00 119.95 12.00 false ff333333
+restore
+restore
+fillRoundRect 250.00 82.00 16.00 16.00 3.00 baffffff
+fillRoundRect 250.00 81.00 16.00 16.00 3.00 ffb6b6b6
+gradient 251.00 82.00 14.00 14.00 2.00 fffdfdfd ffe2e2e2
+gradient 252.00 83.00 12.00 12.00 1.00 fff8f8f8 ffe3e3e3
+text "Hover" 271.00 92.95 12.00 false ff333333
+layer 0.40 0.00
+fillRoundRect 250.00 105.00 16.00 16.00 3.00 baffffff
+fillRoundRect 250.00 104.00 16.00 16.00 3.00 ffb6b6b6
+gradient 251.00 105.00 14.00 14.00 2.00 fffdfdfd ffe2e2e2
+gradient 252.00 106.00 12.00 12.00 1.00 ffefefef ffd9d9d9
+text "Off disabled" 271.00 115.95 12.00 false ff333333
+restore
+fillOval 250.00 128.00 16.00 16.00 baffffff
+fillOval 250.00 127.00 16.00 16.00 ffb6b6b6
+fillOval 251.00 128.00 14.00 14.00 fffdfdfd
+fillOval 252.00 129.00 12.00 12.00 fff4f4f4
+text "Hover" 271.00 138.95 12.00 false ff333333
+text "Underline" 254.00 164.95 12.00 false ff008000
+fillRect 254.00 166.95 51.43 1.00 ff008000
+fillRoundRect 250.00 179.00 100.00 18.00 4.00 baffffff
+gradient 250.00 178.00 100.00 18.00 3.00 ffbbbbbb ffcfcfcf
+gradient 251.00 179.00 98.00 16.00 2.00 ffededed ffffffff
+gradient 299.00 181.00 25.00 12.00 2.00 ff008cbb ff0097c9
+fillOval 273.00 207.50 7.00 7.00 d00096c9
+fillOval 285.37 212.63 7.00 7.00 e80096c9
+fillOval 290.50 225.00 7.00 7.00 400096c9
+fillOval 285.37 237.37 7.00 7.00 580096c9
+fillOval 273.00 242.50 7.00 7.00 700096c9
+fillOval 260.63 237.37 7.00 7.00 880096c9
+fillOval 255.50 225.00 7.00 7.00 a00096c9
+fillOval 260.63 212.63 7.00 7.00 b80096c9
+fillRoundRect 254.00 266.00 132.00 6.00 3.00 baffffff
+gradient 254.00 265.00 132.00 6.00 3.00 ffbbbbbb ffcfcfcf
+gradient 255.00 266.00 130.00 4.00 2.00 ffe8e8e8 ffffffff
+fillOval 313.00 261.00 14.00 14.00 ffa0a0a0
+fillOval 314.00 262.00 12.00 12.00 fffdfdfd
+fillOval 315.00 263.00 10.00 10.00 ffd0d0d0
+fillRoundRect 400.00 80.00 80.00 30.00 0.00 ffeeeeff
+strokeRoundRect 400.00 80.00 80.00 30.00 6.00 2.00 ff3366cc
+clip 400.00 80.00 80.00 30.00
+text "clipped text that overflows" 400.00 92.95 12.00 false ff333333
+restore
+text "a label that" 410.52 128.95 12.00 false ff333333
+text "wraps onto" 410.35 145.95 12.00 false ff333333
+text "more lines" 412.46 162.95 12.00 false ff333333
+fillRect 10.00 285.00 236.00 208.00 ffc9c9c9
+fillRect 11.00 286.00 234.00 206.00 ffffffff
+gradient 16.00 291.00 224.00 26.00 3.00 fffdfdfd ffe2e2e2
+triangle 32.00 299.00 32.00 309.00 26.00 304.00 ff575757
+triangle 224.00 299.00 224.00 309.00 230.00 304.00 ff575757
+text "Fevereiro 2026" 86.39 308.45 12.00 true ff333333
+text "seg" 23.55 336.37 11.00 false ff7a7a7a
+text "ter" 57.35 336.37 11.00 false ff7a7a7a
+text "qua" 86.85 336.37 11.00 false ff7a7a7a
+text "qui" 120.32 336.37 11.00 false ff7a7a7a
+text "sex" 152.27 336.37 11.00 false ff7a7a7a
+text "sáb" 183.63 336.37 11.00 false ff7a7a7a
+text "dom" 212.80 336.37 11.00 false ff7a7a7a
+text "26" 25.53 359.45 12.00 false ffaaaaaa
+text "27" 57.53 359.45 12.00 false ffaaaaaa
+text "28" 89.53 359.45 12.00 false ffaaaaaa
+text "29" 121.53 359.45 12.00 false ffaaaaaa
+text "30" 153.53 359.45 12.00 false ffaaaaaa
+text "31" 185.53 359.45 12.00 false ffaaaaaa
+text "1" 220.77 359.45 12.00 false ff333333
+text "2" 28.77 383.45 12.00 false ff333333
+strokeRoundRect 49.00 368.00 30.00 22.00 0.00 1.00 ff0096c9
+text "3" 60.77 383.45 12.00 false ff333333
+text "4" 92.77 383.45 12.00 false ff333333
+text "5" 124.77 383.45 12.00 false ff333333
+text "6" 156.77 383.45 12.00 false ff333333
+text "7" 188.77 383.45 12.00 false ff333333
+text "8" 220.77 383.45 12.00 false ff333333
+text "9" 28.77 407.45 12.00 false ff333333
+text "10" 57.53 407.45 12.00 false ff333333
+text "11" 89.53 407.45 12.00 false ff333333
+text "12" 121.53 407.45 12.00 false ff333333
+text "13" 153.53 407.45 12.00 false ff333333
+fillRect 177.00 392.00 30.00 22.00 ff0096c9
+text "14" 185.53 407.45 12.00 false ffffffff
+text "15" 217.53 407.45 12.00 false ff333333
+text "16" 25.53 431.45 12.00 false ff333333
+text "17" 57.53 431.45 12.00 false ff333333
+text "18" 89.53 431.45 12.00 false ff333333
+text "19" 121.53 431.45 12.00 false ff333333
+text "20" 153.53 431.45 12.00 false ff333333
+text "21" 185.53 431.45 12.00 false ff333333
+text "22" 217.53 431.45 12.00 false ff333333
+text "23" 25.53 455.45 12.00 false ff333333
+text "24" 57.53 455.45 12.00 false ff333333
+text "25" 89.53 455.45 12.00 false ff333333
+text "26" 121.53 455.45 12.00 false ff333333
+text "27" 153.53 455.45 12.00 false ff333333
+text "28" 185.53 455.45 12.00 false ff333333
+text "1" 220.77 455.45 12.00 false ffaaaaaa
+text "2" 28.77 479.45 12.00 false ffaaaaaa
+text "3" 60.77 479.45 12.00 false ffaaaaaa
+text "4" 92.77 479.45 12.00 false ffaaaaaa
+text "5" 124.77 479.45 12.00 false ffaaaaaa
+text "6" 156.77 479.45 12.00 false ffaaaaaa
+text "7" 188.77 479.45 12.00 false ffaaaaaa
+text "8" 220.77 479.45 12.00 false ffaaaaaa
+fillRect 256.00 314.00 160.00 31.00 fff4f4f4
+fillRect 256.00 285.00 160.00 29.00 ffb6b6b6
+gradient 256.00 286.00 160.00 28.00 0.00 ffcfcfcf ffdedede
+fillRoundRect 261.00 290.00 48.00 27.00 3.00 ffb6b6b6
+fillRoundRect 262.00 291.00 46.00 26.00 2.00 fff4f4f4
+text "Um" 267.00 306.45 12.00 false ff333333
+line 296.00 299.00 302.00 305.00 1.50 ff575757
+line 302.00 299.00 296.00 305.00 1.50 ff575757
+fillRoundRect 309.00 290.00 36.00 27.00 3.00 ffb6b6b6
+gradient 310.00 291.00 34.00 26.00 2.00 fffdfdfd ffe2e2e2
+text "Dois" 315.00 306.45 12.00 false ff333333
+fillRect 256.00 313.00 160.00 1.00 ffb6b6b6
+fillRect 262.00 313.00 46.00 1.00 fff4f4f4
+text "conteúdo" 256.00 326.95 12.00 false ff333333
+triangle 296.00 382.50 296.00 392.50 290.00 387.50 ff575757
+fillRoundRect 306.00 375.00 20.00 25.00 3.00 ffb6b6b6
+fillRoundRect 307.00 376.00 18.00 23.00 2.00 ffffffff
+text "1" 312.77 391.95 12.00 false ff0096c9
+text "2" 332.77 391.95 12.00 false ff333333
+text "3" 352.77 391.95 12.00 false ff333333
+triangle 376.00 382.50 376.00 392.50 382.00 387.50 ff575757
+text "1/3" 327.19 408.00 12.00 false ff333333
+text "primeira" 314.00 365.95 12.00 false ff333333
+fillRect 256.00 447.00 160.00 18.00 ffc9c9c9
+gradient 257.00 447.00 158.00 5.00 0.00 ffe5e5e5 fff4f4f4
+fillRect 257.00 452.00 158.00 12.00 fff4f4f4
+fillRoundRect 256.00 422.00 160.00 25.00 3.00 ffc9c9c9
+gradient 257.00 423.00 158.00 23.00 2.00 fffdfdfd ffeaeaea
+triangle 265.00 432.00 273.00 432.00 269.00 438.00 ff575757
+text "Hover" 280.00 438.95 12.00 false ff333333
+text "corpo" 321.00 459.95 12.00 false ff333333

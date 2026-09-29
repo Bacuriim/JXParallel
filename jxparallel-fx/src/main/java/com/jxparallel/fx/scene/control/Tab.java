@@ -17,21 +17,21 @@ public class Tab implements com.jxparallel.fx.event.EventTarget, com.jxparallel.
 
     @Override
     public boolean equals(Object o) {
-        return o == this || fxPeer.equals(com.jxparallel.fx.Fx.fx(o));
+        return o == this || fxPeer().equals(com.jxparallel.fx.Fx.fx(o));
     }
 
     @Override
     public int hashCode() {
-        return fxPeer.hashCode();
+        return fxPeer().hashCode();
     }
 
     @Override
     public String toString() {
-        return fxPeer.toString();
+        return fxPeer().toString();
     }
 
-    public Tab(java.lang.String arg0, com.jxparallel.fx.scene.Node arg1) {
-        this(com.jxparallel.fx.Fx.WRAP, com.jxparallel.fx.Fx.NATIVE ? com.jxparallel.fx.nativeimpl.Native.create(javafx.scene.control.Tab.class, new String[] {null, null}, new Object[] {arg0, arg1}) : new com.jxparallel.fx.peer.scene.control.Tab(arg0, (javafx.scene.Node) com.jxparallel.fx.Fx.fx(arg1)));
+    public Tab() {
+        this(com.jxparallel.fx.Fx.WRAP, com.jxparallel.fx.Fx.NATIVE ? com.jxparallel.fx.nativeimpl.Native.create(javafx.scene.control.Tab.class, new String[] {}, new Object[] {}) : new com.jxparallel.fx.peer.scene.control.Tab());
         com.jxparallel.fx.Fx.own(fxPeer(), this);
     }
 
@@ -40,8 +40,8 @@ public class Tab implements com.jxparallel.fx.event.EventTarget, com.jxparallel.
         com.jxparallel.fx.Fx.own(fxPeer(), this);
     }
 
-    public Tab() {
-        this(com.jxparallel.fx.Fx.WRAP, com.jxparallel.fx.Fx.NATIVE ? com.jxparallel.fx.nativeimpl.Native.create(javafx.scene.control.Tab.class, new String[] {}, new Object[] {}) : new com.jxparallel.fx.peer.scene.control.Tab());
+    public Tab(java.lang.String arg0, com.jxparallel.fx.scene.Node arg1) {
+        this(com.jxparallel.fx.Fx.WRAP, com.jxparallel.fx.Fx.NATIVE ? com.jxparallel.fx.nativeimpl.Native.create(javafx.scene.control.Tab.class, new String[] {null, null}, new Object[] {arg0, arg1}) : new com.jxparallel.fx.peer.scene.control.Tab(arg0, (javafx.scene.Node) com.jxparallel.fx.Fx.fx(arg1)));
         com.jxparallel.fx.Fx.own(fxPeer(), this);
     }
 

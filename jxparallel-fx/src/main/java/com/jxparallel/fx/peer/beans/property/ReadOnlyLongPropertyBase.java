@@ -20,11 +20,11 @@ public class ReadOnlyLongPropertyBase extends javafx.beans.property.ReadOnlyLong
     }
 
     @Override
-    public long get() {
+    public java.lang.Object getBean() {
         if (jxOwner == null) {
-            throw new IllegalStateException("get before the JX object exists");
+            throw new IllegalStateException("getBean before the JX object exists");
         }
-        return (Long) com.jxparallel.fx.Fx.fx(com.jxparallel.fx.beans.property.ReadOnlyLongPropertyBase.$hook(jxOwner, "get()", new Object[] {}));
+        return (java.lang.Object) com.jxparallel.fx.Fx.fx(com.jxparallel.fx.beans.property.ReadOnlyLongPropertyBase.$hook(jxOwner, "getBean()", new Object[] {}));
     }
 
     @Override
@@ -36,11 +36,11 @@ public class ReadOnlyLongPropertyBase extends javafx.beans.property.ReadOnlyLong
     }
 
     @Override
-    public java.lang.Object getBean() {
+    public long get() {
         if (jxOwner == null) {
-            throw new IllegalStateException("getBean before the JX object exists");
+            throw new IllegalStateException("get before the JX object exists");
         }
-        return (java.lang.Object) com.jxparallel.fx.Fx.fx(com.jxparallel.fx.beans.property.ReadOnlyLongPropertyBase.$hook(jxOwner, "getBean()", new Object[] {}));
+        return (Long) com.jxparallel.fx.Fx.fx(com.jxparallel.fx.beans.property.ReadOnlyLongPropertyBase.$hook(jxOwner, "get()", new Object[] {}));
     }
 
     @Override

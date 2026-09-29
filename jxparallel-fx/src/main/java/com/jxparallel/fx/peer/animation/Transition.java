@@ -5,12 +5,12 @@ package com.jxparallel.fx.peer.animation;
 public class Transition extends javafx.animation.Transition implements com.jxparallel.fx.Fx.Owned {
     private Object jxOwner;
 
-    public Transition(double arg0) {
-        super(arg0);
-    }
-
     public Transition() {
         super();
+    }
+
+    public Transition(double arg0) {
+        super(arg0);
     }
 
     @Override

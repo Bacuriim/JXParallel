@@ -16,17 +16,17 @@ public final class WeakEventHandler<T extends com.jxparallel.fx.event.Event> imp
 
     @Override
     public boolean equals(Object o) {
-        return o == this || fxPeer.equals(com.jxparallel.fx.Fx.fx(o));
+        return o == this || fxPeer().equals(com.jxparallel.fx.Fx.fx(o));
     }
 
     @Override
     public int hashCode() {
-        return fxPeer.hashCode();
+        return fxPeer().hashCode();
     }
 
     @Override
     public String toString() {
-        return fxPeer.toString();
+        return fxPeer().toString();
     }
 
     public WeakEventHandler(@javafx.beans.NamedArg(value = "eventHandler") com.jxparallel.fx.event.EventHandler<T> arg0) {

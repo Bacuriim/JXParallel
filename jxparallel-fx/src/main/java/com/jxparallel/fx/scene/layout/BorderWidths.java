@@ -16,26 +16,26 @@ public final class BorderWidths implements com.jxparallel.fx.Fx.Backed {
 
     @Override
     public boolean equals(Object o) {
-        return o == this || fxPeer.equals(com.jxparallel.fx.Fx.fx(o));
+        return o == this || fxPeer().equals(com.jxparallel.fx.Fx.fx(o));
     }
 
     @Override
     public int hashCode() {
-        return fxPeer.hashCode();
+        return fxPeer().hashCode();
     }
 
     @Override
     public String toString() {
-        return fxPeer.toString();
-    }
-
-    public BorderWidths(@javafx.beans.NamedArg(value = "top") double arg0, @javafx.beans.NamedArg(value = "right") double arg1, @javafx.beans.NamedArg(value = "bottom") double arg2, @javafx.beans.NamedArg(value = "left") double arg3) {
-        this(com.jxparallel.fx.Fx.WRAP, new javafx.scene.layout.BorderWidths(arg0, arg1, arg2, arg3));
-        com.jxparallel.fx.Fx.own(fxPeer(), this);
+        return fxPeer().toString();
     }
 
     public BorderWidths(@javafx.beans.NamedArg(value = "width") double arg0) {
         this(com.jxparallel.fx.Fx.WRAP, new javafx.scene.layout.BorderWidths(arg0));
+        com.jxparallel.fx.Fx.own(fxPeer(), this);
+    }
+
+    public BorderWidths(@javafx.beans.NamedArg(value = "top") double arg0, @javafx.beans.NamedArg(value = "right") double arg1, @javafx.beans.NamedArg(value = "bottom") double arg2, @javafx.beans.NamedArg(value = "left") double arg3) {
+        this(com.jxparallel.fx.Fx.WRAP, new javafx.scene.layout.BorderWidths(arg0, arg1, arg2, arg3));
         com.jxparallel.fx.Fx.own(fxPeer(), this);
     }
 

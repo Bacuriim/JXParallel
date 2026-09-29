@@ -7,13 +7,8 @@ public class RowConstraints extends com.jxparallel.fx.scene.layout.ConstraintsBa
         super(wrap, peer);
     }
 
-    public RowConstraints(double arg0, double arg1, double arg2, com.jxparallel.fx.scene.layout.Priority arg3, com.jxparallel.fx.geometry.VPos arg4, boolean arg5) {
-        this(com.jxparallel.fx.Fx.WRAP, new com.jxparallel.fx.peer.scene.layout.RowConstraints(arg0, arg1, arg2, (javafx.scene.layout.Priority) com.jxparallel.fx.Fx.fx(arg3), (javafx.geometry.VPos) com.jxparallel.fx.Fx.fx(arg4), arg5));
-        com.jxparallel.fx.Fx.own(fxPeer(), this);
-    }
-
-    public RowConstraints(double arg0, double arg1, double arg2) {
-        this(com.jxparallel.fx.Fx.WRAP, new com.jxparallel.fx.peer.scene.layout.RowConstraints(arg0, arg1, arg2));
+    public RowConstraints() {
+        this(com.jxparallel.fx.Fx.WRAP, new com.jxparallel.fx.peer.scene.layout.RowConstraints());
         com.jxparallel.fx.Fx.own(fxPeer(), this);
     }
 
@@ -22,8 +17,13 @@ public class RowConstraints extends com.jxparallel.fx.scene.layout.ConstraintsBa
         com.jxparallel.fx.Fx.own(fxPeer(), this);
     }
 
-    public RowConstraints() {
-        this(com.jxparallel.fx.Fx.WRAP, new com.jxparallel.fx.peer.scene.layout.RowConstraints());
+    public RowConstraints(double arg0, double arg1, double arg2) {
+        this(com.jxparallel.fx.Fx.WRAP, new com.jxparallel.fx.peer.scene.layout.RowConstraints(arg0, arg1, arg2));
+        com.jxparallel.fx.Fx.own(fxPeer(), this);
+    }
+
+    public RowConstraints(double arg0, double arg1, double arg2, com.jxparallel.fx.scene.layout.Priority arg3, com.jxparallel.fx.geometry.VPos arg4, boolean arg5) {
+        this(com.jxparallel.fx.Fx.WRAP, new com.jxparallel.fx.peer.scene.layout.RowConstraints(arg0, arg1, arg2, (javafx.scene.layout.Priority) com.jxparallel.fx.Fx.fx(arg3), (javafx.geometry.VPos) com.jxparallel.fx.Fx.fx(arg4), arg5));
         com.jxparallel.fx.Fx.own(fxPeer(), this);
     }
 

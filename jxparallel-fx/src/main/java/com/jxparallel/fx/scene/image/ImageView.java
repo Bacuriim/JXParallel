@@ -8,8 +8,8 @@ public class ImageView extends com.jxparallel.fx.scene.Node {
         super(wrap, peer);
     }
 
-    public ImageView(com.jxparallel.fx.scene.image.Image arg0) {
-        this(com.jxparallel.fx.Fx.WRAP, com.jxparallel.fx.Fx.NATIVE ? com.jxparallel.fx.nativeimpl.Native.create(javafx.scene.image.ImageView.class, new String[] {null}, new Object[] {arg0}) : new com.jxparallel.fx.peer.scene.image.ImageView((javafx.scene.image.Image) com.jxparallel.fx.Fx.fx(arg0)));
+    public ImageView() {
+        this(com.jxparallel.fx.Fx.WRAP, com.jxparallel.fx.Fx.NATIVE ? com.jxparallel.fx.nativeimpl.Native.create(javafx.scene.image.ImageView.class, new String[] {}, new Object[] {}) : new com.jxparallel.fx.peer.scene.image.ImageView());
         com.jxparallel.fx.Fx.own(fxPeer(), this);
     }
 
@@ -18,8 +18,8 @@ public class ImageView extends com.jxparallel.fx.scene.Node {
         com.jxparallel.fx.Fx.own(fxPeer(), this);
     }
 
-    public ImageView() {
-        this(com.jxparallel.fx.Fx.WRAP, com.jxparallel.fx.Fx.NATIVE ? com.jxparallel.fx.nativeimpl.Native.create(javafx.scene.image.ImageView.class, new String[] {}, new Object[] {}) : new com.jxparallel.fx.peer.scene.image.ImageView());
+    public ImageView(com.jxparallel.fx.scene.image.Image arg0) {
+        this(com.jxparallel.fx.Fx.WRAP, com.jxparallel.fx.Fx.NATIVE ? com.jxparallel.fx.nativeimpl.Native.create(javafx.scene.image.ImageView.class, new String[] {null}, new Object[] {arg0}) : new com.jxparallel.fx.peer.scene.image.ImageView((javafx.scene.image.Image) com.jxparallel.fx.Fx.fx(arg0)));
         com.jxparallel.fx.Fx.own(fxPeer(), this);
     }
 

@@ -9,7 +9,7 @@ public class VBox extends javafx.scene.layout.VBox implements com.jxparallel.fx.
         super();
     }
 
-    public VBox(javafx.scene.Node... arg0) {
+    public VBox(double arg0) {
         super(arg0);
     }
 
@@ -17,7 +17,7 @@ public class VBox extends javafx.scene.layout.VBox implements com.jxparallel.fx.
         super(arg0, arg1);
     }
 
-    public VBox(double arg0) {
+    public VBox(javafx.scene.Node... arg0) {
         super(arg0);
     }
 

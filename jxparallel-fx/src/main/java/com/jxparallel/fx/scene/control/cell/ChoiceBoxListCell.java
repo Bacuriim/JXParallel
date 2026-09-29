@@ -18,13 +18,13 @@ public class ChoiceBoxListCell<T> extends com.jxparallel.fx.scene.control.ListCe
         com.jxparallel.fx.Fx.own(fxPeer(), this);
     }
 
-    public ChoiceBoxListCell(com.jxparallel.fx.util.StringConverter<T> arg0, T... arg1) {
-        this(com.jxparallel.fx.Fx.WRAP, com.jxparallel.fx.Fx.NATIVE ? com.jxparallel.fx.nativeimpl.Native.create(javafx.scene.control.cell.ChoiceBoxListCell.class, new String[] {null, null}, new Object[] {arg0, arg1}) : new com.jxparallel.fx.peer.scene.control.cell.ChoiceBoxListCell((javafx.util.StringConverter) com.jxparallel.fx.Fx.fx(arg0), (T[]) com.jxparallel.fx.Fx.fxArray(arg1, java.lang.Object.class)));
+    public ChoiceBoxListCell(com.jxparallel.fx.collections.ObservableList<T> arg0) {
+        this(com.jxparallel.fx.Fx.WRAP, com.jxparallel.fx.Fx.NATIVE ? com.jxparallel.fx.nativeimpl.Native.create(javafx.scene.control.cell.ChoiceBoxListCell.class, new String[] {null}, new Object[] {arg0}) : new com.jxparallel.fx.peer.scene.control.cell.ChoiceBoxListCell((javafx.collections.ObservableList) com.jxparallel.fx.Fx.fx(arg0)));
         com.jxparallel.fx.Fx.own(fxPeer(), this);
     }
 
-    public ChoiceBoxListCell(com.jxparallel.fx.collections.ObservableList<T> arg0) {
-        this(com.jxparallel.fx.Fx.WRAP, com.jxparallel.fx.Fx.NATIVE ? com.jxparallel.fx.nativeimpl.Native.create(javafx.scene.control.cell.ChoiceBoxListCell.class, new String[] {null}, new Object[] {arg0}) : new com.jxparallel.fx.peer.scene.control.cell.ChoiceBoxListCell((javafx.collections.ObservableList) com.jxparallel.fx.Fx.fx(arg0)));
+    public ChoiceBoxListCell(com.jxparallel.fx.util.StringConverter<T> arg0, T... arg1) {
+        this(com.jxparallel.fx.Fx.WRAP, com.jxparallel.fx.Fx.NATIVE ? com.jxparallel.fx.nativeimpl.Native.create(javafx.scene.control.cell.ChoiceBoxListCell.class, new String[] {null, null}, new Object[] {arg0, arg1}) : new com.jxparallel.fx.peer.scene.control.cell.ChoiceBoxListCell((javafx.util.StringConverter) com.jxparallel.fx.Fx.fx(arg0), (T[]) com.jxparallel.fx.Fx.fxArray(arg1, java.lang.Object.class)));
         com.jxparallel.fx.Fx.own(fxPeer(), this);
     }
 
@@ -131,14 +131,14 @@ public class ChoiceBoxListCell<T> extends com.jxparallel.fx.scene.control.ListCe
         ChoiceBoxListCell jx = (ChoiceBoxListCell) self;
         try {
         switch (method) {
-            case "updateItem(Object,boolean)":
-                jx.updateItem((java.lang.Object) a[0], (Boolean) a[1]);
-                return null;
             case "cancelEdit()":
                 jx.cancelEdit();
                 return null;
             case "startEdit()":
                 jx.startEdit();
+                return null;
+            case "updateItem(Object,boolean)":
+                jx.updateItem((java.lang.Object) a[0], (Boolean) a[1]);
                 return null;
             case "commitEdit(Object)":
                 jx.commitEdit((java.lang.Object) a[0]);

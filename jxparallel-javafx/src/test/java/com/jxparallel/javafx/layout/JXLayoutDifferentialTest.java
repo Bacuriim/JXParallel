@@ -302,7 +302,15 @@ class JXLayoutDifferentialTest {
                 .as((children, cells, columns, rows, hgap, vgap, alignment) -> {
                     List<Spec> placed = new ArrayList<Spec>();
                     for (int i = 0; i < children.size(); i++) {
-                        placed.add(children.get(i).with(cells.get(i)));
+                        Map<String, Object> placement = new LinkedHashMap<String, Object>(cells.get(i));
+                        // known divergence (see JXGridLayout): a child spanning a fixed (USE_PREF_SIZE) track
+                        if (spansFixed(columns, (Integer) placement.get("column"), (Integer) placement.get("columnSpan"))) {
+                            placement.put("columnSpan", 1);
+                        }
+                        if (spansFixed(rows, (Integer) placement.get("row"), (Integer) placement.get("rowSpan"))) {
+                            placement.put("rowSpan", 1);
+                        }
+                        placed.add(children.get(i).with(placement));
                     }
                     Map<String, Object> props = new LinkedHashMap<String, Object>();
                     props.put("hgap", hgap);
@@ -313,6 +321,22 @@ class JXLayoutDifferentialTest {
                     return new Spec("grid", props, placed);
                 })
                 .flatMap(spec -> extras().map(spec::with));
+    }
+
+    /** True if a span of more than one track covers a track whose min is USE_PREF_SIZE. */
+    private static boolean spansFixed(List<Map<String, Object>> tracks, int start, int span) {
+        if (span == 1) {
+            return false;
+        }
+        int end = span == Integer.MAX_VALUE ? tracks.size() : Math.min(tracks.size(), start + span);
+        for (int i = start; i < end; i++) {
+            for (Object v : tracks.get(i).values()) {
+                if (v instanceof Double && ((Double) v) == Double.NEGATIVE_INFINITY) {
+                    return true;
+                }
+            }
+        }
+        return false;
     }
 
     /** Column or row constraints, each value set sometimes; percents stay small so they rarely pass 100. */
@@ -340,7 +364,15 @@ class JXLayoutDifferentialTest {
                     }
                     return constraint;
                 });
-        return one.list().ofMaxSize(4);
+        // sometimes a fixed size, as new ColumnConstraints(w) / RowConstraints(h) make: min and max USE_PREF_SIZE
+        Arbitrary<Map<String, Object>> fixed = Arbitraries.integers().between(0, 150).map(size -> {
+            Map<String, Object> constraint = new LinkedHashMap<String, Object>();
+            constraint.put("min" + axis, Double.NEGATIVE_INFINITY);
+            constraint.put("pref" + axis, size);
+            constraint.put("max" + axis, Double.NEGATIVE_INFINITY);
+            return constraint;
+        });
+        return Arbitraries.frequencyOf(Tuple.of(4, one), Tuple.of(1, fixed)).list().ofMaxSize(4);
     }
 
     private static void putIfSet(Map<String, Object> props, String key, int value) {

@@ -7,13 +7,13 @@ public final class PauseTransition extends com.jxparallel.fx.animation.Transitio
         super(wrap, peer);
     }
 
-    public PauseTransition(com.jxparallel.fx.util.Duration arg0) {
-        this(com.jxparallel.fx.Fx.WRAP, new javafx.animation.PauseTransition((javafx.util.Duration) com.jxparallel.fx.Fx.fx(arg0)));
+    public PauseTransition() {
+        this(com.jxparallel.fx.Fx.WRAP, new javafx.animation.PauseTransition());
         com.jxparallel.fx.Fx.own(fxPeer(), this);
     }
 
-    public PauseTransition() {
-        this(com.jxparallel.fx.Fx.WRAP, new javafx.animation.PauseTransition());
+    public PauseTransition(com.jxparallel.fx.util.Duration arg0) {
+        this(com.jxparallel.fx.Fx.WRAP, new javafx.animation.PauseTransition((javafx.util.Duration) com.jxparallel.fx.Fx.fx(arg0)));
         com.jxparallel.fx.Fx.own(fxPeer(), this);
     }
 

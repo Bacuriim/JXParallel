@@ -7,8 +7,8 @@ public class RadioMenuItem extends com.jxparallel.fx.scene.control.MenuItem impl
         super(wrap, peer);
     }
 
-    public RadioMenuItem(java.lang.String arg0, com.jxparallel.fx.scene.Node arg1) {
-        this(com.jxparallel.fx.Fx.WRAP, com.jxparallel.fx.Fx.NATIVE ? com.jxparallel.fx.nativeimpl.Native.create(javafx.scene.control.RadioMenuItem.class, new String[] {null, null}, new Object[] {arg0, arg1}) : new com.jxparallel.fx.peer.scene.control.RadioMenuItem(arg0, (javafx.scene.Node) com.jxparallel.fx.Fx.fx(arg1)));
+    public RadioMenuItem() {
+        this(com.jxparallel.fx.Fx.WRAP, com.jxparallel.fx.Fx.NATIVE ? com.jxparallel.fx.nativeimpl.Native.create(javafx.scene.control.RadioMenuItem.class, new String[] {}, new Object[] {}) : new com.jxparallel.fx.peer.scene.control.RadioMenuItem());
         com.jxparallel.fx.Fx.own(fxPeer(), this);
     }
 
@@ -17,8 +17,8 @@ public class RadioMenuItem extends com.jxparallel.fx.scene.control.MenuItem impl
         com.jxparallel.fx.Fx.own(fxPeer(), this);
     }
 
-    public RadioMenuItem() {
-        this(com.jxparallel.fx.Fx.WRAP, com.jxparallel.fx.Fx.NATIVE ? com.jxparallel.fx.nativeimpl.Native.create(javafx.scene.control.RadioMenuItem.class, new String[] {}, new Object[] {}) : new com.jxparallel.fx.peer.scene.control.RadioMenuItem());
+    public RadioMenuItem(java.lang.String arg0, com.jxparallel.fx.scene.Node arg1) {
+        this(com.jxparallel.fx.Fx.WRAP, com.jxparallel.fx.Fx.NATIVE ? com.jxparallel.fx.nativeimpl.Native.create(javafx.scene.control.RadioMenuItem.class, new String[] {null, null}, new Object[] {arg0, arg1}) : new com.jxparallel.fx.peer.scene.control.RadioMenuItem(arg0, (javafx.scene.Node) com.jxparallel.fx.Fx.fx(arg1)));
         com.jxparallel.fx.Fx.own(fxPeer(), this);
     }
 

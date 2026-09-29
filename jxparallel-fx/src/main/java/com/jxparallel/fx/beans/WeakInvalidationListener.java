@@ -16,17 +16,17 @@ public final class WeakInvalidationListener implements com.jxparallel.fx.beans.I
 
     @Override
     public boolean equals(Object o) {
-        return o == this || fxPeer.equals(com.jxparallel.fx.Fx.fx(o));
+        return o == this || fxPeer().equals(com.jxparallel.fx.Fx.fx(o));
     }
 
     @Override
     public int hashCode() {
-        return fxPeer.hashCode();
+        return fxPeer().hashCode();
     }
 
     @Override
     public String toString() {
-        return fxPeer.toString();
+        return fxPeer().toString();
     }
 
     public WeakInvalidationListener(@javafx.beans.NamedArg(value = "listener") com.jxparallel.fx.beans.InvalidationListener arg0) {

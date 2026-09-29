@@ -5,6 +5,10 @@ package com.jxparallel.fx.peer.scene.control;
 public class TextFormatter<V> extends javafx.scene.control.TextFormatter<V> implements com.jxparallel.fx.Fx.Owned {
     private Object jxOwner;
 
+    public TextFormatter(@javafx.beans.NamedArg(value = "filter") java.util.function.UnaryOperator<javafx.scene.control.TextFormatter.Change> arg0) {
+        super(arg0);
+    }
+
     public TextFormatter(@javafx.beans.NamedArg(value = "valueConverter") javafx.util.StringConverter<V> arg0) {
         super(arg0);
     }
@@ -15,10 +19,6 @@ public class TextFormatter<V> extends javafx.scene.control.TextFormatter<V> impl
 
     public TextFormatter(@javafx.beans.NamedArg(value = "valueConverter") javafx.util.StringConverter<V> arg0, @javafx.beans.NamedArg(value = "defaultValue") V arg1, @javafx.beans.NamedArg(value = "filter") java.util.function.UnaryOperator<javafx.scene.control.TextFormatter.Change> arg2) {
         super(arg0, arg1, arg2);
-    }
-
-    public TextFormatter(@javafx.beans.NamedArg(value = "filter") java.util.function.UnaryOperator<javafx.scene.control.TextFormatter.Change> arg0) {
-        super(arg0);
     }
 
     @Override

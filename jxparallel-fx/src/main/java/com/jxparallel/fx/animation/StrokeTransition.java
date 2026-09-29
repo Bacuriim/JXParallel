@@ -7,13 +7,13 @@ public final class StrokeTransition extends com.jxparallel.fx.animation.Transiti
         super(wrap, peer);
     }
 
-    public StrokeTransition(com.jxparallel.fx.util.Duration arg0) {
-        this(com.jxparallel.fx.Fx.WRAP, com.jxparallel.fx.Fx.NATIVE ? com.jxparallel.fx.nativeimpl.Native.create(javafx.animation.StrokeTransition.class, new String[] {null}, new Object[] {arg0}) : new javafx.animation.StrokeTransition((javafx.util.Duration) com.jxparallel.fx.Fx.fx(arg0)));
+    public StrokeTransition() {
+        this(com.jxparallel.fx.Fx.WRAP, com.jxparallel.fx.Fx.NATIVE ? com.jxparallel.fx.nativeimpl.Native.create(javafx.animation.StrokeTransition.class, new String[] {}, new Object[] {}) : new javafx.animation.StrokeTransition());
         com.jxparallel.fx.Fx.own(fxPeer(), this);
     }
 
-    public StrokeTransition() {
-        this(com.jxparallel.fx.Fx.WRAP, com.jxparallel.fx.Fx.NATIVE ? com.jxparallel.fx.nativeimpl.Native.create(javafx.animation.StrokeTransition.class, new String[] {}, new Object[] {}) : new javafx.animation.StrokeTransition());
+    public StrokeTransition(com.jxparallel.fx.util.Duration arg0) {
+        this(com.jxparallel.fx.Fx.WRAP, com.jxparallel.fx.Fx.NATIVE ? com.jxparallel.fx.nativeimpl.Native.create(javafx.animation.StrokeTransition.class, new String[] {null}, new Object[] {arg0}) : new javafx.animation.StrokeTransition((javafx.util.Duration) com.jxparallel.fx.Fx.fx(arg0)));
         com.jxparallel.fx.Fx.own(fxPeer(), this);
     }
 
@@ -22,13 +22,13 @@ public final class StrokeTransition extends com.jxparallel.fx.animation.Transiti
         com.jxparallel.fx.Fx.own(fxPeer(), this);
     }
 
-    public StrokeTransition(com.jxparallel.fx.util.Duration arg0, com.jxparallel.fx.scene.shape.Shape arg1, com.jxparallel.fx.scene.paint.Color arg2, com.jxparallel.fx.scene.paint.Color arg3) {
-        this(com.jxparallel.fx.Fx.WRAP, com.jxparallel.fx.Fx.NATIVE ? com.jxparallel.fx.nativeimpl.Native.create(javafx.animation.StrokeTransition.class, new String[] {null, null, null, null}, new Object[] {arg0, arg1, arg2, arg3}) : new javafx.animation.StrokeTransition((javafx.util.Duration) com.jxparallel.fx.Fx.fx(arg0), (javafx.scene.shape.Shape) com.jxparallel.fx.Fx.fx(arg1), (javafx.scene.paint.Color) com.jxparallel.fx.Fx.fx(arg2), (javafx.scene.paint.Color) com.jxparallel.fx.Fx.fx(arg3)));
+    public StrokeTransition(com.jxparallel.fx.util.Duration arg0, com.jxparallel.fx.scene.shape.Shape arg1) {
+        this(com.jxparallel.fx.Fx.WRAP, com.jxparallel.fx.Fx.NATIVE ? com.jxparallel.fx.nativeimpl.Native.create(javafx.animation.StrokeTransition.class, new String[] {null, null}, new Object[] {arg0, arg1}) : new javafx.animation.StrokeTransition((javafx.util.Duration) com.jxparallel.fx.Fx.fx(arg0), (javafx.scene.shape.Shape) com.jxparallel.fx.Fx.fx(arg1)));
         com.jxparallel.fx.Fx.own(fxPeer(), this);
     }
 
-    public StrokeTransition(com.jxparallel.fx.util.Duration arg0, com.jxparallel.fx.scene.shape.Shape arg1) {
-        this(com.jxparallel.fx.Fx.WRAP, com.jxparallel.fx.Fx.NATIVE ? com.jxparallel.fx.nativeimpl.Native.create(javafx.animation.StrokeTransition.class, new String[] {null, null}, new Object[] {arg0, arg1}) : new javafx.animation.StrokeTransition((javafx.util.Duration) com.jxparallel.fx.Fx.fx(arg0), (javafx.scene.shape.Shape) com.jxparallel.fx.Fx.fx(arg1)));
+    public StrokeTransition(com.jxparallel.fx.util.Duration arg0, com.jxparallel.fx.scene.shape.Shape arg1, com.jxparallel.fx.scene.paint.Color arg2, com.jxparallel.fx.scene.paint.Color arg3) {
+        this(com.jxparallel.fx.Fx.WRAP, com.jxparallel.fx.Fx.NATIVE ? com.jxparallel.fx.nativeimpl.Native.create(javafx.animation.StrokeTransition.class, new String[] {null, null, null, null}, new Object[] {arg0, arg1, arg2, arg3}) : new javafx.animation.StrokeTransition((javafx.util.Duration) com.jxparallel.fx.Fx.fx(arg0), (javafx.scene.shape.Shape) com.jxparallel.fx.Fx.fx(arg1), (javafx.scene.paint.Color) com.jxparallel.fx.Fx.fx(arg2), (javafx.scene.paint.Color) com.jxparallel.fx.Fx.fx(arg3)));
         com.jxparallel.fx.Fx.own(fxPeer(), this);
     }
 

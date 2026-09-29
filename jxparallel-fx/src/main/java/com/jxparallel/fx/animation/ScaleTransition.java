@@ -7,6 +7,11 @@ public final class ScaleTransition extends com.jxparallel.fx.animation.Transitio
         super(wrap, peer);
     }
 
+    public ScaleTransition() {
+        this(com.jxparallel.fx.Fx.WRAP, com.jxparallel.fx.Fx.NATIVE ? com.jxparallel.fx.nativeimpl.Native.create(javafx.animation.ScaleTransition.class, new String[] {}, new Object[] {}) : new javafx.animation.ScaleTransition());
+        com.jxparallel.fx.Fx.own(fxPeer(), this);
+    }
+
     public ScaleTransition(com.jxparallel.fx.util.Duration arg0) {
         this(com.jxparallel.fx.Fx.WRAP, com.jxparallel.fx.Fx.NATIVE ? com.jxparallel.fx.nativeimpl.Native.create(javafx.animation.ScaleTransition.class, new String[] {null}, new Object[] {arg0}) : new javafx.animation.ScaleTransition((javafx.util.Duration) com.jxparallel.fx.Fx.fx(arg0)));
         com.jxparallel.fx.Fx.own(fxPeer(), this);
@@ -14,11 +19,6 @@ public final class ScaleTransition extends com.jxparallel.fx.animation.Transitio
 
     public ScaleTransition(com.jxparallel.fx.util.Duration arg0, com.jxparallel.fx.scene.Node arg1) {
         this(com.jxparallel.fx.Fx.WRAP, com.jxparallel.fx.Fx.NATIVE ? com.jxparallel.fx.nativeimpl.Native.create(javafx.animation.ScaleTransition.class, new String[] {null, null}, new Object[] {arg0, arg1}) : new javafx.animation.ScaleTransition((javafx.util.Duration) com.jxparallel.fx.Fx.fx(arg0), (javafx.scene.Node) com.jxparallel.fx.Fx.fx(arg1)));
-        com.jxparallel.fx.Fx.own(fxPeer(), this);
-    }
-
-    public ScaleTransition() {
-        this(com.jxparallel.fx.Fx.WRAP, com.jxparallel.fx.Fx.NATIVE ? com.jxparallel.fx.nativeimpl.Native.create(javafx.animation.ScaleTransition.class, new String[] {}, new Object[] {}) : new javafx.animation.ScaleTransition());
         com.jxparallel.fx.Fx.own(fxPeer(), this);
     }
 

@@ -16,37 +16,28 @@ public class SnapshotResult implements com.jxparallel.fx.Fx.Backed {
 
     @Override
     public boolean equals(Object o) {
-        return o == this || fxPeer.equals(com.jxparallel.fx.Fx.fx(o));
+        return o == this || fxPeer().equals(com.jxparallel.fx.Fx.fx(o));
     }
 
     @Override
     public int hashCode() {
-        return fxPeer.hashCode();
+        return fxPeer().hashCode();
     }
 
     @Override
     public String toString() {
-        return fxPeer.toString();
+        return fxPeer().toString();
     }
 
     public com.jxparallel.fx.scene.image.WritableImage getImage() {
-        if (com.jxparallel.fx.Fx.NATIVE) {
-            return (com.jxparallel.fx.scene.image.WritableImage) com.jxparallel.fx.nativeimpl.Native.call(this, com.jxparallel.fx.scene.SnapshotResult.class, "getImage", new Class<?>[] {}, com.jxparallel.fx.scene.image.WritableImage.class);
-        }
         return (com.jxparallel.fx.scene.image.WritableImage) com.jxparallel.fx.Fx.jx(((javafx.scene.SnapshotResult) fxPeer()).getImage());
     }
 
     public com.jxparallel.fx.scene.SnapshotParameters getSnapshotParameters() {
-        if (com.jxparallel.fx.Fx.NATIVE) {
-            return (com.jxparallel.fx.scene.SnapshotParameters) com.jxparallel.fx.nativeimpl.Native.call(this, com.jxparallel.fx.scene.SnapshotResult.class, "getSnapshotParameters", new Class<?>[] {}, com.jxparallel.fx.scene.SnapshotParameters.class);
-        }
         return (com.jxparallel.fx.scene.SnapshotParameters) com.jxparallel.fx.Fx.jx(((javafx.scene.SnapshotResult) fxPeer()).getSnapshotParameters());
     }
 
     public java.lang.Object getSource() {
-        if (com.jxparallel.fx.Fx.NATIVE) {
-            return (java.lang.Object) com.jxparallel.fx.nativeimpl.Native.call(this, com.jxparallel.fx.scene.SnapshotResult.class, "getSource", new Class<?>[] {}, java.lang.Object.class);
-        }
         return (java.lang.Object) com.jxparallel.fx.Fx.jx(((javafx.scene.SnapshotResult) fxPeer()).getSource());
     }
 }

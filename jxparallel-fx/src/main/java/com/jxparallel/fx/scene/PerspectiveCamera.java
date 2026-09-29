@@ -7,13 +7,13 @@ public class PerspectiveCamera extends com.jxparallel.fx.scene.Camera {
         super(wrap, peer);
     }
 
-    public PerspectiveCamera(boolean arg0) {
-        this(com.jxparallel.fx.Fx.WRAP, com.jxparallel.fx.Fx.NATIVE ? com.jxparallel.fx.nativeimpl.Native.create(javafx.scene.PerspectiveCamera.class, new String[] {null}, new Object[] {arg0}) : new com.jxparallel.fx.peer.scene.PerspectiveCamera(arg0));
+    public PerspectiveCamera() {
+        this(com.jxparallel.fx.Fx.WRAP, com.jxparallel.fx.Fx.NATIVE ? com.jxparallel.fx.nativeimpl.Native.create(javafx.scene.PerspectiveCamera.class, new String[] {}, new Object[] {}) : new com.jxparallel.fx.peer.scene.PerspectiveCamera());
         com.jxparallel.fx.Fx.own(fxPeer(), this);
     }
 
-    public PerspectiveCamera() {
-        this(com.jxparallel.fx.Fx.WRAP, com.jxparallel.fx.Fx.NATIVE ? com.jxparallel.fx.nativeimpl.Native.create(javafx.scene.PerspectiveCamera.class, new String[] {}, new Object[] {}) : new com.jxparallel.fx.peer.scene.PerspectiveCamera());
+    public PerspectiveCamera(boolean arg0) {
+        this(com.jxparallel.fx.Fx.WRAP, com.jxparallel.fx.Fx.NATIVE ? com.jxparallel.fx.nativeimpl.Native.create(javafx.scene.PerspectiveCamera.class, new String[] {null}, new Object[] {arg0}) : new com.jxparallel.fx.peer.scene.PerspectiveCamera(arg0));
         com.jxparallel.fx.Fx.own(fxPeer(), this);
     }
 

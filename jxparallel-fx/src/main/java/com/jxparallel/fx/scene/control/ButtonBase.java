@@ -8,8 +8,8 @@ public class ButtonBase extends com.jxparallel.fx.scene.control.Labeled {
         super(wrap, peer);
     }
 
-    public ButtonBase(java.lang.String arg0, com.jxparallel.fx.scene.Node arg1) {
-        this(com.jxparallel.fx.Fx.WRAP, com.jxparallel.fx.Fx.NATIVE ? com.jxparallel.fx.nativeimpl.Native.create(javafx.scene.control.ButtonBase.class, new String[] {null, null}, new Object[] {arg0, arg1}) : new com.jxparallel.fx.peer.scene.control.ButtonBase(arg0, (javafx.scene.Node) com.jxparallel.fx.Fx.fx(arg1)));
+    public ButtonBase() {
+        this(com.jxparallel.fx.Fx.WRAP, com.jxparallel.fx.Fx.NATIVE ? com.jxparallel.fx.nativeimpl.Native.create(javafx.scene.control.ButtonBase.class, new String[] {}, new Object[] {}) : new com.jxparallel.fx.peer.scene.control.ButtonBase());
         com.jxparallel.fx.Fx.own(fxPeer(), this);
     }
 
@@ -18,8 +18,8 @@ public class ButtonBase extends com.jxparallel.fx.scene.control.Labeled {
         com.jxparallel.fx.Fx.own(fxPeer(), this);
     }
 
-    public ButtonBase() {
-        this(com.jxparallel.fx.Fx.WRAP, com.jxparallel.fx.Fx.NATIVE ? com.jxparallel.fx.nativeimpl.Native.create(javafx.scene.control.ButtonBase.class, new String[] {}, new Object[] {}) : new com.jxparallel.fx.peer.scene.control.ButtonBase());
+    public ButtonBase(java.lang.String arg0, com.jxparallel.fx.scene.Node arg1) {
+        this(com.jxparallel.fx.Fx.WRAP, com.jxparallel.fx.Fx.NATIVE ? com.jxparallel.fx.nativeimpl.Native.create(javafx.scene.control.ButtonBase.class, new String[] {null, null}, new Object[] {arg0, arg1}) : new com.jxparallel.fx.peer.scene.control.ButtonBase(arg0, (javafx.scene.Node) com.jxparallel.fx.Fx.fx(arg1)));
         com.jxparallel.fx.Fx.own(fxPeer(), this);
     }
 

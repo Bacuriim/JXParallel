@@ -5,12 +5,12 @@ package com.jxparallel.fx.peer.scene.control;
 public class TreeTableColumn<S, T> extends javafx.scene.control.TreeTableColumn<S, T> implements com.jxparallel.fx.Fx.Owned {
     private Object jxOwner;
 
-    public TreeTableColumn(java.lang.String arg0) {
-        super(arg0);
-    }
-
     public TreeTableColumn() {
         super();
+    }
+
+    public TreeTableColumn(java.lang.String arg0) {
+        super(arg0);
     }
 
     @Override

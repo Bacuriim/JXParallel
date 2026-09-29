@@ -16,17 +16,22 @@ public final class KeyFrame implements com.jxparallel.fx.Fx.Backed {
 
     @Override
     public boolean equals(Object o) {
-        return o == this || fxPeer.equals(com.jxparallel.fx.Fx.fx(o));
+        return o == this || fxPeer().equals(com.jxparallel.fx.Fx.fx(o));
     }
 
     @Override
     public int hashCode() {
-        return fxPeer.hashCode();
+        return fxPeer().hashCode();
     }
 
     @Override
     public String toString() {
-        return fxPeer.toString();
+        return fxPeer().toString();
+    }
+
+    public KeyFrame(@javafx.beans.NamedArg(value = "time") com.jxparallel.fx.util.Duration arg0, @javafx.beans.NamedArg(value = "name") java.lang.String arg1, @javafx.beans.NamedArg(value = "values") com.jxparallel.fx.animation.KeyValue... arg2) {
+        this(com.jxparallel.fx.Fx.WRAP, new javafx.animation.KeyFrame((javafx.util.Duration) com.jxparallel.fx.Fx.fx(arg0), arg1, (javafx.animation.KeyValue[]) com.jxparallel.fx.Fx.fxArray(arg2, javafx.animation.KeyValue.class)));
+        com.jxparallel.fx.Fx.own(fxPeer(), this);
     }
 
     public KeyFrame(@javafx.beans.NamedArg(value = "time") com.jxparallel.fx.util.Duration arg0, @javafx.beans.NamedArg(value = "name") java.lang.String arg1, @javafx.beans.NamedArg(value = "onFinished") com.jxparallel.fx.event.EventHandler<com.jxparallel.fx.event.ActionEvent> arg2, @javafx.beans.NamedArg(value = "values") java.util.Collection<com.jxparallel.fx.animation.KeyValue> arg3) {
@@ -36,11 +41,6 @@ public final class KeyFrame implements com.jxparallel.fx.Fx.Backed {
 
     public KeyFrame(@javafx.beans.NamedArg(value = "time") com.jxparallel.fx.util.Duration arg0, @javafx.beans.NamedArg(value = "name") java.lang.String arg1, @javafx.beans.NamedArg(value = "onFinished") com.jxparallel.fx.event.EventHandler<com.jxparallel.fx.event.ActionEvent> arg2, @javafx.beans.NamedArg(value = "values") com.jxparallel.fx.animation.KeyValue... arg3) {
         this(com.jxparallel.fx.Fx.WRAP, new javafx.animation.KeyFrame((javafx.util.Duration) com.jxparallel.fx.Fx.fx(arg0), arg1, (javafx.event.EventHandler) com.jxparallel.fx.Fx.fx(arg2), (javafx.animation.KeyValue[]) com.jxparallel.fx.Fx.fxArray(arg3, javafx.animation.KeyValue.class)));
-        com.jxparallel.fx.Fx.own(fxPeer(), this);
-    }
-
-    public KeyFrame(@javafx.beans.NamedArg(value = "time") com.jxparallel.fx.util.Duration arg0, @javafx.beans.NamedArg(value = "name") java.lang.String arg1, @javafx.beans.NamedArg(value = "values") com.jxparallel.fx.animation.KeyValue... arg2) {
-        this(com.jxparallel.fx.Fx.WRAP, new javafx.animation.KeyFrame((javafx.util.Duration) com.jxparallel.fx.Fx.fx(arg0), arg1, (javafx.animation.KeyValue[]) com.jxparallel.fx.Fx.fxArray(arg2, javafx.animation.KeyValue.class)));
         com.jxparallel.fx.Fx.own(fxPeer(), this);
     }
 

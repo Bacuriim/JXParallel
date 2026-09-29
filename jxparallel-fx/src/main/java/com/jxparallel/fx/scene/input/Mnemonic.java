@@ -16,17 +16,17 @@ public class Mnemonic implements com.jxparallel.fx.Fx.Backed {
 
     @Override
     public boolean equals(Object o) {
-        return o == this || fxPeer.equals(com.jxparallel.fx.Fx.fx(o));
+        return o == this || fxPeer().equals(com.jxparallel.fx.Fx.fx(o));
     }
 
     @Override
     public int hashCode() {
-        return fxPeer.hashCode();
+        return fxPeer().hashCode();
     }
 
     @Override
     public String toString() {
-        return fxPeer.toString();
+        return fxPeer().toString();
     }
 
     public Mnemonic(@javafx.beans.NamedArg(value = "node") com.jxparallel.fx.scene.Node arg0, @javafx.beans.NamedArg(value = "keyCombination") com.jxparallel.fx.scene.input.KeyCombination arg1) {

@@ -41,7 +41,15 @@ public class PropertyValueFactory<S, T> implements Callback<CellDataFeatures<S, 
     @Override
     @SuppressWarnings("unchecked")
     public ObservableValue<T> call(CellDataFeatures<S, T> param) {
-        S row = param.getValue();
+        return valueFor(param.getValue());
+    }
+
+    /**
+     * JXParallel: what {@link #call} returns for this row, without a {@code CellDataFeatures}
+     * (native table cells ask for every row that scrolls in).
+     */
+    @SuppressWarnings("unchecked")
+    public ObservableValue<T> valueFor(S row) {
         if (row == null || property == null || property.isEmpty()) {
             return null;
         }

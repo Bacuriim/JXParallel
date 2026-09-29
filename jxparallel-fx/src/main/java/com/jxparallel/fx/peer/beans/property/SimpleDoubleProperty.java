@@ -5,20 +5,20 @@ package com.jxparallel.fx.peer.beans.property;
 public class SimpleDoubleProperty extends javafx.beans.property.SimpleDoubleProperty implements com.jxparallel.fx.Fx.Owned {
     private Object jxOwner;
 
-    public SimpleDoubleProperty(java.lang.Object arg0, java.lang.String arg1) {
-        super(arg0, arg1);
-    }
-
     public SimpleDoubleProperty() {
         super();
     }
 
-    public SimpleDoubleProperty(java.lang.Object arg0, java.lang.String arg1, double arg2) {
-        super(arg0, arg1, arg2);
-    }
-
     public SimpleDoubleProperty(double arg0) {
         super(arg0);
+    }
+
+    public SimpleDoubleProperty(java.lang.Object arg0, java.lang.String arg1) {
+        super(arg0, arg1);
+    }
+
+    public SimpleDoubleProperty(java.lang.Object arg0, java.lang.String arg1, double arg2) {
+        super(arg0, arg1, arg2);
     }
 
     @Override

@@ -5,36 +5,36 @@ package com.jxparallel.fx.peer.scene.layout;
 public class FlowPane extends javafx.scene.layout.FlowPane implements com.jxparallel.fx.Fx.Owned {
     private Object jxOwner;
 
-    public FlowPane(javafx.geometry.Orientation arg0) {
-        super(arg0);
+    public FlowPane() {
+        super();
     }
 
     public FlowPane(double arg0, double arg1) {
         super(arg0, arg1);
     }
 
-    public FlowPane(javafx.geometry.Orientation arg0, double arg1, double arg2) {
+    public FlowPane(double arg0, double arg1, javafx.scene.Node... arg2) {
         super(arg0, arg1, arg2);
     }
 
-    public FlowPane(javafx.scene.Node... arg0) {
+    public FlowPane(javafx.geometry.Orientation arg0) {
         super(arg0);
     }
 
-    public FlowPane(javafx.geometry.Orientation arg0, javafx.scene.Node... arg1) {
-        super(arg0, arg1);
+    public FlowPane(javafx.geometry.Orientation arg0, double arg1, double arg2) {
+        super(arg0, arg1, arg2);
     }
 
     public FlowPane(javafx.geometry.Orientation arg0, double arg1, double arg2, javafx.scene.Node... arg3) {
         super(arg0, arg1, arg2, arg3);
     }
 
-    public FlowPane(double arg0, double arg1, javafx.scene.Node... arg2) {
-        super(arg0, arg1, arg2);
+    public FlowPane(javafx.geometry.Orientation arg0, javafx.scene.Node... arg1) {
+        super(arg0, arg1);
     }
 
-    public FlowPane() {
-        super();
+    public FlowPane(javafx.scene.Node... arg0) {
+        super(arg0);
     }
 
     @Override

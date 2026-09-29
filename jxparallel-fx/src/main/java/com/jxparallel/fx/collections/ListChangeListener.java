@@ -21,17 +21,17 @@ public interface ListChangeListener<E> {
 
         @Override
         public boolean equals(Object o) {
-            return o == this || fxPeer.equals(com.jxparallel.fx.Fx.fx(o));
+            return o == this || fxPeer().equals(com.jxparallel.fx.Fx.fx(o));
         }
 
         @Override
         public int hashCode() {
-            return fxPeer.hashCode();
+            return fxPeer().hashCode();
         }
 
         @Override
         public String toString() {
-            return fxPeer.toString();
+            return fxPeer().toString();
         }
 
         public Change(com.jxparallel.fx.collections.ObservableList<E> arg0) {
@@ -112,19 +112,19 @@ public interface ListChangeListener<E> {
             Change jx = (Change) self;
             try {
             switch (method) {
+                case "getPermutation()":
+                    return jx.getPermutation();
                 case "next()":
                     return (Object) jx.next();
-                case "reset()":
-                    jx.reset();
-                    return null;
-                case "getRemoved()":
-                    return jx.getRemoved();
                 case "getFrom()":
                     return (Object) jx.getFrom();
                 case "getTo()":
                     return (Object) jx.getTo();
-                case "getPermutation()":
-                    return jx.getPermutation();
+                case "getRemoved()":
+                    return jx.getRemoved();
+                case "reset()":
+                    jx.reset();
+                    return null;
                 default:
                     throw new IllegalArgumentException(method);
             }

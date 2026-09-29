@@ -5,16 +5,16 @@ package com.jxparallel.fx.peer.scene.control;
 public class SpinnerValueFactory_DoubleSpinnerValueFactory extends javafx.scene.control.SpinnerValueFactory.DoubleSpinnerValueFactory implements com.jxparallel.fx.Fx.Owned {
     private Object jxOwner;
 
-    public SpinnerValueFactory_DoubleSpinnerValueFactory(@javafx.beans.NamedArg(value = "min") double arg0, @javafx.beans.NamedArg(value = "max") double arg1, @javafx.beans.NamedArg(value = "initialValue") double arg2, @javafx.beans.NamedArg(value = "amountToStepBy") double arg3) {
-        super(arg0, arg1, arg2, arg3);
+    public SpinnerValueFactory_DoubleSpinnerValueFactory(@javafx.beans.NamedArg(value = "min") double arg0, @javafx.beans.NamedArg(value = "max") double arg1) {
+        super(arg0, arg1);
     }
 
     public SpinnerValueFactory_DoubleSpinnerValueFactory(@javafx.beans.NamedArg(value = "min") double arg0, @javafx.beans.NamedArg(value = "max") double arg1, @javafx.beans.NamedArg(value = "initialValue") double arg2) {
         super(arg0, arg1, arg2);
     }
 
-    public SpinnerValueFactory_DoubleSpinnerValueFactory(@javafx.beans.NamedArg(value = "min") double arg0, @javafx.beans.NamedArg(value = "max") double arg1) {
-        super(arg0, arg1);
+    public SpinnerValueFactory_DoubleSpinnerValueFactory(@javafx.beans.NamedArg(value = "min") double arg0, @javafx.beans.NamedArg(value = "max") double arg1, @javafx.beans.NamedArg(value = "initialValue") double arg2, @javafx.beans.NamedArg(value = "amountToStepBy") double arg3) {
+        super(arg0, arg1, arg2, arg3);
     }
 
     @Override

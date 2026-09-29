@@ -7,8 +7,8 @@ public class CustomMenuItem extends com.jxparallel.fx.scene.control.MenuItem {
         super(wrap, peer);
     }
 
-    public CustomMenuItem(com.jxparallel.fx.scene.Node arg0, boolean arg1) {
-        this(com.jxparallel.fx.Fx.WRAP, com.jxparallel.fx.Fx.NATIVE ? com.jxparallel.fx.nativeimpl.Native.create(javafx.scene.control.CustomMenuItem.class, new String[] {null, null}, new Object[] {arg0, arg1}) : new com.jxparallel.fx.peer.scene.control.CustomMenuItem((javafx.scene.Node) com.jxparallel.fx.Fx.fx(arg0), arg1));
+    public CustomMenuItem() {
+        this(com.jxparallel.fx.Fx.WRAP, com.jxparallel.fx.Fx.NATIVE ? com.jxparallel.fx.nativeimpl.Native.create(javafx.scene.control.CustomMenuItem.class, new String[] {}, new Object[] {}) : new com.jxparallel.fx.peer.scene.control.CustomMenuItem());
         com.jxparallel.fx.Fx.own(fxPeer(), this);
     }
 
@@ -17,8 +17,8 @@ public class CustomMenuItem extends com.jxparallel.fx.scene.control.MenuItem {
         com.jxparallel.fx.Fx.own(fxPeer(), this);
     }
 
-    public CustomMenuItem() {
-        this(com.jxparallel.fx.Fx.WRAP, com.jxparallel.fx.Fx.NATIVE ? com.jxparallel.fx.nativeimpl.Native.create(javafx.scene.control.CustomMenuItem.class, new String[] {}, new Object[] {}) : new com.jxparallel.fx.peer.scene.control.CustomMenuItem());
+    public CustomMenuItem(com.jxparallel.fx.scene.Node arg0, boolean arg1) {
+        this(com.jxparallel.fx.Fx.WRAP, com.jxparallel.fx.Fx.NATIVE ? com.jxparallel.fx.nativeimpl.Native.create(javafx.scene.control.CustomMenuItem.class, new String[] {null, null}, new Object[] {arg0, arg1}) : new com.jxparallel.fx.peer.scene.control.CustomMenuItem((javafx.scene.Node) com.jxparallel.fx.Fx.fx(arg0), arg1));
         com.jxparallel.fx.Fx.own(fxPeer(), this);
     }
 

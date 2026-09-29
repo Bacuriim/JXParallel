@@ -5,12 +5,12 @@ package com.jxparallel.fx.peer.scene.control;
 public class TreeView<T> extends javafx.scene.control.TreeView<T> implements com.jxparallel.fx.Fx.Owned {
     private Object jxOwner;
 
-    public TreeView(javafx.scene.control.TreeItem<T> arg0) {
-        super(arg0);
-    }
-
     public TreeView() {
         super();
+    }
+
+    public TreeView(javafx.scene.control.TreeItem<T> arg0) {
+        super(arg0);
     }
 
     @Override

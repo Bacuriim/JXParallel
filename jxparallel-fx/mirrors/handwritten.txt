@@ -6,3 +6,10 @@ javafx.application.Application
 javafx.application.Preloader
 javafx.scene.input.ClipboardContent
 javafx.scene.control.cell.PropertyValueFactory
+javafx.beans.property.SimpleStringProperty
+javafx.beans.property.SimpleBooleanProperty
+javafx.beans.property.SimpleIntegerProperty
+javafx.beans.property.SimpleLongProperty
+javafx.beans.property.SimpleFloatProperty
+javafx.beans.property.SimpleDoubleProperty
+javafx.beans.property.SimpleObjectProperty

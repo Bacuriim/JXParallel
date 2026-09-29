@@ -8,12 +8,12 @@ public class MouseEvent extends com.jxparallel.fx.scene.input.InputEvent {
     }
 
     public MouseEvent(@javafx.beans.NamedArg(value = "source") java.lang.Object arg0, @javafx.beans.NamedArg(value = "target") com.jxparallel.fx.event.EventTarget arg1, @javafx.beans.NamedArg(value = "eventType") com.jxparallel.fx.event.EventType<? extends com.jxparallel.fx.scene.input.MouseEvent> arg2, @javafx.beans.NamedArg(value = "x") double arg3, @javafx.beans.NamedArg(value = "y") double arg4, @javafx.beans.NamedArg(value = "screenX") double arg5, @javafx.beans.NamedArg(value = "screenY") double arg6, @javafx.beans.NamedArg(value = "button") com.jxparallel.fx.scene.input.MouseButton arg7, @javafx.beans.NamedArg(value = "clickCount") int arg8, @javafx.beans.NamedArg(value = "shiftDown") boolean arg9, @javafx.beans.NamedArg(value = "controlDown") boolean arg10, @javafx.beans.NamedArg(value = "altDown") boolean arg11, @javafx.beans.NamedArg(value = "metaDown") boolean arg12, @javafx.beans.NamedArg(value = "primaryButtonDown") boolean arg13, @javafx.beans.NamedArg(value = "middleButtonDown") boolean arg14, @javafx.beans.NamedArg(value = "secondaryButtonDown") boolean arg15, @javafx.beans.NamedArg(value = "synthesized") boolean arg16, @javafx.beans.NamedArg(value = "popupTrigger") boolean arg17, @javafx.beans.NamedArg(value = "stillSincePress") boolean arg18, @javafx.beans.NamedArg(value = "pickResult") com.jxparallel.fx.scene.input.PickResult arg19) {
-        this(com.jxparallel.fx.Fx.WRAP, com.jxparallel.fx.Fx.NATIVE ? com.jxparallel.fx.nativeimpl.Native.create(javafx.scene.input.MouseEvent.class, new String[] {"source", "target", "eventType", "x", "y", "screenX", "screenY", "button", "clickCount", "shiftDown", "controlDown", "altDown", "metaDown", "primaryButtonDown", "middleButtonDown", "secondaryButtonDown", "synthesized", "popupTrigger", "stillSincePress", "pickResult"}, new Object[] {arg0, arg1, arg2, arg3, arg4, arg5, arg6, arg7, arg8, arg9, arg10, arg11, arg12, arg13, arg14, arg15, arg16, arg17, arg18, arg19}) : new com.jxparallel.fx.peer.scene.input.MouseEvent((java.lang.Object) com.jxparallel.fx.Fx.fx(arg0), (javafx.event.EventTarget) com.jxparallel.fx.Fx.fx(arg1), (javafx.event.EventType) com.jxparallel.fx.Fx.fx(arg2), arg3, arg4, arg5, arg6, (javafx.scene.input.MouseButton) com.jxparallel.fx.Fx.fx(arg7), arg8, arg9, arg10, arg11, arg12, arg13, arg14, arg15, arg16, arg17, arg18, (javafx.scene.input.PickResult) com.jxparallel.fx.Fx.fx(arg19)));
+        this(com.jxparallel.fx.Fx.WRAP, new com.jxparallel.fx.peer.scene.input.MouseEvent((java.lang.Object) com.jxparallel.fx.Fx.fx(arg0), (javafx.event.EventTarget) com.jxparallel.fx.Fx.fx(arg1), (javafx.event.EventType) com.jxparallel.fx.Fx.fx(arg2), arg3, arg4, arg5, arg6, (javafx.scene.input.MouseButton) com.jxparallel.fx.Fx.fx(arg7), arg8, arg9, arg10, arg11, arg12, arg13, arg14, arg15, arg16, arg17, arg18, (javafx.scene.input.PickResult) com.jxparallel.fx.Fx.fx(arg19)));
         com.jxparallel.fx.Fx.own(fxPeer(), this);
     }
 
     public MouseEvent(@javafx.beans.NamedArg(value = "eventType") com.jxparallel.fx.event.EventType<? extends com.jxparallel.fx.scene.input.MouseEvent> arg0, @javafx.beans.NamedArg(value = "x") double arg1, @javafx.beans.NamedArg(value = "y") double arg2, @javafx.beans.NamedArg(value = "screenX") double arg3, @javafx.beans.NamedArg(value = "screenY") double arg4, @javafx.beans.NamedArg(value = "button") com.jxparallel.fx.scene.input.MouseButton arg5, @javafx.beans.NamedArg(value = "clickCount") int arg6, @javafx.beans.NamedArg(value = "shiftDown") boolean arg7, @javafx.beans.NamedArg(value = "controlDown") boolean arg8, @javafx.beans.NamedArg(value = "altDown") boolean arg9, @javafx.beans.NamedArg(value = "metaDown") boolean arg10, @javafx.beans.NamedArg(value = "primaryButtonDown") boolean arg11, @javafx.beans.NamedArg(value = "middleButtonDown") boolean arg12, @javafx.beans.NamedArg(value = "secondaryButtonDown") boolean arg13, @javafx.beans.NamedArg(value = "synthesized") boolean arg14, @javafx.beans.NamedArg(value = "popupTrigger") boolean arg15, @javafx.beans.NamedArg(value = "stillSincePress") boolean arg16, @javafx.beans.NamedArg(value = "pickResult") com.jxparallel.fx.scene.input.PickResult arg17) {
-        this(com.jxparallel.fx.Fx.WRAP, com.jxparallel.fx.Fx.NATIVE ? com.jxparallel.fx.nativeimpl.Native.create(javafx.scene.input.MouseEvent.class, new String[] {"eventType", "x", "y", "screenX", "screenY", "button", "clickCount", "shiftDown", "controlDown", "altDown", "metaDown", "primaryButtonDown", "middleButtonDown", "secondaryButtonDown", "synthesized", "popupTrigger", "stillSincePress", "pickResult"}, new Object[] {arg0, arg1, arg2, arg3, arg4, arg5, arg6, arg7, arg8, arg9, arg10, arg11, arg12, arg13, arg14, arg15, arg16, arg17}) : new com.jxparallel.fx.peer.scene.input.MouseEvent((javafx.event.EventType) com.jxparallel.fx.Fx.fx(arg0), arg1, arg2, arg3, arg4, (javafx.scene.input.MouseButton) com.jxparallel.fx.Fx.fx(arg5), arg6, arg7, arg8, arg9, arg10, arg11, arg12, arg13, arg14, arg15, arg16, (javafx.scene.input.PickResult) com.jxparallel.fx.Fx.fx(arg17)));
+        this(com.jxparallel.fx.Fx.WRAP, new com.jxparallel.fx.peer.scene.input.MouseEvent((javafx.event.EventType) com.jxparallel.fx.Fx.fx(arg0), arg1, arg2, arg3, arg4, (javafx.scene.input.MouseButton) com.jxparallel.fx.Fx.fx(arg5), arg6, arg7, arg8, arg9, arg10, arg11, arg12, arg13, arg14, arg15, arg16, (javafx.scene.input.PickResult) com.jxparallel.fx.Fx.fx(arg17)));
         com.jxparallel.fx.Fx.own(fxPeer(), this);
     }
 
@@ -40,192 +40,110 @@ public class MouseEvent extends com.jxparallel.fx.scene.input.InputEvent {
     public static final com.jxparallel.fx.event.EventType<com.jxparallel.fx.scene.input.MouseEvent> DRAG_DETECTED = (com.jxparallel.fx.event.EventType) com.jxparallel.fx.Fx.jx(javafx.scene.input.MouseEvent.DRAG_DETECTED);
 
     public com.jxparallel.fx.scene.input.MouseEvent copyFor(java.lang.Object arg0, com.jxparallel.fx.event.EventTarget arg1) {
-        if (com.jxparallel.fx.Fx.NATIVE) {
-            return (com.jxparallel.fx.scene.input.MouseEvent) com.jxparallel.fx.nativeimpl.Native.call(this, com.jxparallel.fx.scene.input.MouseEvent.class, "copyFor", new Class<?>[] {java.lang.Object.class, com.jxparallel.fx.event.EventTarget.class}, com.jxparallel.fx.scene.input.MouseEvent.class, arg0, arg1);
-        }
         return (com.jxparallel.fx.scene.input.MouseEvent) com.jxparallel.fx.Fx.jx(((javafx.scene.input.MouseEvent) fxPeer()).copyFor((java.lang.Object) com.jxparallel.fx.Fx.fx(arg0), (javafx.event.EventTarget) com.jxparallel.fx.Fx.fx(arg1)));
     }
 
     public com.jxparallel.fx.scene.input.MouseEvent copyFor(java.lang.Object arg0, com.jxparallel.fx.event.EventTarget arg1, com.jxparallel.fx.event.EventType<? extends com.jxparallel.fx.scene.input.MouseEvent> arg2) {
-        if (com.jxparallel.fx.Fx.NATIVE) {
-            return (com.jxparallel.fx.scene.input.MouseEvent) com.jxparallel.fx.nativeimpl.Native.call(this, com.jxparallel.fx.scene.input.MouseEvent.class, "copyFor", new Class<?>[] {java.lang.Object.class, com.jxparallel.fx.event.EventTarget.class, com.jxparallel.fx.event.EventType.class}, com.jxparallel.fx.scene.input.MouseEvent.class, arg0, arg1, arg2);
-        }
         return (com.jxparallel.fx.scene.input.MouseEvent) com.jxparallel.fx.Fx.jx(((javafx.scene.input.MouseEvent) fxPeer()).copyFor((java.lang.Object) com.jxparallel.fx.Fx.fx(arg0), (javafx.event.EventTarget) com.jxparallel.fx.Fx.fx(arg1), (javafx.event.EventType) com.jxparallel.fx.Fx.fx(arg2)));
     }
 
     public static com.jxparallel.fx.scene.input.MouseDragEvent copyForMouseDragEvent(com.jxparallel.fx.scene.input.MouseEvent arg0, java.lang.Object arg1, com.jxparallel.fx.event.EventTarget arg2, com.jxparallel.fx.event.EventType<com.jxparallel.fx.scene.input.MouseDragEvent> arg3, java.lang.Object arg4, com.jxparallel.fx.scene.input.PickResult arg5) {
-        if (com.jxparallel.fx.Fx.NATIVE) {
-            return (com.jxparallel.fx.scene.input.MouseDragEvent) com.jxparallel.fx.nativeimpl.Native.call(null, com.jxparallel.fx.scene.input.MouseEvent.class, "copyForMouseDragEvent", new Class<?>[] {com.jxparallel.fx.scene.input.MouseEvent.class, java.lang.Object.class, com.jxparallel.fx.event.EventTarget.class, com.jxparallel.fx.event.EventType.class, java.lang.Object.class, com.jxparallel.fx.scene.input.PickResult.class}, com.jxparallel.fx.scene.input.MouseDragEvent.class, arg0, arg1, arg2, arg3, arg4, arg5);
-        }
         return (com.jxparallel.fx.scene.input.MouseDragEvent) com.jxparallel.fx.Fx.jx(javafx.scene.input.MouseEvent.copyForMouseDragEvent((javafx.scene.input.MouseEvent) com.jxparallel.fx.Fx.fx(arg0), (java.lang.Object) com.jxparallel.fx.Fx.fx(arg1), (javafx.event.EventTarget) com.jxparallel.fx.Fx.fx(arg2), (javafx.event.EventType) com.jxparallel.fx.Fx.fx(arg3), (java.lang.Object) com.jxparallel.fx.Fx.fx(arg4), (javafx.scene.input.PickResult) com.jxparallel.fx.Fx.fx(arg5)));
     }
 
     public com.jxparallel.fx.scene.input.MouseButton getButton() {
-        if (com.jxparallel.fx.Fx.NATIVE) {
-            return (com.jxparallel.fx.scene.input.MouseButton) com.jxparallel.fx.nativeimpl.Native.call(this, com.jxparallel.fx.scene.input.MouseEvent.class, "getButton", new Class<?>[] {}, com.jxparallel.fx.scene.input.MouseButton.class);
-        }
         return (com.jxparallel.fx.scene.input.MouseButton) com.jxparallel.fx.Fx.jx(((javafx.scene.input.MouseEvent) fxPeer()).getButton());
     }
 
     public int getClickCount() {
-        if (com.jxparallel.fx.Fx.NATIVE) {
-            return (Integer) com.jxparallel.fx.nativeimpl.Native.call(this, com.jxparallel.fx.scene.input.MouseEvent.class, "getClickCount", new Class<?>[] {}, int.class);
-        }
         return ((javafx.scene.input.MouseEvent) fxPeer()).getClickCount();
     }
 
     public com.jxparallel.fx.event.EventType<? extends com.jxparallel.fx.scene.input.MouseEvent> getEventType() {
-        if (com.jxparallel.fx.Fx.NATIVE) {
-            return (com.jxparallel.fx.event.EventType) com.jxparallel.fx.nativeimpl.Native.call(this, com.jxparallel.fx.scene.input.MouseEvent.class, "getEventType", new Class<?>[] {}, com.jxparallel.fx.event.EventType.class);
-        }
         return (com.jxparallel.fx.event.EventType) com.jxparallel.fx.Fx.jx(((javafx.scene.input.MouseEvent) fxPeer()).getEventType());
     }
 
     public com.jxparallel.fx.scene.input.PickResult getPickResult() {
-        if (com.jxparallel.fx.Fx.NATIVE) {
-            return (com.jxparallel.fx.scene.input.PickResult) com.jxparallel.fx.nativeimpl.Native.call(this, com.jxparallel.fx.scene.input.MouseEvent.class, "getPickResult", new Class<?>[] {}, com.jxparallel.fx.scene.input.PickResult.class);
-        }
         return (com.jxparallel.fx.scene.input.PickResult) com.jxparallel.fx.Fx.jx(((javafx.scene.input.MouseEvent) fxPeer()).getPickResult());
     }
 
     public double getSceneX() {
-        if (com.jxparallel.fx.Fx.NATIVE) {
-            return (Double) com.jxparallel.fx.nativeimpl.Native.call(this, com.jxparallel.fx.scene.input.MouseEvent.class, "getSceneX", new Class<?>[] {}, double.class);
-        }
         return ((javafx.scene.input.MouseEvent) fxPeer()).getSceneX();
     }
 
     public double getSceneY() {
-        if (com.jxparallel.fx.Fx.NATIVE) {
-            return (Double) com.jxparallel.fx.nativeimpl.Native.call(this, com.jxparallel.fx.scene.input.MouseEvent.class, "getSceneY", new Class<?>[] {}, double.class);
-        }
         return ((javafx.scene.input.MouseEvent) fxPeer()).getSceneY();
     }
 
     public double getScreenX() {
-        if (com.jxparallel.fx.Fx.NATIVE) {
-            return (Double) com.jxparallel.fx.nativeimpl.Native.call(this, com.jxparallel.fx.scene.input.MouseEvent.class, "getScreenX", new Class<?>[] {}, double.class);
-        }
         return ((javafx.scene.input.MouseEvent) fxPeer()).getScreenX();
     }
 
     public double getScreenY() {
-        if (com.jxparallel.fx.Fx.NATIVE) {
-            return (Double) com.jxparallel.fx.nativeimpl.Native.call(this, com.jxparallel.fx.scene.input.MouseEvent.class, "getScreenY", new Class<?>[] {}, double.class);
-        }
         return ((javafx.scene.input.MouseEvent) fxPeer()).getScreenY();
     }
 
     public double getX() {
-        if (com.jxparallel.fx.Fx.NATIVE) {
-            return (Double) com.jxparallel.fx.nativeimpl.Native.call(this, com.jxparallel.fx.scene.input.MouseEvent.class, "getX", new Class<?>[] {}, double.class);
-        }
         return ((javafx.scene.input.MouseEvent) fxPeer()).getX();
     }
 
     public double getY() {
-        if (com.jxparallel.fx.Fx.NATIVE) {
-            return (Double) com.jxparallel.fx.nativeimpl.Native.call(this, com.jxparallel.fx.scene.input.MouseEvent.class, "getY", new Class<?>[] {}, double.class);
-        }
         return ((javafx.scene.input.MouseEvent) fxPeer()).getY();
     }
 
     public double getZ() {
-        if (com.jxparallel.fx.Fx.NATIVE) {
-            return (Double) com.jxparallel.fx.nativeimpl.Native.call(this, com.jxparallel.fx.scene.input.MouseEvent.class, "getZ", new Class<?>[] {}, double.class);
-        }
         return ((javafx.scene.input.MouseEvent) fxPeer()).getZ();
     }
 
     public boolean isAltDown() {
-        if (com.jxparallel.fx.Fx.NATIVE) {
-            return (Boolean) com.jxparallel.fx.nativeimpl.Native.call(this, com.jxparallel.fx.scene.input.MouseEvent.class, "isAltDown", new Class<?>[] {}, boolean.class);
-        }
         return ((javafx.scene.input.MouseEvent) fxPeer()).isAltDown();
     }
 
     public boolean isControlDown() {
-        if (com.jxparallel.fx.Fx.NATIVE) {
-            return (Boolean) com.jxparallel.fx.nativeimpl.Native.call(this, com.jxparallel.fx.scene.input.MouseEvent.class, "isControlDown", new Class<?>[] {}, boolean.class);
-        }
         return ((javafx.scene.input.MouseEvent) fxPeer()).isControlDown();
     }
 
     public boolean isDragDetect() {
-        if (com.jxparallel.fx.Fx.NATIVE) {
-            return (Boolean) com.jxparallel.fx.nativeimpl.Native.call(this, com.jxparallel.fx.scene.input.MouseEvent.class, "isDragDetect", new Class<?>[] {}, boolean.class);
-        }
         return ((javafx.scene.input.MouseEvent) fxPeer()).isDragDetect();
     }
 
     public boolean isMetaDown() {
-        if (com.jxparallel.fx.Fx.NATIVE) {
-            return (Boolean) com.jxparallel.fx.nativeimpl.Native.call(this, com.jxparallel.fx.scene.input.MouseEvent.class, "isMetaDown", new Class<?>[] {}, boolean.class);
-        }
         return ((javafx.scene.input.MouseEvent) fxPeer()).isMetaDown();
     }
 
     public boolean isMiddleButtonDown() {
-        if (com.jxparallel.fx.Fx.NATIVE) {
-            return (Boolean) com.jxparallel.fx.nativeimpl.Native.call(this, com.jxparallel.fx.scene.input.MouseEvent.class, "isMiddleButtonDown", new Class<?>[] {}, boolean.class);
-        }
         return ((javafx.scene.input.MouseEvent) fxPeer()).isMiddleButtonDown();
     }
 
     public boolean isPopupTrigger() {
-        if (com.jxparallel.fx.Fx.NATIVE) {
-            return (Boolean) com.jxparallel.fx.nativeimpl.Native.call(this, com.jxparallel.fx.scene.input.MouseEvent.class, "isPopupTrigger", new Class<?>[] {}, boolean.class);
-        }
         return ((javafx.scene.input.MouseEvent) fxPeer()).isPopupTrigger();
     }
 
     public boolean isPrimaryButtonDown() {
-        if (com.jxparallel.fx.Fx.NATIVE) {
-            return (Boolean) com.jxparallel.fx.nativeimpl.Native.call(this, com.jxparallel.fx.scene.input.MouseEvent.class, "isPrimaryButtonDown", new Class<?>[] {}, boolean.class);
-        }
         return ((javafx.scene.input.MouseEvent) fxPeer()).isPrimaryButtonDown();
     }
 
     public boolean isSecondaryButtonDown() {
-        if (com.jxparallel.fx.Fx.NATIVE) {
-            return (Boolean) com.jxparallel.fx.nativeimpl.Native.call(this, com.jxparallel.fx.scene.input.MouseEvent.class, "isSecondaryButtonDown", new Class<?>[] {}, boolean.class);
-        }
         return ((javafx.scene.input.MouseEvent) fxPeer()).isSecondaryButtonDown();
     }
 
     public boolean isShiftDown() {
-        if (com.jxparallel.fx.Fx.NATIVE) {
-            return (Boolean) com.jxparallel.fx.nativeimpl.Native.call(this, com.jxparallel.fx.scene.input.MouseEvent.class, "isShiftDown", new Class<?>[] {}, boolean.class);
-        }
         return ((javafx.scene.input.MouseEvent) fxPeer()).isShiftDown();
     }
 
     public boolean isShortcutDown() {
-        if (com.jxparallel.fx.Fx.NATIVE) {
-            return (Boolean) com.jxparallel.fx.nativeimpl.Native.call(this, com.jxparallel.fx.scene.input.MouseEvent.class, "isShortcutDown", new Class<?>[] {}, boolean.class);
-        }
         return ((javafx.scene.input.MouseEvent) fxPeer()).isShortcutDown();
     }
 
     public boolean isStillSincePress() {
-        if (com.jxparallel.fx.Fx.NATIVE) {
-            return (Boolean) com.jxparallel.fx.nativeimpl.Native.call(this, com.jxparallel.fx.scene.input.MouseEvent.class, "isStillSincePress", new Class<?>[] {}, boolean.class);
-        }
         return ((javafx.scene.input.MouseEvent) fxPeer()).isStillSincePress();
     }
 
     public boolean isSynthesized() {
-        if (com.jxparallel.fx.Fx.NATIVE) {
-            return (Boolean) com.jxparallel.fx.nativeimpl.Native.call(this, com.jxparallel.fx.scene.input.MouseEvent.class, "isSynthesized", new Class<?>[] {}, boolean.class);
-        }
         return ((javafx.scene.input.MouseEvent) fxPeer()).isSynthesized();
     }
 
     public void setDragDetect(boolean arg0) {
-        if (com.jxparallel.fx.Fx.NATIVE) {
-            com.jxparallel.fx.nativeimpl.Native.call(this, com.jxparallel.fx.scene.input.MouseEvent.class, "setDragDetect", new Class<?>[] {boolean.class}, void.class, arg0);
-            return;
-        }
         ((javafx.scene.input.MouseEvent) fxPeer()).setDragDetect(arg0);
     }
 }

@@ -20,19 +20,19 @@ public class SpinnerValueFactory<T> extends javafx.scene.control.SpinnerValueFac
     }
 
     @Override
-    public void increment(int arg0) {
-        if (jxOwner == null) {
-            throw new IllegalStateException("increment before the JX object exists");
-        }
-        com.jxparallel.fx.scene.control.SpinnerValueFactory.$hook(jxOwner, "increment(int)", new Object[] {arg0});
-    }
-
-    @Override
     public void decrement(int arg0) {
         if (jxOwner == null) {
             throw new IllegalStateException("decrement before the JX object exists");
         }
         com.jxparallel.fx.scene.control.SpinnerValueFactory.$hook(jxOwner, "decrement(int)", new Object[] {arg0});
+    }
+
+    @Override
+    public void increment(int arg0) {
+        if (jxOwner == null) {
+            throw new IllegalStateException("increment before the JX object exists");
+        }
+        com.jxparallel.fx.scene.control.SpinnerValueFactory.$hook(jxOwner, "increment(int)", new Object[] {arg0});
     }
 
     @Override

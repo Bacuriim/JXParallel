@@ -20,19 +20,35 @@ public class NumberExpressionBase extends javafx.beans.binding.NumberExpressionB
     }
 
     @Override
-    public javafx.beans.binding.NumberBinding add(long arg0) {
+    public java.lang.Number getValue() {
         if (jxOwner == null) {
-            throw new IllegalStateException("add before the JX object exists");
+            throw new IllegalStateException("getValue before the JX object exists");
         }
-        return (javafx.beans.binding.NumberBinding) com.jxparallel.fx.Fx.fx(com.jxparallel.fx.beans.binding.NumberExpressionBase.$hook(jxOwner, "add(long)", new Object[] {arg0}));
+        return (java.lang.Number) com.jxparallel.fx.Fx.fx(com.jxparallel.fx.beans.binding.NumberExpressionBase.$hook(jxOwner, "getValue()", new Object[] {}));
     }
 
     @Override
-    public javafx.beans.binding.NumberBinding add(float arg0) {
+    public double doubleValue() {
         if (jxOwner == null) {
-            throw new IllegalStateException("add before the JX object exists");
+            throw new IllegalStateException("doubleValue before the JX object exists");
         }
-        return (javafx.beans.binding.NumberBinding) com.jxparallel.fx.Fx.fx(com.jxparallel.fx.beans.binding.NumberExpressionBase.$hook(jxOwner, "add(float)", new Object[] {arg0}));
+        return (Double) com.jxparallel.fx.Fx.fx(com.jxparallel.fx.beans.binding.NumberExpressionBase.$hook(jxOwner, "doubleValue()", new Object[] {}));
+    }
+
+    @Override
+    public float floatValue() {
+        if (jxOwner == null) {
+            throw new IllegalStateException("floatValue before the JX object exists");
+        }
+        return (Float) com.jxparallel.fx.Fx.fx(com.jxparallel.fx.beans.binding.NumberExpressionBase.$hook(jxOwner, "floatValue()", new Object[] {}));
+    }
+
+    @Override
+    public int intValue() {
+        if (jxOwner == null) {
+            throw new IllegalStateException("intValue before the JX object exists");
+        }
+        return (Integer) com.jxparallel.fx.Fx.fx(com.jxparallel.fx.beans.binding.NumberExpressionBase.$hook(jxOwner, "intValue()", new Object[] {}));
     }
 
     @Override
@@ -44,6 +60,14 @@ public class NumberExpressionBase extends javafx.beans.binding.NumberExpressionB
     }
 
     @Override
+    public javafx.beans.binding.NumberBinding add(float arg0) {
+        if (jxOwner == null) {
+            throw new IllegalStateException("add before the JX object exists");
+        }
+        return (javafx.beans.binding.NumberBinding) com.jxparallel.fx.Fx.fx(com.jxparallel.fx.beans.binding.NumberExpressionBase.$hook(jxOwner, "add(float)", new Object[] {arg0}));
+    }
+
+    @Override
     public javafx.beans.binding.NumberBinding add(int arg0) {
         if (jxOwner == null) {
             throw new IllegalStateException("add before the JX object exists");
@@ -52,19 +76,11 @@ public class NumberExpressionBase extends javafx.beans.binding.NumberExpressionB
     }
 
     @Override
-    public javafx.beans.binding.NumberBinding divide(long arg0) {
+    public javafx.beans.binding.NumberBinding add(long arg0) {
         if (jxOwner == null) {
-            throw new IllegalStateException("divide before the JX object exists");
+            throw new IllegalStateException("add before the JX object exists");
         }
-        return (javafx.beans.binding.NumberBinding) com.jxparallel.fx.Fx.fx(com.jxparallel.fx.beans.binding.NumberExpressionBase.$hook(jxOwner, "divide(long)", new Object[] {arg0}));
-    }
-
-    @Override
-    public javafx.beans.binding.NumberBinding divide(int arg0) {
-        if (jxOwner == null) {
-            throw new IllegalStateException("divide before the JX object exists");
-        }
-        return (javafx.beans.binding.NumberBinding) com.jxparallel.fx.Fx.fx(com.jxparallel.fx.beans.binding.NumberExpressionBase.$hook(jxOwner, "divide(int)", new Object[] {arg0}));
+        return (javafx.beans.binding.NumberBinding) com.jxparallel.fx.Fx.fx(com.jxparallel.fx.beans.binding.NumberExpressionBase.$hook(jxOwner, "add(long)", new Object[] {arg0}));
     }
 
     @Override
@@ -84,43 +100,19 @@ public class NumberExpressionBase extends javafx.beans.binding.NumberExpressionB
     }
 
     @Override
-    public javafx.beans.binding.NumberBinding negate() {
+    public javafx.beans.binding.NumberBinding divide(int arg0) {
         if (jxOwner == null) {
-            throw new IllegalStateException("negate before the JX object exists");
+            throw new IllegalStateException("divide before the JX object exists");
         }
-        return (javafx.beans.binding.NumberBinding) com.jxparallel.fx.Fx.fx(com.jxparallel.fx.beans.binding.NumberExpressionBase.$hook(jxOwner, "negate()", new Object[] {}));
+        return (javafx.beans.binding.NumberBinding) com.jxparallel.fx.Fx.fx(com.jxparallel.fx.beans.binding.NumberExpressionBase.$hook(jxOwner, "divide(int)", new Object[] {arg0}));
     }
 
     @Override
-    public javafx.beans.binding.NumberBinding subtract(float arg0) {
+    public javafx.beans.binding.NumberBinding divide(long arg0) {
         if (jxOwner == null) {
-            throw new IllegalStateException("subtract before the JX object exists");
+            throw new IllegalStateException("divide before the JX object exists");
         }
-        return (javafx.beans.binding.NumberBinding) com.jxparallel.fx.Fx.fx(com.jxparallel.fx.beans.binding.NumberExpressionBase.$hook(jxOwner, "subtract(float)", new Object[] {arg0}));
-    }
-
-    @Override
-    public javafx.beans.binding.NumberBinding subtract(double arg0) {
-        if (jxOwner == null) {
-            throw new IllegalStateException("subtract before the JX object exists");
-        }
-        return (javafx.beans.binding.NumberBinding) com.jxparallel.fx.Fx.fx(com.jxparallel.fx.beans.binding.NumberExpressionBase.$hook(jxOwner, "subtract(double)", new Object[] {arg0}));
-    }
-
-    @Override
-    public javafx.beans.binding.NumberBinding subtract(long arg0) {
-        if (jxOwner == null) {
-            throw new IllegalStateException("subtract before the JX object exists");
-        }
-        return (javafx.beans.binding.NumberBinding) com.jxparallel.fx.Fx.fx(com.jxparallel.fx.beans.binding.NumberExpressionBase.$hook(jxOwner, "subtract(long)", new Object[] {arg0}));
-    }
-
-    @Override
-    public javafx.beans.binding.NumberBinding subtract(int arg0) {
-        if (jxOwner == null) {
-            throw new IllegalStateException("subtract before the JX object exists");
-        }
-        return (javafx.beans.binding.NumberBinding) com.jxparallel.fx.Fx.fx(com.jxparallel.fx.beans.binding.NumberExpressionBase.$hook(jxOwner, "subtract(int)", new Object[] {arg0}));
+        return (javafx.beans.binding.NumberBinding) com.jxparallel.fx.Fx.fx(com.jxparallel.fx.beans.binding.NumberExpressionBase.$hook(jxOwner, "divide(long)", new Object[] {arg0}));
     }
 
     @Override
@@ -129,6 +121,14 @@ public class NumberExpressionBase extends javafx.beans.binding.NumberExpressionB
             throw new IllegalStateException("multiply before the JX object exists");
         }
         return (javafx.beans.binding.NumberBinding) com.jxparallel.fx.Fx.fx(com.jxparallel.fx.beans.binding.NumberExpressionBase.$hook(jxOwner, "multiply(double)", new Object[] {arg0}));
+    }
+
+    @Override
+    public javafx.beans.binding.NumberBinding multiply(float arg0) {
+        if (jxOwner == null) {
+            throw new IllegalStateException("multiply before the JX object exists");
+        }
+        return (javafx.beans.binding.NumberBinding) com.jxparallel.fx.Fx.fx(com.jxparallel.fx.beans.binding.NumberExpressionBase.$hook(jxOwner, "multiply(float)", new Object[] {arg0}));
     }
 
     @Override
@@ -148,19 +148,43 @@ public class NumberExpressionBase extends javafx.beans.binding.NumberExpressionB
     }
 
     @Override
-    public javafx.beans.binding.NumberBinding multiply(float arg0) {
+    public javafx.beans.binding.NumberBinding negate() {
         if (jxOwner == null) {
-            throw new IllegalStateException("multiply before the JX object exists");
+            throw new IllegalStateException("negate before the JX object exists");
         }
-        return (javafx.beans.binding.NumberBinding) com.jxparallel.fx.Fx.fx(com.jxparallel.fx.beans.binding.NumberExpressionBase.$hook(jxOwner, "multiply(float)", new Object[] {arg0}));
+        return (javafx.beans.binding.NumberBinding) com.jxparallel.fx.Fx.fx(com.jxparallel.fx.beans.binding.NumberExpressionBase.$hook(jxOwner, "negate()", new Object[] {}));
     }
 
     @Override
-    public int intValue() {
+    public javafx.beans.binding.NumberBinding subtract(double arg0) {
         if (jxOwner == null) {
-            throw new IllegalStateException("intValue before the JX object exists");
+            throw new IllegalStateException("subtract before the JX object exists");
         }
-        return (Integer) com.jxparallel.fx.Fx.fx(com.jxparallel.fx.beans.binding.NumberExpressionBase.$hook(jxOwner, "intValue()", new Object[] {}));
+        return (javafx.beans.binding.NumberBinding) com.jxparallel.fx.Fx.fx(com.jxparallel.fx.beans.binding.NumberExpressionBase.$hook(jxOwner, "subtract(double)", new Object[] {arg0}));
+    }
+
+    @Override
+    public javafx.beans.binding.NumberBinding subtract(float arg0) {
+        if (jxOwner == null) {
+            throw new IllegalStateException("subtract before the JX object exists");
+        }
+        return (javafx.beans.binding.NumberBinding) com.jxparallel.fx.Fx.fx(com.jxparallel.fx.beans.binding.NumberExpressionBase.$hook(jxOwner, "subtract(float)", new Object[] {arg0}));
+    }
+
+    @Override
+    public javafx.beans.binding.NumberBinding subtract(int arg0) {
+        if (jxOwner == null) {
+            throw new IllegalStateException("subtract before the JX object exists");
+        }
+        return (javafx.beans.binding.NumberBinding) com.jxparallel.fx.Fx.fx(com.jxparallel.fx.beans.binding.NumberExpressionBase.$hook(jxOwner, "subtract(int)", new Object[] {arg0}));
+    }
+
+    @Override
+    public javafx.beans.binding.NumberBinding subtract(long arg0) {
+        if (jxOwner == null) {
+            throw new IllegalStateException("subtract before the JX object exists");
+        }
+        return (javafx.beans.binding.NumberBinding) com.jxparallel.fx.Fx.fx(com.jxparallel.fx.beans.binding.NumberExpressionBase.$hook(jxOwner, "subtract(long)", new Object[] {arg0}));
     }
 
     @Override
@@ -172,43 +196,11 @@ public class NumberExpressionBase extends javafx.beans.binding.NumberExpressionB
     }
 
     @Override
-    public float floatValue() {
-        if (jxOwner == null) {
-            throw new IllegalStateException("floatValue before the JX object exists");
-        }
-        return (Float) com.jxparallel.fx.Fx.fx(com.jxparallel.fx.beans.binding.NumberExpressionBase.$hook(jxOwner, "floatValue()", new Object[] {}));
-    }
-
-    @Override
-    public double doubleValue() {
-        if (jxOwner == null) {
-            throw new IllegalStateException("doubleValue before the JX object exists");
-        }
-        return (Double) com.jxparallel.fx.Fx.fx(com.jxparallel.fx.beans.binding.NumberExpressionBase.$hook(jxOwner, "doubleValue()", new Object[] {}));
-    }
-
-    @Override
-    public java.lang.Number getValue() {
-        if (jxOwner == null) {
-            throw new IllegalStateException("getValue before the JX object exists");
-        }
-        return (java.lang.Number) com.jxparallel.fx.Fx.fx(com.jxparallel.fx.beans.binding.NumberExpressionBase.$hook(jxOwner, "getValue()", new Object[] {}));
-    }
-
-    @Override
-    public void removeListener(javafx.beans.value.ChangeListener<? super java.lang.Number> arg0) {
-        if (jxOwner == null) {
-            throw new IllegalStateException("removeListener before the JX object exists");
-        }
-        com.jxparallel.fx.beans.binding.NumberExpressionBase.$hook(jxOwner, "removeListener(ChangeListener)", new Object[] {com.jxparallel.fx.Fx.jx(arg0)});
-    }
-
-    @Override
-    public void addListener(javafx.beans.value.ChangeListener<? super java.lang.Number> arg0) {
+    public void addListener(javafx.beans.InvalidationListener arg0) {
         if (jxOwner == null) {
             throw new IllegalStateException("addListener before the JX object exists");
         }
-        com.jxparallel.fx.beans.binding.NumberExpressionBase.$hook(jxOwner, "addListener(ChangeListener)", new Object[] {com.jxparallel.fx.Fx.jx(arg0)});
+        com.jxparallel.fx.beans.binding.NumberExpressionBase.$hook(jxOwner, "addListener(InvalidationListener)", new Object[] {com.jxparallel.fx.Fx.jx(arg0)});
     }
 
     @Override
@@ -220,11 +212,19 @@ public class NumberExpressionBase extends javafx.beans.binding.NumberExpressionB
     }
 
     @Override
-    public void addListener(javafx.beans.InvalidationListener arg0) {
+    public void addListener(javafx.beans.value.ChangeListener<? super java.lang.Number> arg0) {
         if (jxOwner == null) {
             throw new IllegalStateException("addListener before the JX object exists");
         }
-        com.jxparallel.fx.beans.binding.NumberExpressionBase.$hook(jxOwner, "addListener(InvalidationListener)", new Object[] {com.jxparallel.fx.Fx.jx(arg0)});
+        com.jxparallel.fx.beans.binding.NumberExpressionBase.$hook(jxOwner, "addListener(ChangeListener)", new Object[] {com.jxparallel.fx.Fx.jx(arg0)});
+    }
+
+    @Override
+    public void removeListener(javafx.beans.value.ChangeListener<? super java.lang.Number> arg0) {
+        if (jxOwner == null) {
+            throw new IllegalStateException("removeListener before the JX object exists");
+        }
+        com.jxparallel.fx.beans.binding.NumberExpressionBase.$hook(jxOwner, "removeListener(ChangeListener)", new Object[] {com.jxparallel.fx.Fx.jx(arg0)});
     }
 
     @Override

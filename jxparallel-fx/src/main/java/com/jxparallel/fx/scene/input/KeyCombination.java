@@ -16,26 +16,26 @@ public class KeyCombination implements com.jxparallel.fx.Fx.Backed {
 
     @Override
     public boolean equals(Object o) {
-        return o == this || fxPeer.equals(com.jxparallel.fx.Fx.fx(o));
+        return o == this || fxPeer().equals(com.jxparallel.fx.Fx.fx(o));
     }
 
     @Override
     public int hashCode() {
-        return fxPeer.hashCode();
+        return fxPeer().hashCode();
     }
 
     @Override
     public String toString() {
-        return fxPeer.toString();
-    }
-
-    protected KeyCombination(com.jxparallel.fx.scene.input.KeyCombination.ModifierValue arg0, com.jxparallel.fx.scene.input.KeyCombination.ModifierValue arg1, com.jxparallel.fx.scene.input.KeyCombination.ModifierValue arg2, com.jxparallel.fx.scene.input.KeyCombination.ModifierValue arg3, com.jxparallel.fx.scene.input.KeyCombination.ModifierValue arg4) {
-        this(com.jxparallel.fx.Fx.WRAP, new com.jxparallel.fx.peer.scene.input.KeyCombination((javafx.scene.input.KeyCombination.ModifierValue) com.jxparallel.fx.Fx.fx(arg0), (javafx.scene.input.KeyCombination.ModifierValue) com.jxparallel.fx.Fx.fx(arg1), (javafx.scene.input.KeyCombination.ModifierValue) com.jxparallel.fx.Fx.fx(arg2), (javafx.scene.input.KeyCombination.ModifierValue) com.jxparallel.fx.Fx.fx(arg3), (javafx.scene.input.KeyCombination.ModifierValue) com.jxparallel.fx.Fx.fx(arg4)));
-        com.jxparallel.fx.Fx.own(fxPeer(), this);
+        return fxPeer().toString();
     }
 
     protected KeyCombination(com.jxparallel.fx.scene.input.KeyCombination.Modifier... arg0) {
         this(com.jxparallel.fx.Fx.WRAP, new com.jxparallel.fx.peer.scene.input.KeyCombination((javafx.scene.input.KeyCombination.Modifier[]) com.jxparallel.fx.Fx.fxArray(arg0, javafx.scene.input.KeyCombination.Modifier.class)));
+        com.jxparallel.fx.Fx.own(fxPeer(), this);
+    }
+
+    protected KeyCombination(com.jxparallel.fx.scene.input.KeyCombination.ModifierValue arg0, com.jxparallel.fx.scene.input.KeyCombination.ModifierValue arg1, com.jxparallel.fx.scene.input.KeyCombination.ModifierValue arg2, com.jxparallel.fx.scene.input.KeyCombination.ModifierValue arg3, com.jxparallel.fx.scene.input.KeyCombination.ModifierValue arg4) {
+        this(com.jxparallel.fx.Fx.WRAP, new com.jxparallel.fx.peer.scene.input.KeyCombination((javafx.scene.input.KeyCombination.ModifierValue) com.jxparallel.fx.Fx.fx(arg0), (javafx.scene.input.KeyCombination.ModifierValue) com.jxparallel.fx.Fx.fx(arg1), (javafx.scene.input.KeyCombination.ModifierValue) com.jxparallel.fx.Fx.fx(arg2), (javafx.scene.input.KeyCombination.ModifierValue) com.jxparallel.fx.Fx.fx(arg3), (javafx.scene.input.KeyCombination.ModifierValue) com.jxparallel.fx.Fx.fx(arg4)));
         com.jxparallel.fx.Fx.own(fxPeer(), this);
     }
 
@@ -115,17 +115,17 @@ public class KeyCombination implements com.jxparallel.fx.Fx.Backed {
 
         @Override
         public boolean equals(Object o) {
-            return o == this || fxPeer.equals(com.jxparallel.fx.Fx.fx(o));
+            return o == this || fxPeer().equals(com.jxparallel.fx.Fx.fx(o));
         }
 
         @Override
         public int hashCode() {
-            return fxPeer.hashCode();
+            return fxPeer().hashCode();
         }
 
         @Override
         public String toString() {
-            return fxPeer.toString();
+            return fxPeer().toString();
         }
 
         public com.jxparallel.fx.scene.input.KeyCode getKey() {

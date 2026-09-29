@@ -187,11 +187,33 @@ namespace errado (22 telas sem os painéis incluídos), `<GridPane.margin>` trat
 Ainda não verificado: abrir o sistema de verdade (precisa de banco, servidor e login) e rodar a
 suíte de testes do frontend.
 
-## Fase 2b: desenho nativo (plano, 2026-09-26)
+## Fase 2b: desenho nativo (plano, 2026-09-26; implementação concluída em 2026-09-29)
+
+Estado em 2026-09-29: todos os controles da tabela abaixo, o subconjunto de CSS, janelas,
+diálogos, notificações, arrastar e soltar, área de transferência, `FileChooser` e as transições
+têm implementação nativa, testada sem janela (`-Djx.headless=true`) no `jxparallel-fx` e, no
+`jxparallel-ui`, contra o JavaFX 21 (testes diferenciais), com imagens e gravações de referência
+e teste de mutação (docs/testing-strategy.md). Também os pontos que a troca de import não
+resolvia: `ScrollPaneSkin.viewRect` (lido por reflexão em 32 controllers) e `TitledPaneSkin`
+existem no modo nativo, e o `ScrollPane`/`TitledPane` exibido recebe o skin como no JavaFX.
+
+Falta, e depende de acesso: abrir as telas do DeviceConfig no modo nativo (`NativeScreenBatch`,
+branch `feature/jx-parallel-refactoring` e banco de homologação) e comparar com o JavaFX tela a
+tela. Limitações conhecidas: translate/scale/rotate não são desenhados (só opacidade),
+`FillTransition`/`StrokeTransition`/`PathTransition` não existem no nativo, sem `MenuBar`,
+`TreeView` e mnemônicos, e um filho que ocupa uma faixa de tamanho fixo num GridPane centralizado
+pode ficar 1 px deslocado.
+
 
 Cobertura medida sobre os 232 FXML (elementos que o `jxparallel-ui` nativo já tem: 11 controles e
 os 9 layouts). Hoje só 1 tela usa apenas elementos nativos. Telas cobertas à medida que cada controle
 nativo entra, na ordem de maior impacto:
+
+Andamento: Separator, TitledPane e Accordion entraram em 2026-09-28 (layout igual ao JavaFX 21 em
+500 árvores aleatórias; num FXML de teste pelo `FXMLLoader` do JX, nenhuma classe sem elemento
+nativo e nenhuma API faltando). A cobertura de 81 telas abaixo é a projeção do plano; ainda não foi
+remedida sobre os FXML do DeviceConfig. Falta: clicar no título para expandir ou recolher (depende do
+despacho de eventos nativo) e `<fx:reference>` no `FXMLLoader` do JX (usado em `expandedPane`).
 
 | Controle nativo adicionado | Telas cobertas | Sem CSS |
 |---|---:|---:|

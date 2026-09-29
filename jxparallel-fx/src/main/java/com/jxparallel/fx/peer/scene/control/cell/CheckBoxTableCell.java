@@ -37,21 +37,21 @@ public class CheckBoxTableCell<S, T> extends javafx.scene.control.cell.CheckBoxT
     }
 
     @Override
-    public void commitEdit(T arg0) {
-        if (jxOwner == null) {
-            super.commitEdit(arg0);
-            return;
-        }
-        com.jxparallel.fx.scene.control.cell.CheckBoxTableCell.$hook(jxOwner, "commitEdit(Object)", new Object[] {com.jxparallel.fx.Fx.jx(arg0)});
-    }
-
-    @Override
     public void cancelEdit() {
         if (jxOwner == null) {
             super.cancelEdit();
             return;
         }
         com.jxparallel.fx.scene.control.cell.CheckBoxTableCell.$hook(jxOwner, "cancelEdit()", new Object[] {});
+    }
+
+    @Override
+    public void commitEdit(T arg0) {
+        if (jxOwner == null) {
+            super.commitEdit(arg0);
+            return;
+        }
+        com.jxparallel.fx.scene.control.cell.CheckBoxTableCell.$hook(jxOwner, "commitEdit(Object)", new Object[] {com.jxparallel.fx.Fx.jx(arg0)});
     }
 
     @Override
@@ -88,11 +88,11 @@ public class CheckBoxTableCell<S, T> extends javafx.scene.control.cell.CheckBoxT
             case "updateItem(Object,boolean)":
                 super.updateItem((T) a[0], (Boolean) a[1]);
                 return null;
-            case "commitEdit(Object)":
-                super.commitEdit((T) a[0]);
-                return null;
             case "cancelEdit()":
                 super.cancelEdit();
+                return null;
+            case "commitEdit(Object)":
+                super.commitEdit((T) a[0]);
                 return null;
             case "startEdit()":
                 super.startEdit();

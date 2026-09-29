@@ -16,17 +16,17 @@ public class PixelFormat<T extends java.nio.Buffer> implements com.jxparallel.fx
 
     @Override
     public boolean equals(Object o) {
-        return o == this || fxPeer.equals(com.jxparallel.fx.Fx.fx(o));
+        return o == this || fxPeer().equals(com.jxparallel.fx.Fx.fx(o));
     }
 
     @Override
     public int hashCode() {
-        return fxPeer.hashCode();
+        return fxPeer().hashCode();
     }
 
     @Override
     public String toString() {
-        return fxPeer.toString();
+        return fxPeer().toString();
     }
 
     public static com.jxparallel.fx.scene.image.PixelFormat<java.nio.ByteBuffer> createByteIndexedInstance(int[] arg0) {

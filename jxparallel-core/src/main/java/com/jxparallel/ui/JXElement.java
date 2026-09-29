@@ -1,6 +1,6 @@
 package com.jxparallel.ui;
 
-import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
 
@@ -15,23 +15,34 @@ public final class JXElement {
         }
         this.type = type;
         this.props = props == null ? JXProps.empty() : props;
-        this.children = Collections.unmodifiableList(new ArrayList<JXElement>(children));
+        this.children = children;
     }
 
     public static JXElement of(String type) {
         return new JXElement(type, JXProps.empty(), Collections.<JXElement>emptyList());
     }
 
+    /** Null children are left out; the array is copied, so the caller may reuse it. */
     public static JXElement of(String type, JXProps props, JXElement... children) {
-        List<JXElement> values = new ArrayList<JXElement>();
+        int n = 0;
         if (children != null) {
             for (JXElement child : children) {
                 if (child != null) {
-                    values.add(child);
+                    n++;
                 }
             }
         }
-        return new JXElement(type, props, values);
+        if (n == 0) {
+            return new JXElement(type, props, Collections.<JXElement>emptyList());
+        }
+        JXElement[] values = new JXElement[n];
+        int i = 0;
+        for (JXElement child : children) {
+            if (child != null) {
+                values[i++] = child;
+            }
+        }
+        return new JXElement(type, props, Collections.unmodifiableList(Arrays.asList(values)));
     }
 
     public static JXElement text(String value) {

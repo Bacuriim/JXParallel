@@ -16,34 +16,34 @@ public class TablePositionBase<TC extends com.jxparallel.fx.scene.control.TableC
 
     @Override
     public boolean equals(Object o) {
-        return o == this || fxPeer.equals(com.jxparallel.fx.Fx.fx(o));
+        return o == this || fxPeer().equals(com.jxparallel.fx.Fx.fx(o));
     }
 
     @Override
     public int hashCode() {
-        return fxPeer.hashCode();
+        return fxPeer().hashCode();
     }
 
     @Override
     public String toString() {
-        return fxPeer.toString();
+        return fxPeer().toString();
     }
 
     protected TablePositionBase(int arg0, TC arg1) {
-        this(com.jxparallel.fx.Fx.WRAP, new com.jxparallel.fx.peer.scene.control.TablePositionBase(arg0, (javafx.scene.control.TableColumnBase) com.jxparallel.fx.Fx.fx(arg1)));
+        this(com.jxparallel.fx.Fx.WRAP, new com.jxparallel.fx.peer.scene.control.TablePositionBase(arg0, (javafx.scene.control.TableColumnBase) com.jxparallel.fx.Fx.fxAs(arg1, javafx.scene.control.TableColumnBase.class)));
         com.jxparallel.fx.Fx.own(fxPeer(), this);
     }
 
     public int getColumn() {
-        return (Integer) (fxPeer() instanceof com.jxparallel.fx.Fx.Owned ? ((com.jxparallel.fx.Fx.Owned) fxPeer()).callSuper("getColumn()", new Object[] {}) : com.jxparallel.fx.Fx.invoke(fxPeer(), javafx.scene.control.TablePositionBase.class, "getColumn", new Class<?>[] {}));
+        return (Integer) (fxPeer() instanceof com.jxparallel.fx.Fx.Owned ? ((com.jxparallel.fx.Fx.Owned) fxPeer()).callSuper("getColumn()", new Object[] {}) : com.jxparallel.fx.Fx.invoke(com.jxparallel.fx.Fx.peerAs(fxPeer(), javafx.scene.control.TablePositionBase.class), javafx.scene.control.TablePositionBase.class, "getColumn", new Class<?>[] {}));
     }
 
     public int getRow() {
-        return ((javafx.scene.control.TablePositionBase) fxPeer()).getRow();
+        return ((javafx.scene.control.TablePositionBase) com.jxparallel.fx.Fx.peerAs(fxPeer(), javafx.scene.control.TablePositionBase.class)).getRow();
     }
 
     public TC getTableColumn() {
-        return (TC) com.jxparallel.fx.Fx.jx(((javafx.scene.control.TablePositionBase) fxPeer()).getTableColumn());
+        return (TC) com.jxparallel.fx.Fx.jx(((javafx.scene.control.TablePositionBase) com.jxparallel.fx.Fx.peerAs(fxPeer(), javafx.scene.control.TablePositionBase.class)).getTableColumn());
     }
 
     /** Called by the peer: runs the JX (possibly overridden) method. */

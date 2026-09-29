@@ -16,80 +16,62 @@ public class PickResult implements com.jxparallel.fx.Fx.Backed {
 
     @Override
     public boolean equals(Object o) {
-        return o == this || fxPeer.equals(com.jxparallel.fx.Fx.fx(o));
+        return o == this || fxPeer().equals(com.jxparallel.fx.Fx.fx(o));
     }
 
     @Override
     public int hashCode() {
-        return fxPeer.hashCode();
+        return fxPeer().hashCode();
     }
 
     @Override
     public String toString() {
-        return fxPeer.toString();
+        return fxPeer().toString();
     }
 
     public PickResult(@javafx.beans.NamedArg(value = "target") com.jxparallel.fx.event.EventTarget arg0, @javafx.beans.NamedArg(value = "sceneX") double arg1, @javafx.beans.NamedArg(value = "sceneY") double arg2) {
-        this(com.jxparallel.fx.Fx.WRAP, com.jxparallel.fx.Fx.NATIVE ? com.jxparallel.fx.nativeimpl.Native.create(javafx.scene.input.PickResult.class, new String[] {"target", "sceneX", "sceneY"}, new Object[] {arg0, arg1, arg2}) : new com.jxparallel.fx.peer.scene.input.PickResult((javafx.event.EventTarget) com.jxparallel.fx.Fx.fx(arg0), arg1, arg2));
+        this(com.jxparallel.fx.Fx.WRAP, new com.jxparallel.fx.peer.scene.input.PickResult((javafx.event.EventTarget) com.jxparallel.fx.Fx.fx(arg0), arg1, arg2));
         com.jxparallel.fx.Fx.own(fxPeer(), this);
     }
 
     public PickResult(@javafx.beans.NamedArg(value = "node") com.jxparallel.fx.scene.Node arg0, @javafx.beans.NamedArg(value = "point") com.jxparallel.fx.geometry.Point3D arg1, @javafx.beans.NamedArg(value = "distance") double arg2) {
-        this(com.jxparallel.fx.Fx.WRAP, com.jxparallel.fx.Fx.NATIVE ? com.jxparallel.fx.nativeimpl.Native.create(javafx.scene.input.PickResult.class, new String[] {"node", "point", "distance"}, new Object[] {arg0, arg1, arg2}) : new com.jxparallel.fx.peer.scene.input.PickResult((javafx.scene.Node) com.jxparallel.fx.Fx.fx(arg0), (javafx.geometry.Point3D) com.jxparallel.fx.Fx.fx(arg1), arg2));
-        com.jxparallel.fx.Fx.own(fxPeer(), this);
-    }
-
-    public PickResult(@javafx.beans.NamedArg(value = "node") com.jxparallel.fx.scene.Node arg0, @javafx.beans.NamedArg(value = "point") com.jxparallel.fx.geometry.Point3D arg1, @javafx.beans.NamedArg(value = "distance") double arg2, @javafx.beans.NamedArg(value = "face") int arg3, @javafx.beans.NamedArg(value = "normal") com.jxparallel.fx.geometry.Point3D arg4, @javafx.beans.NamedArg(value = "texCoord") com.jxparallel.fx.geometry.Point2D arg5) {
-        this(com.jxparallel.fx.Fx.WRAP, com.jxparallel.fx.Fx.NATIVE ? com.jxparallel.fx.nativeimpl.Native.create(javafx.scene.input.PickResult.class, new String[] {"node", "point", "distance", "face", "normal", "texCoord"}, new Object[] {arg0, arg1, arg2, arg3, arg4, arg5}) : new com.jxparallel.fx.peer.scene.input.PickResult((javafx.scene.Node) com.jxparallel.fx.Fx.fx(arg0), (javafx.geometry.Point3D) com.jxparallel.fx.Fx.fx(arg1), arg2, arg3, (javafx.geometry.Point3D) com.jxparallel.fx.Fx.fx(arg4), (javafx.geometry.Point2D) com.jxparallel.fx.Fx.fx(arg5)));
+        this(com.jxparallel.fx.Fx.WRAP, new com.jxparallel.fx.peer.scene.input.PickResult((javafx.scene.Node) com.jxparallel.fx.Fx.fxAs(arg0, javafx.scene.Node.class), (javafx.geometry.Point3D) com.jxparallel.fx.Fx.fx(arg1), arg2));
         com.jxparallel.fx.Fx.own(fxPeer(), this);
     }
 
     public PickResult(@javafx.beans.NamedArg(value = "node") com.jxparallel.fx.scene.Node arg0, @javafx.beans.NamedArg(value = "point") com.jxparallel.fx.geometry.Point3D arg1, @javafx.beans.NamedArg(value = "distance") double arg2, @javafx.beans.NamedArg(value = "face") int arg3, @javafx.beans.NamedArg(value = "texCoord") com.jxparallel.fx.geometry.Point2D arg4) {
-        this(com.jxparallel.fx.Fx.WRAP, com.jxparallel.fx.Fx.NATIVE ? com.jxparallel.fx.nativeimpl.Native.create(javafx.scene.input.PickResult.class, new String[] {"node", "point", "distance", "face", "texCoord"}, new Object[] {arg0, arg1, arg2, arg3, arg4}) : new com.jxparallel.fx.peer.scene.input.PickResult((javafx.scene.Node) com.jxparallel.fx.Fx.fx(arg0), (javafx.geometry.Point3D) com.jxparallel.fx.Fx.fx(arg1), arg2, arg3, (javafx.geometry.Point2D) com.jxparallel.fx.Fx.fx(arg4)));
+        this(com.jxparallel.fx.Fx.WRAP, new com.jxparallel.fx.peer.scene.input.PickResult((javafx.scene.Node) com.jxparallel.fx.Fx.fxAs(arg0, javafx.scene.Node.class), (javafx.geometry.Point3D) com.jxparallel.fx.Fx.fx(arg1), arg2, arg3, (javafx.geometry.Point2D) com.jxparallel.fx.Fx.fx(arg4)));
+        com.jxparallel.fx.Fx.own(fxPeer(), this);
+    }
+
+    public PickResult(@javafx.beans.NamedArg(value = "node") com.jxparallel.fx.scene.Node arg0, @javafx.beans.NamedArg(value = "point") com.jxparallel.fx.geometry.Point3D arg1, @javafx.beans.NamedArg(value = "distance") double arg2, @javafx.beans.NamedArg(value = "face") int arg3, @javafx.beans.NamedArg(value = "normal") com.jxparallel.fx.geometry.Point3D arg4, @javafx.beans.NamedArg(value = "texCoord") com.jxparallel.fx.geometry.Point2D arg5) {
+        this(com.jxparallel.fx.Fx.WRAP, new com.jxparallel.fx.peer.scene.input.PickResult((javafx.scene.Node) com.jxparallel.fx.Fx.fxAs(arg0, javafx.scene.Node.class), (javafx.geometry.Point3D) com.jxparallel.fx.Fx.fx(arg1), arg2, arg3, (javafx.geometry.Point3D) com.jxparallel.fx.Fx.fx(arg4), (javafx.geometry.Point2D) com.jxparallel.fx.Fx.fx(arg5)));
         com.jxparallel.fx.Fx.own(fxPeer(), this);
     }
 
     public static final int FACE_UNDEFINED = javafx.scene.input.PickResult.FACE_UNDEFINED;
 
     public double getIntersectedDistance() {
-        if (com.jxparallel.fx.Fx.NATIVE) {
-            return (Double) com.jxparallel.fx.nativeimpl.Native.call(this, com.jxparallel.fx.scene.input.PickResult.class, "getIntersectedDistance", new Class<?>[] {}, double.class);
-        }
         return ((javafx.scene.input.PickResult) fxPeer()).getIntersectedDistance();
     }
 
     public int getIntersectedFace() {
-        if (com.jxparallel.fx.Fx.NATIVE) {
-            return (Integer) com.jxparallel.fx.nativeimpl.Native.call(this, com.jxparallel.fx.scene.input.PickResult.class, "getIntersectedFace", new Class<?>[] {}, int.class);
-        }
         return ((javafx.scene.input.PickResult) fxPeer()).getIntersectedFace();
     }
 
     public com.jxparallel.fx.scene.Node getIntersectedNode() {
-        if (com.jxparallel.fx.Fx.NATIVE) {
-            return (com.jxparallel.fx.scene.Node) com.jxparallel.fx.nativeimpl.Native.call(this, com.jxparallel.fx.scene.input.PickResult.class, "getIntersectedNode", new Class<?>[] {}, com.jxparallel.fx.scene.Node.class);
-        }
         return (com.jxparallel.fx.scene.Node) com.jxparallel.fx.Fx.jx(((javafx.scene.input.PickResult) fxPeer()).getIntersectedNode());
     }
 
     public com.jxparallel.fx.geometry.Point3D getIntersectedNormal() {
-        if (com.jxparallel.fx.Fx.NATIVE) {
-            return (com.jxparallel.fx.geometry.Point3D) com.jxparallel.fx.nativeimpl.Native.call(this, com.jxparallel.fx.scene.input.PickResult.class, "getIntersectedNormal", new Class<?>[] {}, com.jxparallel.fx.geometry.Point3D.class);
-        }
         return (com.jxparallel.fx.geometry.Point3D) com.jxparallel.fx.Fx.jx(((javafx.scene.input.PickResult) fxPeer()).getIntersectedNormal());
     }
 
     public com.jxparallel.fx.geometry.Point3D getIntersectedPoint() {
-        if (com.jxparallel.fx.Fx.NATIVE) {
-            return (com.jxparallel.fx.geometry.Point3D) com.jxparallel.fx.nativeimpl.Native.call(this, com.jxparallel.fx.scene.input.PickResult.class, "getIntersectedPoint", new Class<?>[] {}, com.jxparallel.fx.geometry.Point3D.class);
-        }
         return (com.jxparallel.fx.geometry.Point3D) com.jxparallel.fx.Fx.jx(((javafx.scene.input.PickResult) fxPeer()).getIntersectedPoint());
     }
 
     public com.jxparallel.fx.geometry.Point2D getIntersectedTexCoord() {
-        if (com.jxparallel.fx.Fx.NATIVE) {
-            return (com.jxparallel.fx.geometry.Point2D) com.jxparallel.fx.nativeimpl.Native.call(this, com.jxparallel.fx.scene.input.PickResult.class, "getIntersectedTexCoord", new Class<?>[] {}, com.jxparallel.fx.geometry.Point2D.class);
-        }
         return (com.jxparallel.fx.geometry.Point2D) com.jxparallel.fx.Fx.jx(((javafx.scene.input.PickResult) fxPeer()).getIntersectedTexCoord());
     }
 }

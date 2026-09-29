@@ -9,12 +9,12 @@ public class BorderPane extends javafx.scene.layout.BorderPane implements com.jx
         super();
     }
 
-    public BorderPane(javafx.scene.Node arg0, javafx.scene.Node arg1, javafx.scene.Node arg2, javafx.scene.Node arg3, javafx.scene.Node arg4) {
-        super(arg0, arg1, arg2, arg3, arg4);
-    }
-
     public BorderPane(javafx.scene.Node arg0) {
         super(arg0);
+    }
+
+    public BorderPane(javafx.scene.Node arg0, javafx.scene.Node arg1, javafx.scene.Node arg2, javafx.scene.Node arg3, javafx.scene.Node arg4) {
+        super(arg0, arg1, arg2, arg3, arg4);
     }
 
     @Override

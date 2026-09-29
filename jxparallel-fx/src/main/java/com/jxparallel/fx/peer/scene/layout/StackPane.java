@@ -5,12 +5,12 @@ package com.jxparallel.fx.peer.scene.layout;
 public class StackPane extends javafx.scene.layout.StackPane implements com.jxparallel.fx.Fx.Owned {
     private Object jxOwner;
 
-    public StackPane(javafx.scene.Node... arg0) {
-        super(arg0);
-    }
-
     public StackPane() {
         super();
+    }
+
+    public StackPane(javafx.scene.Node... arg0) {
+        super(arg0);
     }
 
     @Override

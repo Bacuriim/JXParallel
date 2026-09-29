@@ -13,12 +13,12 @@ public class PickResult extends javafx.scene.input.PickResult implements com.jxp
         super(arg0, arg1, arg2);
     }
 
-    public PickResult(@javafx.beans.NamedArg(value = "node") javafx.scene.Node arg0, @javafx.beans.NamedArg(value = "point") javafx.geometry.Point3D arg1, @javafx.beans.NamedArg(value = "distance") double arg2, @javafx.beans.NamedArg(value = "face") int arg3, @javafx.beans.NamedArg(value = "normal") javafx.geometry.Point3D arg4, @javafx.beans.NamedArg(value = "texCoord") javafx.geometry.Point2D arg5) {
-        super(arg0, arg1, arg2, arg3, arg4, arg5);
-    }
-
     public PickResult(@javafx.beans.NamedArg(value = "node") javafx.scene.Node arg0, @javafx.beans.NamedArg(value = "point") javafx.geometry.Point3D arg1, @javafx.beans.NamedArg(value = "distance") double arg2, @javafx.beans.NamedArg(value = "face") int arg3, @javafx.beans.NamedArg(value = "texCoord") javafx.geometry.Point2D arg4) {
         super(arg0, arg1, arg2, arg3, arg4);
+    }
+
+    public PickResult(@javafx.beans.NamedArg(value = "node") javafx.scene.Node arg0, @javafx.beans.NamedArg(value = "point") javafx.geometry.Point3D arg1, @javafx.beans.NamedArg(value = "distance") double arg2, @javafx.beans.NamedArg(value = "face") int arg3, @javafx.beans.NamedArg(value = "normal") javafx.geometry.Point3D arg4, @javafx.beans.NamedArg(value = "texCoord") javafx.geometry.Point2D arg5) {
+        super(arg0, arg1, arg2, arg3, arg4, arg5);
     }
 
     @Override

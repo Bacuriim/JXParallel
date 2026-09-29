@@ -16,17 +16,17 @@ public class TreeItemPropertyValueFactory<S, T> implements com.jxparallel.fx.uti
 
     @Override
     public boolean equals(Object o) {
-        return o == this || fxPeer.equals(com.jxparallel.fx.Fx.fx(o));
+        return o == this || fxPeer().equals(com.jxparallel.fx.Fx.fx(o));
     }
 
     @Override
     public int hashCode() {
-        return fxPeer.hashCode();
+        return fxPeer().hashCode();
     }
 
     @Override
     public String toString() {
-        return fxPeer.toString();
+        return fxPeer().toString();
     }
 
     public TreeItemPropertyValueFactory(@javafx.beans.NamedArg(value = "property") java.lang.String arg0) {

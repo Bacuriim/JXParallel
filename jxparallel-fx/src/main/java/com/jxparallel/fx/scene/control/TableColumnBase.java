@@ -16,17 +16,17 @@ public class TableColumnBase<S, T> implements com.jxparallel.fx.event.EventTarge
 
     @Override
     public boolean equals(Object o) {
-        return o == this || fxPeer.equals(com.jxparallel.fx.Fx.fx(o));
+        return o == this || fxPeer().equals(com.jxparallel.fx.Fx.fx(o));
     }
 
     @Override
     public int hashCode() {
-        return fxPeer.hashCode();
+        return fxPeer().hashCode();
     }
 
     @Override
     public String toString() {
-        return fxPeer.toString();
+        return fxPeer().toString();
     }
 
     protected TableColumnBase() {
@@ -530,11 +530,11 @@ public class TableColumnBase<S, T> implements com.jxparallel.fx.event.EventTarge
         return (com.jxparallel.fx.beans.property.ReadOnlyDoubleProperty) com.jxparallel.fx.Fx.jx(((javafx.scene.control.TableColumnBase) fxPeer()).widthProperty());
     }
 
-    public com.jxparallel.fx.css.Styleable getStyleableParent() {
+    public java.lang.String getTypeSelector() {
         if (com.jxparallel.fx.Fx.NATIVE) {
-            return (com.jxparallel.fx.css.Styleable) com.jxparallel.fx.nativeimpl.Native.call(this, com.jxparallel.fx.scene.control.TableColumnBase.class, "getStyleableParent", new Class<?>[] {}, com.jxparallel.fx.css.Styleable.class);
+            return (java.lang.String) com.jxparallel.fx.nativeimpl.Native.call(this, com.jxparallel.fx.scene.control.TableColumnBase.class, "getTypeSelector", new Class<?>[] {}, java.lang.String.class);
         }
-        return (com.jxparallel.fx.css.Styleable) com.jxparallel.fx.Fx.jx((fxPeer() instanceof com.jxparallel.fx.Fx.Owned ? ((com.jxparallel.fx.Fx.Owned) fxPeer()).callSuper("getStyleableParent()", new Object[] {}) : com.jxparallel.fx.Fx.invoke(fxPeer(), javafx.css.Styleable.class, "getStyleableParent", new Class<?>[] {})));
+        return (java.lang.String) (fxPeer() instanceof com.jxparallel.fx.Fx.Owned ? ((com.jxparallel.fx.Fx.Owned) fxPeer()).callSuper("getTypeSelector()", new Object[] {}) : com.jxparallel.fx.Fx.invoke(fxPeer(), javafx.css.Styleable.class, "getTypeSelector", new Class<?>[] {}));
     }
 
     public java.util.List<javafx.css.CssMetaData<? extends javafx.css.Styleable, ?>> getCssMetaData() {
@@ -544,11 +544,11 @@ public class TableColumnBase<S, T> implements com.jxparallel.fx.event.EventTarge
         return (java.util.List) (fxPeer() instanceof com.jxparallel.fx.Fx.Owned ? ((com.jxparallel.fx.Fx.Owned) fxPeer()).callSuper("getCssMetaData()", new Object[] {}) : com.jxparallel.fx.Fx.invoke(fxPeer(), javafx.css.Styleable.class, "getCssMetaData", new Class<?>[] {}));
     }
 
-    public java.lang.String getTypeSelector() {
+    public com.jxparallel.fx.css.Styleable getStyleableParent() {
         if (com.jxparallel.fx.Fx.NATIVE) {
-            return (java.lang.String) com.jxparallel.fx.nativeimpl.Native.call(this, com.jxparallel.fx.scene.control.TableColumnBase.class, "getTypeSelector", new Class<?>[] {}, java.lang.String.class);
+            return (com.jxparallel.fx.css.Styleable) com.jxparallel.fx.nativeimpl.Native.call(this, com.jxparallel.fx.scene.control.TableColumnBase.class, "getStyleableParent", new Class<?>[] {}, com.jxparallel.fx.css.Styleable.class);
         }
-        return (java.lang.String) (fxPeer() instanceof com.jxparallel.fx.Fx.Owned ? ((com.jxparallel.fx.Fx.Owned) fxPeer()).callSuper("getTypeSelector()", new Object[] {}) : com.jxparallel.fx.Fx.invoke(fxPeer(), javafx.css.Styleable.class, "getTypeSelector", new Class<?>[] {}));
+        return (com.jxparallel.fx.css.Styleable) com.jxparallel.fx.Fx.jx((fxPeer() instanceof com.jxparallel.fx.Fx.Owned ? ((com.jxparallel.fx.Fx.Owned) fxPeer()).callSuper("getStyleableParent()", new Object[] {}) : com.jxparallel.fx.Fx.invoke(fxPeer(), javafx.css.Styleable.class, "getStyleableParent", new Class<?>[] {})));
     }
 
     /** Called by the peer: runs the JX (possibly overridden) method. */
@@ -556,18 +556,18 @@ public class TableColumnBase<S, T> implements com.jxparallel.fx.event.EventTarge
         TableColumnBase jx = (TableColumnBase) self;
         try {
         switch (method) {
-            case "getColumns()":
-                return jx.getColumns();
-            case "getCellObservableValue(int)":
-                return jx.getCellObservableValue((Integer) a[0]);
             case "getCellObservableValue(Object)":
                 return jx.getCellObservableValue((java.lang.Object) a[0]);
-            case "getStyleableParent()":
-                return jx.getStyleableParent();
-            case "getCssMetaData()":
-                return jx.getCssMetaData();
+            case "getCellObservableValue(int)":
+                return jx.getCellObservableValue((Integer) a[0]);
+            case "getColumns()":
+                return jx.getColumns();
             case "getTypeSelector()":
                 return jx.getTypeSelector();
+            case "getCssMetaData()":
+                return jx.getCssMetaData();
+            case "getStyleableParent()":
+                return jx.getStyleableParent();
             default:
                 throw new IllegalArgumentException(method);
         }
