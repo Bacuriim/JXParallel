@@ -20,12 +20,11 @@ public class Task<V> extends javafx.concurrent.Task<V> implements com.jxparallel
     }
 
     @Override
-    protected void running() {
+    protected V call() {
         if (jxOwner == null) {
-            super.running();
-            return;
+            throw new IllegalStateException("call before the JX object exists");
         }
-        com.jxparallel.fx.concurrent.Task.$hook(jxOwner, "running()", new Object[] {});
+        return (V) com.jxparallel.fx.Fx.fx(com.jxparallel.fx.concurrent.Task.$hook(jxOwner, "call()", new Object[] {}));
     }
 
     @Override
@@ -38,12 +37,21 @@ public class Task<V> extends javafx.concurrent.Task<V> implements com.jxparallel
     }
 
     @Override
-    protected void succeeded() {
+    protected void failed() {
         if (jxOwner == null) {
-            super.succeeded();
+            super.failed();
             return;
         }
-        com.jxparallel.fx.concurrent.Task.$hook(jxOwner, "succeeded()", new Object[] {});
+        com.jxparallel.fx.concurrent.Task.$hook(jxOwner, "failed()", new Object[] {});
+    }
+
+    @Override
+    protected void running() {
+        if (jxOwner == null) {
+            super.running();
+            return;
+        }
+        com.jxparallel.fx.concurrent.Task.$hook(jxOwner, "running()", new Object[] {});
     }
 
     @Override
@@ -56,40 +64,32 @@ public class Task<V> extends javafx.concurrent.Task<V> implements com.jxparallel
     }
 
     @Override
-    protected void failed() {
+    protected void succeeded() {
         if (jxOwner == null) {
-            super.failed();
+            super.succeeded();
             return;
         }
-        com.jxparallel.fx.concurrent.Task.$hook(jxOwner, "failed()", new Object[] {});
-    }
-
-    @Override
-    protected V call() {
-        if (jxOwner == null) {
-            throw new IllegalStateException("call before the JX object exists");
-        }
-        return (V) com.jxparallel.fx.Fx.fx(com.jxparallel.fx.concurrent.Task.$hook(jxOwner, "call()", new Object[] {}));
+        com.jxparallel.fx.concurrent.Task.$hook(jxOwner, "succeeded()", new Object[] {});
     }
 
     @Override
     public Object callSuper(String method, Object[] a) {
         try {
         switch (method) {
-            case "running()":
-                super.running();
-                return null;
             case "cancelled()":
                 super.cancelled();
                 return null;
-            case "succeeded()":
-                super.succeeded();
+            case "failed()":
+                super.failed();
+                return null;
+            case "running()":
+                super.running();
                 return null;
             case "scheduled()":
                 super.scheduled();
                 return null;
-            case "failed()":
-                super.failed();
+            case "succeeded()":
+                super.succeeded();
                 return null;
             default:
                 throw new AbstractMethodError(method);

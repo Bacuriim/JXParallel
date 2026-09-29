@@ -5,12 +5,12 @@ package com.jxparallel.fx.peer.beans.property;
 public class SimpleStringProperty extends javafx.beans.property.SimpleStringProperty implements com.jxparallel.fx.Fx.Owned {
     private Object jxOwner;
 
-    public SimpleStringProperty(java.lang.Object arg0, java.lang.String arg1) {
-        super(arg0, arg1);
-    }
-
     public SimpleStringProperty() {
         super();
+    }
+
+    public SimpleStringProperty(java.lang.Object arg0, java.lang.String arg1) {
+        super(arg0, arg1);
     }
 
     public SimpleStringProperty(java.lang.Object arg0, java.lang.String arg1, java.lang.String arg2) {

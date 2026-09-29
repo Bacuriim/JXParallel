@@ -16,35 +16,29 @@ public class ResizeFeaturesBase<S> implements com.jxparallel.fx.Fx.Backed {
 
     @Override
     public boolean equals(Object o) {
-        return o == this || fxPeer.equals(com.jxparallel.fx.Fx.fx(o));
+        return o == this || fxPeer().equals(com.jxparallel.fx.Fx.fx(o));
     }
 
     @Override
     public int hashCode() {
-        return fxPeer.hashCode();
+        return fxPeer().hashCode();
     }
 
     @Override
     public String toString() {
-        return fxPeer.toString();
+        return fxPeer().toString();
     }
 
     public ResizeFeaturesBase(@javafx.beans.NamedArg(value = "column") com.jxparallel.fx.scene.control.TableColumnBase<S, ?> arg0, @javafx.beans.NamedArg(value = "delta") java.lang.Double arg1) {
-        this(com.jxparallel.fx.Fx.WRAP, com.jxparallel.fx.Fx.NATIVE ? com.jxparallel.fx.nativeimpl.Native.create(javafx.scene.control.ResizeFeaturesBase.class, new String[] {"column", "delta"}, new Object[] {arg0, arg1}) : new com.jxparallel.fx.peer.scene.control.ResizeFeaturesBase((javafx.scene.control.TableColumnBase) com.jxparallel.fx.Fx.fx(arg0), arg1));
+        this(com.jxparallel.fx.Fx.WRAP, new com.jxparallel.fx.peer.scene.control.ResizeFeaturesBase((javafx.scene.control.TableColumnBase) com.jxparallel.fx.Fx.fxAs(arg0, javafx.scene.control.TableColumnBase.class), arg1));
         com.jxparallel.fx.Fx.own(fxPeer(), this);
     }
 
     public com.jxparallel.fx.scene.control.TableColumnBase<S, ?> getColumn() {
-        if (com.jxparallel.fx.Fx.NATIVE) {
-            return (com.jxparallel.fx.scene.control.TableColumnBase) com.jxparallel.fx.nativeimpl.Native.call(this, com.jxparallel.fx.scene.control.ResizeFeaturesBase.class, "getColumn", new Class<?>[] {}, com.jxparallel.fx.scene.control.TableColumnBase.class);
-        }
         return (com.jxparallel.fx.scene.control.TableColumnBase) com.jxparallel.fx.Fx.jx(((javafx.scene.control.ResizeFeaturesBase) fxPeer()).getColumn());
     }
 
     public java.lang.Double getDelta() {
-        if (com.jxparallel.fx.Fx.NATIVE) {
-            return (java.lang.Double) com.jxparallel.fx.nativeimpl.Native.call(this, com.jxparallel.fx.scene.control.ResizeFeaturesBase.class, "getDelta", new Class<?>[] {}, java.lang.Double.class);
-        }
         return ((javafx.scene.control.ResizeFeaturesBase) fxPeer()).getDelta();
     }
 }

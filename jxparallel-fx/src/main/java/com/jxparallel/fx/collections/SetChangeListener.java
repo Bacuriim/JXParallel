@@ -21,17 +21,17 @@ public interface SetChangeListener<E> {
 
         @Override
         public boolean equals(Object o) {
-            return o == this || fxPeer.equals(com.jxparallel.fx.Fx.fx(o));
+            return o == this || fxPeer().equals(com.jxparallel.fx.Fx.fx(o));
         }
 
         @Override
         public int hashCode() {
-            return fxPeer.hashCode();
+            return fxPeer().hashCode();
         }
 
         @Override
         public String toString() {
-            return fxPeer.toString();
+            return fxPeer().toString();
         }
 
         public Change(javafx.collections.ObservableSet<E> arg0) {
@@ -64,14 +64,14 @@ public interface SetChangeListener<E> {
             Change jx = (Change) self;
             try {
             switch (method) {
+                case "getElementAdded()":
+                    return jx.getElementAdded();
+                case "getElementRemoved()":
+                    return jx.getElementRemoved();
                 case "wasAdded()":
                     return (Object) jx.wasAdded();
                 case "wasRemoved()":
                     return (Object) jx.wasRemoved();
-                case "getElementRemoved()":
-                    return jx.getElementRemoved();
-                case "getElementAdded()":
-                    return jx.getElementAdded();
                 default:
                     throw new IllegalArgumentException(method);
             }

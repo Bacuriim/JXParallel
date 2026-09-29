@@ -8,8 +8,8 @@ public class FlowPane extends com.jxparallel.fx.scene.layout.Pane {
         super(wrap, peer);
     }
 
-    public FlowPane(com.jxparallel.fx.geometry.Orientation arg0) {
-        this(com.jxparallel.fx.Fx.WRAP, com.jxparallel.fx.Fx.NATIVE ? com.jxparallel.fx.nativeimpl.Native.create(javafx.scene.layout.FlowPane.class, new String[] {null}, new Object[] {arg0}) : new com.jxparallel.fx.peer.scene.layout.FlowPane((javafx.geometry.Orientation) com.jxparallel.fx.Fx.fx(arg0)));
+    public FlowPane() {
+        this(com.jxparallel.fx.Fx.WRAP, com.jxparallel.fx.Fx.NATIVE ? com.jxparallel.fx.nativeimpl.Native.create(javafx.scene.layout.FlowPane.class, new String[] {}, new Object[] {}) : new com.jxparallel.fx.peer.scene.layout.FlowPane());
         com.jxparallel.fx.Fx.own(fxPeer(), this);
     }
 
@@ -18,18 +18,18 @@ public class FlowPane extends com.jxparallel.fx.scene.layout.Pane {
         com.jxparallel.fx.Fx.own(fxPeer(), this);
     }
 
+    public FlowPane(double arg0, double arg1, com.jxparallel.fx.scene.Node... arg2) {
+        this(com.jxparallel.fx.Fx.WRAP, com.jxparallel.fx.Fx.NATIVE ? com.jxparallel.fx.nativeimpl.Native.create(javafx.scene.layout.FlowPane.class, new String[] {null, null, null}, new Object[] {arg0, arg1, arg2}) : new com.jxparallel.fx.peer.scene.layout.FlowPane(arg0, arg1, (javafx.scene.Node[]) com.jxparallel.fx.Fx.fxArray(arg2, javafx.scene.Node.class)));
+        com.jxparallel.fx.Fx.own(fxPeer(), this);
+    }
+
+    public FlowPane(com.jxparallel.fx.geometry.Orientation arg0) {
+        this(com.jxparallel.fx.Fx.WRAP, com.jxparallel.fx.Fx.NATIVE ? com.jxparallel.fx.nativeimpl.Native.create(javafx.scene.layout.FlowPane.class, new String[] {null}, new Object[] {arg0}) : new com.jxparallel.fx.peer.scene.layout.FlowPane((javafx.geometry.Orientation) com.jxparallel.fx.Fx.fx(arg0)));
+        com.jxparallel.fx.Fx.own(fxPeer(), this);
+    }
+
     public FlowPane(com.jxparallel.fx.geometry.Orientation arg0, double arg1, double arg2) {
         this(com.jxparallel.fx.Fx.WRAP, com.jxparallel.fx.Fx.NATIVE ? com.jxparallel.fx.nativeimpl.Native.create(javafx.scene.layout.FlowPane.class, new String[] {null, null, null}, new Object[] {arg0, arg1, arg2}) : new com.jxparallel.fx.peer.scene.layout.FlowPane((javafx.geometry.Orientation) com.jxparallel.fx.Fx.fx(arg0), arg1, arg2));
-        com.jxparallel.fx.Fx.own(fxPeer(), this);
-    }
-
-    public FlowPane(com.jxparallel.fx.scene.Node... arg0) {
-        this(com.jxparallel.fx.Fx.WRAP, com.jxparallel.fx.Fx.NATIVE ? com.jxparallel.fx.nativeimpl.Native.create(javafx.scene.layout.FlowPane.class, new String[] {null}, new Object[] {arg0}) : new com.jxparallel.fx.peer.scene.layout.FlowPane((javafx.scene.Node[]) com.jxparallel.fx.Fx.fxArray(arg0, javafx.scene.Node.class)));
-        com.jxparallel.fx.Fx.own(fxPeer(), this);
-    }
-
-    public FlowPane(com.jxparallel.fx.geometry.Orientation arg0, com.jxparallel.fx.scene.Node... arg1) {
-        this(com.jxparallel.fx.Fx.WRAP, com.jxparallel.fx.Fx.NATIVE ? com.jxparallel.fx.nativeimpl.Native.create(javafx.scene.layout.FlowPane.class, new String[] {null, null}, new Object[] {arg0, arg1}) : new com.jxparallel.fx.peer.scene.layout.FlowPane((javafx.geometry.Orientation) com.jxparallel.fx.Fx.fx(arg0), (javafx.scene.Node[]) com.jxparallel.fx.Fx.fxArray(arg1, javafx.scene.Node.class)));
         com.jxparallel.fx.Fx.own(fxPeer(), this);
     }
 
@@ -38,13 +38,13 @@ public class FlowPane extends com.jxparallel.fx.scene.layout.Pane {
         com.jxparallel.fx.Fx.own(fxPeer(), this);
     }
 
-    public FlowPane(double arg0, double arg1, com.jxparallel.fx.scene.Node... arg2) {
-        this(com.jxparallel.fx.Fx.WRAP, com.jxparallel.fx.Fx.NATIVE ? com.jxparallel.fx.nativeimpl.Native.create(javafx.scene.layout.FlowPane.class, new String[] {null, null, null}, new Object[] {arg0, arg1, arg2}) : new com.jxparallel.fx.peer.scene.layout.FlowPane(arg0, arg1, (javafx.scene.Node[]) com.jxparallel.fx.Fx.fxArray(arg2, javafx.scene.Node.class)));
+    public FlowPane(com.jxparallel.fx.geometry.Orientation arg0, com.jxparallel.fx.scene.Node... arg1) {
+        this(com.jxparallel.fx.Fx.WRAP, com.jxparallel.fx.Fx.NATIVE ? com.jxparallel.fx.nativeimpl.Native.create(javafx.scene.layout.FlowPane.class, new String[] {null, null}, new Object[] {arg0, arg1}) : new com.jxparallel.fx.peer.scene.layout.FlowPane((javafx.geometry.Orientation) com.jxparallel.fx.Fx.fx(arg0), (javafx.scene.Node[]) com.jxparallel.fx.Fx.fxArray(arg1, javafx.scene.Node.class)));
         com.jxparallel.fx.Fx.own(fxPeer(), this);
     }
 
-    public FlowPane() {
-        this(com.jxparallel.fx.Fx.WRAP, com.jxparallel.fx.Fx.NATIVE ? com.jxparallel.fx.nativeimpl.Native.create(javafx.scene.layout.FlowPane.class, new String[] {}, new Object[] {}) : new com.jxparallel.fx.peer.scene.layout.FlowPane());
+    public FlowPane(com.jxparallel.fx.scene.Node... arg0) {
+        this(com.jxparallel.fx.Fx.WRAP, com.jxparallel.fx.Fx.NATIVE ? com.jxparallel.fx.nativeimpl.Native.create(javafx.scene.layout.FlowPane.class, new String[] {null}, new Object[] {arg0}) : new com.jxparallel.fx.peer.scene.layout.FlowPane((javafx.scene.Node[]) com.jxparallel.fx.Fx.fxArray(arg0, javafx.scene.Node.class)));
         com.jxparallel.fx.Fx.own(fxPeer(), this);
     }
 

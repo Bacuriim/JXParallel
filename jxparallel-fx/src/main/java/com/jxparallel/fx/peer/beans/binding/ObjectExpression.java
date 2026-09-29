@@ -28,19 +28,11 @@ public class ObjectExpression<T> extends javafx.beans.binding.ObjectExpression<T
     }
 
     @Override
-    public void removeListener(javafx.beans.value.ChangeListener<? super T> arg0) {
-        if (jxOwner == null) {
-            throw new IllegalStateException("removeListener before the JX object exists");
-        }
-        com.jxparallel.fx.beans.binding.ObjectExpression.$hook(jxOwner, "removeListener(ChangeListener)", new Object[] {com.jxparallel.fx.Fx.jx(arg0)});
-    }
-
-    @Override
-    public void addListener(javafx.beans.value.ChangeListener<? super T> arg0) {
+    public void addListener(javafx.beans.InvalidationListener arg0) {
         if (jxOwner == null) {
             throw new IllegalStateException("addListener before the JX object exists");
         }
-        com.jxparallel.fx.beans.binding.ObjectExpression.$hook(jxOwner, "addListener(ChangeListener)", new Object[] {com.jxparallel.fx.Fx.jx(arg0)});
+        com.jxparallel.fx.beans.binding.ObjectExpression.$hook(jxOwner, "addListener(InvalidationListener)", new Object[] {com.jxparallel.fx.Fx.jx(arg0)});
     }
 
     @Override
@@ -52,11 +44,19 @@ public class ObjectExpression<T> extends javafx.beans.binding.ObjectExpression<T
     }
 
     @Override
-    public void addListener(javafx.beans.InvalidationListener arg0) {
+    public void addListener(javafx.beans.value.ChangeListener<? super T> arg0) {
         if (jxOwner == null) {
             throw new IllegalStateException("addListener before the JX object exists");
         }
-        com.jxparallel.fx.beans.binding.ObjectExpression.$hook(jxOwner, "addListener(InvalidationListener)", new Object[] {com.jxparallel.fx.Fx.jx(arg0)});
+        com.jxparallel.fx.beans.binding.ObjectExpression.$hook(jxOwner, "addListener(ChangeListener)", new Object[] {com.jxparallel.fx.Fx.jx(arg0)});
+    }
+
+    @Override
+    public void removeListener(javafx.beans.value.ChangeListener<? super T> arg0) {
+        if (jxOwner == null) {
+            throw new IllegalStateException("removeListener before the JX object exists");
+        }
+        com.jxparallel.fx.beans.binding.ObjectExpression.$hook(jxOwner, "removeListener(ChangeListener)", new Object[] {com.jxparallel.fx.Fx.jx(arg0)});
     }
 
     @Override

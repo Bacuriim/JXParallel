@@ -8,13 +8,13 @@ public class SplitPane extends com.jxparallel.fx.scene.control.Control {
         super(wrap, peer);
     }
 
-    public SplitPane(com.jxparallel.fx.scene.Node... arg0) {
-        this(com.jxparallel.fx.Fx.WRAP, com.jxparallel.fx.Fx.NATIVE ? com.jxparallel.fx.nativeimpl.Native.create(javafx.scene.control.SplitPane.class, new String[] {null}, new Object[] {arg0}) : new com.jxparallel.fx.peer.scene.control.SplitPane((javafx.scene.Node[]) com.jxparallel.fx.Fx.fxArray(arg0, javafx.scene.Node.class)));
+    public SplitPane() {
+        this(com.jxparallel.fx.Fx.WRAP, com.jxparallel.fx.Fx.NATIVE ? com.jxparallel.fx.nativeimpl.Native.create(javafx.scene.control.SplitPane.class, new String[] {}, new Object[] {}) : new com.jxparallel.fx.peer.scene.control.SplitPane());
         com.jxparallel.fx.Fx.own(fxPeer(), this);
     }
 
-    public SplitPane() {
-        this(com.jxparallel.fx.Fx.WRAP, com.jxparallel.fx.Fx.NATIVE ? com.jxparallel.fx.nativeimpl.Native.create(javafx.scene.control.SplitPane.class, new String[] {}, new Object[] {}) : new com.jxparallel.fx.peer.scene.control.SplitPane());
+    public SplitPane(com.jxparallel.fx.scene.Node... arg0) {
+        this(com.jxparallel.fx.Fx.WRAP, com.jxparallel.fx.Fx.NATIVE ? com.jxparallel.fx.nativeimpl.Native.create(javafx.scene.control.SplitPane.class, new String[] {null}, new Object[] {arg0}) : new com.jxparallel.fx.peer.scene.control.SplitPane((javafx.scene.Node[]) com.jxparallel.fx.Fx.fxArray(arg0, javafx.scene.Node.class)));
         com.jxparallel.fx.Fx.own(fxPeer(), this);
     }
 
@@ -127,17 +127,17 @@ public class SplitPane extends com.jxparallel.fx.scene.control.Control {
 
         @Override
         public boolean equals(Object o) {
-            return o == this || fxPeer.equals(com.jxparallel.fx.Fx.fx(o));
+            return o == this || fxPeer().equals(com.jxparallel.fx.Fx.fx(o));
         }
 
         @Override
         public int hashCode() {
-            return fxPeer.hashCode();
+            return fxPeer().hashCode();
         }
 
         @Override
         public String toString() {
-            return fxPeer.toString();
+            return fxPeer().toString();
         }
 
         public Divider() {

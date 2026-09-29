@@ -7,8 +7,8 @@ public class ReadOnlyLongWrapper extends com.jxparallel.fx.beans.property.Simple
         super(wrap, peer);
     }
 
-    public ReadOnlyLongWrapper(java.lang.Object arg0, java.lang.String arg1, long arg2) {
-        this(com.jxparallel.fx.Fx.WRAP, new com.jxparallel.fx.peer.beans.property.ReadOnlyLongWrapper((java.lang.Object) com.jxparallel.fx.Fx.fx(arg0), arg1, arg2));
+    public ReadOnlyLongWrapper() {
+        this(com.jxparallel.fx.Fx.WRAP, new com.jxparallel.fx.peer.beans.property.ReadOnlyLongWrapper());
         com.jxparallel.fx.Fx.own(fxPeer(), this);
     }
 
@@ -17,13 +17,13 @@ public class ReadOnlyLongWrapper extends com.jxparallel.fx.beans.property.Simple
         com.jxparallel.fx.Fx.own(fxPeer(), this);
     }
 
-    public ReadOnlyLongWrapper(long arg0) {
-        this(com.jxparallel.fx.Fx.WRAP, new com.jxparallel.fx.peer.beans.property.ReadOnlyLongWrapper(arg0));
+    public ReadOnlyLongWrapper(java.lang.Object arg0, java.lang.String arg1, long arg2) {
+        this(com.jxparallel.fx.Fx.WRAP, new com.jxparallel.fx.peer.beans.property.ReadOnlyLongWrapper((java.lang.Object) com.jxparallel.fx.Fx.fx(arg0), arg1, arg2));
         com.jxparallel.fx.Fx.own(fxPeer(), this);
     }
 
-    public ReadOnlyLongWrapper() {
-        this(com.jxparallel.fx.Fx.WRAP, new com.jxparallel.fx.peer.beans.property.ReadOnlyLongWrapper());
+    public ReadOnlyLongWrapper(long arg0) {
+        this(com.jxparallel.fx.Fx.WRAP, new com.jxparallel.fx.peer.beans.property.ReadOnlyLongWrapper(arg0));
         com.jxparallel.fx.Fx.own(fxPeer(), this);
     }
 

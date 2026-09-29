@@ -7,13 +7,13 @@ public class TreeTableColumn<S, T> extends com.jxparallel.fx.scene.control.Table
         super(wrap, peer);
     }
 
-    public TreeTableColumn(java.lang.String arg0) {
-        this(com.jxparallel.fx.Fx.WRAP, com.jxparallel.fx.Fx.NATIVE ? com.jxparallel.fx.nativeimpl.Native.create(javafx.scene.control.TreeTableColumn.class, new String[] {null}, new Object[] {arg0}) : new com.jxparallel.fx.peer.scene.control.TreeTableColumn(arg0));
+    public TreeTableColumn() {
+        this(com.jxparallel.fx.Fx.WRAP, com.jxparallel.fx.Fx.NATIVE ? com.jxparallel.fx.nativeimpl.Native.create(javafx.scene.control.TreeTableColumn.class, new String[] {}, new Object[] {}) : new com.jxparallel.fx.peer.scene.control.TreeTableColumn());
         com.jxparallel.fx.Fx.own(fxPeer(), this);
     }
 
-    public TreeTableColumn() {
-        this(com.jxparallel.fx.Fx.WRAP, com.jxparallel.fx.Fx.NATIVE ? com.jxparallel.fx.nativeimpl.Native.create(javafx.scene.control.TreeTableColumn.class, new String[] {}, new Object[] {}) : new com.jxparallel.fx.peer.scene.control.TreeTableColumn());
+    public TreeTableColumn(java.lang.String arg0) {
+        this(com.jxparallel.fx.Fx.WRAP, com.jxparallel.fx.Fx.NATIVE ? com.jxparallel.fx.nativeimpl.Native.create(javafx.scene.control.TreeTableColumn.class, new String[] {null}, new Object[] {arg0}) : new com.jxparallel.fx.peer.scene.control.TreeTableColumn(arg0));
         com.jxparallel.fx.Fx.own(fxPeer(), this);
     }
 
@@ -263,17 +263,17 @@ public class TreeTableColumn<S, T> extends com.jxparallel.fx.scene.control.Table
 
         @Override
         public boolean equals(Object o) {
-            return o == this || fxPeer.equals(com.jxparallel.fx.Fx.fx(o));
+            return o == this || fxPeer().equals(com.jxparallel.fx.Fx.fx(o));
         }
 
         @Override
         public int hashCode() {
-            return fxPeer.hashCode();
+            return fxPeer().hashCode();
         }
 
         @Override
         public String toString() {
-            return fxPeer.toString();
+            return fxPeer().toString();
         }
 
         public CellDataFeatures(com.jxparallel.fx.scene.control.TreeTableView<S> arg0, com.jxparallel.fx.scene.control.TreeTableColumn<S, T> arg1, com.jxparallel.fx.scene.control.TreeItem<S> arg2) {
@@ -309,51 +309,33 @@ public class TreeTableColumn<S, T> extends com.jxparallel.fx.scene.control.Table
         }
 
         public CellEditEvent(com.jxparallel.fx.scene.control.TreeTableView<S> arg0, com.jxparallel.fx.scene.control.TreeTablePosition<S, T> arg1, com.jxparallel.fx.event.EventType<com.jxparallel.fx.scene.control.TreeTableColumn.CellEditEvent<S, T>> arg2, T arg3) {
-            this(com.jxparallel.fx.Fx.WRAP, com.jxparallel.fx.Fx.NATIVE ? com.jxparallel.fx.nativeimpl.Native.create(javafx.scene.control.TreeTableColumn.CellEditEvent.class, new String[] {null, null, null, null}, new Object[] {arg0, arg1, arg2, arg3}) : new com.jxparallel.fx.peer.scene.control.TreeTableColumn_CellEditEvent((javafx.scene.control.TreeTableView) com.jxparallel.fx.Fx.fx(arg0), (javafx.scene.control.TreeTablePosition) com.jxparallel.fx.Fx.fx(arg1), (javafx.event.EventType) com.jxparallel.fx.Fx.fx(arg2), (T) com.jxparallel.fx.Fx.fx(arg3)));
+            this(com.jxparallel.fx.Fx.WRAP, new com.jxparallel.fx.peer.scene.control.TreeTableColumn_CellEditEvent((javafx.scene.control.TreeTableView) com.jxparallel.fx.Fx.fxAs(arg0, javafx.scene.control.TreeTableView.class), (javafx.scene.control.TreeTablePosition) com.jxparallel.fx.Fx.fxAs(arg1, javafx.scene.control.TreeTablePosition.class), (javafx.event.EventType) com.jxparallel.fx.Fx.fx(arg2), (T) com.jxparallel.fx.Fx.fx(arg3)));
             com.jxparallel.fx.Fx.own(fxPeer(), this);
         }
 
         public static final com.jxparallel.fx.event.EventType<?> ANY = (com.jxparallel.fx.event.EventType) com.jxparallel.fx.Fx.jx(javafx.scene.control.TreeTableColumn.CellEditEvent.ANY);
 
         public T getNewValue() {
-            if (com.jxparallel.fx.Fx.NATIVE) {
-                return (T) com.jxparallel.fx.nativeimpl.Native.call(this, com.jxparallel.fx.scene.control.TreeTableColumn.CellEditEvent.class, "getNewValue", new Class<?>[] {}, java.lang.Object.class);
-            }
             return (T) com.jxparallel.fx.Fx.jx(((javafx.scene.control.TreeTableColumn.CellEditEvent) fxPeer()).getNewValue());
         }
 
         public T getOldValue() {
-            if (com.jxparallel.fx.Fx.NATIVE) {
-                return (T) com.jxparallel.fx.nativeimpl.Native.call(this, com.jxparallel.fx.scene.control.TreeTableColumn.CellEditEvent.class, "getOldValue", new Class<?>[] {}, java.lang.Object.class);
-            }
             return (T) com.jxparallel.fx.Fx.jx(((javafx.scene.control.TreeTableColumn.CellEditEvent) fxPeer()).getOldValue());
         }
 
         public com.jxparallel.fx.scene.control.TreeItem<S> getRowValue() {
-            if (com.jxparallel.fx.Fx.NATIVE) {
-                return (com.jxparallel.fx.scene.control.TreeItem) com.jxparallel.fx.nativeimpl.Native.call(this, com.jxparallel.fx.scene.control.TreeTableColumn.CellEditEvent.class, "getRowValue", new Class<?>[] {}, com.jxparallel.fx.scene.control.TreeItem.class);
-            }
             return (com.jxparallel.fx.scene.control.TreeItem) com.jxparallel.fx.Fx.jx(((javafx.scene.control.TreeTableColumn.CellEditEvent) fxPeer()).getRowValue());
         }
 
         public com.jxparallel.fx.scene.control.TreeTableColumn<S, T> getTableColumn() {
-            if (com.jxparallel.fx.Fx.NATIVE) {
-                return (com.jxparallel.fx.scene.control.TreeTableColumn) com.jxparallel.fx.nativeimpl.Native.call(this, com.jxparallel.fx.scene.control.TreeTableColumn.CellEditEvent.class, "getTableColumn", new Class<?>[] {}, com.jxparallel.fx.scene.control.TreeTableColumn.class);
-            }
             return (com.jxparallel.fx.scene.control.TreeTableColumn) com.jxparallel.fx.Fx.jx(((javafx.scene.control.TreeTableColumn.CellEditEvent) fxPeer()).getTableColumn());
         }
 
         public com.jxparallel.fx.scene.control.TreeTablePosition<S, T> getTreeTablePosition() {
-            if (com.jxparallel.fx.Fx.NATIVE) {
-                return (com.jxparallel.fx.scene.control.TreeTablePosition) com.jxparallel.fx.nativeimpl.Native.call(this, com.jxparallel.fx.scene.control.TreeTableColumn.CellEditEvent.class, "getTreeTablePosition", new Class<?>[] {}, com.jxparallel.fx.scene.control.TreeTablePosition.class);
-            }
             return (com.jxparallel.fx.scene.control.TreeTablePosition) com.jxparallel.fx.Fx.jx(((javafx.scene.control.TreeTableColumn.CellEditEvent) fxPeer()).getTreeTablePosition());
         }
 
         public com.jxparallel.fx.scene.control.TreeTableView<S> getTreeTableView() {
-            if (com.jxparallel.fx.Fx.NATIVE) {
-                return (com.jxparallel.fx.scene.control.TreeTableView) com.jxparallel.fx.nativeimpl.Native.call(this, com.jxparallel.fx.scene.control.TreeTableColumn.CellEditEvent.class, "getTreeTableView", new Class<?>[] {}, com.jxparallel.fx.scene.control.TreeTableView.class);
-            }
             return (com.jxparallel.fx.scene.control.TreeTableView) com.jxparallel.fx.Fx.jx(((javafx.scene.control.TreeTableColumn.CellEditEvent) fxPeer()).getTreeTableView());
         }
     }

@@ -27,9 +27,11 @@ public final class JXNativeNode {
     static final int PAD_Y = 4;
     /** Modena text-field insets: 0.333333em by 0.583em. */
     static final int FIELD_PAD_X = 7;
-    static final int CHECK_BOX = 14;
-    static final int CHECK_GAP = 6;
-    static final int ARROW = 22;
+    /** Modena check box and radio: a 16 px box, then 0.417em (5 px) of label padding. */
+    static final int CHECK_BOX = 16;
+    static final int CHECK_GAP = 5;
+    /** Modena combo box arrow button: 8 px arrow, 10 px before and 8 px after. */
+    static final int ARROW = 26;
     /** JavaFX defaults: TextField.prefColumnCount 12, TextArea 40 columns by 10 rows. */
     static final int FIELD_COLUMNS = 12;
     static final int AREA_COLUMNS = 40;
@@ -51,7 +53,13 @@ public final class JXNativeNode {
             "position", "halignment", "valignment", "column", "row", "columnSpan", "rowSpan", "cellFillWidth",
             "cellFillHeight", "hgap", "vgap", "columns", "rows", "layoutX", "layoutY", "leftAnchor", "rightAnchor",
             "topAnchor", "bottomAnchor", "orientation", "prefWrapLength", "columnHalignment", "rowValignment",
-            "prefColumns", "prefRows", "prefTileWidth", "prefTileHeight", "tileAlignment"};
+            "prefColumns", "prefRows", "prefTileWidth", "prefTileHeight", "tileAlignment", "expanded", "collapsible",
+            // control geometry: text size, scroll offsets, virtual rows, tabs, pages, images
+            "fontSize", "bold", "hvalue", "vvalue", "scrollX", "scrollY", "first", "itemCount", "cellHeight", "rowHeight",
+            "columnWidths", "constrained", "titles", "selected", "closingPolicy", "closable", "pageCount", "current",
+            "maxPageIndicatorCount", "fitToWidth", "fitToHeight", "hbarPolicy", "vbarPolicy", "side", "fitWidth",
+            "fitHeight", "preserveRatio", "imageWidth", "imageHeight", "prefColumnCount", "fixedHeight", "wrapText",
+            "progress", "fillGraphic"};
 
     private static final java.util.Set<String> LAYOUT_KEY_SET =
             new java.util.HashSet<String>(java.util.Arrays.asList(LAYOUT_KEYS));
@@ -67,8 +75,23 @@ public final class JXNativeNode {
     static final int ANCHOR = 7;
     static final int FLOW = 8;
     static final int TILE = 9;
+    static final int TITLED = 10;
+    static final int ACCORDION = 11;
+    /** Controls sized and laid out by {@link JXControlLayout}. */
+    static final int CONTROL = 12;
+    /** Modena separator: the line region is 3 px tall (horizontal) or 6 px wide (vertical), at least 10 px long. */
+    static final int SEPARATOR_THICKNESS_H = 3;
+    static final int SEPARATOR_THICKNESS_V = 6;
+    static final int SEPARATOR_MIN_LENGTH = 10;
+    /**
+     * Modena gives a layout pane (AnchorPane, BorderPane, FlowPane, GridPane, HBox, Pane, StackPane,
+     * TilePane, VBox) that is a TitledPane's content 0.8em of padding unless the pane sets its own.
+     */
+    private static final double[] TITLED_CONTENT_PADDING = {9.6, 9.6, 9.6, 9.6};
     private final String type;
     private final int kind;
+    /** This node is a titled pane's content. */
+    private boolean titledContent;
     private Map<String, Object> props;
     private JXElement source;
     private final List<JXNativeNode> children = new ArrayList<JXNativeNode>();
@@ -115,6 +138,10 @@ public final class JXNativeNode {
     private double rightAnchor = Double.NaN;
     private double topAnchor = Double.NaN;
     private double bottomAnchor = Double.NaN;
+    /** Layout results a control keeps between layouts (fitted table columns). */
+    private Object layoutState;
+    /** Column widths a table row gets from its table. */
+    private float[] parentWidths = new float[0];
 
     JXNativeNode(JXElement element) {
         this.source = element;
@@ -122,9 +149,149 @@ public final class JXNativeNode {
         this.kind = kindOf(type);
         setProps(element.getProps().asMap());
         for (JXElement child : element.getChildren()) {
-            children.add(new JXNativeNode(child));
+            children.add(child(child));
         }
         this.unmodifiableChildren = Collections.unmodifiableList(children);
+    }
+
+    private JXNativeNode child(JXElement element) {
+        JXNativeNode child = new JXNativeNode(element);
+        if (kind == TITLED) {
+            child.titledContent = true;
+            child.setProps(child.props); // picks up the content padding default
+        }
+        return child;
+    }
+
+    /**
+     * Children whose elements all carry a distinct {@code key} prop (the native runtime keys every
+     * element by its node) are matched by key, not by position. When a list scrolls one row, every
+     * row moves one position: matched by position, each node would get another row's element and
+     * redo its props and text; matched by key, the rows that stay keep their nodes untouched and
+     * are only moved by the layout, like JavaFX moving its cells, and only the row that scrolled in
+     * is updated.
+     */
+    private static boolean keyed(List<JXElement> elements, boolean retain) {
+        int n = elements.size();
+        if (n < (retain ? 0 : 2)) {
+            return false;
+        }
+        // Rows and cells on screen are a few dozen: comparing pairs allocates nothing, unlike a set.
+        for (int i = 0; i < n; i++) {
+            Object key = elements.get(i).getProps().get("key");
+            if (key == null) {
+                return false;
+            }
+            for (int j = 0; j < i; j++) {
+                if (elements.get(j).getProps().get("key") == key) {
+                    return false;
+                }
+            }
+        }
+        return true;
+    }
+
+    /** Children that left a {@code retainChildren} parent, by key, most recent last. */
+    private Map<Object, JXNativeNode> retained;
+    private static final int RETAINED = 16;
+
+    /**
+     * Keyed children: reuse the node of each key, create the others, drop the rest (or keep them
+     * aside when {@code retain}: a tab pane's other tabs, whose nodes come back as they were, as
+     * TabPaneSkin keeps every tab's content); RESIZED/SUBTREE bits.
+     */
+    private int reconcileKeyed(List<JXElement> nextChildren, boolean retain) {
+        int n = nextChildren.size();
+        boolean inOrder = n == children.size();
+        for (int i = 0; inOrder && i < n; i++) {
+            inOrder = children.get(i).props.get("key") == nextChildren.get(i).getProps().get("key");
+        }
+        JXNativeNode[] next = inOrder ? null : new JXNativeNode[n];
+        int result = 0;
+        for (int i = 0; i < n; i++) {
+            JXElement e = nextChildren.get(i);
+            JXNativeNode node = inOrder ? children.get(i) : withKey(e.getProps().get("key"));
+            if (node == null && retained != null) {
+                node = retained.remove(e.getProps().get("key"));
+            }
+            if (node != null && node.type.equals(e.getType())) {
+                int r = node.reconcileInPlace(e);
+                result |= r == RESIZED ? RESIZED : r == SUBTREE ? SUBTREE : 0;
+            } else {
+                node = child(e);
+                result |= RESIZED;
+                if (inOrder) {
+                    children.set(i, node);
+                }
+            }
+            if (!inOrder) {
+                next[i] = node;
+            }
+        }
+        if (!inOrder) {
+            if (retain) {
+                retainLeaving(next);
+            }
+            children.clear();
+            children.addAll(Arrays.asList(next));
+            result |= RESIZED; // positions change: the parent lays its children out again
+        }
+        return result;
+    }
+
+    /** True when a child with this key is shown or kept aside. */
+    public boolean holds(Object key) {
+        return withKey(key) != null || (retained != null && retained.containsKey(key));
+    }
+
+    /**
+     * Makes and keeps aside the node of a child not shown yet (a tab pane's other tabs, built when
+     * the application is idle, as JavaFX builds every tab's content with the scene), laid out at
+     * the size of the child shown now, so that showing it later only moves it into place.
+     */
+    public void retainAhead(JXElement element) {
+        Object key = element.getProps().get("key");
+        if (key == null || !Boolean.TRUE.equals(props.get("retainChildren")) || holds(key)) {
+            return;
+        }
+        JXNativeNode node = child(element);
+        JXNativeNode shown = children.isEmpty() ? null : children.get(0);
+        if (shown != null) {
+            node.layout(shown.x, shown.y, shown.width, shown.height);
+        }
+        keep(key, node);
+    }
+
+    private void keep(Object key, JXNativeNode node) {
+        if (retained == null) {
+            retained = new java.util.LinkedHashMap<Object, JXNativeNode>(4, 0.75f, true) {
+                @Override
+                protected boolean removeEldestEntry(Map.Entry<Object, JXNativeNode> eldest) {
+                    return size() > RETAINED;
+                }
+            };
+        }
+        retained.put(key, node);
+    }
+
+    private void retainLeaving(JXNativeNode[] staying) {
+        for (JXNativeNode child : children) {
+            Object key = child.props.get("key");
+            if (key != null && !Arrays.asList(staying).contains(child)) {
+                keep(key, child);
+            }
+        }
+    }
+
+    /** The current child with this key, or null. */
+    private JXNativeNode withKey(Object key) {
+        for (int i = 0; i < children.size(); i++) {
+            JXNativeNode child = children.get(i);
+            if (child.props.get("key") == key) {
+                return child;
+            }
+        }
+        return null;
     }
 
     public static JXNativeNode createBackendNode(JXElement element) {
@@ -175,6 +342,11 @@ public final class JXNativeNode {
         setProps(next);
         boolean subtree = false;
         List<JXElement> nextChildren = element.getChildren();
+        boolean retain = Boolean.TRUE.equals(next.get("retainChildren"));
+        if (keyed(nextChildren, retain)) {
+            int result = reconcileKeyed(nextChildren, retain);
+            return outcome(relayout || (result & RESIZED) != 0, subtree || (result & SUBTREE) != 0, placement);
+        }
         int common = Math.min(children.size(), nextChildren.size());
         for (int i = 0; i < common; i++) {
             JXElement childElement = nextChildren.get(i);
@@ -184,18 +356,23 @@ public final class JXNativeNode {
                 relayout |= result == RESIZED;
                 subtree |= result == SUBTREE;
             } else {
-                children.set(i, new JXNativeNode(childElement));
+                children.set(i, child(childElement));
                 relayout = true;
             }
         }
         for (int i = common; i < nextChildren.size(); i++) {
-            children.add(new JXNativeNode(nextChildren.get(i)));
+            children.add(child(nextChildren.get(i)));
             relayout = true;
         }
         while (children.size() > nextChildren.size()) {
             children.remove(children.size() - 1);
             relayout = true;
         }
+        return outcome(relayout, subtree, placement);
+    }
+
+    /** What the parent must do after this node was reconciled. */
+    private int outcome(boolean relayout, boolean subtree, boolean placement) {
         if (relayout) {
             double[] old = sizes;
             invalidateLayout();
@@ -229,13 +406,77 @@ public final class JXNativeNode {
                 return FLOW;
             case "tile":
                 return TILE;
+            case "titled":
+                return TITLED;
+            case "accordion":
+                return ACCORDION;
+            case "popup":
+                return COLUMN;
             default:
-                return LEAF;
+                return JXControlLayout.handles(type) ? CONTROL : LEAF;
         }
     }
 
     int kind() {
         return kind;
+    }
+
+    Object getLayoutState() {
+        return layoutState;
+    }
+
+    void setLayoutState(Object state) {
+        layoutState = state;
+    }
+
+    /** Column widths a table row was given by its table (empty elsewhere). */
+    float[] getParentWidths() {
+        return parentWidths;
+    }
+
+    /** Hands column widths to the rows of a table; a change lays the rows out again. */
+    void setChildWidths(float[] widths) {
+        for (JXNativeNode child : children) {
+            if (!Arrays.equals(child.parentWidths, widths)) {
+                child.parentWidths = widths;
+                child.invalidateLayout();
+            }
+        }
+    }
+
+    /** Computed minimum, preferred and maximum sizes (after size overrides), like Region's. */
+    public double getMinWidth() {
+        return minWidth();
+    }
+
+    public double getPrefWidth() {
+        return prefWidth();
+    }
+
+    public double getMaxWidth() {
+        return maxWidth();
+    }
+
+    public double getMinHeight() {
+        return minHeight();
+    }
+
+    public double getPrefHeight() {
+        return prefHeight();
+    }
+
+    public double getMaxHeight() {
+        return maxHeight();
+    }
+
+    /** Padding of this node (top, right, bottom, left); zero when not set. */
+    public double[] getPadding() {
+        return padding.clone();
+    }
+
+    /** The props this node was last given. */
+    public Map<String, Object> getProps() {
+        return props;
     }
 
     public String getType() {
@@ -279,14 +520,62 @@ public final class JXNativeNode {
         return px >= x && py >= y && px < x + width && py < y + height;
     }
 
+    /** A titled pane with {@code expanded} false: only its title bar shows, its content is not painted or hit. */
+    public boolean collapsed() {
+        return kind == TITLED && Boolean.FALSE.equals(props.get("expanded"));
+    }
+
+    /** A titled pane shows an arrow and can be collapsed unless {@code collapsible} is false. */
+    public boolean collapsible() {
+        return !Boolean.FALSE.equals(props.get("collapsible"));
+    }
+
+    /** A separator (or flow) with {@code orientation} "vertical"; horizontal otherwise, like JavaFX's default. */
+    public boolean vertical() {
+        return "vertical".equalsIgnoreCase(String.valueOf(props.get("orientation")));
+    }
+
+    /** The deepest node at (x, y), or {@code null}; see {@link #hitPath}. */
     public JXNativeNode hitTest(int x, int y) {
-        for (int index = children.size() - 1; index >= 0; index--) {
-            JXNativeNode hit = children.get(index).hitTest(x, y);
-            if (hit != null) {
-                return hit;
+        List<JXNativeNode> path = hitPath(x, y);
+        return path.isEmpty() ? null : path.get(path.size() - 1);
+    }
+
+    /**
+     * The nodes at (x, y) from this node down to the deepest one, empty when none. Like JavaFX
+     * picking: later children are on top, hidden and {@code mouseTransparent} nodes are skipped,
+     * a node with {@code clip} hides whatever of its children lies outside its bounds, and a
+     * collapsed titled pane's content is not there.
+     */
+    public List<JXNativeNode> hitPath(int x, int y) {
+        List<JXNativeNode> path = new ArrayList<JXNativeNode>();
+        collectHit(x, y, path);
+        return path;
+    }
+
+    private boolean collectHit(int px, int py, List<JXNativeNode> path) {
+        if (Boolean.TRUE.equals(props.get("hidden")) || Boolean.TRUE.equals(props.get("mouseTransparent"))) {
+            return false;
+        }
+        boolean inside = contains(px, py);
+        if (!inside && Boolean.TRUE.equals(props.get("clip"))) {
+            return false;
+        }
+        path.add(this);
+        int size = path.size();
+        for (int index = collapsed() ? -1 : children.size() - 1; index >= 0; index--) {
+            if (children.get(index).collectHit(px, py, path)) {
+                return true;
+            }
+            while (path.size() > size) {
+                path.remove(path.size() - 1);
             }
         }
-        return contains(x, y) ? this : null;
+        if (inside) {
+            return true; // Region picks on its bounds, like JavaFX
+        }
+        path.remove(path.size() - 1);
+        return false;
     }
 
     @SuppressWarnings("unchecked")
@@ -385,6 +674,9 @@ public final class JXNativeNode {
         return horizontal ? hgrow : vgrow;
     }
 
+    /** readLayoutProp as a consumer, made once per node rather than on every props change. */
+    private final java.util.function.BiConsumer<String, Object> layoutPropReader = this::readLayoutProp;
+
     private void setProps(Map<String, Object> next) {
         props = next;
         vgrow = 0;
@@ -413,7 +705,10 @@ public final class JXNativeNode {
         rightAnchor = Double.NaN;
         topAnchor = Double.NaN;
         bottomAnchor = Double.NaN;
-        next.forEach(this::readLayoutProp); // Map.forEach: no entry objects, unlike entrySet() on an unmodifiable map
+        next.forEach(layoutPropReader); // Map.forEach: no entry objects, unlike entrySet() on an unmodifiable map
+        if (titledContent && kind >= COLUMN && kind <= TILE && !next.containsKey("padding")) {
+            padding = TITLED_CONTENT_PADDING;
+        }
         alignment = JXBoxLayout.parseAlignment(alignment, kind == STACK ? "CC" : "TL");
     }
 
@@ -687,35 +982,53 @@ public final class JXNativeNode {
         if (kind == FLOW || kind == TILE) {
             return JXFlowLayout.sizes(this);
         }
+        if (kind == TITLED || kind == ACCORDION) {
+            return JXTitledLayout.sizes(this);
+        }
+        if (kind == CONTROL) {
+            return JXControlLayout.sizes(this);
+        }
         if (kind == COLUMN || kind == ROW || kind == STACK || kind == BORDER
                 || kind == PANE || kind == ANCHOR || !children.isEmpty()) {
             return JXBoxLayout.containerSizes(this);
         }
-        JXTextEngine text = JXTextEngine.get();
-        float size = JXTextEngine.DEFAULT_SIZE;
+        boolean bold = JXPaint.bold(this);
+        JXTextEngine text = JXTextEngine.get(bold);
+        float size = JXPaint.fontSize(this);
         double line = text.lineHeight(size);
-        if ("button".equals(type) || "toggle".equals(type)) {
-            return labeled(text.width(string("label"), size), 2 * PAD_X, line + 2 * PAD_Y);
-        }
         if ("#text".equals(type)) {
-            return labeled(text.width(string("value"), size), 0, line);
+            // Label and Text: the text plus the node's padding (Label padding is 0 in Modena)
+            double[] sizes = labeled(text.width(string("value"), size), padding[1] + padding[3], line + padding[0] + padding[2], bold, size);
+            if (Boolean.TRUE.equals(props.get("wrapText"))) {
+                // Wrapped labels grow with their lines. JavaFX asks for the height at the width the
+                // parent gives; the boxes here size children first, so the width is the one set on it.
+                double width = number("prefWidth", -1);
+                if (width < 0) {
+                    width = number("maxWidth", -1);
+                }
+                if (width > 0 && width < sizes[1]) {
+                    int count = JXTextLayout.lines(string("value"), (float) (width - padding[1] - padding[3]), size, bold).size();
+                    double h = count * line + padding[0] + padding[2];
+                    sizes[3] = Math.min(sizes[3], h);
+                    sizes[4] = h;
+                    sizes[5] = Math.max(sizes[5], h);
+                }
+            }
+            return sizes;
         }
         if ("checkbox".equals(type)) {
-            return labeled(text.width(string("label"), size), CHECK_BOX + CHECK_GAP, Math.max(CHECK_BOX, line));
-        }
-        if ("input".equals(type) || "password".equals(type)) {
-            // Like TextField: width from the column count, not the content, so typing never relayouts.
-            double fieldHeight = line + 2 * PAD_Y;
-            return new double[] {2 * FIELD_PAD_X, FIELD_COLUMNS * text.width("W", size) + 2 * FIELD_PAD_X, MAX,
-                    fieldHeight, fieldHeight, fieldHeight};
+            return labeled(text.width(string("label"), size), CHECK_BOX + CHECK_GAP, Math.max(CHECK_BOX, line), bold, size);
         }
         if ("textarea".equals(type)) {
             double w = text.width("W", size);
-            return new double[] {w + 2 * FIELD_PAD_X, AREA_COLUMNS * w + 2 * FIELD_PAD_X, MAX,
-                    line + 2 * PAD_Y, AREA_ROWS * line + 2 * PAD_Y, MAX};
+            double columns = number("prefColumnCount", AREA_COLUMNS);
+            double rows = number("prefRowCount", AREA_ROWS);
+            return new double[] {w + 2 * FIELD_PAD_X, columns * w + 2 * FIELD_PAD_X, MAX,
+                    line + 2 * PAD_Y, rows * line + 2 * PAD_Y, MAX};
         }
         if ("select".equals(type)) {
             double widest = text.width(string("value"), size);
+            widest = Math.max(widest, text.width(string("prompt"), size));
             Object options = props.get("options");
             if (options instanceof Object[]) {
                 for (Object option : (Object[]) options) {
@@ -733,15 +1046,30 @@ public final class JXNativeNode {
             double h = 14 * size / 12;
             return new double[] {42, 140, MAX, h, h, h};
         }
+        if ("separator".equals(type)) {
+            if (vertical()) {
+                double w = SEPARATOR_THICKNESS_V;
+                return new double[] {w, w, w, SEPARATOR_MIN_LENGTH, SEPARATOR_MIN_LENGTH, MAX};
+            }
+            double h = SEPARATOR_THICKNESS_H;
+            return new double[] {SEPARATOR_MIN_LENGTH, SEPARATOR_MIN_LENGTH, MAX, h, h, h};
+        }
         double w = padding[1] + padding[3];
         double h = padding[0] + padding[2];
         return new double[] {w, w, MAX, h, h, MAX}; // like an empty Region: its padding
     }
 
+    private double number(String name, double fallback) {
+        Object value = props.get(name);
+        return value instanceof Number ? ((Number) value).doubleValue() : fallback;
+    }
+
     /** Labeled: max = pref; the width can shrink to an ellipsis, like JavaFX's Labeled. */
-    private static double[] labeled(double textWidth, double extraWidth, double height) {
+    private static double[] labeled(double textWidth, double extraWidth, double height, boolean bold, float size) {
         double ellipsis = ellipsisWidth;
-        if (ellipsis < 0) {
+        if (bold || size != JXTextEngine.DEFAULT_SIZE) {
+            ellipsis = JXTextEngine.get(bold).width("...", size);
+        } else if (ellipsis < 0) {
             ellipsis = JXTextEngine.get().width("...", JXTextEngine.DEFAULT_SIZE);
             ellipsisWidth = ellipsis;
         }
@@ -758,7 +1086,7 @@ public final class JXNativeNode {
     private boolean sizeAffected(Map<String, Object> next) {
         // Walk the keys the two maps have (a few) instead of every layout key (dozens).
         for (String key : props.keySet()) {
-            if (LAYOUT_KEY_SET.contains(key) && !Objects.equals(props.get(key), next.get(key))) {
+            if (LAYOUT_KEY_SET.contains(key) && !Objects.deepEquals(props.get(key), next.get(key))) {
                 return true;
             }
         }
@@ -770,8 +1098,15 @@ public final class JXNativeNode {
         if ("#text".equals(type)) {
             return !Objects.equals(props.get("value"), next.get("value"));
         }
-        if ("button".equals(type) || "toggle".equals(type) || "checkbox".equals(type)) {
+        if ("button".equals(type) || "toggle".equals(type) || "checkbox".equals(type) || "titled".equals(type)
+                || "radio".equals(type) || "hyperlink".equals(type)) {
             return !Objects.equals(props.get("label"), next.get("label"));
+        }
+        if ("cell".equals(type)) {
+            return !Objects.equals(props.get("value"), next.get("value"));
+        }
+        if ("image".equals(type)) {
+            return props.get("pixels") != next.get("pixels");
         }
         if ("select".equals(type)) {
             return !Objects.equals(props.get("value"), next.get("value"))

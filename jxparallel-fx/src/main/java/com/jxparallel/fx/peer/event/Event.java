@@ -5,12 +5,12 @@ package com.jxparallel.fx.peer.event;
 public class Event extends javafx.event.Event implements com.jxparallel.fx.Fx.Owned {
     private Object jxOwner;
 
-    public Event(@javafx.beans.NamedArg(value = "eventType") javafx.event.EventType<? extends javafx.event.Event> arg0) {
-        super(arg0);
-    }
-
     public Event(@javafx.beans.NamedArg(value = "source") java.lang.Object arg0, @javafx.beans.NamedArg(value = "target") javafx.event.EventTarget arg1, @javafx.beans.NamedArg(value = "eventType") javafx.event.EventType<? extends javafx.event.Event> arg2) {
         super(arg0, arg1, arg2);
+    }
+
+    public Event(@javafx.beans.NamedArg(value = "eventType") javafx.event.EventType<? extends javafx.event.Event> arg0) {
+        super(arg0);
     }
 
     @Override

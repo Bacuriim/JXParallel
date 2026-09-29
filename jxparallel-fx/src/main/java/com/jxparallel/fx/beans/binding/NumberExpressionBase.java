@@ -16,17 +16,17 @@ public class NumberExpressionBase implements com.jxparallel.fx.beans.binding.Num
 
     @Override
     public boolean equals(Object o) {
-        return o == this || fxPeer.equals(com.jxparallel.fx.Fx.fx(o));
+        return o == this || fxPeer().equals(com.jxparallel.fx.Fx.fx(o));
     }
 
     @Override
     public int hashCode() {
-        return fxPeer.hashCode();
+        return fxPeer().hashCode();
     }
 
     @Override
     public String toString() {
-        return fxPeer.toString();
+        return fxPeer().toString();
     }
 
     public NumberExpressionBase() {
@@ -210,28 +210,36 @@ public class NumberExpressionBase implements com.jxparallel.fx.beans.binding.Num
         return (com.jxparallel.fx.beans.binding.NumberBinding) com.jxparallel.fx.Fx.jx(((javafx.beans.binding.NumberExpressionBase) fxPeer()).subtract((javafx.beans.value.ObservableNumberValue) com.jxparallel.fx.Fx.fx(arg0)));
     }
 
-    public com.jxparallel.fx.beans.binding.NumberBinding add(long arg0) {
-        return (com.jxparallel.fx.beans.binding.NumberBinding) com.jxparallel.fx.Fx.jx((fxPeer() instanceof com.jxparallel.fx.Fx.Owned ? ((com.jxparallel.fx.Fx.Owned) fxPeer()).callSuper("add(long)", new Object[] {arg0}) : com.jxparallel.fx.Fx.invoke(fxPeer(), javafx.beans.binding.NumberExpression.class, "add", new Class<?>[] {long.class}, arg0)));
+    public java.lang.Number getValue() {
+        return (java.lang.Number) (fxPeer() instanceof com.jxparallel.fx.Fx.Owned ? ((com.jxparallel.fx.Fx.Owned) fxPeer()).callSuper("getValue()", new Object[] {}) : com.jxparallel.fx.Fx.invoke(fxPeer(), javafx.beans.value.ObservableValue.class, "getValue", new Class<?>[] {}));
     }
 
-    public com.jxparallel.fx.beans.binding.NumberBinding add(float arg0) {
-        return (com.jxparallel.fx.beans.binding.NumberBinding) com.jxparallel.fx.Fx.jx((fxPeer() instanceof com.jxparallel.fx.Fx.Owned ? ((com.jxparallel.fx.Fx.Owned) fxPeer()).callSuper("add(float)", new Object[] {arg0}) : com.jxparallel.fx.Fx.invoke(fxPeer(), javafx.beans.binding.NumberExpression.class, "add", new Class<?>[] {float.class}, arg0)));
+    public double doubleValue() {
+        return (Double) (fxPeer() instanceof com.jxparallel.fx.Fx.Owned ? ((com.jxparallel.fx.Fx.Owned) fxPeer()).callSuper("doubleValue()", new Object[] {}) : com.jxparallel.fx.Fx.invoke(fxPeer(), javafx.beans.value.ObservableNumberValue.class, "doubleValue", new Class<?>[] {}));
+    }
+
+    public float floatValue() {
+        return (Float) (fxPeer() instanceof com.jxparallel.fx.Fx.Owned ? ((com.jxparallel.fx.Fx.Owned) fxPeer()).callSuper("floatValue()", new Object[] {}) : com.jxparallel.fx.Fx.invoke(fxPeer(), javafx.beans.value.ObservableNumberValue.class, "floatValue", new Class<?>[] {}));
+    }
+
+    public int intValue() {
+        return (Integer) (fxPeer() instanceof com.jxparallel.fx.Fx.Owned ? ((com.jxparallel.fx.Fx.Owned) fxPeer()).callSuper("intValue()", new Object[] {}) : com.jxparallel.fx.Fx.invoke(fxPeer(), javafx.beans.value.ObservableNumberValue.class, "intValue", new Class<?>[] {}));
     }
 
     public com.jxparallel.fx.beans.binding.NumberBinding add(double arg0) {
         return (com.jxparallel.fx.beans.binding.NumberBinding) com.jxparallel.fx.Fx.jx((fxPeer() instanceof com.jxparallel.fx.Fx.Owned ? ((com.jxparallel.fx.Fx.Owned) fxPeer()).callSuper("add(double)", new Object[] {arg0}) : com.jxparallel.fx.Fx.invoke(fxPeer(), javafx.beans.binding.NumberExpression.class, "add", new Class<?>[] {double.class}, arg0)));
     }
 
+    public com.jxparallel.fx.beans.binding.NumberBinding add(float arg0) {
+        return (com.jxparallel.fx.beans.binding.NumberBinding) com.jxparallel.fx.Fx.jx((fxPeer() instanceof com.jxparallel.fx.Fx.Owned ? ((com.jxparallel.fx.Fx.Owned) fxPeer()).callSuper("add(float)", new Object[] {arg0}) : com.jxparallel.fx.Fx.invoke(fxPeer(), javafx.beans.binding.NumberExpression.class, "add", new Class<?>[] {float.class}, arg0)));
+    }
+
     public com.jxparallel.fx.beans.binding.NumberBinding add(int arg0) {
         return (com.jxparallel.fx.beans.binding.NumberBinding) com.jxparallel.fx.Fx.jx((fxPeer() instanceof com.jxparallel.fx.Fx.Owned ? ((com.jxparallel.fx.Fx.Owned) fxPeer()).callSuper("add(int)", new Object[] {arg0}) : com.jxparallel.fx.Fx.invoke(fxPeer(), javafx.beans.binding.NumberExpression.class, "add", new Class<?>[] {int.class}, arg0)));
     }
 
-    public com.jxparallel.fx.beans.binding.NumberBinding divide(long arg0) {
-        return (com.jxparallel.fx.beans.binding.NumberBinding) com.jxparallel.fx.Fx.jx((fxPeer() instanceof com.jxparallel.fx.Fx.Owned ? ((com.jxparallel.fx.Fx.Owned) fxPeer()).callSuper("divide(long)", new Object[] {arg0}) : com.jxparallel.fx.Fx.invoke(fxPeer(), javafx.beans.binding.NumberExpression.class, "divide", new Class<?>[] {long.class}, arg0)));
-    }
-
-    public com.jxparallel.fx.beans.binding.NumberBinding divide(int arg0) {
-        return (com.jxparallel.fx.beans.binding.NumberBinding) com.jxparallel.fx.Fx.jx((fxPeer() instanceof com.jxparallel.fx.Fx.Owned ? ((com.jxparallel.fx.Fx.Owned) fxPeer()).callSuper("divide(int)", new Object[] {arg0}) : com.jxparallel.fx.Fx.invoke(fxPeer(), javafx.beans.binding.NumberExpression.class, "divide", new Class<?>[] {int.class}, arg0)));
+    public com.jxparallel.fx.beans.binding.NumberBinding add(long arg0) {
+        return (com.jxparallel.fx.beans.binding.NumberBinding) com.jxparallel.fx.Fx.jx((fxPeer() instanceof com.jxparallel.fx.Fx.Owned ? ((com.jxparallel.fx.Fx.Owned) fxPeer()).callSuper("add(long)", new Object[] {arg0}) : com.jxparallel.fx.Fx.invoke(fxPeer(), javafx.beans.binding.NumberExpression.class, "add", new Class<?>[] {long.class}, arg0)));
     }
 
     public com.jxparallel.fx.beans.binding.NumberBinding divide(double arg0) {
@@ -242,28 +250,20 @@ public class NumberExpressionBase implements com.jxparallel.fx.beans.binding.Num
         return (com.jxparallel.fx.beans.binding.NumberBinding) com.jxparallel.fx.Fx.jx((fxPeer() instanceof com.jxparallel.fx.Fx.Owned ? ((com.jxparallel.fx.Fx.Owned) fxPeer()).callSuper("divide(float)", new Object[] {arg0}) : com.jxparallel.fx.Fx.invoke(fxPeer(), javafx.beans.binding.NumberExpression.class, "divide", new Class<?>[] {float.class}, arg0)));
     }
 
-    public com.jxparallel.fx.beans.binding.NumberBinding negate() {
-        return (com.jxparallel.fx.beans.binding.NumberBinding) com.jxparallel.fx.Fx.jx((fxPeer() instanceof com.jxparallel.fx.Fx.Owned ? ((com.jxparallel.fx.Fx.Owned) fxPeer()).callSuper("negate()", new Object[] {}) : com.jxparallel.fx.Fx.invoke(fxPeer(), javafx.beans.binding.NumberExpression.class, "negate", new Class<?>[] {})));
+    public com.jxparallel.fx.beans.binding.NumberBinding divide(int arg0) {
+        return (com.jxparallel.fx.beans.binding.NumberBinding) com.jxparallel.fx.Fx.jx((fxPeer() instanceof com.jxparallel.fx.Fx.Owned ? ((com.jxparallel.fx.Fx.Owned) fxPeer()).callSuper("divide(int)", new Object[] {arg0}) : com.jxparallel.fx.Fx.invoke(fxPeer(), javafx.beans.binding.NumberExpression.class, "divide", new Class<?>[] {int.class}, arg0)));
     }
 
-    public com.jxparallel.fx.beans.binding.NumberBinding subtract(float arg0) {
-        return (com.jxparallel.fx.beans.binding.NumberBinding) com.jxparallel.fx.Fx.jx((fxPeer() instanceof com.jxparallel.fx.Fx.Owned ? ((com.jxparallel.fx.Fx.Owned) fxPeer()).callSuper("subtract(float)", new Object[] {arg0}) : com.jxparallel.fx.Fx.invoke(fxPeer(), javafx.beans.binding.NumberExpression.class, "subtract", new Class<?>[] {float.class}, arg0)));
-    }
-
-    public com.jxparallel.fx.beans.binding.NumberBinding subtract(double arg0) {
-        return (com.jxparallel.fx.beans.binding.NumberBinding) com.jxparallel.fx.Fx.jx((fxPeer() instanceof com.jxparallel.fx.Fx.Owned ? ((com.jxparallel.fx.Fx.Owned) fxPeer()).callSuper("subtract(double)", new Object[] {arg0}) : com.jxparallel.fx.Fx.invoke(fxPeer(), javafx.beans.binding.NumberExpression.class, "subtract", new Class<?>[] {double.class}, arg0)));
-    }
-
-    public com.jxparallel.fx.beans.binding.NumberBinding subtract(long arg0) {
-        return (com.jxparallel.fx.beans.binding.NumberBinding) com.jxparallel.fx.Fx.jx((fxPeer() instanceof com.jxparallel.fx.Fx.Owned ? ((com.jxparallel.fx.Fx.Owned) fxPeer()).callSuper("subtract(long)", new Object[] {arg0}) : com.jxparallel.fx.Fx.invoke(fxPeer(), javafx.beans.binding.NumberExpression.class, "subtract", new Class<?>[] {long.class}, arg0)));
-    }
-
-    public com.jxparallel.fx.beans.binding.NumberBinding subtract(int arg0) {
-        return (com.jxparallel.fx.beans.binding.NumberBinding) com.jxparallel.fx.Fx.jx((fxPeer() instanceof com.jxparallel.fx.Fx.Owned ? ((com.jxparallel.fx.Fx.Owned) fxPeer()).callSuper("subtract(int)", new Object[] {arg0}) : com.jxparallel.fx.Fx.invoke(fxPeer(), javafx.beans.binding.NumberExpression.class, "subtract", new Class<?>[] {int.class}, arg0)));
+    public com.jxparallel.fx.beans.binding.NumberBinding divide(long arg0) {
+        return (com.jxparallel.fx.beans.binding.NumberBinding) com.jxparallel.fx.Fx.jx((fxPeer() instanceof com.jxparallel.fx.Fx.Owned ? ((com.jxparallel.fx.Fx.Owned) fxPeer()).callSuper("divide(long)", new Object[] {arg0}) : com.jxparallel.fx.Fx.invoke(fxPeer(), javafx.beans.binding.NumberExpression.class, "divide", new Class<?>[] {long.class}, arg0)));
     }
 
     public com.jxparallel.fx.beans.binding.NumberBinding multiply(double arg0) {
         return (com.jxparallel.fx.beans.binding.NumberBinding) com.jxparallel.fx.Fx.jx((fxPeer() instanceof com.jxparallel.fx.Fx.Owned ? ((com.jxparallel.fx.Fx.Owned) fxPeer()).callSuper("multiply(double)", new Object[] {arg0}) : com.jxparallel.fx.Fx.invoke(fxPeer(), javafx.beans.binding.NumberExpression.class, "multiply", new Class<?>[] {double.class}, arg0)));
+    }
+
+    public com.jxparallel.fx.beans.binding.NumberBinding multiply(float arg0) {
+        return (com.jxparallel.fx.beans.binding.NumberBinding) com.jxparallel.fx.Fx.jx((fxPeer() instanceof com.jxparallel.fx.Fx.Owned ? ((com.jxparallel.fx.Fx.Owned) fxPeer()).callSuper("multiply(float)", new Object[] {arg0}) : com.jxparallel.fx.Fx.invoke(fxPeer(), javafx.beans.binding.NumberExpression.class, "multiply", new Class<?>[] {float.class}, arg0)));
     }
 
     public com.jxparallel.fx.beans.binding.NumberBinding multiply(int arg0) {
@@ -274,43 +274,35 @@ public class NumberExpressionBase implements com.jxparallel.fx.beans.binding.Num
         return (com.jxparallel.fx.beans.binding.NumberBinding) com.jxparallel.fx.Fx.jx((fxPeer() instanceof com.jxparallel.fx.Fx.Owned ? ((com.jxparallel.fx.Fx.Owned) fxPeer()).callSuper("multiply(long)", new Object[] {arg0}) : com.jxparallel.fx.Fx.invoke(fxPeer(), javafx.beans.binding.NumberExpression.class, "multiply", new Class<?>[] {long.class}, arg0)));
     }
 
-    public com.jxparallel.fx.beans.binding.NumberBinding multiply(float arg0) {
-        return (com.jxparallel.fx.beans.binding.NumberBinding) com.jxparallel.fx.Fx.jx((fxPeer() instanceof com.jxparallel.fx.Fx.Owned ? ((com.jxparallel.fx.Fx.Owned) fxPeer()).callSuper("multiply(float)", new Object[] {arg0}) : com.jxparallel.fx.Fx.invoke(fxPeer(), javafx.beans.binding.NumberExpression.class, "multiply", new Class<?>[] {float.class}, arg0)));
+    public com.jxparallel.fx.beans.binding.NumberBinding negate() {
+        return (com.jxparallel.fx.beans.binding.NumberBinding) com.jxparallel.fx.Fx.jx((fxPeer() instanceof com.jxparallel.fx.Fx.Owned ? ((com.jxparallel.fx.Fx.Owned) fxPeer()).callSuper("negate()", new Object[] {}) : com.jxparallel.fx.Fx.invoke(fxPeer(), javafx.beans.binding.NumberExpression.class, "negate", new Class<?>[] {})));
     }
 
-    public int intValue() {
-        return (Integer) (fxPeer() instanceof com.jxparallel.fx.Fx.Owned ? ((com.jxparallel.fx.Fx.Owned) fxPeer()).callSuper("intValue()", new Object[] {}) : com.jxparallel.fx.Fx.invoke(fxPeer(), javafx.beans.value.ObservableNumberValue.class, "intValue", new Class<?>[] {}));
+    public com.jxparallel.fx.beans.binding.NumberBinding subtract(double arg0) {
+        return (com.jxparallel.fx.beans.binding.NumberBinding) com.jxparallel.fx.Fx.jx((fxPeer() instanceof com.jxparallel.fx.Fx.Owned ? ((com.jxparallel.fx.Fx.Owned) fxPeer()).callSuper("subtract(double)", new Object[] {arg0}) : com.jxparallel.fx.Fx.invoke(fxPeer(), javafx.beans.binding.NumberExpression.class, "subtract", new Class<?>[] {double.class}, arg0)));
+    }
+
+    public com.jxparallel.fx.beans.binding.NumberBinding subtract(float arg0) {
+        return (com.jxparallel.fx.beans.binding.NumberBinding) com.jxparallel.fx.Fx.jx((fxPeer() instanceof com.jxparallel.fx.Fx.Owned ? ((com.jxparallel.fx.Fx.Owned) fxPeer()).callSuper("subtract(float)", new Object[] {arg0}) : com.jxparallel.fx.Fx.invoke(fxPeer(), javafx.beans.binding.NumberExpression.class, "subtract", new Class<?>[] {float.class}, arg0)));
+    }
+
+    public com.jxparallel.fx.beans.binding.NumberBinding subtract(int arg0) {
+        return (com.jxparallel.fx.beans.binding.NumberBinding) com.jxparallel.fx.Fx.jx((fxPeer() instanceof com.jxparallel.fx.Fx.Owned ? ((com.jxparallel.fx.Fx.Owned) fxPeer()).callSuper("subtract(int)", new Object[] {arg0}) : com.jxparallel.fx.Fx.invoke(fxPeer(), javafx.beans.binding.NumberExpression.class, "subtract", new Class<?>[] {int.class}, arg0)));
+    }
+
+    public com.jxparallel.fx.beans.binding.NumberBinding subtract(long arg0) {
+        return (com.jxparallel.fx.beans.binding.NumberBinding) com.jxparallel.fx.Fx.jx((fxPeer() instanceof com.jxparallel.fx.Fx.Owned ? ((com.jxparallel.fx.Fx.Owned) fxPeer()).callSuper("subtract(long)", new Object[] {arg0}) : com.jxparallel.fx.Fx.invoke(fxPeer(), javafx.beans.binding.NumberExpression.class, "subtract", new Class<?>[] {long.class}, arg0)));
     }
 
     public long longValue() {
         return (Long) (fxPeer() instanceof com.jxparallel.fx.Fx.Owned ? ((com.jxparallel.fx.Fx.Owned) fxPeer()).callSuper("longValue()", new Object[] {}) : com.jxparallel.fx.Fx.invoke(fxPeer(), javafx.beans.value.ObservableNumberValue.class, "longValue", new Class<?>[] {}));
     }
 
-    public float floatValue() {
-        return (Float) (fxPeer() instanceof com.jxparallel.fx.Fx.Owned ? ((com.jxparallel.fx.Fx.Owned) fxPeer()).callSuper("floatValue()", new Object[] {}) : com.jxparallel.fx.Fx.invoke(fxPeer(), javafx.beans.value.ObservableNumberValue.class, "floatValue", new Class<?>[] {}));
-    }
-
-    public double doubleValue() {
-        return (Double) (fxPeer() instanceof com.jxparallel.fx.Fx.Owned ? ((com.jxparallel.fx.Fx.Owned) fxPeer()).callSuper("doubleValue()", new Object[] {}) : com.jxparallel.fx.Fx.invoke(fxPeer(), javafx.beans.value.ObservableNumberValue.class, "doubleValue", new Class<?>[] {}));
-    }
-
-    public java.lang.Number getValue() {
-        return (java.lang.Number) (fxPeer() instanceof com.jxparallel.fx.Fx.Owned ? ((com.jxparallel.fx.Fx.Owned) fxPeer()).callSuper("getValue()", new Object[] {}) : com.jxparallel.fx.Fx.invoke(fxPeer(), javafx.beans.value.ObservableValue.class, "getValue", new Class<?>[] {}));
-    }
-
-    public void removeListener(com.jxparallel.fx.beans.value.ChangeListener<? super java.lang.Number> arg0) {
+    public void addListener(com.jxparallel.fx.beans.InvalidationListener arg0) {
         if (fxPeer() instanceof com.jxparallel.fx.Fx.Owned) {
-            ((com.jxparallel.fx.Fx.Owned) fxPeer()).callSuper("removeListener(ChangeListener)", new Object[] {(javafx.beans.value.ChangeListener) com.jxparallel.fx.Fx.fx(arg0)});
+            ((com.jxparallel.fx.Fx.Owned) fxPeer()).callSuper("addListener(InvalidationListener)", new Object[] {(javafx.beans.InvalidationListener) com.jxparallel.fx.Fx.fx(arg0)});
         } else {
-            com.jxparallel.fx.Fx.invoke(fxPeer(), javafx.beans.value.ObservableValue.class, "removeListener", new Class<?>[] {javafx.beans.value.ChangeListener.class}, (javafx.beans.value.ChangeListener) com.jxparallel.fx.Fx.fx(arg0));
-        }
-    }
-
-    public void addListener(com.jxparallel.fx.beans.value.ChangeListener<? super java.lang.Number> arg0) {
-        if (fxPeer() instanceof com.jxparallel.fx.Fx.Owned) {
-            ((com.jxparallel.fx.Fx.Owned) fxPeer()).callSuper("addListener(ChangeListener)", new Object[] {(javafx.beans.value.ChangeListener) com.jxparallel.fx.Fx.fx(arg0)});
-        } else {
-            com.jxparallel.fx.Fx.invoke(fxPeer(), javafx.beans.value.ObservableValue.class, "addListener", new Class<?>[] {javafx.beans.value.ChangeListener.class}, (javafx.beans.value.ChangeListener) com.jxparallel.fx.Fx.fx(arg0));
+            com.jxparallel.fx.Fx.invoke(fxPeer(), javafx.beans.Observable.class, "addListener", new Class<?>[] {javafx.beans.InvalidationListener.class}, (javafx.beans.InvalidationListener) com.jxparallel.fx.Fx.fx(arg0));
         }
     }
 
@@ -322,11 +314,19 @@ public class NumberExpressionBase implements com.jxparallel.fx.beans.binding.Num
         }
     }
 
-    public void addListener(com.jxparallel.fx.beans.InvalidationListener arg0) {
+    public void addListener(com.jxparallel.fx.beans.value.ChangeListener<? super java.lang.Number> arg0) {
         if (fxPeer() instanceof com.jxparallel.fx.Fx.Owned) {
-            ((com.jxparallel.fx.Fx.Owned) fxPeer()).callSuper("addListener(InvalidationListener)", new Object[] {(javafx.beans.InvalidationListener) com.jxparallel.fx.Fx.fx(arg0)});
+            ((com.jxparallel.fx.Fx.Owned) fxPeer()).callSuper("addListener(ChangeListener)", new Object[] {(javafx.beans.value.ChangeListener) com.jxparallel.fx.Fx.fx(arg0)});
         } else {
-            com.jxparallel.fx.Fx.invoke(fxPeer(), javafx.beans.Observable.class, "addListener", new Class<?>[] {javafx.beans.InvalidationListener.class}, (javafx.beans.InvalidationListener) com.jxparallel.fx.Fx.fx(arg0));
+            com.jxparallel.fx.Fx.invoke(fxPeer(), javafx.beans.value.ObservableValue.class, "addListener", new Class<?>[] {javafx.beans.value.ChangeListener.class}, (javafx.beans.value.ChangeListener) com.jxparallel.fx.Fx.fx(arg0));
+        }
+    }
+
+    public void removeListener(com.jxparallel.fx.beans.value.ChangeListener<? super java.lang.Number> arg0) {
+        if (fxPeer() instanceof com.jxparallel.fx.Fx.Owned) {
+            ((com.jxparallel.fx.Fx.Owned) fxPeer()).callSuper("removeListener(ChangeListener)", new Object[] {(javafx.beans.value.ChangeListener) com.jxparallel.fx.Fx.fx(arg0)});
+        } else {
+            com.jxparallel.fx.Fx.invoke(fxPeer(), javafx.beans.value.ObservableValue.class, "removeListener", new Class<?>[] {javafx.beans.value.ChangeListener.class}, (javafx.beans.value.ChangeListener) com.jxparallel.fx.Fx.fx(arg0));
         }
     }
 
@@ -335,61 +335,61 @@ public class NumberExpressionBase implements com.jxparallel.fx.beans.binding.Num
         NumberExpressionBase jx = (NumberExpressionBase) self;
         try {
         switch (method) {
-            case "add(long)":
-                return jx.add((Long) a[0]);
-            case "add(float)":
-                return jx.add((Float) a[0]);
+            case "getValue()":
+                return jx.getValue();
+            case "doubleValue()":
+                return (Object) jx.doubleValue();
+            case "floatValue()":
+                return (Object) jx.floatValue();
+            case "intValue()":
+                return (Object) jx.intValue();
             case "add(double)":
                 return jx.add((Double) a[0]);
+            case "add(float)":
+                return jx.add((Float) a[0]);
             case "add(int)":
                 return jx.add((Integer) a[0]);
-            case "divide(long)":
-                return jx.divide((Long) a[0]);
-            case "divide(int)":
-                return jx.divide((Integer) a[0]);
+            case "add(long)":
+                return jx.add((Long) a[0]);
             case "divide(double)":
                 return jx.divide((Double) a[0]);
             case "divide(float)":
                 return jx.divide((Float) a[0]);
-            case "negate()":
-                return jx.negate();
-            case "subtract(float)":
-                return jx.subtract((Float) a[0]);
-            case "subtract(double)":
-                return jx.subtract((Double) a[0]);
-            case "subtract(long)":
-                return jx.subtract((Long) a[0]);
-            case "subtract(int)":
-                return jx.subtract((Integer) a[0]);
+            case "divide(int)":
+                return jx.divide((Integer) a[0]);
+            case "divide(long)":
+                return jx.divide((Long) a[0]);
             case "multiply(double)":
                 return jx.multiply((Double) a[0]);
+            case "multiply(float)":
+                return jx.multiply((Float) a[0]);
             case "multiply(int)":
                 return jx.multiply((Integer) a[0]);
             case "multiply(long)":
                 return jx.multiply((Long) a[0]);
-            case "multiply(float)":
-                return jx.multiply((Float) a[0]);
-            case "intValue()":
-                return (Object) jx.intValue();
+            case "negate()":
+                return jx.negate();
+            case "subtract(double)":
+                return jx.subtract((Double) a[0]);
+            case "subtract(float)":
+                return jx.subtract((Float) a[0]);
+            case "subtract(int)":
+                return jx.subtract((Integer) a[0]);
+            case "subtract(long)":
+                return jx.subtract((Long) a[0]);
             case "longValue()":
                 return (Object) jx.longValue();
-            case "floatValue()":
-                return (Object) jx.floatValue();
-            case "doubleValue()":
-                return (Object) jx.doubleValue();
-            case "getValue()":
-                return jx.getValue();
-            case "removeListener(ChangeListener)":
-                jx.removeListener((com.jxparallel.fx.beans.value.ChangeListener) a[0]);
-                return null;
-            case "addListener(ChangeListener)":
-                jx.addListener((com.jxparallel.fx.beans.value.ChangeListener) a[0]);
+            case "addListener(InvalidationListener)":
+                jx.addListener((com.jxparallel.fx.beans.InvalidationListener) a[0]);
                 return null;
             case "removeListener(InvalidationListener)":
                 jx.removeListener((com.jxparallel.fx.beans.InvalidationListener) a[0]);
                 return null;
-            case "addListener(InvalidationListener)":
-                jx.addListener((com.jxparallel.fx.beans.InvalidationListener) a[0]);
+            case "addListener(ChangeListener)":
+                jx.addListener((com.jxparallel.fx.beans.value.ChangeListener) a[0]);
+                return null;
+            case "removeListener(ChangeListener)":
+                jx.removeListener((com.jxparallel.fx.beans.value.ChangeListener) a[0]);
                 return null;
             default:
                 throw new IllegalArgumentException(method);

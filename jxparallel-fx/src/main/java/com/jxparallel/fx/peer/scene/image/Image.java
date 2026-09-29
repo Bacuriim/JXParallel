@@ -9,24 +9,24 @@ public class Image extends javafx.scene.image.Image implements com.jxparallel.fx
         super(arg0);
     }
 
-    public Image(@javafx.beans.NamedArg(value = "url", defaultValue = "\"\"") java.lang.String arg0, @javafx.beans.NamedArg(value = "requestedWidth") double arg1, @javafx.beans.NamedArg(value = "requestedHeight") double arg2, @javafx.beans.NamedArg(value = "preserveRatio") boolean arg3, @javafx.beans.NamedArg(value = "smooth", defaultValue = "true") boolean arg4, @javafx.beans.NamedArg(value = "backgroundLoading") boolean arg5) {
-        super(arg0, arg1, arg2, arg3, arg4, arg5);
-    }
-
-    public Image(@javafx.beans.NamedArg(value = "url") java.lang.String arg0, @javafx.beans.NamedArg(value = "requestedWidth") double arg1, @javafx.beans.NamedArg(value = "requestedHeight") double arg2, @javafx.beans.NamedArg(value = "preserveRatio") boolean arg3, @javafx.beans.NamedArg(value = "smooth") boolean arg4) {
+    public Image(@javafx.beans.NamedArg(value = "is") java.io.InputStream arg0, @javafx.beans.NamedArg(value = "requestedWidth") double arg1, @javafx.beans.NamedArg(value = "requestedHeight") double arg2, @javafx.beans.NamedArg(value = "preserveRatio") boolean arg3, @javafx.beans.NamedArg(value = "smooth") boolean arg4) {
         super(arg0, arg1, arg2, arg3, arg4);
-    }
-
-    public Image(@javafx.beans.NamedArg(value = "url") java.lang.String arg0, @javafx.beans.NamedArg(value = "backgroundLoading") boolean arg1) {
-        super(arg0, arg1);
     }
 
     public Image(@javafx.beans.NamedArg(value = "url") java.lang.String arg0) {
         super(arg0);
     }
 
-    public Image(@javafx.beans.NamedArg(value = "is") java.io.InputStream arg0, @javafx.beans.NamedArg(value = "requestedWidth") double arg1, @javafx.beans.NamedArg(value = "requestedHeight") double arg2, @javafx.beans.NamedArg(value = "preserveRatio") boolean arg3, @javafx.beans.NamedArg(value = "smooth") boolean arg4) {
+    public Image(@javafx.beans.NamedArg(value = "url") java.lang.String arg0, @javafx.beans.NamedArg(value = "backgroundLoading") boolean arg1) {
+        super(arg0, arg1);
+    }
+
+    public Image(@javafx.beans.NamedArg(value = "url") java.lang.String arg0, @javafx.beans.NamedArg(value = "requestedWidth") double arg1, @javafx.beans.NamedArg(value = "requestedHeight") double arg2, @javafx.beans.NamedArg(value = "preserveRatio") boolean arg3, @javafx.beans.NamedArg(value = "smooth") boolean arg4) {
         super(arg0, arg1, arg2, arg3, arg4);
+    }
+
+    public Image(@javafx.beans.NamedArg(value = "url", defaultValue = "\"\"") java.lang.String arg0, @javafx.beans.NamedArg(value = "requestedWidth") double arg1, @javafx.beans.NamedArg(value = "requestedHeight") double arg2, @javafx.beans.NamedArg(value = "preserveRatio") boolean arg3, @javafx.beans.NamedArg(value = "smooth", defaultValue = "true") boolean arg4, @javafx.beans.NamedArg(value = "backgroundLoading") boolean arg5) {
+        super(arg0, arg1, arg2, arg3, arg4, arg5);
     }
 
     @Override

@@ -7,13 +7,13 @@ public final class FillTransition extends com.jxparallel.fx.animation.Transition
         super(wrap, peer);
     }
 
-    public FillTransition(com.jxparallel.fx.util.Duration arg0) {
-        this(com.jxparallel.fx.Fx.WRAP, com.jxparallel.fx.Fx.NATIVE ? com.jxparallel.fx.nativeimpl.Native.create(javafx.animation.FillTransition.class, new String[] {null}, new Object[] {arg0}) : new javafx.animation.FillTransition((javafx.util.Duration) com.jxparallel.fx.Fx.fx(arg0)));
+    public FillTransition() {
+        this(com.jxparallel.fx.Fx.WRAP, com.jxparallel.fx.Fx.NATIVE ? com.jxparallel.fx.nativeimpl.Native.create(javafx.animation.FillTransition.class, new String[] {}, new Object[] {}) : new javafx.animation.FillTransition());
         com.jxparallel.fx.Fx.own(fxPeer(), this);
     }
 
-    public FillTransition() {
-        this(com.jxparallel.fx.Fx.WRAP, com.jxparallel.fx.Fx.NATIVE ? com.jxparallel.fx.nativeimpl.Native.create(javafx.animation.FillTransition.class, new String[] {}, new Object[] {}) : new javafx.animation.FillTransition());
+    public FillTransition(com.jxparallel.fx.util.Duration arg0) {
+        this(com.jxparallel.fx.Fx.WRAP, com.jxparallel.fx.Fx.NATIVE ? com.jxparallel.fx.nativeimpl.Native.create(javafx.animation.FillTransition.class, new String[] {null}, new Object[] {arg0}) : new javafx.animation.FillTransition((javafx.util.Duration) com.jxparallel.fx.Fx.fx(arg0)));
         com.jxparallel.fx.Fx.own(fxPeer(), this);
     }
 
@@ -22,13 +22,13 @@ public final class FillTransition extends com.jxparallel.fx.animation.Transition
         com.jxparallel.fx.Fx.own(fxPeer(), this);
     }
 
-    public FillTransition(com.jxparallel.fx.util.Duration arg0, com.jxparallel.fx.scene.shape.Shape arg1, com.jxparallel.fx.scene.paint.Color arg2, com.jxparallel.fx.scene.paint.Color arg3) {
-        this(com.jxparallel.fx.Fx.WRAP, com.jxparallel.fx.Fx.NATIVE ? com.jxparallel.fx.nativeimpl.Native.create(javafx.animation.FillTransition.class, new String[] {null, null, null, null}, new Object[] {arg0, arg1, arg2, arg3}) : new javafx.animation.FillTransition((javafx.util.Duration) com.jxparallel.fx.Fx.fx(arg0), (javafx.scene.shape.Shape) com.jxparallel.fx.Fx.fx(arg1), (javafx.scene.paint.Color) com.jxparallel.fx.Fx.fx(arg2), (javafx.scene.paint.Color) com.jxparallel.fx.Fx.fx(arg3)));
+    public FillTransition(com.jxparallel.fx.util.Duration arg0, com.jxparallel.fx.scene.shape.Shape arg1) {
+        this(com.jxparallel.fx.Fx.WRAP, com.jxparallel.fx.Fx.NATIVE ? com.jxparallel.fx.nativeimpl.Native.create(javafx.animation.FillTransition.class, new String[] {null, null}, new Object[] {arg0, arg1}) : new javafx.animation.FillTransition((javafx.util.Duration) com.jxparallel.fx.Fx.fx(arg0), (javafx.scene.shape.Shape) com.jxparallel.fx.Fx.fx(arg1)));
         com.jxparallel.fx.Fx.own(fxPeer(), this);
     }
 
-    public FillTransition(com.jxparallel.fx.util.Duration arg0, com.jxparallel.fx.scene.shape.Shape arg1) {
-        this(com.jxparallel.fx.Fx.WRAP, com.jxparallel.fx.Fx.NATIVE ? com.jxparallel.fx.nativeimpl.Native.create(javafx.animation.FillTransition.class, new String[] {null, null}, new Object[] {arg0, arg1}) : new javafx.animation.FillTransition((javafx.util.Duration) com.jxparallel.fx.Fx.fx(arg0), (javafx.scene.shape.Shape) com.jxparallel.fx.Fx.fx(arg1)));
+    public FillTransition(com.jxparallel.fx.util.Duration arg0, com.jxparallel.fx.scene.shape.Shape arg1, com.jxparallel.fx.scene.paint.Color arg2, com.jxparallel.fx.scene.paint.Color arg3) {
+        this(com.jxparallel.fx.Fx.WRAP, com.jxparallel.fx.Fx.NATIVE ? com.jxparallel.fx.nativeimpl.Native.create(javafx.animation.FillTransition.class, new String[] {null, null, null, null}, new Object[] {arg0, arg1, arg2, arg3}) : new javafx.animation.FillTransition((javafx.util.Duration) com.jxparallel.fx.Fx.fx(arg0), (javafx.scene.shape.Shape) com.jxparallel.fx.Fx.fx(arg1), (javafx.scene.paint.Color) com.jxparallel.fx.Fx.fx(arg2), (javafx.scene.paint.Color) com.jxparallel.fx.Fx.fx(arg3)));
         com.jxparallel.fx.Fx.own(fxPeer(), this);
     }
 

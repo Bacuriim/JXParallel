@@ -16,17 +16,17 @@ public class Image implements com.jxparallel.fx.Fx.Backed {
 
     @Override
     public boolean equals(Object o) {
-        return o == this || fxPeer.equals(com.jxparallel.fx.Fx.fx(o));
+        return o == this || fxPeer().equals(com.jxparallel.fx.Fx.fx(o));
     }
 
     @Override
     public int hashCode() {
-        return fxPeer.hashCode();
+        return fxPeer().hashCode();
     }
 
     @Override
     public String toString() {
-        return fxPeer.toString();
+        return fxPeer().toString();
     }
 
     public Image(@javafx.beans.NamedArg(value = "is") java.io.InputStream arg0) {
@@ -34,18 +34,8 @@ public class Image implements com.jxparallel.fx.Fx.Backed {
         com.jxparallel.fx.Fx.own(fxPeer(), this);
     }
 
-    public Image(@javafx.beans.NamedArg(value = "url", defaultValue = "\"\"") java.lang.String arg0, @javafx.beans.NamedArg(value = "requestedWidth") double arg1, @javafx.beans.NamedArg(value = "requestedHeight") double arg2, @javafx.beans.NamedArg(value = "preserveRatio") boolean arg3, @javafx.beans.NamedArg(value = "smooth", defaultValue = "true") boolean arg4, @javafx.beans.NamedArg(value = "backgroundLoading") boolean arg5) {
-        this(com.jxparallel.fx.Fx.WRAP, new com.jxparallel.fx.peer.scene.image.Image(arg0, arg1, arg2, arg3, arg4, arg5));
-        com.jxparallel.fx.Fx.own(fxPeer(), this);
-    }
-
-    public Image(@javafx.beans.NamedArg(value = "url") java.lang.String arg0, @javafx.beans.NamedArg(value = "requestedWidth") double arg1, @javafx.beans.NamedArg(value = "requestedHeight") double arg2, @javafx.beans.NamedArg(value = "preserveRatio") boolean arg3, @javafx.beans.NamedArg(value = "smooth") boolean arg4) {
+    public Image(@javafx.beans.NamedArg(value = "is") java.io.InputStream arg0, @javafx.beans.NamedArg(value = "requestedWidth") double arg1, @javafx.beans.NamedArg(value = "requestedHeight") double arg2, @javafx.beans.NamedArg(value = "preserveRatio") boolean arg3, @javafx.beans.NamedArg(value = "smooth") boolean arg4) {
         this(com.jxparallel.fx.Fx.WRAP, new com.jxparallel.fx.peer.scene.image.Image(arg0, arg1, arg2, arg3, arg4));
-        com.jxparallel.fx.Fx.own(fxPeer(), this);
-    }
-
-    public Image(@javafx.beans.NamedArg(value = "url") java.lang.String arg0, @javafx.beans.NamedArg(value = "backgroundLoading") boolean arg1) {
-        this(com.jxparallel.fx.Fx.WRAP, new com.jxparallel.fx.peer.scene.image.Image(arg0, arg1));
         com.jxparallel.fx.Fx.own(fxPeer(), this);
     }
 
@@ -54,8 +44,18 @@ public class Image implements com.jxparallel.fx.Fx.Backed {
         com.jxparallel.fx.Fx.own(fxPeer(), this);
     }
 
-    public Image(@javafx.beans.NamedArg(value = "is") java.io.InputStream arg0, @javafx.beans.NamedArg(value = "requestedWidth") double arg1, @javafx.beans.NamedArg(value = "requestedHeight") double arg2, @javafx.beans.NamedArg(value = "preserveRatio") boolean arg3, @javafx.beans.NamedArg(value = "smooth") boolean arg4) {
+    public Image(@javafx.beans.NamedArg(value = "url") java.lang.String arg0, @javafx.beans.NamedArg(value = "backgroundLoading") boolean arg1) {
+        this(com.jxparallel.fx.Fx.WRAP, new com.jxparallel.fx.peer.scene.image.Image(arg0, arg1));
+        com.jxparallel.fx.Fx.own(fxPeer(), this);
+    }
+
+    public Image(@javafx.beans.NamedArg(value = "url") java.lang.String arg0, @javafx.beans.NamedArg(value = "requestedWidth") double arg1, @javafx.beans.NamedArg(value = "requestedHeight") double arg2, @javafx.beans.NamedArg(value = "preserveRatio") boolean arg3, @javafx.beans.NamedArg(value = "smooth") boolean arg4) {
         this(com.jxparallel.fx.Fx.WRAP, new com.jxparallel.fx.peer.scene.image.Image(arg0, arg1, arg2, arg3, arg4));
+        com.jxparallel.fx.Fx.own(fxPeer(), this);
+    }
+
+    public Image(@javafx.beans.NamedArg(value = "url", defaultValue = "\"\"") java.lang.String arg0, @javafx.beans.NamedArg(value = "requestedWidth") double arg1, @javafx.beans.NamedArg(value = "requestedHeight") double arg2, @javafx.beans.NamedArg(value = "preserveRatio") boolean arg3, @javafx.beans.NamedArg(value = "smooth", defaultValue = "true") boolean arg4, @javafx.beans.NamedArg(value = "backgroundLoading") boolean arg5) {
+        this(com.jxparallel.fx.Fx.WRAP, new com.jxparallel.fx.peer.scene.image.Image(arg0, arg1, arg2, arg3, arg4, arg5));
         com.jxparallel.fx.Fx.own(fxPeer(), this);
     }
 

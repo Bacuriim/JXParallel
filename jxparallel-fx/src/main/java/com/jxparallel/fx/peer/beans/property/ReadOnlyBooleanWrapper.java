@@ -5,20 +5,20 @@ package com.jxparallel.fx.peer.beans.property;
 public class ReadOnlyBooleanWrapper extends javafx.beans.property.ReadOnlyBooleanWrapper implements com.jxparallel.fx.Fx.Owned {
     private Object jxOwner;
 
-    public ReadOnlyBooleanWrapper(java.lang.Object arg0, java.lang.String arg1, boolean arg2) {
-        super(arg0, arg1, arg2);
-    }
-
-    public ReadOnlyBooleanWrapper(java.lang.Object arg0, java.lang.String arg1) {
-        super(arg0, arg1);
+    public ReadOnlyBooleanWrapper() {
+        super();
     }
 
     public ReadOnlyBooleanWrapper(boolean arg0) {
         super(arg0);
     }
 
-    public ReadOnlyBooleanWrapper() {
-        super();
+    public ReadOnlyBooleanWrapper(java.lang.Object arg0, java.lang.String arg1) {
+        super(arg0, arg1);
+    }
+
+    public ReadOnlyBooleanWrapper(java.lang.Object arg0, java.lang.String arg1, boolean arg2) {
+        super(arg0, arg1, arg2);
     }
 
     @Override

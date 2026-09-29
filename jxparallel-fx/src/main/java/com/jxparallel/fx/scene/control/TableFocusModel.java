@@ -14,9 +14,9 @@ public class TableFocusModel<T, TC extends com.jxparallel.fx.scene.control.Table
 
     public void focus(int arg0, TC arg1) {
         if (fxPeer() instanceof com.jxparallel.fx.Fx.Owned) {
-            ((com.jxparallel.fx.Fx.Owned) fxPeer()).callSuper("focus(int,TableColumnBase)", new Object[] {arg0, (javafx.scene.control.TableColumnBase) com.jxparallel.fx.Fx.fx(arg1)});
+            ((com.jxparallel.fx.Fx.Owned) fxPeer()).callSuper("focus(int,TableColumnBase)", new Object[] {arg0, (javafx.scene.control.TableColumnBase) com.jxparallel.fx.Fx.fxAs(arg1, javafx.scene.control.TableColumnBase.class)});
         } else {
-            com.jxparallel.fx.Fx.invoke(fxPeer(), javafx.scene.control.TableFocusModel.class, "focus", new Class<?>[] {int.class, javafx.scene.control.TableColumnBase.class}, arg0, (javafx.scene.control.TableColumnBase) com.jxparallel.fx.Fx.fx(arg1));
+            com.jxparallel.fx.Fx.invoke(fxPeer(), javafx.scene.control.TableFocusModel.class, "focus", new Class<?>[] {int.class, javafx.scene.control.TableColumnBase.class}, arg0, (javafx.scene.control.TableColumnBase) com.jxparallel.fx.Fx.fxAs(arg1, javafx.scene.control.TableColumnBase.class));
         }
     }
 
@@ -53,7 +53,7 @@ public class TableFocusModel<T, TC extends com.jxparallel.fx.scene.control.Table
     }
 
     public boolean isFocused(int arg0, TC arg1) {
-        return (Boolean) (fxPeer() instanceof com.jxparallel.fx.Fx.Owned ? ((com.jxparallel.fx.Fx.Owned) fxPeer()).callSuper("isFocused(int,TableColumnBase)", new Object[] {arg0, (javafx.scene.control.TableColumnBase) com.jxparallel.fx.Fx.fx(arg1)}) : com.jxparallel.fx.Fx.invoke(fxPeer(), javafx.scene.control.TableFocusModel.class, "isFocused", new Class<?>[] {int.class, javafx.scene.control.TableColumnBase.class}, arg0, (javafx.scene.control.TableColumnBase) com.jxparallel.fx.Fx.fx(arg1)));
+        return (Boolean) (fxPeer() instanceof com.jxparallel.fx.Fx.Owned ? ((com.jxparallel.fx.Fx.Owned) fxPeer()).callSuper("isFocused(int,TableColumnBase)", new Object[] {arg0, (javafx.scene.control.TableColumnBase) com.jxparallel.fx.Fx.fxAs(arg1, javafx.scene.control.TableColumnBase.class)}) : com.jxparallel.fx.Fx.invoke(fxPeer(), javafx.scene.control.TableFocusModel.class, "isFocused", new Class<?>[] {int.class, javafx.scene.control.TableColumnBase.class}, arg0, (javafx.scene.control.TableColumnBase) com.jxparallel.fx.Fx.fxAs(arg1, javafx.scene.control.TableColumnBase.class)));
     }
 
     /** Called by the peer: runs the JX (possibly overridden) method. */
@@ -69,14 +69,14 @@ public class TableFocusModel<T, TC extends com.jxparallel.fx.scene.control.Table
             case "focusAboveCell()":
                 jx.focusAboveCell();
                 return null;
-            case "focusRightCell()":
-                jx.focusRightCell();
+            case "focusBelowCell()":
+                jx.focusBelowCell();
                 return null;
             case "focusLeftCell()":
                 jx.focusLeftCell();
                 return null;
-            case "focusBelowCell()":
-                jx.focusBelowCell();
+            case "focusRightCell()":
+                jx.focusRightCell();
                 return null;
             case "getModelItem(int)":
                 return jx.getModelItem((Integer) a[0]);

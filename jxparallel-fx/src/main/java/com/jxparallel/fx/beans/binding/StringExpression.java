@@ -16,17 +16,17 @@ public class StringExpression implements com.jxparallel.fx.beans.value.Observabl
 
     @Override
     public boolean equals(Object o) {
-        return o == this || fxPeer.equals(com.jxparallel.fx.Fx.fx(o));
+        return o == this || fxPeer().equals(com.jxparallel.fx.Fx.fx(o));
     }
 
     @Override
     public int hashCode() {
-        return fxPeer.hashCode();
+        return fxPeer().hashCode();
     }
 
     @Override
     public String toString() {
-        return fxPeer.toString();
+        return fxPeer().toString();
     }
 
     public StringExpression() {
@@ -138,19 +138,11 @@ public class StringExpression implements com.jxparallel.fx.beans.value.Observabl
         return (java.lang.String) (fxPeer() instanceof com.jxparallel.fx.Fx.Owned ? ((com.jxparallel.fx.Fx.Owned) fxPeer()).callSuper("get()", new Object[] {}) : com.jxparallel.fx.Fx.invoke(fxPeer(), javafx.beans.value.ObservableObjectValue.class, "get", new Class<?>[] {}));
     }
 
-    public void removeListener(com.jxparallel.fx.beans.value.ChangeListener<? super java.lang.String> arg0) {
+    public void addListener(com.jxparallel.fx.beans.InvalidationListener arg0) {
         if (fxPeer() instanceof com.jxparallel.fx.Fx.Owned) {
-            ((com.jxparallel.fx.Fx.Owned) fxPeer()).callSuper("removeListener(ChangeListener)", new Object[] {(javafx.beans.value.ChangeListener) com.jxparallel.fx.Fx.fx(arg0)});
+            ((com.jxparallel.fx.Fx.Owned) fxPeer()).callSuper("addListener(InvalidationListener)", new Object[] {(javafx.beans.InvalidationListener) com.jxparallel.fx.Fx.fx(arg0)});
         } else {
-            com.jxparallel.fx.Fx.invoke(fxPeer(), javafx.beans.value.ObservableValue.class, "removeListener", new Class<?>[] {javafx.beans.value.ChangeListener.class}, (javafx.beans.value.ChangeListener) com.jxparallel.fx.Fx.fx(arg0));
-        }
-    }
-
-    public void addListener(com.jxparallel.fx.beans.value.ChangeListener<? super java.lang.String> arg0) {
-        if (fxPeer() instanceof com.jxparallel.fx.Fx.Owned) {
-            ((com.jxparallel.fx.Fx.Owned) fxPeer()).callSuper("addListener(ChangeListener)", new Object[] {(javafx.beans.value.ChangeListener) com.jxparallel.fx.Fx.fx(arg0)});
-        } else {
-            com.jxparallel.fx.Fx.invoke(fxPeer(), javafx.beans.value.ObservableValue.class, "addListener", new Class<?>[] {javafx.beans.value.ChangeListener.class}, (javafx.beans.value.ChangeListener) com.jxparallel.fx.Fx.fx(arg0));
+            com.jxparallel.fx.Fx.invoke(fxPeer(), javafx.beans.Observable.class, "addListener", new Class<?>[] {javafx.beans.InvalidationListener.class}, (javafx.beans.InvalidationListener) com.jxparallel.fx.Fx.fx(arg0));
         }
     }
 
@@ -162,11 +154,19 @@ public class StringExpression implements com.jxparallel.fx.beans.value.Observabl
         }
     }
 
-    public void addListener(com.jxparallel.fx.beans.InvalidationListener arg0) {
+    public void addListener(com.jxparallel.fx.beans.value.ChangeListener<? super java.lang.String> arg0) {
         if (fxPeer() instanceof com.jxparallel.fx.Fx.Owned) {
-            ((com.jxparallel.fx.Fx.Owned) fxPeer()).callSuper("addListener(InvalidationListener)", new Object[] {(javafx.beans.InvalidationListener) com.jxparallel.fx.Fx.fx(arg0)});
+            ((com.jxparallel.fx.Fx.Owned) fxPeer()).callSuper("addListener(ChangeListener)", new Object[] {(javafx.beans.value.ChangeListener) com.jxparallel.fx.Fx.fx(arg0)});
         } else {
-            com.jxparallel.fx.Fx.invoke(fxPeer(), javafx.beans.Observable.class, "addListener", new Class<?>[] {javafx.beans.InvalidationListener.class}, (javafx.beans.InvalidationListener) com.jxparallel.fx.Fx.fx(arg0));
+            com.jxparallel.fx.Fx.invoke(fxPeer(), javafx.beans.value.ObservableValue.class, "addListener", new Class<?>[] {javafx.beans.value.ChangeListener.class}, (javafx.beans.value.ChangeListener) com.jxparallel.fx.Fx.fx(arg0));
+        }
+    }
+
+    public void removeListener(com.jxparallel.fx.beans.value.ChangeListener<? super java.lang.String> arg0) {
+        if (fxPeer() instanceof com.jxparallel.fx.Fx.Owned) {
+            ((com.jxparallel.fx.Fx.Owned) fxPeer()).callSuper("removeListener(ChangeListener)", new Object[] {(javafx.beans.value.ChangeListener) com.jxparallel.fx.Fx.fx(arg0)});
+        } else {
+            com.jxparallel.fx.Fx.invoke(fxPeer(), javafx.beans.value.ObservableValue.class, "removeListener", new Class<?>[] {javafx.beans.value.ChangeListener.class}, (javafx.beans.value.ChangeListener) com.jxparallel.fx.Fx.fx(arg0));
         }
     }
 
@@ -177,17 +177,17 @@ public class StringExpression implements com.jxparallel.fx.beans.value.Observabl
         switch (method) {
             case "get()":
                 return jx.get();
-            case "removeListener(ChangeListener)":
-                jx.removeListener((com.jxparallel.fx.beans.value.ChangeListener) a[0]);
-                return null;
-            case "addListener(ChangeListener)":
-                jx.addListener((com.jxparallel.fx.beans.value.ChangeListener) a[0]);
+            case "addListener(InvalidationListener)":
+                jx.addListener((com.jxparallel.fx.beans.InvalidationListener) a[0]);
                 return null;
             case "removeListener(InvalidationListener)":
                 jx.removeListener((com.jxparallel.fx.beans.InvalidationListener) a[0]);
                 return null;
-            case "addListener(InvalidationListener)":
-                jx.addListener((com.jxparallel.fx.beans.InvalidationListener) a[0]);
+            case "addListener(ChangeListener)":
+                jx.addListener((com.jxparallel.fx.beans.value.ChangeListener) a[0]);
+                return null;
+            case "removeListener(ChangeListener)":
+                jx.removeListener((com.jxparallel.fx.beans.value.ChangeListener) a[0]);
                 return null;
             default:
                 throw new IllegalArgumentException(method);

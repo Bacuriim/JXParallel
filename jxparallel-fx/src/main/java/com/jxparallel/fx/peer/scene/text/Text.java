@@ -5,16 +5,16 @@ package com.jxparallel.fx.peer.scene.text;
 public class Text extends javafx.scene.text.Text implements com.jxparallel.fx.Fx.Owned {
     private Object jxOwner;
 
-    public Text(java.lang.String arg0) {
-        super(arg0);
-    }
-
     public Text() {
         super();
     }
 
     public Text(double arg0, double arg1, java.lang.String arg2) {
         super(arg0, arg1, arg2);
+    }
+
+    public Text(java.lang.String arg0) {
+        super(arg0);
     }
 
     @Override

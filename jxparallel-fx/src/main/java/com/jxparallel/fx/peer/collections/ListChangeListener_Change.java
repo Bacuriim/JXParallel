@@ -20,27 +20,19 @@ public class ListChangeListener_Change<E> extends javafx.collections.ListChangeL
     }
 
     @Override
+    protected int[] getPermutation() {
+        if (jxOwner == null) {
+            throw new IllegalStateException("getPermutation before the JX object exists");
+        }
+        return (int[]) com.jxparallel.fx.Fx.fx(com.jxparallel.fx.collections.ListChangeListener.Change.$hook(jxOwner, "getPermutation()", new Object[] {}));
+    }
+
+    @Override
     public boolean next() {
         if (jxOwner == null) {
             throw new IllegalStateException("next before the JX object exists");
         }
         return (Boolean) com.jxparallel.fx.Fx.fx(com.jxparallel.fx.collections.ListChangeListener.Change.$hook(jxOwner, "next()", new Object[] {}));
-    }
-
-    @Override
-    public void reset() {
-        if (jxOwner == null) {
-            throw new IllegalStateException("reset before the JX object exists");
-        }
-        com.jxparallel.fx.collections.ListChangeListener.Change.$hook(jxOwner, "reset()", new Object[] {});
-    }
-
-    @Override
-    public java.util.List<E> getRemoved() {
-        if (jxOwner == null) {
-            throw new IllegalStateException("getRemoved before the JX object exists");
-        }
-        return (java.util.List<E>) com.jxparallel.fx.Fx.fx(com.jxparallel.fx.collections.ListChangeListener.Change.$hook(jxOwner, "getRemoved()", new Object[] {}));
     }
 
     @Override
@@ -60,11 +52,19 @@ public class ListChangeListener_Change<E> extends javafx.collections.ListChangeL
     }
 
     @Override
-    protected int[] getPermutation() {
+    public java.util.List<E> getRemoved() {
         if (jxOwner == null) {
-            throw new IllegalStateException("getPermutation before the JX object exists");
+            throw new IllegalStateException("getRemoved before the JX object exists");
         }
-        return (int[]) com.jxparallel.fx.Fx.fx(com.jxparallel.fx.collections.ListChangeListener.Change.$hook(jxOwner, "getPermutation()", new Object[] {}));
+        return (java.util.List<E>) com.jxparallel.fx.Fx.fx(com.jxparallel.fx.collections.ListChangeListener.Change.$hook(jxOwner, "getRemoved()", new Object[] {}));
+    }
+
+    @Override
+    public void reset() {
+        if (jxOwner == null) {
+            throw new IllegalStateException("reset before the JX object exists");
+        }
+        com.jxparallel.fx.collections.ListChangeListener.Change.$hook(jxOwner, "reset()", new Object[] {});
     }
 
     @Override

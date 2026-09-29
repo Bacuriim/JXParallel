@@ -8,7 +8,7 @@ public class WindowEvent extends com.jxparallel.fx.event.Event {
     }
 
     public WindowEvent(@javafx.beans.NamedArg(value = "source") com.jxparallel.fx.stage.Window arg0, @javafx.beans.NamedArg(value = "eventType") com.jxparallel.fx.event.EventType<? extends com.jxparallel.fx.event.Event> arg1) {
-        this(com.jxparallel.fx.Fx.WRAP, com.jxparallel.fx.Fx.NATIVE ? com.jxparallel.fx.nativeimpl.Native.create(javafx.stage.WindowEvent.class, new String[] {"source", "eventType"}, new Object[] {arg0, arg1}) : new com.jxparallel.fx.peer.stage.WindowEvent((javafx.stage.Window) com.jxparallel.fx.Fx.fx(arg0), (javafx.event.EventType) com.jxparallel.fx.Fx.fx(arg1)));
+        this(com.jxparallel.fx.Fx.WRAP, new com.jxparallel.fx.peer.stage.WindowEvent((javafx.stage.Window) com.jxparallel.fx.Fx.fxAs(arg0, javafx.stage.Window.class), (javafx.event.EventType) com.jxparallel.fx.Fx.fx(arg1)));
         com.jxparallel.fx.Fx.own(fxPeer(), this);
     }
 
@@ -25,23 +25,14 @@ public class WindowEvent extends com.jxparallel.fx.event.Event {
     public static final com.jxparallel.fx.event.EventType<com.jxparallel.fx.stage.WindowEvent> WINDOW_CLOSE_REQUEST = (com.jxparallel.fx.event.EventType) com.jxparallel.fx.Fx.jx(javafx.stage.WindowEvent.WINDOW_CLOSE_REQUEST);
 
     public com.jxparallel.fx.stage.WindowEvent copyFor(java.lang.Object arg0, com.jxparallel.fx.event.EventTarget arg1) {
-        if (com.jxparallel.fx.Fx.NATIVE) {
-            return (com.jxparallel.fx.stage.WindowEvent) com.jxparallel.fx.nativeimpl.Native.call(this, com.jxparallel.fx.stage.WindowEvent.class, "copyFor", new Class<?>[] {java.lang.Object.class, com.jxparallel.fx.event.EventTarget.class}, com.jxparallel.fx.stage.WindowEvent.class, arg0, arg1);
-        }
         return (com.jxparallel.fx.stage.WindowEvent) com.jxparallel.fx.Fx.jx(((javafx.stage.WindowEvent) fxPeer()).copyFor((java.lang.Object) com.jxparallel.fx.Fx.fx(arg0), (javafx.event.EventTarget) com.jxparallel.fx.Fx.fx(arg1)));
     }
 
     public com.jxparallel.fx.stage.WindowEvent copyFor(java.lang.Object arg0, com.jxparallel.fx.event.EventTarget arg1, com.jxparallel.fx.event.EventType<com.jxparallel.fx.stage.WindowEvent> arg2) {
-        if (com.jxparallel.fx.Fx.NATIVE) {
-            return (com.jxparallel.fx.stage.WindowEvent) com.jxparallel.fx.nativeimpl.Native.call(this, com.jxparallel.fx.stage.WindowEvent.class, "copyFor", new Class<?>[] {java.lang.Object.class, com.jxparallel.fx.event.EventTarget.class, com.jxparallel.fx.event.EventType.class}, com.jxparallel.fx.stage.WindowEvent.class, arg0, arg1, arg2);
-        }
         return (com.jxparallel.fx.stage.WindowEvent) com.jxparallel.fx.Fx.jx(((javafx.stage.WindowEvent) fxPeer()).copyFor((java.lang.Object) com.jxparallel.fx.Fx.fx(arg0), (javafx.event.EventTarget) com.jxparallel.fx.Fx.fx(arg1), (javafx.event.EventType) com.jxparallel.fx.Fx.fx(arg2)));
     }
 
     public com.jxparallel.fx.event.EventType<com.jxparallel.fx.stage.WindowEvent> getEventType() {
-        if (com.jxparallel.fx.Fx.NATIVE) {
-            return (com.jxparallel.fx.event.EventType) com.jxparallel.fx.nativeimpl.Native.call(this, com.jxparallel.fx.stage.WindowEvent.class, "getEventType", new Class<?>[] {}, com.jxparallel.fx.event.EventType.class);
-        }
         return (com.jxparallel.fx.event.EventType) com.jxparallel.fx.Fx.jx(((javafx.stage.WindowEvent) fxPeer()).getEventType());
     }
 }

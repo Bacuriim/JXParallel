@@ -16,17 +16,17 @@ public class Pair<K, V> implements java.io.Serializable, com.jxparallel.fx.Fx.Ba
 
     @Override
     public boolean equals(Object o) {
-        return o == this || fxPeer.equals(com.jxparallel.fx.Fx.fx(o));
+        return o == this || fxPeer().equals(com.jxparallel.fx.Fx.fx(o));
     }
 
     @Override
     public int hashCode() {
-        return fxPeer.hashCode();
+        return fxPeer().hashCode();
     }
 
     @Override
     public String toString() {
-        return fxPeer.toString();
+        return fxPeer().toString();
     }
 
     public Pair(@javafx.beans.NamedArg(value = "key") K arg0, @javafx.beans.NamedArg(value = "value") V arg1) {

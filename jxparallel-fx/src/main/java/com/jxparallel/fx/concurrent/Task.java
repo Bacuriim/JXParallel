@@ -16,17 +16,17 @@ public class Task<V> implements com.jxparallel.fx.concurrent.Worker<V>, com.jxpa
 
     @Override
     public boolean equals(Object o) {
-        return o == this || fxPeer.equals(com.jxparallel.fx.Fx.fx(o));
+        return o == this || fxPeer().equals(com.jxparallel.fx.Fx.fx(o));
     }
 
     @Override
     public int hashCode() {
-        return fxPeer.hashCode();
+        return fxPeer().hashCode();
     }
 
     @Override
     public String toString() {
-        return fxPeer.toString();
+        return fxPeer().toString();
     }
 
     public Task() {
@@ -266,16 +266,12 @@ public class Task<V> implements com.jxparallel.fx.concurrent.Worker<V>, com.jxpa
         return (com.jxparallel.fx.beans.property.ReadOnlyDoubleProperty) com.jxparallel.fx.Fx.jx(((javafx.concurrent.Task) fxPeer()).workDoneProperty());
     }
 
-    public void run() {
-        ((javafx.concurrent.Task) fxPeer()).run();
+    public V get() throws java.lang.InterruptedException, java.util.concurrent.ExecutionException {
+        return (V) com.jxparallel.fx.Fx.jx(((javafx.concurrent.Task) fxPeer()).get());
     }
 
     public V get(long arg0, java.util.concurrent.TimeUnit arg1) throws java.lang.InterruptedException, java.util.concurrent.ExecutionException, java.util.concurrent.TimeoutException {
         return (V) com.jxparallel.fx.Fx.jx(((javafx.concurrent.Task) fxPeer()).get(arg0, arg1));
-    }
-
-    public V get() throws java.lang.InterruptedException, java.util.concurrent.ExecutionException {
-        return (V) com.jxparallel.fx.Fx.jx(((javafx.concurrent.Task) fxPeer()).get());
     }
 
     public boolean isCancelled() {
@@ -286,28 +282,32 @@ public class Task<V> implements com.jxparallel.fx.concurrent.Worker<V>, com.jxpa
         return ((javafx.concurrent.Task) fxPeer()).isDone();
     }
 
+    public void run() {
+        ((javafx.concurrent.Task) fxPeer()).run();
+    }
+
     /** Called by the peer: runs the JX (possibly overridden) method. */
     public static Object $hook(Object self, String method, Object[] a) {
         Task jx = (Task) self;
         try {
         switch (method) {
-            case "running()":
-                jx.running();
-                return null;
+            case "call()":
+                return jx.call();
             case "cancelled()":
                 jx.cancelled();
-                return null;
-            case "succeeded()":
-                jx.succeeded();
-                return null;
-            case "scheduled()":
-                jx.scheduled();
                 return null;
             case "failed()":
                 jx.failed();
                 return null;
-            case "call()":
-                return jx.call();
+            case "running()":
+                jx.running();
+                return null;
+            case "scheduled()":
+                jx.scheduled();
+                return null;
+            case "succeeded()":
+                jx.succeeded();
+                return null;
             default:
                 throw new IllegalArgumentException(method);
         }

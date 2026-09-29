@@ -16,17 +16,17 @@ public class InputMethodTextRun implements java.io.Serializable, com.jxparallel.
 
     @Override
     public boolean equals(Object o) {
-        return o == this || fxPeer.equals(com.jxparallel.fx.Fx.fx(o));
+        return o == this || fxPeer().equals(com.jxparallel.fx.Fx.fx(o));
     }
 
     @Override
     public int hashCode() {
-        return fxPeer.hashCode();
+        return fxPeer().hashCode();
     }
 
     @Override
     public String toString() {
-        return fxPeer.toString();
+        return fxPeer().toString();
     }
 
     public InputMethodTextRun(@javafx.beans.NamedArg(value = "text") java.lang.String arg0, @javafx.beans.NamedArg(value = "highlight") com.jxparallel.fx.scene.input.InputMethodHighlight arg1) {

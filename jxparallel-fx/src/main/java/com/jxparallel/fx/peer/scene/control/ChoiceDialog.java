@@ -5,16 +5,16 @@ package com.jxparallel.fx.peer.scene.control;
 public class ChoiceDialog<T> extends javafx.scene.control.ChoiceDialog<T> implements com.jxparallel.fx.Fx.Owned {
     private Object jxOwner;
 
-    public ChoiceDialog(T arg0, java.util.Collection<T> arg1) {
-        super(arg0, arg1);
+    public ChoiceDialog() {
+        super();
     }
 
     public ChoiceDialog(T arg0, T... arg1) {
         super(arg0, arg1);
     }
 
-    public ChoiceDialog() {
-        super();
+    public ChoiceDialog(T arg0, java.util.Collection<T> arg1) {
+        super(arg0, arg1);
     }
 
     @Override

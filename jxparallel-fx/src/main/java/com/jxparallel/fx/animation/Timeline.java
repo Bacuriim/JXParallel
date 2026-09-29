@@ -17,13 +17,13 @@ public final class Timeline extends com.jxparallel.fx.animation.Animation {
         com.jxparallel.fx.Fx.own(fxPeer(), this);
     }
 
-    public Timeline(com.jxparallel.fx.animation.KeyFrame... arg0) {
-        this(com.jxparallel.fx.Fx.WRAP, new javafx.animation.Timeline((javafx.animation.KeyFrame[]) com.jxparallel.fx.Fx.fxArray(arg0, javafx.animation.KeyFrame.class)));
+    public Timeline(double arg0, com.jxparallel.fx.animation.KeyFrame... arg1) {
+        this(com.jxparallel.fx.Fx.WRAP, new javafx.animation.Timeline(arg0, (javafx.animation.KeyFrame[]) com.jxparallel.fx.Fx.fxArray(arg1, javafx.animation.KeyFrame.class)));
         com.jxparallel.fx.Fx.own(fxPeer(), this);
     }
 
-    public Timeline(double arg0, com.jxparallel.fx.animation.KeyFrame... arg1) {
-        this(com.jxparallel.fx.Fx.WRAP, new javafx.animation.Timeline(arg0, (javafx.animation.KeyFrame[]) com.jxparallel.fx.Fx.fxArray(arg1, javafx.animation.KeyFrame.class)));
+    public Timeline(com.jxparallel.fx.animation.KeyFrame... arg0) {
+        this(com.jxparallel.fx.Fx.WRAP, new javafx.animation.Timeline((javafx.animation.KeyFrame[]) com.jxparallel.fx.Fx.fxArray(arg0, javafx.animation.KeyFrame.class)));
         com.jxparallel.fx.Fx.own(fxPeer(), this);
     }
 

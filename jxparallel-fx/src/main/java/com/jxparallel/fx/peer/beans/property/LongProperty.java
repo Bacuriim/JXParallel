@@ -20,51 +20,11 @@ public class LongProperty extends javafx.beans.property.LongProperty implements 
     }
 
     @Override
-    public void removeListener(javafx.beans.value.ChangeListener<? super java.lang.Number> arg0) {
+    public boolean isBound() {
         if (jxOwner == null) {
-            throw new IllegalStateException("removeListener before the JX object exists");
+            throw new IllegalStateException("isBound before the JX object exists");
         }
-        com.jxparallel.fx.beans.property.LongProperty.$hook(jxOwner, "removeListener(ChangeListener)", new Object[] {com.jxparallel.fx.Fx.jx(arg0)});
-    }
-
-    @Override
-    public void addListener(javafx.beans.value.ChangeListener<? super java.lang.Number> arg0) {
-        if (jxOwner == null) {
-            throw new IllegalStateException("addListener before the JX object exists");
-        }
-        com.jxparallel.fx.beans.property.LongProperty.$hook(jxOwner, "addListener(ChangeListener)", new Object[] {com.jxparallel.fx.Fx.jx(arg0)});
-    }
-
-    @Override
-    public void removeListener(javafx.beans.InvalidationListener arg0) {
-        if (jxOwner == null) {
-            throw new IllegalStateException("removeListener before the JX object exists");
-        }
-        com.jxparallel.fx.beans.property.LongProperty.$hook(jxOwner, "removeListener(InvalidationListener)", new Object[] {com.jxparallel.fx.Fx.jx(arg0)});
-    }
-
-    @Override
-    public void addListener(javafx.beans.InvalidationListener arg0) {
-        if (jxOwner == null) {
-            throw new IllegalStateException("addListener before the JX object exists");
-        }
-        com.jxparallel.fx.beans.property.LongProperty.$hook(jxOwner, "addListener(InvalidationListener)", new Object[] {com.jxparallel.fx.Fx.jx(arg0)});
-    }
-
-    @Override
-    public long get() {
-        if (jxOwner == null) {
-            throw new IllegalStateException("get before the JX object exists");
-        }
-        return (Long) com.jxparallel.fx.Fx.fx(com.jxparallel.fx.beans.property.LongProperty.$hook(jxOwner, "get()", new Object[] {}));
-    }
-
-    @Override
-    public java.lang.String getName() {
-        if (jxOwner == null) {
-            throw new IllegalStateException("getName before the JX object exists");
-        }
-        return (java.lang.String) com.jxparallel.fx.Fx.fx(com.jxparallel.fx.beans.property.LongProperty.$hook(jxOwner, "getName()", new Object[] {}));
+        return (Boolean) com.jxparallel.fx.Fx.fx(com.jxparallel.fx.beans.property.LongProperty.$hook(jxOwner, "isBound()", new Object[] {}));
     }
 
     @Override
@@ -76,6 +36,38 @@ public class LongProperty extends javafx.beans.property.LongProperty implements 
     }
 
     @Override
+    public java.lang.String getName() {
+        if (jxOwner == null) {
+            throw new IllegalStateException("getName before the JX object exists");
+        }
+        return (java.lang.String) com.jxparallel.fx.Fx.fx(com.jxparallel.fx.beans.property.LongProperty.$hook(jxOwner, "getName()", new Object[] {}));
+    }
+
+    @Override
+    public long get() {
+        if (jxOwner == null) {
+            throw new IllegalStateException("get before the JX object exists");
+        }
+        return (Long) com.jxparallel.fx.Fx.fx(com.jxparallel.fx.beans.property.LongProperty.$hook(jxOwner, "get()", new Object[] {}));
+    }
+
+    @Override
+    public void addListener(javafx.beans.InvalidationListener arg0) {
+        if (jxOwner == null) {
+            throw new IllegalStateException("addListener before the JX object exists");
+        }
+        com.jxparallel.fx.beans.property.LongProperty.$hook(jxOwner, "addListener(InvalidationListener)", new Object[] {com.jxparallel.fx.Fx.jx(arg0)});
+    }
+
+    @Override
+    public void removeListener(javafx.beans.InvalidationListener arg0) {
+        if (jxOwner == null) {
+            throw new IllegalStateException("removeListener before the JX object exists");
+        }
+        com.jxparallel.fx.beans.property.LongProperty.$hook(jxOwner, "removeListener(InvalidationListener)", new Object[] {com.jxparallel.fx.Fx.jx(arg0)});
+    }
+
+    @Override
     public void bind(javafx.beans.value.ObservableValue<? extends java.lang.Number> arg0) {
         if (jxOwner == null) {
             throw new IllegalStateException("bind before the JX object exists");
@@ -84,19 +76,27 @@ public class LongProperty extends javafx.beans.property.LongProperty implements 
     }
 
     @Override
-    public boolean isBound() {
-        if (jxOwner == null) {
-            throw new IllegalStateException("isBound before the JX object exists");
-        }
-        return (Boolean) com.jxparallel.fx.Fx.fx(com.jxparallel.fx.beans.property.LongProperty.$hook(jxOwner, "isBound()", new Object[] {}));
-    }
-
-    @Override
     public void unbind() {
         if (jxOwner == null) {
             throw new IllegalStateException("unbind before the JX object exists");
         }
         com.jxparallel.fx.beans.property.LongProperty.$hook(jxOwner, "unbind()", new Object[] {});
+    }
+
+    @Override
+    public void addListener(javafx.beans.value.ChangeListener<? super java.lang.Number> arg0) {
+        if (jxOwner == null) {
+            throw new IllegalStateException("addListener before the JX object exists");
+        }
+        com.jxparallel.fx.beans.property.LongProperty.$hook(jxOwner, "addListener(ChangeListener)", new Object[] {com.jxparallel.fx.Fx.jx(arg0)});
+    }
+
+    @Override
+    public void removeListener(javafx.beans.value.ChangeListener<? super java.lang.Number> arg0) {
+        if (jxOwner == null) {
+            throw new IllegalStateException("removeListener before the JX object exists");
+        }
+        com.jxparallel.fx.beans.property.LongProperty.$hook(jxOwner, "removeListener(ChangeListener)", new Object[] {com.jxparallel.fx.Fx.jx(arg0)});
     }
 
     @Override

@@ -14,11 +14,13 @@ public class ScrollPaneSkin extends SkinWrapper<ScrollPane> {
     private final StackPane viewRect;
 
     public ScrollPaneSkin(ScrollPane scrollPane) {
-        this(Fx.WRAP, new com.sun.javafx.scene.control.skin.ScrollPaneSkin((javafx.scene.control.ScrollPane) Fx.fx(scrollPane)));
+        this(Fx.WRAP, Fx.NATIVE ? new NativeSkin(scrollPane)
+                : new com.sun.javafx.scene.control.skin.ScrollPaneSkin((javafx.scene.control.ScrollPane) Fx.fx(scrollPane)));
     }
 
     protected ScrollPaneSkin(Fx.Wrap wrap, Object peer) {
         super(peer);
-        this.viewRect = (StackPane) Fx.jx(read(peer, "viewRect"));
+        // native mode draws the viewport itself: a detached pane takes what applications set on it (cache)
+        this.viewRect = peer instanceof NativeSkin ? new StackPane() : (StackPane) Fx.jx(read(peer, "viewRect"));
     }
 }

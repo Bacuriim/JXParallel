@@ -5,16 +5,16 @@ package com.jxparallel.fx.peer.scene.image;
 public class ImageView extends javafx.scene.image.ImageView implements com.jxparallel.fx.Fx.Owned {
     private Object jxOwner;
 
-    public ImageView(javafx.scene.image.Image arg0) {
-        super(arg0);
+    public ImageView() {
+        super();
     }
 
     public ImageView(java.lang.String arg0) {
         super(arg0);
     }
 
-    public ImageView() {
-        super();
+    public ImageView(javafx.scene.image.Image arg0) {
+        super(arg0);
     }
 
     @Override

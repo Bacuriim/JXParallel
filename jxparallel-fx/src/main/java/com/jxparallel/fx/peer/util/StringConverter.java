@@ -20,19 +20,19 @@ public class StringConverter<T> extends javafx.util.StringConverter<T> implement
     }
 
     @Override
-    public java.lang.String toString(T arg0) {
-        if (jxOwner == null) {
-            throw new IllegalStateException("toString before the JX object exists");
-        }
-        return (java.lang.String) com.jxparallel.fx.Fx.fx(com.jxparallel.fx.util.StringConverter.$hook(jxOwner, "toString(Object)", new Object[] {com.jxparallel.fx.Fx.jx(arg0)}));
-    }
-
-    @Override
     public T fromString(java.lang.String arg0) {
         if (jxOwner == null) {
             throw new IllegalStateException("fromString before the JX object exists");
         }
         return (T) com.jxparallel.fx.Fx.fx(com.jxparallel.fx.util.StringConverter.$hook(jxOwner, "fromString(String)", new Object[] {com.jxparallel.fx.Fx.jx(arg0)}));
+    }
+
+    @Override
+    public java.lang.String toString(T arg0) {
+        if (jxOwner == null) {
+            throw new IllegalStateException("toString before the JX object exists");
+        }
+        return (java.lang.String) com.jxparallel.fx.Fx.fx(com.jxparallel.fx.util.StringConverter.$hook(jxOwner, "toString(Object)", new Object[] {com.jxparallel.fx.Fx.jx(arg0)}));
     }
 
     @Override

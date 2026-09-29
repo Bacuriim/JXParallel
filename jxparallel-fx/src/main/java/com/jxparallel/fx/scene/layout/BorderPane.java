@@ -13,13 +13,13 @@ public class BorderPane extends com.jxparallel.fx.scene.layout.Pane {
         com.jxparallel.fx.Fx.own(fxPeer(), this);
     }
 
-    public BorderPane(com.jxparallel.fx.scene.Node arg0, com.jxparallel.fx.scene.Node arg1, com.jxparallel.fx.scene.Node arg2, com.jxparallel.fx.scene.Node arg3, com.jxparallel.fx.scene.Node arg4) {
-        this(com.jxparallel.fx.Fx.WRAP, com.jxparallel.fx.Fx.NATIVE ? com.jxparallel.fx.nativeimpl.Native.create(javafx.scene.layout.BorderPane.class, new String[] {null, null, null, null, null}, new Object[] {arg0, arg1, arg2, arg3, arg4}) : new com.jxparallel.fx.peer.scene.layout.BorderPane((javafx.scene.Node) com.jxparallel.fx.Fx.fx(arg0), (javafx.scene.Node) com.jxparallel.fx.Fx.fx(arg1), (javafx.scene.Node) com.jxparallel.fx.Fx.fx(arg2), (javafx.scene.Node) com.jxparallel.fx.Fx.fx(arg3), (javafx.scene.Node) com.jxparallel.fx.Fx.fx(arg4)));
+    public BorderPane(com.jxparallel.fx.scene.Node arg0) {
+        this(com.jxparallel.fx.Fx.WRAP, com.jxparallel.fx.Fx.NATIVE ? com.jxparallel.fx.nativeimpl.Native.create(javafx.scene.layout.BorderPane.class, new String[] {null}, new Object[] {arg0}) : new com.jxparallel.fx.peer.scene.layout.BorderPane((javafx.scene.Node) com.jxparallel.fx.Fx.fx(arg0)));
         com.jxparallel.fx.Fx.own(fxPeer(), this);
     }
 
-    public BorderPane(com.jxparallel.fx.scene.Node arg0) {
-        this(com.jxparallel.fx.Fx.WRAP, com.jxparallel.fx.Fx.NATIVE ? com.jxparallel.fx.nativeimpl.Native.create(javafx.scene.layout.BorderPane.class, new String[] {null}, new Object[] {arg0}) : new com.jxparallel.fx.peer.scene.layout.BorderPane((javafx.scene.Node) com.jxparallel.fx.Fx.fx(arg0)));
+    public BorderPane(com.jxparallel.fx.scene.Node arg0, com.jxparallel.fx.scene.Node arg1, com.jxparallel.fx.scene.Node arg2, com.jxparallel.fx.scene.Node arg3, com.jxparallel.fx.scene.Node arg4) {
+        this(com.jxparallel.fx.Fx.WRAP, com.jxparallel.fx.Fx.NATIVE ? com.jxparallel.fx.nativeimpl.Native.create(javafx.scene.layout.BorderPane.class, new String[] {null, null, null, null, null}, new Object[] {arg0, arg1, arg2, arg3, arg4}) : new com.jxparallel.fx.peer.scene.layout.BorderPane((javafx.scene.Node) com.jxparallel.fx.Fx.fx(arg0), (javafx.scene.Node) com.jxparallel.fx.Fx.fx(arg1), (javafx.scene.Node) com.jxparallel.fx.Fx.fx(arg2), (javafx.scene.Node) com.jxparallel.fx.Fx.fx(arg3), (javafx.scene.Node) com.jxparallel.fx.Fx.fx(arg4)));
         com.jxparallel.fx.Fx.own(fxPeer(), this);
     }
 

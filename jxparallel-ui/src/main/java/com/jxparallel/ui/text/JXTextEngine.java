@@ -40,8 +40,19 @@ public final class JXTextEngine {
             "/Library/Fonts/Arial.ttf",
     };
 
+    /** Bold faces of the candidates above, same order; {@code -Djx.font.bold=path} takes precedence. */
+    private static final String[] BOLD_CANDIDATES = {
+            "C:\\Windows\\Fonts\\segoeuib.ttf",
+            "C:\\Windows\\Fonts\\arialbd.ttf",
+            "/usr/share/fonts/truetype/dejavu/DejaVuSans-Bold.ttf",
+            "/usr/share/fonts/dejavu/DejaVuSans-Bold.ttf",
+            "/System/Library/Fonts/Supplemental/Arial Bold.ttf",
+            "/Library/Fonts/Arial Bold.ttf",
+    };
+
     private static final int MAX_CACHED = 16384;
     private static volatile JXTextEngine instance;
+    private static volatile JXTextEngine boldInstance;
 
     private final ConcurrentHashMap<String, Integer> advances = new ConcurrentHashMap<String, Integer>();
 
@@ -104,6 +115,45 @@ public final class JXTextEngine {
         return engine;
     }
 
+    /** The engine for {@code bold} text: the bold face when there is one, else the regular engine. */
+    public static JXTextEngine get(boolean bold) {
+        if (!bold) {
+            return get();
+        }
+        JXTextEngine engine = boldInstance;
+        if (engine == null) {
+            synchronized (JXTextEngine.class) {
+                engine = boldInstance;
+                if (engine == null) {
+                    String file = findBoldFontFile();
+                    engine = file == null || get().getFontFile() == null ? get() : new JXTextEngine(file);
+                    if (engine != get()) {
+                        engine.bold = true;
+                    }
+                    boldInstance = engine;
+                }
+            }
+        }
+        return engine;
+    }
+
+    /** The bold UI font file, or {@code null}. */
+    public static String findBoldFontFile() {
+        String configured = System.getProperty("jx.font.bold");
+        if (configured != null && new File(configured).isFile()) {
+            return configured;
+        }
+        if (System.getProperty("jx.font") != null) {
+            return null; // a configured regular font has no known bold sibling
+        }
+        for (String candidate : BOLD_CANDIDATES) {
+            if (new File(candidate).isFile()) {
+                return candidate;
+            }
+        }
+        return null;
+    }
+
     /** Returns the UI font file, or {@code null} if none is found. */
     public static String findFontFile() {
         String configured = System.getProperty("jx.font");
@@ -127,6 +177,25 @@ public final class JXTextEngine {
     public float width(String text, float size) {
         if (text == null || text.isEmpty()) {
             return 0.0f;
+        }
+        LineMetrics metrics = lineMetrics;
+        if (metrics != null && (bold || size != DEFAULT_SIZE)) {
+            // hinted advances drift from the scaled ones away from the default size: ask the host
+            String key = size + "|" + text;
+            Float known = measuredWidths.get(key);
+            if (known == null) {
+                float measured = metrics.width(text, size, bold);
+                if (!Float.isNaN(measured)) {
+                    if (measuredWidths.size() >= MAX_CACHED) {
+                        measuredWidths.clear();
+                    }
+                    measuredWidths.put(key, measured);
+                    known = measured;
+                }
+            }
+            if (known != null) {
+                return known;
+            }
         }
         if (font == 0L) {
             return text.codePointCount(0, text.length()) * 0.6f * size;
@@ -163,7 +232,60 @@ public final class JXTextEngine {
 
     /** Distance from the top of a line to the baseline. */
     public float ascent(float size) {
-        return ascender * size / unitsPerEm;
+        float[] measured = measured(size);
+        return measured != null ? measured[0] : ascender * size / unitsPerEm;
+    }
+
+    /**
+     * Line ascent and height as a host toolkit measures them, {@code {ascent, lineHeight}} or null.
+     * JavaFX's text metrics are hinted (DirectWrite on Windows: Segoe UI lines are 17 px at 12 px
+     * but 25 px at 16 px), which the scaled font units cannot reproduce; a compatibility layer that
+     * runs JavaFX installs its measurements here so native layout matches it exactly.
+     */
+    public interface LineMetrics {
+        float[] measure(float size, boolean bold);
+
+        /** Advance width of text as the host draws it, or NaN to use the engine's own shaping. */
+        default float width(String text, float size, boolean bold) {
+            return Float.NaN;
+        }
+    }
+
+    private final ConcurrentHashMap<String, Float> measuredWidths = new ConcurrentHashMap<String, Float>();
+
+    private static volatile LineMetrics lineMetrics;
+    private final ConcurrentHashMap<Float, float[]> measuredLines = new ConcurrentHashMap<Float, float[]>();
+    private volatile boolean bold;
+
+    /** Installs (or with null removes) the measured line metrics for every engine. */
+    public static void setLineMetrics(LineMetrics metrics) {
+        lineMetrics = metrics;
+        JXTextEngine regular = instance;
+        JXTextEngine heavy = boldInstance;
+        if (regular != null) {
+            regular.measuredLines.clear();
+            regular.measuredWidths.clear();
+        }
+        if (heavy != null) {
+            heavy.measuredLines.clear();
+            heavy.measuredWidths.clear();
+        }
+    }
+
+    private float[] measured(float size) {
+        LineMetrics metrics = lineMetrics;
+        if (metrics == null) {
+            return null;
+        }
+        float[] cached = measuredLines.get(size);
+        if (cached == null) {
+            cached = metrics.measure(size, bold);
+            if (cached == null) {
+                return null;
+            }
+            measuredLines.put(size, cached);
+        }
+        return cached;
     }
 
     /** Baseline offset that centres one line of text vertically in a box of the given height. */
@@ -176,6 +298,10 @@ public final class JXTextEngine {
      * (17 px for Segoe UI at 12 px, where the exact sum is 15.96).
      */
     public float lineHeight(float size) {
+        float[] measured = measured(size);
+        if (measured != null) {
+            return measured[1];
+        }
         return (float) (Math.ceil(ascender * size / unitsPerEm) + Math.ceil(descender * size / unitsPerEm)
                 + lineGap * size / unitsPerEm);
     }

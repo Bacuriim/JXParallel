@@ -13,8 +13,8 @@ public class VBox extends com.jxparallel.fx.scene.layout.Pane {
         com.jxparallel.fx.Fx.own(fxPeer(), this);
     }
 
-    public VBox(com.jxparallel.fx.scene.Node... arg0) {
-        this(com.jxparallel.fx.Fx.WRAP, com.jxparallel.fx.Fx.NATIVE ? com.jxparallel.fx.nativeimpl.Native.create(javafx.scene.layout.VBox.class, new String[] {null}, new Object[] {arg0}) : new com.jxparallel.fx.peer.scene.layout.VBox((javafx.scene.Node[]) com.jxparallel.fx.Fx.fxArray(arg0, javafx.scene.Node.class)));
+    public VBox(double arg0) {
+        this(com.jxparallel.fx.Fx.WRAP, com.jxparallel.fx.Fx.NATIVE ? com.jxparallel.fx.nativeimpl.Native.create(javafx.scene.layout.VBox.class, new String[] {null}, new Object[] {arg0}) : new com.jxparallel.fx.peer.scene.layout.VBox(arg0));
         com.jxparallel.fx.Fx.own(fxPeer(), this);
     }
 
@@ -23,8 +23,8 @@ public class VBox extends com.jxparallel.fx.scene.layout.Pane {
         com.jxparallel.fx.Fx.own(fxPeer(), this);
     }
 
-    public VBox(double arg0) {
-        this(com.jxparallel.fx.Fx.WRAP, com.jxparallel.fx.Fx.NATIVE ? com.jxparallel.fx.nativeimpl.Native.create(javafx.scene.layout.VBox.class, new String[] {null}, new Object[] {arg0}) : new com.jxparallel.fx.peer.scene.layout.VBox(arg0));
+    public VBox(com.jxparallel.fx.scene.Node... arg0) {
+        this(com.jxparallel.fx.Fx.WRAP, com.jxparallel.fx.Fx.NATIVE ? com.jxparallel.fx.nativeimpl.Native.create(javafx.scene.layout.VBox.class, new String[] {null}, new Object[] {arg0}) : new com.jxparallel.fx.peer.scene.layout.VBox((javafx.scene.Node[]) com.jxparallel.fx.Fx.fxArray(arg0, javafx.scene.Node.class)));
         com.jxparallel.fx.Fx.own(fxPeer(), this);
     }
 

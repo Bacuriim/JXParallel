@@ -13,12 +13,12 @@ public class HBox extends javafx.scene.layout.HBox implements com.jxparallel.fx.
         super(arg0);
     }
 
-    public HBox(javafx.scene.Node... arg0) {
-        super(arg0);
-    }
-
     public HBox(double arg0, javafx.scene.Node... arg1) {
         super(arg0, arg1);
+    }
+
+    public HBox(javafx.scene.Node... arg0) {
+        super(arg0);
     }
 
     @Override

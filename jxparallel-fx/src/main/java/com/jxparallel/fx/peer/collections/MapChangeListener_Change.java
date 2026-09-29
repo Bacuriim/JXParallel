@@ -36,6 +36,14 @@ public class MapChangeListener_Change<K, V> extends javafx.collections.MapChange
     }
 
     @Override
+    public V getValueRemoved() {
+        if (jxOwner == null) {
+            throw new IllegalStateException("getValueRemoved before the JX object exists");
+        }
+        return (V) com.jxparallel.fx.Fx.fx(com.jxparallel.fx.collections.MapChangeListener.Change.$hook(jxOwner, "getValueRemoved()", new Object[] {}));
+    }
+
+    @Override
     public boolean wasAdded() {
         if (jxOwner == null) {
             throw new IllegalStateException("wasAdded before the JX object exists");
@@ -49,14 +57,6 @@ public class MapChangeListener_Change<K, V> extends javafx.collections.MapChange
             throw new IllegalStateException("wasRemoved before the JX object exists");
         }
         return (Boolean) com.jxparallel.fx.Fx.fx(com.jxparallel.fx.collections.MapChangeListener.Change.$hook(jxOwner, "wasRemoved()", new Object[] {}));
-    }
-
-    @Override
-    public V getValueRemoved() {
-        if (jxOwner == null) {
-            throw new IllegalStateException("getValueRemoved before the JX object exists");
-        }
-        return (V) com.jxparallel.fx.Fx.fx(com.jxparallel.fx.collections.MapChangeListener.Change.$hook(jxOwner, "getValueRemoved()", new Object[] {}));
     }
 
     @Override

@@ -13,12 +13,12 @@ public class ChoiceBoxListCell<T> extends javafx.scene.control.cell.ChoiceBoxLis
         super(arg0);
     }
 
-    public ChoiceBoxListCell(javafx.util.StringConverter<T> arg0, T... arg1) {
-        super(arg0, arg1);
-    }
-
     public ChoiceBoxListCell(javafx.collections.ObservableList<T> arg0) {
         super(arg0);
+    }
+
+    public ChoiceBoxListCell(javafx.util.StringConverter<T> arg0, T... arg1) {
+        super(arg0, arg1);
     }
 
     public ChoiceBoxListCell(javafx.util.StringConverter<T> arg0, javafx.collections.ObservableList<T> arg1) {
@@ -33,15 +33,6 @@ public class ChoiceBoxListCell<T> extends javafx.scene.control.cell.ChoiceBoxLis
     @Override
     public void jxOwner(Object owner) {
         this.jxOwner = owner;
-    }
-
-    @Override
-    public void updateItem(T arg0, boolean arg1) {
-        if (jxOwner == null) {
-            super.updateItem(arg0, arg1);
-            return;
-        }
-        com.jxparallel.fx.scene.control.cell.ChoiceBoxListCell.$hook(jxOwner, "updateItem(Object,boolean)", new Object[] {com.jxparallel.fx.Fx.jx(arg0), arg1});
     }
 
     @Override
@@ -60,6 +51,15 @@ public class ChoiceBoxListCell<T> extends javafx.scene.control.cell.ChoiceBoxLis
             return;
         }
         com.jxparallel.fx.scene.control.cell.ChoiceBoxListCell.$hook(jxOwner, "startEdit()", new Object[] {});
+    }
+
+    @Override
+    public void updateItem(T arg0, boolean arg1) {
+        if (jxOwner == null) {
+            super.updateItem(arg0, arg1);
+            return;
+        }
+        com.jxparallel.fx.scene.control.cell.ChoiceBoxListCell.$hook(jxOwner, "updateItem(Object,boolean)", new Object[] {com.jxparallel.fx.Fx.jx(arg0), arg1});
     }
 
     @Override
@@ -93,14 +93,14 @@ public class ChoiceBoxListCell<T> extends javafx.scene.control.cell.ChoiceBoxLis
     public Object callSuper(String method, Object[] a) {
         try {
         switch (method) {
-            case "updateItem(Object,boolean)":
-                super.updateItem((T) a[0], (Boolean) a[1]);
-                return null;
             case "cancelEdit()":
                 super.cancelEdit();
                 return null;
             case "startEdit()":
                 super.startEdit();
+                return null;
+            case "updateItem(Object,boolean)":
+                super.updateItem((T) a[0], (Boolean) a[1]);
                 return null;
             case "commitEdit(Object)":
                 super.commitEdit((T) a[0]);

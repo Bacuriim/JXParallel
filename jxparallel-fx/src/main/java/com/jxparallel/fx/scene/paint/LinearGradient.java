@@ -7,13 +7,13 @@ public final class LinearGradient extends com.jxparallel.fx.scene.paint.Paint {
         super(wrap, peer);
     }
 
-    public LinearGradient(@javafx.beans.NamedArg(value = "startX") double arg0, @javafx.beans.NamedArg(value = "startY") double arg1, @javafx.beans.NamedArg(value = "endX", defaultValue = "1") double arg2, @javafx.beans.NamedArg(value = "endY", defaultValue = "1") double arg3, @javafx.beans.NamedArg(value = "proportional", defaultValue = "true") boolean arg4, @javafx.beans.NamedArg(value = "cycleMethod") com.jxparallel.fx.scene.paint.CycleMethod arg5, @javafx.beans.NamedArg(value = "stops") com.jxparallel.fx.scene.paint.Stop... arg6) {
-        this(com.jxparallel.fx.Fx.WRAP, new javafx.scene.paint.LinearGradient(arg0, arg1, arg2, arg3, arg4, (javafx.scene.paint.CycleMethod) com.jxparallel.fx.Fx.fx(arg5), (javafx.scene.paint.Stop[]) com.jxparallel.fx.Fx.fxArray(arg6, javafx.scene.paint.Stop.class)));
+    public LinearGradient(@javafx.beans.NamedArg(value = "startX") double arg0, @javafx.beans.NamedArg(value = "startY") double arg1, @javafx.beans.NamedArg(value = "endX", defaultValue = "1") double arg2, @javafx.beans.NamedArg(value = "endY", defaultValue = "1") double arg3, @javafx.beans.NamedArg(value = "proportional", defaultValue = "true") boolean arg4, @javafx.beans.NamedArg(value = "cycleMethod") com.jxparallel.fx.scene.paint.CycleMethod arg5, @javafx.beans.NamedArg(value = "stops") java.util.List<com.jxparallel.fx.scene.paint.Stop> arg6) {
+        this(com.jxparallel.fx.Fx.WRAP, new javafx.scene.paint.LinearGradient(arg0, arg1, arg2, arg3, arg4, (javafx.scene.paint.CycleMethod) com.jxparallel.fx.Fx.fx(arg5), (java.util.List) com.jxparallel.fx.Fx.fxCollection(arg6)));
         com.jxparallel.fx.Fx.own(fxPeer(), this);
     }
 
-    public LinearGradient(@javafx.beans.NamedArg(value = "startX") double arg0, @javafx.beans.NamedArg(value = "startY") double arg1, @javafx.beans.NamedArg(value = "endX", defaultValue = "1") double arg2, @javafx.beans.NamedArg(value = "endY", defaultValue = "1") double arg3, @javafx.beans.NamedArg(value = "proportional", defaultValue = "true") boolean arg4, @javafx.beans.NamedArg(value = "cycleMethod") com.jxparallel.fx.scene.paint.CycleMethod arg5, @javafx.beans.NamedArg(value = "stops") java.util.List<com.jxparallel.fx.scene.paint.Stop> arg6) {
-        this(com.jxparallel.fx.Fx.WRAP, new javafx.scene.paint.LinearGradient(arg0, arg1, arg2, arg3, arg4, (javafx.scene.paint.CycleMethod) com.jxparallel.fx.Fx.fx(arg5), (java.util.List) com.jxparallel.fx.Fx.fxCollection(arg6)));
+    public LinearGradient(@javafx.beans.NamedArg(value = "startX") double arg0, @javafx.beans.NamedArg(value = "startY") double arg1, @javafx.beans.NamedArg(value = "endX", defaultValue = "1") double arg2, @javafx.beans.NamedArg(value = "endY", defaultValue = "1") double arg3, @javafx.beans.NamedArg(value = "proportional", defaultValue = "true") boolean arg4, @javafx.beans.NamedArg(value = "cycleMethod") com.jxparallel.fx.scene.paint.CycleMethod arg5, @javafx.beans.NamedArg(value = "stops") com.jxparallel.fx.scene.paint.Stop... arg6) {
+        this(com.jxparallel.fx.Fx.WRAP, new javafx.scene.paint.LinearGradient(arg0, arg1, arg2, arg3, arg4, (javafx.scene.paint.CycleMethod) com.jxparallel.fx.Fx.fx(arg5), (javafx.scene.paint.Stop[]) com.jxparallel.fx.Fx.fxArray(arg6, javafx.scene.paint.Stop.class)));
         com.jxparallel.fx.Fx.own(fxPeer(), this);
     }
 

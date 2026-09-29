@@ -8,13 +8,13 @@ public class StackPane extends com.jxparallel.fx.scene.layout.Pane {
         super(wrap, peer);
     }
 
-    public StackPane(com.jxparallel.fx.scene.Node... arg0) {
-        this(com.jxparallel.fx.Fx.WRAP, com.jxparallel.fx.Fx.NATIVE ? com.jxparallel.fx.nativeimpl.Native.create(javafx.scene.layout.StackPane.class, new String[] {null}, new Object[] {arg0}) : new com.jxparallel.fx.peer.scene.layout.StackPane((javafx.scene.Node[]) com.jxparallel.fx.Fx.fxArray(arg0, javafx.scene.Node.class)));
+    public StackPane() {
+        this(com.jxparallel.fx.Fx.WRAP, com.jxparallel.fx.Fx.NATIVE ? com.jxparallel.fx.nativeimpl.Native.create(javafx.scene.layout.StackPane.class, new String[] {}, new Object[] {}) : new com.jxparallel.fx.peer.scene.layout.StackPane());
         com.jxparallel.fx.Fx.own(fxPeer(), this);
     }
 
-    public StackPane() {
-        this(com.jxparallel.fx.Fx.WRAP, com.jxparallel.fx.Fx.NATIVE ? com.jxparallel.fx.nativeimpl.Native.create(javafx.scene.layout.StackPane.class, new String[] {}, new Object[] {}) : new com.jxparallel.fx.peer.scene.layout.StackPane());
+    public StackPane(com.jxparallel.fx.scene.Node... arg0) {
+        this(com.jxparallel.fx.Fx.WRAP, com.jxparallel.fx.Fx.NATIVE ? com.jxparallel.fx.nativeimpl.Native.create(javafx.scene.layout.StackPane.class, new String[] {null}, new Object[] {arg0}) : new com.jxparallel.fx.peer.scene.layout.StackPane((javafx.scene.Node[]) com.jxparallel.fx.Fx.fxArray(arg0, javafx.scene.Node.class)));
         com.jxparallel.fx.Fx.own(fxPeer(), this);
     }
 

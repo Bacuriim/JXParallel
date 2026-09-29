@@ -24,11 +24,11 @@ public class TableColumnBase<S, T> extends javafx.scene.control.TableColumnBase<
     }
 
     @Override
-    public javafx.collections.ObservableList<? extends javafx.scene.control.TableColumnBase<S, ?>> getColumns() {
+    public javafx.beans.value.ObservableValue<T> getCellObservableValue(S arg0) {
         if (jxOwner == null) {
-            throw new IllegalStateException("getColumns before the JX object exists");
+            throw new IllegalStateException("getCellObservableValue before the JX object exists");
         }
-        return (javafx.collections.ObservableList<? extends javafx.scene.control.TableColumnBase<S, ?>>) com.jxparallel.fx.Fx.fx(com.jxparallel.fx.scene.control.TableColumnBase.$hook(jxOwner, "getColumns()", new Object[] {}));
+        return (javafx.beans.value.ObservableValue<T>) com.jxparallel.fx.Fx.fx(com.jxparallel.fx.scene.control.TableColumnBase.$hook(jxOwner, "getCellObservableValue(Object)", new Object[] {com.jxparallel.fx.Fx.jx(arg0)}));
     }
 
     @Override
@@ -40,19 +40,19 @@ public class TableColumnBase<S, T> extends javafx.scene.control.TableColumnBase<
     }
 
     @Override
-    public javafx.beans.value.ObservableValue<T> getCellObservableValue(S arg0) {
+    public javafx.collections.ObservableList<? extends javafx.scene.control.TableColumnBase<S, ?>> getColumns() {
         if (jxOwner == null) {
-            throw new IllegalStateException("getCellObservableValue before the JX object exists");
+            throw new IllegalStateException("getColumns before the JX object exists");
         }
-        return (javafx.beans.value.ObservableValue<T>) com.jxparallel.fx.Fx.fx(com.jxparallel.fx.scene.control.TableColumnBase.$hook(jxOwner, "getCellObservableValue(Object)", new Object[] {com.jxparallel.fx.Fx.jx(arg0)}));
+        return (javafx.collections.ObservableList<? extends javafx.scene.control.TableColumnBase<S, ?>>) com.jxparallel.fx.Fx.fx(com.jxparallel.fx.scene.control.TableColumnBase.$hook(jxOwner, "getColumns()", new Object[] {}));
     }
 
     @Override
-    public javafx.css.Styleable getStyleableParent() {
+    public java.lang.String getTypeSelector() {
         if (jxOwner == null) {
-            throw new IllegalStateException("getStyleableParent before the JX object exists");
+            throw new IllegalStateException("getTypeSelector before the JX object exists");
         }
-        return (javafx.css.Styleable) com.jxparallel.fx.Fx.fx(com.jxparallel.fx.scene.control.TableColumnBase.$hook(jxOwner, "getStyleableParent()", new Object[] {}));
+        return (java.lang.String) com.jxparallel.fx.Fx.fx(com.jxparallel.fx.scene.control.TableColumnBase.$hook(jxOwner, "getTypeSelector()", new Object[] {}));
     }
 
     @Override
@@ -64,11 +64,11 @@ public class TableColumnBase<S, T> extends javafx.scene.control.TableColumnBase<
     }
 
     @Override
-    public java.lang.String getTypeSelector() {
+    public javafx.css.Styleable getStyleableParent() {
         if (jxOwner == null) {
-            throw new IllegalStateException("getTypeSelector before the JX object exists");
+            throw new IllegalStateException("getStyleableParent before the JX object exists");
         }
-        return (java.lang.String) com.jxparallel.fx.Fx.fx(com.jxparallel.fx.scene.control.TableColumnBase.$hook(jxOwner, "getTypeSelector()", new Object[] {}));
+        return (javafx.css.Styleable) com.jxparallel.fx.Fx.fx(com.jxparallel.fx.scene.control.TableColumnBase.$hook(jxOwner, "getStyleableParent()", new Object[] {}));
     }
 
     @Override

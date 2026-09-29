@@ -5,20 +5,20 @@ package com.jxparallel.fx.peer.scene.layout;
 public class RowConstraints extends javafx.scene.layout.RowConstraints implements com.jxparallel.fx.Fx.Owned {
     private Object jxOwner;
 
-    public RowConstraints(double arg0, double arg1, double arg2, javafx.scene.layout.Priority arg3, javafx.geometry.VPos arg4, boolean arg5) {
-        super(arg0, arg1, arg2, arg3, arg4, arg5);
-    }
-
-    public RowConstraints(double arg0, double arg1, double arg2) {
-        super(arg0, arg1, arg2);
+    public RowConstraints() {
+        super();
     }
 
     public RowConstraints(double arg0) {
         super(arg0);
     }
 
-    public RowConstraints() {
-        super();
+    public RowConstraints(double arg0, double arg1, double arg2) {
+        super(arg0, arg1, arg2);
+    }
+
+    public RowConstraints(double arg0, double arg1, double arg2, javafx.scene.layout.Priority arg3, javafx.geometry.VPos arg4, boolean arg5) {
+        super(arg0, arg1, arg2, arg3, arg4, arg5);
     }
 
     @Override

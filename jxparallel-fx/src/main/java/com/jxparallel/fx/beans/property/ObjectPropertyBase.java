@@ -66,10 +66,10 @@ public class ObjectPropertyBase<T> extends com.jxparallel.fx.beans.property.Obje
         ObjectPropertyBase jx = (ObjectPropertyBase) self;
         try {
         switch (method) {
-            case "getName()":
-                return jx.getName();
             case "getBean()":
                 return jx.getBean();
+            case "getName()":
+                return jx.getName();
             default:
                 throw new IllegalArgumentException(method);
         }

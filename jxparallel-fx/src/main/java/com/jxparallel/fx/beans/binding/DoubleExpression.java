@@ -137,20 +137,20 @@ public class DoubleExpression extends com.jxparallel.fx.beans.binding.NumberExpr
         DoubleExpression jx = (DoubleExpression) self;
         try {
         switch (method) {
-            case "removeListener(ChangeListener)":
-                jx.removeListener((com.jxparallel.fx.beans.value.ChangeListener) a[0]);
-                return null;
-            case "addListener(ChangeListener)":
-                jx.addListener((com.jxparallel.fx.beans.value.ChangeListener) a[0]);
+            case "get()":
+                return (Object) jx.get();
+            case "addListener(InvalidationListener)":
+                jx.addListener((com.jxparallel.fx.beans.InvalidationListener) a[0]);
                 return null;
             case "removeListener(InvalidationListener)":
                 jx.removeListener((com.jxparallel.fx.beans.InvalidationListener) a[0]);
                 return null;
-            case "addListener(InvalidationListener)":
-                jx.addListener((com.jxparallel.fx.beans.InvalidationListener) a[0]);
+            case "addListener(ChangeListener)":
+                jx.addListener((com.jxparallel.fx.beans.value.ChangeListener) a[0]);
                 return null;
-            case "get()":
-                return (Object) jx.get();
+            case "removeListener(ChangeListener)":
+                jx.removeListener((com.jxparallel.fx.beans.value.ChangeListener) a[0]);
+                return null;
             default:
                 throw new IllegalArgumentException(method);
         }

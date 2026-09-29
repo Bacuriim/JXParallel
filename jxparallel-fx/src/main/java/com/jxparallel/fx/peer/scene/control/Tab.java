@@ -5,16 +5,16 @@ package com.jxparallel.fx.peer.scene.control;
 public class Tab extends javafx.scene.control.Tab implements com.jxparallel.fx.Fx.Owned {
     private Object jxOwner;
 
-    public Tab(java.lang.String arg0, javafx.scene.Node arg1) {
-        super(arg0, arg1);
+    public Tab() {
+        super();
     }
 
     public Tab(java.lang.String arg0) {
         super(arg0);
     }
 
-    public Tab() {
-        super();
+    public Tab(java.lang.String arg0, javafx.scene.Node arg1) {
+        super(arg0, arg1);
     }
 
     @Override

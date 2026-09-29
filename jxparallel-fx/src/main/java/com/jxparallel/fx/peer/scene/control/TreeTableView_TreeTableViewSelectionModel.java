@@ -28,27 +28,11 @@ public class TreeTableView_TreeTableViewSelectionModel<S> extends javafx.scene.c
     }
 
     @Override
-    public void select(int arg0, javafx.scene.control.TableColumnBase<javafx.scene.control.TreeItem<S>, ?> arg1) {
-        if (jxOwner == null) {
-            throw new IllegalStateException("select before the JX object exists");
-        }
-        com.jxparallel.fx.scene.control.TreeTableView.TreeTableViewSelectionModel.$hook(jxOwner, "select(int,TableColumnBase)", new Object[] {arg0, com.jxparallel.fx.Fx.jx(arg1)});
-    }
-
-    @Override
     public boolean isSelected(int arg0, javafx.scene.control.TableColumnBase<javafx.scene.control.TreeItem<S>, ?> arg1) {
         if (jxOwner == null) {
             throw new IllegalStateException("isSelected before the JX object exists");
         }
         return (Boolean) com.jxparallel.fx.Fx.fx(com.jxparallel.fx.scene.control.TreeTableView.TreeTableViewSelectionModel.$hook(jxOwner, "isSelected(int,TableColumnBase)", new Object[] {arg0, com.jxparallel.fx.Fx.jx(arg1)}));
-    }
-
-    @Override
-    public void clearSelection(int arg0, javafx.scene.control.TableColumnBase<javafx.scene.control.TreeItem<S>, ?> arg1) {
-        if (jxOwner == null) {
-            throw new IllegalStateException("clearSelection before the JX object exists");
-        }
-        com.jxparallel.fx.scene.control.TreeTableView.TreeTableViewSelectionModel.$hook(jxOwner, "clearSelection(int,TableColumnBase)", new Object[] {arg0, com.jxparallel.fx.Fx.jx(arg1)});
     }
 
     @Override
@@ -60,11 +44,27 @@ public class TreeTableView_TreeTableViewSelectionModel<S> extends javafx.scene.c
     }
 
     @Override
-    public void selectLeftCell() {
+    public void clearSelection(int arg0, javafx.scene.control.TableColumnBase<javafx.scene.control.TreeItem<S>, ?> arg1) {
         if (jxOwner == null) {
-            throw new IllegalStateException("selectLeftCell before the JX object exists");
+            throw new IllegalStateException("clearSelection before the JX object exists");
         }
-        com.jxparallel.fx.scene.control.TreeTableView.TreeTableViewSelectionModel.$hook(jxOwner, "selectLeftCell()", new Object[] {});
+        com.jxparallel.fx.scene.control.TreeTableView.TreeTableViewSelectionModel.$hook(jxOwner, "clearSelection(int,TableColumnBase)", new Object[] {arg0, com.jxparallel.fx.Fx.jx(arg1)});
+    }
+
+    @Override
+    public void select(int arg0, javafx.scene.control.TableColumnBase<javafx.scene.control.TreeItem<S>, ?> arg1) {
+        if (jxOwner == null) {
+            throw new IllegalStateException("select before the JX object exists");
+        }
+        com.jxparallel.fx.scene.control.TreeTableView.TreeTableViewSelectionModel.$hook(jxOwner, "select(int,TableColumnBase)", new Object[] {arg0, com.jxparallel.fx.Fx.jx(arg1)});
+    }
+
+    @Override
+    public void selectAboveCell() {
+        if (jxOwner == null) {
+            throw new IllegalStateException("selectAboveCell before the JX object exists");
+        }
+        com.jxparallel.fx.scene.control.TreeTableView.TreeTableViewSelectionModel.$hook(jxOwner, "selectAboveCell()", new Object[] {});
     }
 
     @Override
@@ -76,19 +76,19 @@ public class TreeTableView_TreeTableViewSelectionModel<S> extends javafx.scene.c
     }
 
     @Override
+    public void selectLeftCell() {
+        if (jxOwner == null) {
+            throw new IllegalStateException("selectLeftCell before the JX object exists");
+        }
+        com.jxparallel.fx.scene.control.TreeTableView.TreeTableViewSelectionModel.$hook(jxOwner, "selectLeftCell()", new Object[] {});
+    }
+
+    @Override
     public void selectRightCell() {
         if (jxOwner == null) {
             throw new IllegalStateException("selectRightCell before the JX object exists");
         }
         com.jxparallel.fx.scene.control.TreeTableView.TreeTableViewSelectionModel.$hook(jxOwner, "selectRightCell()", new Object[] {});
-    }
-
-    @Override
-    public void selectAboveCell() {
-        if (jxOwner == null) {
-            throw new IllegalStateException("selectAboveCell before the JX object exists");
-        }
-        com.jxparallel.fx.scene.control.TreeTableView.TreeTableViewSelectionModel.$hook(jxOwner, "selectAboveCell()", new Object[] {});
     }
 
     @Override

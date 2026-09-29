@@ -7,38 +7,54 @@ public class ChoiceDialog<T> extends com.jxparallel.fx.scene.control.Dialog<T> {
         super(wrap, peer);
     }
 
-    public ChoiceDialog(T arg0, java.util.Collection<T> arg1) {
-        this(com.jxparallel.fx.Fx.WRAP, new com.jxparallel.fx.peer.scene.control.ChoiceDialog((T) com.jxparallel.fx.Fx.fx(arg0), (java.util.Collection) com.jxparallel.fx.Fx.fxCollection(arg1)));
+    public ChoiceDialog() {
+        this(com.jxparallel.fx.Fx.WRAP, com.jxparallel.fx.Fx.NATIVE ? com.jxparallel.fx.nativeimpl.Native.create(javafx.scene.control.ChoiceDialog.class, new String[] {}, new Object[] {}) : new com.jxparallel.fx.peer.scene.control.ChoiceDialog());
         com.jxparallel.fx.Fx.own(fxPeer(), this);
     }
 
     public ChoiceDialog(T arg0, T... arg1) {
-        this(com.jxparallel.fx.Fx.WRAP, new com.jxparallel.fx.peer.scene.control.ChoiceDialog((T) com.jxparallel.fx.Fx.fx(arg0), (T[]) com.jxparallel.fx.Fx.fxArray(arg1, java.lang.Object.class)));
+        this(com.jxparallel.fx.Fx.WRAP, com.jxparallel.fx.Fx.NATIVE ? com.jxparallel.fx.nativeimpl.Native.create(javafx.scene.control.ChoiceDialog.class, new String[] {null, null}, new Object[] {arg0, arg1}) : new com.jxparallel.fx.peer.scene.control.ChoiceDialog((T) com.jxparallel.fx.Fx.fx(arg0), (T[]) com.jxparallel.fx.Fx.fxArray(arg1, java.lang.Object.class)));
         com.jxparallel.fx.Fx.own(fxPeer(), this);
     }
 
-    public ChoiceDialog() {
-        this(com.jxparallel.fx.Fx.WRAP, new com.jxparallel.fx.peer.scene.control.ChoiceDialog());
+    public ChoiceDialog(T arg0, java.util.Collection<T> arg1) {
+        this(com.jxparallel.fx.Fx.WRAP, com.jxparallel.fx.Fx.NATIVE ? com.jxparallel.fx.nativeimpl.Native.create(javafx.scene.control.ChoiceDialog.class, new String[] {null, null}, new Object[] {arg0, arg1}) : new com.jxparallel.fx.peer.scene.control.ChoiceDialog((T) com.jxparallel.fx.Fx.fx(arg0), (java.util.Collection) com.jxparallel.fx.Fx.fxCollection(arg1)));
         com.jxparallel.fx.Fx.own(fxPeer(), this);
     }
 
     public T getDefaultChoice() {
+        if (com.jxparallel.fx.Fx.NATIVE) {
+            return (T) com.jxparallel.fx.nativeimpl.Native.call(this, com.jxparallel.fx.scene.control.ChoiceDialog.class, "getDefaultChoice", new Class<?>[] {}, java.lang.Object.class);
+        }
         return (T) com.jxparallel.fx.Fx.jx(((javafx.scene.control.ChoiceDialog) fxPeer()).getDefaultChoice());
     }
 
     public com.jxparallel.fx.collections.ObservableList<T> getItems() {
+        if (com.jxparallel.fx.Fx.NATIVE) {
+            return (com.jxparallel.fx.collections.ObservableList) com.jxparallel.fx.nativeimpl.Native.call(this, com.jxparallel.fx.scene.control.ChoiceDialog.class, "getItems", new Class<?>[] {}, com.jxparallel.fx.collections.ObservableList.class);
+        }
         return (com.jxparallel.fx.collections.ObservableList) com.jxparallel.fx.Fx.jx(((javafx.scene.control.ChoiceDialog) fxPeer()).getItems());
     }
 
     public T getSelectedItem() {
+        if (com.jxparallel.fx.Fx.NATIVE) {
+            return (T) com.jxparallel.fx.nativeimpl.Native.call(this, com.jxparallel.fx.scene.control.ChoiceDialog.class, "getSelectedItem", new Class<?>[] {}, java.lang.Object.class);
+        }
         return (T) com.jxparallel.fx.Fx.jx(((javafx.scene.control.ChoiceDialog) fxPeer()).getSelectedItem());
     }
 
     public com.jxparallel.fx.beans.property.ReadOnlyObjectProperty<T> selectedItemProperty() {
+        if (com.jxparallel.fx.Fx.NATIVE) {
+            return (com.jxparallel.fx.beans.property.ReadOnlyObjectProperty) com.jxparallel.fx.nativeimpl.Native.call(this, com.jxparallel.fx.scene.control.ChoiceDialog.class, "selectedItemProperty", new Class<?>[] {}, com.jxparallel.fx.beans.property.ReadOnlyObjectProperty.class);
+        }
         return (com.jxparallel.fx.beans.property.ReadOnlyObjectProperty) com.jxparallel.fx.Fx.jx(((javafx.scene.control.ChoiceDialog) fxPeer()).selectedItemProperty());
     }
 
     public void setSelectedItem(T arg0) {
+        if (com.jxparallel.fx.Fx.NATIVE) {
+            com.jxparallel.fx.nativeimpl.Native.call(this, com.jxparallel.fx.scene.control.ChoiceDialog.class, "setSelectedItem", new Class<?>[] {java.lang.Object.class}, void.class, arg0);
+            return;
+        }
         ((javafx.scene.control.ChoiceDialog) fxPeer()).setSelectedItem((T) com.jxparallel.fx.Fx.fx(arg0));
     }
 }

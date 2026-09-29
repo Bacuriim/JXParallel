@@ -1,0 +1,426 @@
+fillRoundRect 10.00 11.00 56.00 25.00 3.00 baffffff
+fillRoundRect 10.00 10.00 56.00 25.00 3.00 ffb6b6b6
+gradient 11.00 11.00 54.00 23.00 2.00 fffdfdfd ffe2e2e2
+gradient 12.00 12.00 52.00 21.00 1.00 ffefefef ffd9d9d9
+text "Normal" 18.24 26.95 12.00 false ff333333
+fillRoundRect 74.00 11.00 48.00 25.00 3.00 baffffff
+fillRoundRect 74.00 10.00 48.00 25.00 3.00 ffb6b6b6
+gradient 75.00 11.00 46.00 23.00 2.00 fffdfdfd ffe2e2e2
+gradient 76.00 12.00 44.00 21.00 1.00 fff8f8f8 ffe3e3e3
+text "Hover" 82.13 26.95 12.00 false ff333333
+fillRoundRect 130.00 11.00 57.00 25.00 3.00 baffffff
+fillRoundRect 130.00 10.00 57.00 25.00 3.00 ffb6b6b6
+gradient 131.00 11.00 55.00 23.00 2.00 ffcacaca ffbcbcbc
+gradient 132.00 12.00 53.00 21.00 1.00 ffc6c6c6 ffb5b5b5
+text "Pressed" 138.15 26.95 12.00 false ff333333
+fillRoundRect 195.00 11.00 60.00 25.00 3.00 baffffff
+fillRoundRect 195.00 10.00 60.00 25.00 3.00 ffb6b6b6
+gradient 196.00 11.00 58.00 23.00 2.00 fffdfdfd ffe2e2e2
+gradient 197.00 12.00 56.00 21.00 1.00 ffefefef ffd9d9d9
+strokeRoundRect 194.00 9.00 62.00 27.00 4.00 1.00 66039ed3
+strokeRoundRect 195.00 10.00 60.00 25.00 3.00 1.00 ff039ed3
+text "Focused" 203.17 26.95 12.00 false ff333333
+fillRoundRect 263.00 11.00 55.00 25.00 3.00 baffffff
+fillRoundRect 263.00 10.00 55.00 25.00 3.00 ffb6b6b6
+gradient 264.00 11.00 53.00 23.00 2.00 ffb9d7f1 ff8ec4e8
+gradient 265.00 12.00 51.00 21.00 1.00 ffa3cdee ff7fb8e4
+text "Default" 271.34 26.95 12.00 false ff333333
+layer 0.40 0.00
+fillRoundRect 326.00 11.00 62.00 25.00 3.00 baffffff
+fillRoundRect 326.00 10.00 62.00 25.00 3.00 ffb6b6b6
+gradient 327.00 11.00 60.00 23.00 2.00 fffdfdfd ffe2e2e2
+gradient 328.00 12.00 58.00 21.00 1.00 ffefefef ffd9d9d9
+text "Disabled" 334.09 26.95 12.00 false ff333333
+restore
+fillRoundRect 396.00 11.00 52.00 25.00 3.00 baffffff
+fillRoundRect 396.00 10.00 52.00 25.00 3.00 ffb6b6b6
+gradient 397.00 11.00 50.00 23.00 2.00 ffcacaca ffbcbcbc
+gradient 398.00 12.00 48.00 21.00 1.00 ffc6c6c6 ffb5b5b5
+text "Toggle" 404.27 26.95 12.00 false ff333333
+fillRoundRect 456.00 11.00 73.00 25.00 3.00 baffffff
+fillRoundRect 456.00 10.00 73.00 25.00 3.00 ffb6b6b6
+gradient 457.00 11.00 71.00 23.00 2.00 fffdfdfd ffe2e2e2
+gradient 458.00 12.00 69.00 21.00 1.00 ffefefef ffd9d9d9
+text "Graphic" 480.10 26.95 12.00 false ff333333
+fillRoundRect 464.00 17.00 12.00 12.00 6.00 ff2d6cdf
+fillRoundRect 10.00 50.00 16.00 16.00 3.00 baffffff
+fillRoundRect 10.00 49.00 16.00 16.00 3.00 ffb6b6b6
+gradient 11.00 50.00 14.00 14.00 2.00 fffdfdfd ffe2e2e2
+gradient 12.00 51.00 12.00 12.00 1.00 ffefefef ffd9d9d9
+line 14.00 57.50 17.00 60.50 2.00 ff333333
+line 17.00 60.50 22.50 53.50 2.00 ff333333
+text "Checked" 31.00 60.95 12.00 false ff333333
+fillRoundRect 89.00 50.00 16.00 16.00 3.00 baffffff
+fillRoundRect 89.00 49.00 16.00 16.00 3.00 ffb6b6b6
+gradient 90.00 50.00 14.00 14.00 2.00 fffdfdfd ffe2e2e2
+gradient 91.00 51.00 12.00 12.00 1.00 ffefefef ffd9d9d9
+fillRect 93.00 56.00 8.00 2.00 ff333333
+text "Mixed" 110.00 60.95 12.00 false ff333333
+fillRoundRect 155.00 50.00 16.00 16.00 3.00 baffffff
+fillRoundRect 155.00 49.00 16.00 16.00 3.00 ffb6b6b6
+gradient 156.00 50.00 14.00 14.00 2.00 fffdfdfd ffe2e2e2
+gradient 157.00 51.00 12.00 12.00 1.00 ffefefef ffd9d9d9
+text "Off" 176.00 60.95 12.00 false ff333333
+fillOval 205.00 50.00 16.00 16.00 baffffff
+fillOval 205.00 49.00 16.00 16.00 ffb6b6b6
+fillOval 206.00 50.00 14.00 14.00 fffdfdfd
+fillOval 207.00 51.00 12.00 12.00 ffe9e9e9
+fillOval 209.00 53.00 8.00 8.00 ff333333
+text "Radio on" 226.00 60.95 12.00 false ff333333
+fillOval 286.00 50.00 16.00 16.00 baffffff
+fillOval 286.00 49.00 16.00 16.00 ff039ed3
+fillOval 287.00 50.00 14.00 14.00 fffdfdfd
+fillOval 288.00 51.00 12.00 12.00 ffe9e9e9
+text "Radio off" 307.00 60.95 12.00 false ff333333
+text "Link" 372.00 60.95 12.00 false ff0096c9
+text "Visited" 414.00 60.95 12.00 false ff7a3d9e
+fillRect 414.00 62.95 35.77 1.00 ff7a3d9e
+gradient 10.00 78.00 115.00 25.00 3.00 ffbbbbbb ffcfcfcf
+fillRoundRect 11.00 79.00 113.00 23.00 2.00 ffffffff
+gradient 11.00 79.00 113.00 5.00 2.00 ffe8e8e8 ffffffff
+clip 16.00 78.00 103.00 25.00
+text "Ada Lovelace" 17.00 94.95 12.00 false ff333333
+restore
+gradient 133.00 78.00 93.00 25.00 3.00 ffbbbbbb ffcfcfcf
+fillRoundRect 134.00 79.00 91.00 23.00 2.00 ffffffff
+gradient 134.00 79.00 91.00 5.00 2.00 ffe8e8e8 ffffffff
+text "Prompt" 140.00 94.95 12.00 false ff999999
+clip 139.00 78.00 81.00 25.00
+restore
+fillRoundRect 233.00 77.00 95.00 27.00 4.00 66039ed3
+fillRoundRect 234.00 78.00 93.00 25.00 3.00 ff039ed3
+fillRoundRect 235.00 79.00 91.00 23.00 2.00 ffffffff
+clip 240.00 78.00 81.00 25.00
+fillRect 255.27 82.00 29.23 17.00 ff0096c9
+text "selected" 241.00 94.95 12.00 false ff333333
+fillRect 255.00 82.00 1.00 17.00 ff333333
+restore
+gradient 335.00 78.00 82.00 25.00 3.00 ffbbbbbb ffcfcfcf
+fillRoundRect 336.00 79.00 80.00 23.00 2.00 ffffffff
+gradient 336.00 79.00 80.00 5.00 2.00 ffe8e8e8 ffffffff
+clip 341.00 78.00 70.00 25.00
+text "●●●●●●" 342.00 94.95 12.00 false ff333333
+restore
+gradient 425.00 78.00 82.00 25.00 3.00 ffbbbbbb ffcfcfcf
+fillRoundRect 426.00 79.00 80.00 23.00 2.00 ffffffff
+gradient 426.00 79.00 80.00 5.00 2.00 ffe8e8e8 ffffffff
+clip 431.00 78.00 70.00 25.00
+text "right" 475.00 94.95 12.00 false ff333333
+restore
+fillRoundRect 10.00 114.00 90.00 25.00 3.00 baffffff
+fillRoundRect 10.00 113.00 90.00 25.00 3.00 ffb6b6b6
+gradient 11.00 114.00 88.00 23.00 2.00 fffdfdfd ffe2e2e2
+gradient 12.00 115.00 86.00 21.00 1.00 ffefefef ffd9d9d9
+clip 10.00 113.00 64.00 25.00
+text "Fortaleza" 18.00 129.95 12.00 false ff333333
+restore
+triangle 84.00 125.00 92.00 125.00 88.00 129.00 baffffff
+triangle 84.00 124.00 92.00 124.00 88.00 128.00 ff575757
+fillRoundRect 108.00 114.00 82.00 25.00 3.00 baffffff
+fillRoundRect 108.00 113.00 82.00 25.00 3.00 ffb6b6b6
+gradient 109.00 114.00 80.00 23.00 2.00 fffdfdfd ffe2e2e2
+gradient 110.00 115.00 78.00 21.00 1.00 ffefefef ffd9d9d9
+clip 108.00 113.00 56.00 25.00
+text "Escolha" 116.00 129.95 12.00 false ff999999
+restore
+triangle 174.00 125.00 182.00 125.00 178.00 129.00 baffffff
+triangle 174.00 124.00 182.00 124.00 178.00 128.00 ff575757
+gradient 198.00 113.00 63.00 25.00 3.00 ffbbbbbb ffcfcfcf
+fillRoundRect 199.00 114.00 61.00 23.00 2.00 ffffffff
+gradient 199.00 114.00 61.00 5.00 2.00 ffe8e8e8 ffffffff
+clip 204.00 113.00 25.00 25.00
+text "Edit" 205.00 129.95 12.00 false ff333333
+restore
+fillRect 235.00 114.00 1.00 23.00 ffb6b6b6
+triangle 245.00 125.00 253.00 125.00 249.00 129.00 baffffff
+triangle 245.00 124.00 253.00 124.00 249.00 128.00 ff575757
+gradient 269.00 113.00 149.00 25.00 3.00 ffbbbbbb ffcfcfcf
+fillRoundRect 270.00 114.00 147.00 23.00 2.00 ffffffff
+gradient 270.00 114.00 147.00 5.00 2.00 ffe8e8e8 ffffffff
+clip 275.00 113.00 113.00 25.00
+text "42" 276.00 129.95 12.00 false ff333333
+restore
+fillRect 394.00 113.00 24.00 25.00 ffb6b6b6
+gradient 395.00 114.00 22.00 11.00 0.00 fffdfdfd ffeaeaea
+gradient 395.00 126.00 22.00 11.00 0.00 fffdfdfd ffe2e2e2
+triangle 402.00 121.50 410.00 121.50 406.00 117.50 ff575757
+triangle 402.00 130.00 410.00 130.00 406.00 134.00 baffffff
+triangle 402.00 129.00 410.00 129.00 406.00 133.00 ff575757
+gradient 426.00 113.00 160.00 25.00 3.00 ffbbbbbb ffcfcfcf
+fillRoundRect 427.00 114.00 158.00 23.00 2.00 ffffffff
+gradient 427.00 114.00 158.00 5.00 2.00 ffe8e8e8 ffffffff
+clip 432.00 113.00 123.00 25.00
+text "28/09/2026" 433.00 129.95 12.00 false ff333333
+restore
+fillRoundRect 561.00 114.00 25.00 25.00 0.00 baffffff
+fillRoundRect 561.00 113.00 25.00 25.00 0.00 ffb6b6b6
+gradient 562.00 114.00 23.00 23.00 -1.00 fffdfdfd ffe2e2e2
+gradient 563.00 115.00 21.00 21.00 0.00 ffefefef ffd9d9d9
+fillRect 568.00 120.50 11.00 10.00 ff575757
+fillRect 569.00 123.50 9.00 6.00 ffffffff
+fillRect 570.00 124.50 2.00 2.00 ff575757
+fillRect 573.00 124.50 2.00 2.00 ff575757
+fillRect 570.00 126.50 2.00 2.00 ff575757
+fillRoundRect 10.00 156.00 100.00 18.00 4.00 baffffff
+gradient 10.00 155.00 100.00 18.00 3.00 ffbbbbbb ffcfcfcf
+gradient 11.00 156.00 98.00 16.00 2.00 ffededed ffffffff
+gradient 13.00 158.00 56.40 12.00 2.00 ff008cbb ff0097c9
+fillOval 140.50 150.00 12.00 12.00 ffc9c9c9
+fillOval 141.50 151.00 10.00 10.00 ffffffff
+strokeArc 143.50 153.00 6.00 6.00 -90.00 126.00 3.00 ff0096c9
+text "35%" 136.07 175.87 11.00 false ff333333
+fillRoundRect 187.00 162.00 132.00 6.00 3.00 baffffff
+gradient 187.00 161.00 132.00 6.00 3.00 ffbbbbbb ffcfcfcf
+gradient 188.00 162.00 130.00 4.00 2.00 ffe8e8e8 ffffffff
+fillOval 220.80 157.00 14.00 14.00 ffa0a0a0
+fillOval 221.80 158.00 12.00 12.00 fffdfdfd
+fillOval 222.80 159.00 10.00 10.00 ffe9e9e9
+gradient 402.00 152.00 6.00 23.00 3.00 ffbbbbbb ffcfcfcf
+fillRoundRect 403.00 153.00 4.00 21.00 2.00 fff0f0f0
+fillOval 398.00 153.10 14.00 14.00 ffa0a0a0
+fillOval 399.00 154.10 12.00 12.00 fffdfdfd
+fillOval 400.00 155.10 10.00 10.00 ffe9e9e9
+fillRect 487.00 148.00 3.00 31.00 baffffff
+fillRect 488.00 148.00 1.00 31.00 ffcfcfcf
+text "Bold 14" 505.00 169.11 14.00 true ffc0392b
+text "underline" 568.00 167.95 12.00 false ff333333
+fillRect 568.00 169.95 49.97 1.00 ff333333
+fillRoundRect 630.00 153.00 44.00 21.00 4.00 fffff3cd
+strokeRoundRect 630.00 153.00 44.00 21.00 4.00 1.00 ffe0a800
+text "styled" 636.00 167.95 12.00 false ff333333
+fillRect 10.00 189.00 150.00 92.00 ffc9c9c9
+fillRect 11.00 190.00 148.00 90.00 ffffffff
+clip 11.00 190.00 135.00 90.00
+fillRect 11.00 190.00 135.00 23.00 ffffffff
+clip 11.00 190.00 135.00 23.00
+text "Item 0" 18.00 205.95 12.00 false ff333333
+restore
+fillRect 11.00 213.00 135.00 23.00 ff0096c9
+clip 11.00 213.00 135.00 23.00
+text "Item 1" 18.00 228.95 12.00 false ffffffff
+restore
+fillRect 11.00 236.00 135.00 23.00 ffffffff
+clip 11.00 236.00 135.00 23.00
+text "Item 2" 18.00 251.95 12.00 false ff333333
+restore
+fillRect 11.00 259.00 135.00 23.00 fffafafa
+clip 11.00 259.00 135.00 23.00
+text "Item 3" 18.00 274.95 12.00 false ff333333
+restore
+fillRect 11.00 282.00 135.00 23.00 ffffffff
+clip 11.00 282.00 135.00 23.00
+text "Item 4" 18.00 297.95 12.00 false ff333333
+restore
+restore
+fillRect 146.00 190.00 13.00 90.00 ffd9d9d9
+fillRect 147.00 190.00 12.00 90.00 ffebebeb
+triangle 148.50 197.00 156.50 197.00 152.50 193.00 ff828282
+triangle 148.50 274.00 156.50 274.00 152.50 278.00 baffffff
+triangle 148.50 273.00 156.50 273.00 152.50 277.00 ff828282
+fillRoundRect 148.00 201.00 9.00 22.17 3.00 ffb6b6b6
+gradient 149.00 202.00 7.00 20.17 2.00 fffdfdfd ffe2e2e2
+fillRect 170.00 189.00 200.00 92.00 ffc9c9c9
+fillRect 171.00 190.00 198.00 90.00 ffffffff
+clip 171.00 214.00 185.00 66.00
+fillRect 171.00 214.00 185.00 24.00 ffd3d3d3
+fillRect 171.00 237.00 185.00 1.00 ffededed
+fillRect 240.00 214.00 1.00 24.00 ffededed
+clip 171.00 214.00 70.00 24.00
+text "Row 0" 178.00 230.45 12.00 false ff333333
+restore
+fillRect 320.00 214.00 1.00 24.00 ffededed
+clip 241.00 214.00 80.00 24.00
+text "Cidade" 248.00 230.45 12.00 false ff333333
+restore
+fillRect 171.00 238.00 185.00 24.00 fffafafa
+fillRect 171.00 261.00 185.00 1.00 ffededed
+fillRect 240.00 238.00 1.00 24.00 ffededed
+clip 171.00 238.00 70.00 24.00
+text "Row 1" 178.00 254.45 12.00 false ff333333
+restore
+fillRect 320.00 238.00 1.00 24.00 ffededed
+clip 241.00 238.00 80.00 24.00
+text "Cidade" 248.00 254.45 12.00 false ff333333
+restore
+fillRect 171.00 262.00 185.00 24.00 ffffffff
+fillRect 171.00 285.00 185.00 1.00 ffededed
+fillRect 240.00 262.00 1.00 24.00 ffededed
+clip 171.00 262.00 70.00 24.00
+text "Row 2" 178.00 278.45 12.00 false ff333333
+restore
+fillRect 320.00 262.00 1.00 24.00 ffededed
+clip 241.00 262.00 80.00 24.00
+text "Cidade" 248.00 278.45 12.00 false ff333333
+restore
+restore
+fillRect 356.00 214.00 13.00 66.00 ffd9d9d9
+fillRect 357.00 214.00 12.00 66.00 ffebebeb
+triangle 358.50 221.00 366.50 221.00 362.50 217.00 ff828282
+triangle 358.50 274.00 366.50 274.00 362.50 278.00 baffffff
+triangle 358.50 273.00 366.50 273.00 362.50 277.00 ff828282
+fillRoundRect 358.00 225.00 9.00 40.33 3.00 ffb6b6b6
+gradient 359.00 226.00 7.00 38.33 2.00 fffdfdfd ffe2e2e2
+gradient 171.00 190.00 198.00 24.00 0.00 fffdfdfd ffe2e2e2
+gradient 171.00 191.00 198.00 23.00 0.00 ffefefef ffd9d9d9
+fillRect 171.00 213.00 198.00 1.00 ffc9c9c9
+clip 171.00 190.00 198.00 24.00
+clip 171.00 190.00 70.00 24.00
+text "Nome" 188.85 206.45 12.00 true ff333333
+restore
+fillRect 240.00 190.00 1.00 24.00 ffc9c9c9
+clip 241.00 190.00 80.00 24.00
+text "Cidade" 261.65 206.45 12.00 true ff333333
+restore
+fillRect 320.00 190.00 1.00 24.00 ffc9c9c9
+restore
+fillRect 380.00 189.00 120.00 92.00 ffc9c9c9
+fillRect 381.00 190.00 118.00 90.00 fff4f4f4
+clip 381.00 190.00 105.00 77.00
+text "Scroll 1" 381.00 183.95 12.00 false ff333333
+text "Scroll 2" 381.00 204.95 12.00 false ff333333
+text "Scroll 3" 381.00 225.95 12.00 false ff333333
+restore
+fillRect 486.00 190.00 13.00 77.00 ffd9d9d9
+fillRect 487.00 190.00 12.00 77.00 ffebebeb
+triangle 488.50 197.00 496.50 197.00 492.50 193.00 ff828282
+triangle 488.50 261.00 496.50 261.00 492.50 265.00 baffffff
+triangle 488.50 260.00 496.50 260.00 492.50 264.00 ff828282
+fillRoundRect 488.00 204.89 9.00 16.10 3.00 ffb6b6b6
+gradient 489.00 205.89 7.00 14.10 2.00 fffdfdfd ffe2e2e2
+fillRect 381.00 267.00 105.00 13.00 ffd9d9d9
+fillRect 381.00 268.00 105.00 12.00 ffebebeb
+triangle 388.00 269.50 388.00 277.50 384.00 273.50 ff828282
+triangle 479.00 269.50 479.00 277.50 483.00 273.50 ff828282
+fillRoundRect 392.00 269.00 43.58 9.00 3.00 ffb6b6b6
+gradient 393.00 270.00 41.58 7.00 2.00 fffdfdfd ffe2e2e2
+fillRect 486.00 267.00 13.00 13.00 ffeaeaea
+fillRect 510.00 218.00 220.00 63.00 fff4f4f4
+fillRect 510.00 189.00 220.00 29.00 ffb6b6b6
+gradient 510.00 190.00 220.00 28.00 0.00 ffcfcfcf ffdedede
+fillRoundRect 515.00 194.00 46.00 27.00 3.00 ffb6b6b6
+gradient 516.00 195.00 44.00 26.00 2.00 fffdfdfd ffe2e2e2
+text "Dados" 521.00 210.45 12.00 false ff333333
+fillRoundRect 561.00 194.00 77.00 27.00 3.00 ffb6b6b6
+fillRoundRect 562.00 195.00 75.00 26.00 2.00 fff4f4f4
+text "Histórico" 567.00 210.45 12.00 false ff333333
+line 625.00 203.00 631.00 209.00 1.50 ff575757
+line 631.00 203.00 625.00 209.00 1.50 ff575757
+fillRoundRect 638.00 194.00 32.00 27.00 3.00 ffb6b6b6
+gradient 639.00 195.00 30.00 26.00 2.00 fffdfdfd ffe2e2e2
+text "Log" 644.00 210.45 12.00 false ff333333
+fillRect 510.00 217.00 220.00 1.00 ffb6b6b6
+fillRect 562.00 217.00 75.00 1.00 fff4f4f4
+text "Tab content" 510.00 230.95 12.00 false ff333333
+fillRect 10.00 316.00 186.00 38.00 ffc9c9c9
+gradient 11.00 316.00 184.00 5.00 0.00 ffe5e5e5 fff4f4f4
+fillRect 11.00 321.00 184.00 32.00 fff4f4f4
+fillRoundRect 10.00 291.00 186.00 25.00 3.00 ffc9c9c9
+gradient 11.00 292.00 184.00 23.00 2.00 fffdfdfd ffe2e2e2
+triangle 19.00 301.00 27.00 301.00 23.00 307.00 ff575757
+text "Expanded" 34.00 307.95 12.00 false ff333333
+text "Inside" 21.00 338.95 12.00 false ff333333
+fillRoundRect 208.00 291.00 186.00 25.00 3.00 ffc9c9c9
+gradient 209.00 292.00 184.00 23.00 2.00 fffdfdfd ffe2e2e2
+triangle 218.00 300.00 224.00 304.00 218.00 308.00 ff575757
+text "Collapsed" 232.00 307.95 12.00 false ff333333
+triangle 459.00 360.50 459.00 370.50 453.00 365.50 ff575757
+text "2" 475.77 369.95 12.00 false ff333333
+text "3" 495.77 369.95 12.00 false ff333333
+fillRoundRect 509.00 353.00 20.00 25.00 3.00 ffb6b6b6
+fillRoundRect 510.00 354.00 18.00 23.00 2.00 ffffffff
+text "4" 515.77 369.95 12.00 false ff0096c9
+text "5" 535.77 369.95 12.00 false ff333333
+text "6" 555.77 369.95 12.00 false ff333333
+triangle 579.00 360.50 579.00 370.50 585.00 365.50 ff575757
+text "4/8" 510.19 386.00 12.00 false ff333333
+text "Page 4" 501.00 323.95 12.00 false ff333333
+image 100 10 10 644.00 291.00 32.00 32.00
+layer 1.00 3.00
+text "Blurred" 644.00 341.95 12.00 false ff333333
+restore
+layer 0.40 0.00
+text "Faded" 644.00 364.95 12.00 false ff333333
+restore
+text "Text " 644.00 387.95 12.00 false ff333333
+text "flow" 669.00 387.95 12.00 true ff333333
+fillRect 10.00 402.00 236.00 208.00 ffc9c9c9
+fillRect 11.00 403.00 234.00 206.00 ffffffff
+gradient 16.00 408.00 224.00 26.00 3.00 fffdfdfd ffe2e2e2
+triangle 32.00 416.00 32.00 426.00 26.00 421.00 ff575757
+triangle 224.00 416.00 224.00 426.00 230.00 421.00 ff575757
+text "Setembro 2026" 85.12 425.45 12.00 true ff333333
+text "dom" 20.80 453.37 11.00 false ff7a7a7a
+text "seg" 55.55 453.37 11.00 false ff7a7a7a
+text "ter" 89.35 453.37 11.00 false ff7a7a7a
+text "qua" 118.85 453.37 11.00 false ff7a7a7a
+text "qui" 152.32 453.37 11.00 false ff7a7a7a
+text "sex" 184.27 453.37 11.00 false ff7a7a7a
+text "sáb" 215.63 453.37 11.00 false ff7a7a7a
+text "30" 25.53 476.45 12.00 false ffaaaaaa
+text "31" 57.53 476.45 12.00 false ffaaaaaa
+text "1" 92.77 476.45 12.00 false ff333333
+text "2" 124.77 476.45 12.00 false ff333333
+text "3" 156.77 476.45 12.00 false ff333333
+text "4" 188.77 476.45 12.00 false ff333333
+text "5" 220.77 476.45 12.00 false ff333333
+text "6" 28.77 500.45 12.00 false ff333333
+text "7" 60.77 500.45 12.00 false ff333333
+text "8" 92.77 500.45 12.00 false ff333333
+text "9" 124.77 500.45 12.00 false ff333333
+text "10" 153.53 500.45 12.00 false ff333333
+text "11" 185.53 500.45 12.00 false ff333333
+text "12" 217.53 500.45 12.00 false ff333333
+text "13" 25.53 524.45 12.00 false ff333333
+text "14" 57.53 524.45 12.00 false ff333333
+text "15" 89.53 524.45 12.00 false ff333333
+text "16" 121.53 524.45 12.00 false ff333333
+text "17" 153.53 524.45 12.00 false ff333333
+text "18" 185.53 524.45 12.00 false ff333333
+text "19" 217.53 524.45 12.00 false ff333333
+text "20" 25.53 548.45 12.00 false ff333333
+text "21" 57.53 548.45 12.00 false ff333333
+text "22" 89.53 548.45 12.00 false ff333333
+text "23" 121.53 548.45 12.00 false ff333333
+text "24" 153.53 548.45 12.00 false ff333333
+text "25" 185.53 548.45 12.00 false ff333333
+text "26" 217.53 548.45 12.00 false ff333333
+text "27" 25.53 572.45 12.00 false ff333333
+fillRect 49.00 557.00 30.00 22.00 ff0096c9
+text "28" 57.53 572.45 12.00 false ffffffff
+text "29" 89.53 572.45 12.00 false ff333333
+text "30" 121.53 572.45 12.00 false ff333333
+text "1" 156.77 572.45 12.00 false ffaaaaaa
+text "2" 188.77 572.45 12.00 false ffaaaaaa
+text "3" 220.77 572.45 12.00 false ffaaaaaa
+text "4" 28.77 596.45 12.00 false ffaaaaaa
+text "5" 60.77 596.45 12.00 false ffaaaaaa
+text "6" 92.77 596.45 12.00 false ffaaaaaa
+text "7" 124.77 596.45 12.00 false ffaaaaaa
+text "8" 156.77 596.45 12.00 false ffaaaaaa
+text "9" 188.77 596.45 12.00 false ffaaaaaa
+text "10" 217.53 596.45 12.00 false ffaaaaaa
+fillRect 262.00 402.00 260.00 55.00 33000000
+fillRect 262.00 402.00 259.00 54.00 ffc9c9c9
+fillRect 263.00 403.00 257.00 52.00 ffffffff
+fillRect 263.00 403.00 258.00 25.00 ffffffff
+clip 263.00 403.00 258.00 25.00
+text "Copiar" 275.00 419.95 12.00 false ff333333
+restore
+fillRect 263.00 428.00 258.00 1.00 ffcfcfcf
+fillRect 263.00 429.00 258.00 1.00 baffffff
+fillRect 263.00 431.00 258.00 25.00 ff0096c9
+clip 263.00 431.00 258.00 25.00
+text "Colar" 275.00 447.95 12.00 false ffffffff
+restore
+fillRoundRect 262.00 467.00 98.00 25.00 6.00 cc1e1e1e
+text "Dica do campo" 271.00 483.95 12.00 false ffffffff
+fillRoundRect 362.00 503.00 75.00 25.00 3.00 baffffff
+fillRoundRect 362.00 502.00 75.00 25.00 3.00 ffb6b6b6
+gradient 363.00 503.00 73.00 23.00 2.00 ffb9d7f1 ff8ec4e8
+gradient 364.00 504.00 71.00 21.00 1.00 ffa3cdee ff7fb8e4
+text "OK" 391.50 518.95 12.00 false ff333333
+fillRoundRect 447.00 503.00 75.00 25.00 3.00 baffffff
+fillRoundRect 447.00 502.00 75.00 25.00 3.00 ffb6b6b6
+gradient 448.00 503.00 73.00 23.00 2.00 fffdfdfd ffe2e2e2
+gradient 449.00 504.00 71.00 21.00 1.00 ffefefef ffd9d9d9
+text "Cancelar" 461.84 518.95 12.00 false ff333333

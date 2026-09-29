@@ -5,10 +5,6 @@ package com.jxparallel.fx.peer.scene.control;
 public class TreeItem_TreeModificationEvent<T> extends javafx.scene.control.TreeItem.TreeModificationEvent<T> implements com.jxparallel.fx.Fx.Owned {
     private Object jxOwner;
 
-    public TreeItem_TreeModificationEvent(javafx.event.EventType<? extends javafx.event.Event> arg0, javafx.scene.control.TreeItem<T> arg1, java.util.List<? extends javafx.scene.control.TreeItem<T>> arg2, java.util.List<? extends javafx.scene.control.TreeItem<T>> arg3) {
-        super(arg0, arg1, arg2, arg3);
-    }
-
     public TreeItem_TreeModificationEvent(javafx.event.EventType<? extends javafx.event.Event> arg0, javafx.scene.control.TreeItem<T> arg1) {
         super(arg0, arg1);
     }
@@ -19,6 +15,10 @@ public class TreeItem_TreeModificationEvent<T> extends javafx.scene.control.Tree
 
     public TreeItem_TreeModificationEvent(javafx.event.EventType<? extends javafx.event.Event> arg0, javafx.scene.control.TreeItem<T> arg1, boolean arg2) {
         super(arg0, arg1, arg2);
+    }
+
+    public TreeItem_TreeModificationEvent(javafx.event.EventType<? extends javafx.event.Event> arg0, javafx.scene.control.TreeItem<T> arg1, java.util.List<? extends javafx.scene.control.TreeItem<T>> arg2, java.util.List<? extends javafx.scene.control.TreeItem<T>> arg3) {
+        super(arg0, arg1, arg2, arg3);
     }
 
     @Override

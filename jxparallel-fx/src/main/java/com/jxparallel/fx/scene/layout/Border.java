@@ -16,22 +16,17 @@ public final class Border implements com.jxparallel.fx.Fx.Backed {
 
     @Override
     public boolean equals(Object o) {
-        return o == this || fxPeer.equals(com.jxparallel.fx.Fx.fx(o));
+        return o == this || fxPeer().equals(com.jxparallel.fx.Fx.fx(o));
     }
 
     @Override
     public int hashCode() {
-        return fxPeer.hashCode();
+        return fxPeer().hashCode();
     }
 
     @Override
     public String toString() {
-        return fxPeer.toString();
-    }
-
-    public Border(@javafx.beans.NamedArg(value = "images") com.jxparallel.fx.scene.layout.BorderImage... arg0) {
-        this(com.jxparallel.fx.Fx.WRAP, new javafx.scene.layout.Border((javafx.scene.layout.BorderImage[]) com.jxparallel.fx.Fx.fxArray(arg0, javafx.scene.layout.BorderImage.class)));
-        com.jxparallel.fx.Fx.own(fxPeer(), this);
+        return fxPeer().toString();
     }
 
     public Border(@javafx.beans.NamedArg(value = "strokes") java.util.List<com.jxparallel.fx.scene.layout.BorderStroke> arg0, @javafx.beans.NamedArg(value = "images") java.util.List<com.jxparallel.fx.scene.layout.BorderImage> arg1) {
@@ -39,13 +34,18 @@ public final class Border implements com.jxparallel.fx.Fx.Backed {
         com.jxparallel.fx.Fx.own(fxPeer(), this);
     }
 
-    public Border(@javafx.beans.NamedArg(value = "strokes") com.jxparallel.fx.scene.layout.BorderStroke[] arg0, @javafx.beans.NamedArg(value = "images") com.jxparallel.fx.scene.layout.BorderImage[] arg1) {
-        this(com.jxparallel.fx.Fx.WRAP, new javafx.scene.layout.Border((javafx.scene.layout.BorderStroke[]) com.jxparallel.fx.Fx.fxArray(arg0, javafx.scene.layout.BorderStroke.class), (javafx.scene.layout.BorderImage[]) com.jxparallel.fx.Fx.fxArray(arg1, javafx.scene.layout.BorderImage.class)));
+    public Border(@javafx.beans.NamedArg(value = "images") com.jxparallel.fx.scene.layout.BorderImage... arg0) {
+        this(com.jxparallel.fx.Fx.WRAP, new javafx.scene.layout.Border((javafx.scene.layout.BorderImage[]) com.jxparallel.fx.Fx.fxArray(arg0, javafx.scene.layout.BorderImage.class)));
         com.jxparallel.fx.Fx.own(fxPeer(), this);
     }
 
     public Border(@javafx.beans.NamedArg(value = "strokes") com.jxparallel.fx.scene.layout.BorderStroke... arg0) {
         this(com.jxparallel.fx.Fx.WRAP, new javafx.scene.layout.Border((javafx.scene.layout.BorderStroke[]) com.jxparallel.fx.Fx.fxArray(arg0, javafx.scene.layout.BorderStroke.class)));
+        com.jxparallel.fx.Fx.own(fxPeer(), this);
+    }
+
+    public Border(@javafx.beans.NamedArg(value = "strokes") com.jxparallel.fx.scene.layout.BorderStroke[] arg0, @javafx.beans.NamedArg(value = "images") com.jxparallel.fx.scene.layout.BorderImage[] arg1) {
+        this(com.jxparallel.fx.Fx.WRAP, new javafx.scene.layout.Border((javafx.scene.layout.BorderStroke[]) com.jxparallel.fx.Fx.fxArray(arg0, javafx.scene.layout.BorderStroke.class), (javafx.scene.layout.BorderImage[]) com.jxparallel.fx.Fx.fxArray(arg1, javafx.scene.layout.BorderImage.class)));
         com.jxparallel.fx.Fx.own(fxPeer(), this);
     }
 

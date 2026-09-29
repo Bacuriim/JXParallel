@@ -8,8 +8,8 @@ public class Labeled extends com.jxparallel.fx.scene.control.Control {
         super(wrap, peer);
     }
 
-    public Labeled(java.lang.String arg0, com.jxparallel.fx.scene.Node arg1) {
-        this(com.jxparallel.fx.Fx.WRAP, com.jxparallel.fx.Fx.NATIVE ? com.jxparallel.fx.nativeimpl.Native.create(javafx.scene.control.Labeled.class, new String[] {null, null}, new Object[] {arg0, arg1}) : new com.jxparallel.fx.peer.scene.control.Labeled(arg0, (javafx.scene.Node) com.jxparallel.fx.Fx.fx(arg1)));
+    public Labeled() {
+        this(com.jxparallel.fx.Fx.WRAP, com.jxparallel.fx.Fx.NATIVE ? com.jxparallel.fx.nativeimpl.Native.create(javafx.scene.control.Labeled.class, new String[] {}, new Object[] {}) : new com.jxparallel.fx.peer.scene.control.Labeled());
         com.jxparallel.fx.Fx.own(fxPeer(), this);
     }
 
@@ -18,8 +18,8 @@ public class Labeled extends com.jxparallel.fx.scene.control.Control {
         com.jxparallel.fx.Fx.own(fxPeer(), this);
     }
 
-    public Labeled() {
-        this(com.jxparallel.fx.Fx.WRAP, com.jxparallel.fx.Fx.NATIVE ? com.jxparallel.fx.nativeimpl.Native.create(javafx.scene.control.Labeled.class, new String[] {}, new Object[] {}) : new com.jxparallel.fx.peer.scene.control.Labeled());
+    public Labeled(java.lang.String arg0, com.jxparallel.fx.scene.Node arg1) {
+        this(com.jxparallel.fx.Fx.WRAP, com.jxparallel.fx.Fx.NATIVE ? com.jxparallel.fx.nativeimpl.Native.create(javafx.scene.control.Labeled.class, new String[] {null, null}, new Object[] {arg0, arg1}) : new com.jxparallel.fx.peer.scene.control.Labeled(arg0, (javafx.scene.Node) com.jxparallel.fx.Fx.fx(arg1)));
         com.jxparallel.fx.Fx.own(fxPeer(), this);
     }
 

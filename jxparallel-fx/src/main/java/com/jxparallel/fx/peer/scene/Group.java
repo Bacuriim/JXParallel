@@ -5,16 +5,16 @@ package com.jxparallel.fx.peer.scene;
 public class Group extends javafx.scene.Group implements com.jxparallel.fx.Fx.Owned {
     private Object jxOwner;
 
+    public Group() {
+        super();
+    }
+
     public Group(java.util.Collection<javafx.scene.Node> arg0) {
         super(arg0);
     }
 
     public Group(javafx.scene.Node... arg0) {
         super(arg0);
-    }
-
-    public Group() {
-        super();
     }
 
     @Override

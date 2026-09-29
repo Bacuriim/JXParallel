@@ -37,12 +37,12 @@ public class ReadOnlyLongPropertyBase extends com.jxparallel.fx.beans.property.R
         ReadOnlyLongPropertyBase jx = (ReadOnlyLongPropertyBase) self;
         try {
         switch (method) {
-            case "get()":
-                return (Object) jx.get();
-            case "getName()":
-                return jx.getName();
             case "getBean()":
                 return jx.getBean();
+            case "getName()":
+                return jx.getName();
+            case "get()":
+                return (Object) jx.get();
             default:
                 throw new IllegalArgumentException(method);
         }

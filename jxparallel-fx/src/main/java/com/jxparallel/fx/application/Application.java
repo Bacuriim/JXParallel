@@ -43,6 +43,10 @@ public abstract class Application {
 
     public static void launch(Class<? extends Application> appClass, String... args) {
         pendingApplication = appClass;
+        if (com.jxparallel.fx.Fx.NATIVE) {
+            // loads Fx, whose static setup chooses JavaFX's pipeline before the toolkit starts
+            com.jxparallel.fx.Fx.class.getName();
+        }
         javafx.application.Application.launch(FxApplication.class, args);
     }
 
@@ -112,7 +116,8 @@ public abstract class Application {
 
         @Override
         public void start(javafx.stage.Stage primaryStage) throws Exception {
-            jx.start((Stage) Fx.jx(primaryStage));
+            // native mode: the primary stage is a native window; JavaFX's stays hidden and only runs the event loop
+            jx.start(Fx.NATIVE ? new Stage() : (Stage) Fx.jx(primaryStage));
         }
 
         @Override

@@ -8,13 +8,8 @@ public class MenuButton extends com.jxparallel.fx.scene.control.ButtonBase {
         super(wrap, peer);
     }
 
-    public MenuButton(java.lang.String arg0, com.jxparallel.fx.scene.Node arg1, com.jxparallel.fx.scene.control.MenuItem... arg2) {
-        this(com.jxparallel.fx.Fx.WRAP, com.jxparallel.fx.Fx.NATIVE ? com.jxparallel.fx.nativeimpl.Native.create(javafx.scene.control.MenuButton.class, new String[] {null, null, null}, new Object[] {arg0, arg1, arg2}) : new com.jxparallel.fx.peer.scene.control.MenuButton(arg0, (javafx.scene.Node) com.jxparallel.fx.Fx.fx(arg1), (javafx.scene.control.MenuItem[]) com.jxparallel.fx.Fx.fxArray(arg2, javafx.scene.control.MenuItem.class)));
-        com.jxparallel.fx.Fx.own(fxPeer(), this);
-    }
-
-    public MenuButton(java.lang.String arg0, com.jxparallel.fx.scene.Node arg1) {
-        this(com.jxparallel.fx.Fx.WRAP, com.jxparallel.fx.Fx.NATIVE ? com.jxparallel.fx.nativeimpl.Native.create(javafx.scene.control.MenuButton.class, new String[] {null, null}, new Object[] {arg0, arg1}) : new com.jxparallel.fx.peer.scene.control.MenuButton(arg0, (javafx.scene.Node) com.jxparallel.fx.Fx.fx(arg1)));
+    public MenuButton() {
+        this(com.jxparallel.fx.Fx.WRAP, com.jxparallel.fx.Fx.NATIVE ? com.jxparallel.fx.nativeimpl.Native.create(javafx.scene.control.MenuButton.class, new String[] {}, new Object[] {}) : new com.jxparallel.fx.peer.scene.control.MenuButton());
         com.jxparallel.fx.Fx.own(fxPeer(), this);
     }
 
@@ -23,8 +18,13 @@ public class MenuButton extends com.jxparallel.fx.scene.control.ButtonBase {
         com.jxparallel.fx.Fx.own(fxPeer(), this);
     }
 
-    public MenuButton() {
-        this(com.jxparallel.fx.Fx.WRAP, com.jxparallel.fx.Fx.NATIVE ? com.jxparallel.fx.nativeimpl.Native.create(javafx.scene.control.MenuButton.class, new String[] {}, new Object[] {}) : new com.jxparallel.fx.peer.scene.control.MenuButton());
+    public MenuButton(java.lang.String arg0, com.jxparallel.fx.scene.Node arg1) {
+        this(com.jxparallel.fx.Fx.WRAP, com.jxparallel.fx.Fx.NATIVE ? com.jxparallel.fx.nativeimpl.Native.create(javafx.scene.control.MenuButton.class, new String[] {null, null}, new Object[] {arg0, arg1}) : new com.jxparallel.fx.peer.scene.control.MenuButton(arg0, (javafx.scene.Node) com.jxparallel.fx.Fx.fx(arg1)));
+        com.jxparallel.fx.Fx.own(fxPeer(), this);
+    }
+
+    public MenuButton(java.lang.String arg0, com.jxparallel.fx.scene.Node arg1, com.jxparallel.fx.scene.control.MenuItem... arg2) {
+        this(com.jxparallel.fx.Fx.WRAP, com.jxparallel.fx.Fx.NATIVE ? com.jxparallel.fx.nativeimpl.Native.create(javafx.scene.control.MenuButton.class, new String[] {null, null, null}, new Object[] {arg0, arg1, arg2}) : new com.jxparallel.fx.peer.scene.control.MenuButton(arg0, (javafx.scene.Node) com.jxparallel.fx.Fx.fx(arg1), (javafx.scene.control.MenuItem[]) com.jxparallel.fx.Fx.fxArray(arg2, javafx.scene.control.MenuItem.class)));
         com.jxparallel.fx.Fx.own(fxPeer(), this);
     }
 

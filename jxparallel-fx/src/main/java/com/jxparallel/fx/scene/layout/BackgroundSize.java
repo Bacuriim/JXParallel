@@ -16,17 +16,17 @@ public final class BackgroundSize implements com.jxparallel.fx.Fx.Backed {
 
     @Override
     public boolean equals(Object o) {
-        return o == this || fxPeer.equals(com.jxparallel.fx.Fx.fx(o));
+        return o == this || fxPeer().equals(com.jxparallel.fx.Fx.fx(o));
     }
 
     @Override
     public int hashCode() {
-        return fxPeer.hashCode();
+        return fxPeer().hashCode();
     }
 
     @Override
     public String toString() {
-        return fxPeer.toString();
+        return fxPeer().toString();
     }
 
     public BackgroundSize(@javafx.beans.NamedArg(value = "width") double arg0, @javafx.beans.NamedArg(value = "height") double arg1, @javafx.beans.NamedArg(value = "widthAsPercentage") boolean arg2, @javafx.beans.NamedArg(value = "heightAsPercentage") boolean arg3, @javafx.beans.NamedArg(value = "contain") boolean arg4, @javafx.beans.NamedArg(value = "cover") boolean arg5) {

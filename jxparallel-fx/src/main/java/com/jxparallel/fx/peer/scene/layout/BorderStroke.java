@@ -5,12 +5,12 @@ package com.jxparallel.fx.peer.scene.layout;
 public class BorderStroke extends javafx.scene.layout.BorderStroke implements com.jxparallel.fx.Fx.Owned {
     private Object jxOwner;
 
-    public BorderStroke(@javafx.beans.NamedArg(value = "stroke") javafx.scene.paint.Paint arg0, @javafx.beans.NamedArg(value = "style") javafx.scene.layout.BorderStrokeStyle arg1, @javafx.beans.NamedArg(value = "radii") javafx.scene.layout.CornerRadii arg2, @javafx.beans.NamedArg(value = "widths") javafx.scene.layout.BorderWidths arg3, @javafx.beans.NamedArg(value = "insets") javafx.geometry.Insets arg4) {
-        super(arg0, arg1, arg2, arg3, arg4);
-    }
-
     public BorderStroke(@javafx.beans.NamedArg(value = "stroke") javafx.scene.paint.Paint arg0, @javafx.beans.NamedArg(value = "style") javafx.scene.layout.BorderStrokeStyle arg1, @javafx.beans.NamedArg(value = "radii") javafx.scene.layout.CornerRadii arg2, @javafx.beans.NamedArg(value = "widths") javafx.scene.layout.BorderWidths arg3) {
         super(arg0, arg1, arg2, arg3);
+    }
+
+    public BorderStroke(@javafx.beans.NamedArg(value = "stroke") javafx.scene.paint.Paint arg0, @javafx.beans.NamedArg(value = "style") javafx.scene.layout.BorderStrokeStyle arg1, @javafx.beans.NamedArg(value = "radii") javafx.scene.layout.CornerRadii arg2, @javafx.beans.NamedArg(value = "widths") javafx.scene.layout.BorderWidths arg3, @javafx.beans.NamedArg(value = "insets") javafx.geometry.Insets arg4) {
+        super(arg0, arg1, arg2, arg3, arg4);
     }
 
     public BorderStroke(@javafx.beans.NamedArg(value = "topStroke") javafx.scene.paint.Paint arg0, @javafx.beans.NamedArg(value = "rightStroke") javafx.scene.paint.Paint arg1, @javafx.beans.NamedArg(value = "bottomStroke") javafx.scene.paint.Paint arg2, @javafx.beans.NamedArg(value = "leftStroke") javafx.scene.paint.Paint arg3, @javafx.beans.NamedArg(value = "topStyle") javafx.scene.layout.BorderStrokeStyle arg4, @javafx.beans.NamedArg(value = "rightStyle") javafx.scene.layout.BorderStrokeStyle arg5, @javafx.beans.NamedArg(value = "bottomStyle") javafx.scene.layout.BorderStrokeStyle arg6, @javafx.beans.NamedArg(value = "leftStyle") javafx.scene.layout.BorderStrokeStyle arg7, @javafx.beans.NamedArg(value = "radii") javafx.scene.layout.CornerRadii arg8, @javafx.beans.NamedArg(value = "widths") javafx.scene.layout.BorderWidths arg9, @javafx.beans.NamedArg(value = "insets") javafx.geometry.Insets arg10) {

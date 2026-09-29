@@ -16,17 +16,17 @@ public final class KeyValue implements com.jxparallel.fx.Fx.Backed {
 
     @Override
     public boolean equals(Object o) {
-        return o == this || fxPeer.equals(com.jxparallel.fx.Fx.fx(o));
+        return o == this || fxPeer().equals(com.jxparallel.fx.Fx.fx(o));
     }
 
     @Override
     public int hashCode() {
-        return fxPeer.hashCode();
+        return fxPeer().hashCode();
     }
 
     @Override
     public String toString() {
-        return fxPeer.toString();
+        return fxPeer().toString();
     }
 
     public <T> KeyValue(@javafx.beans.NamedArg(value = "target") com.jxparallel.fx.beans.value.WritableValue<T> arg0, @javafx.beans.NamedArg(value = "endValue") T arg1) {

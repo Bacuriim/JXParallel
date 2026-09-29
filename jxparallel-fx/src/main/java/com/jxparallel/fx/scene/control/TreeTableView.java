@@ -598,37 +598,25 @@ public class TreeTableView<S> extends com.jxparallel.fx.scene.control.Control {
         }
 
         public EditEvent(com.jxparallel.fx.scene.control.TreeTableView<S> arg0, com.jxparallel.fx.event.EventType<? extends com.jxparallel.fx.scene.control.TreeTableView.EditEvent> arg1, com.jxparallel.fx.scene.control.TreeItem<S> arg2, S arg3, S arg4) {
-            this(com.jxparallel.fx.Fx.WRAP, com.jxparallel.fx.Fx.NATIVE ? com.jxparallel.fx.nativeimpl.Native.create(javafx.scene.control.TreeTableView.EditEvent.class, new String[] {null, null, null, null, null}, new Object[] {arg0, arg1, arg2, arg3, arg4}) : new com.jxparallel.fx.peer.scene.control.TreeTableView_EditEvent((javafx.scene.control.TreeTableView) com.jxparallel.fx.Fx.fx(arg0), (javafx.event.EventType) com.jxparallel.fx.Fx.fx(arg1), (javafx.scene.control.TreeItem) com.jxparallel.fx.Fx.fx(arg2), (S) com.jxparallel.fx.Fx.fx(arg3), (S) com.jxparallel.fx.Fx.fx(arg4)));
+            this(com.jxparallel.fx.Fx.WRAP, new com.jxparallel.fx.peer.scene.control.TreeTableView_EditEvent((javafx.scene.control.TreeTableView) com.jxparallel.fx.Fx.fxAs(arg0, javafx.scene.control.TreeTableView.class), (javafx.event.EventType) com.jxparallel.fx.Fx.fx(arg1), (javafx.scene.control.TreeItem) com.jxparallel.fx.Fx.fxAs(arg2, javafx.scene.control.TreeItem.class), (S) com.jxparallel.fx.Fx.fx(arg3), (S) com.jxparallel.fx.Fx.fx(arg4)));
             com.jxparallel.fx.Fx.own(fxPeer(), this);
         }
 
         public static final com.jxparallel.fx.event.EventType<?> ANY = (com.jxparallel.fx.event.EventType) com.jxparallel.fx.Fx.jx(javafx.scene.control.TreeTableView.EditEvent.ANY);
 
         public S getNewValue() {
-            if (com.jxparallel.fx.Fx.NATIVE) {
-                return (S) com.jxparallel.fx.nativeimpl.Native.call(this, com.jxparallel.fx.scene.control.TreeTableView.EditEvent.class, "getNewValue", new Class<?>[] {}, java.lang.Object.class);
-            }
             return (S) com.jxparallel.fx.Fx.jx(((javafx.scene.control.TreeTableView.EditEvent) fxPeer()).getNewValue());
         }
 
         public S getOldValue() {
-            if (com.jxparallel.fx.Fx.NATIVE) {
-                return (S) com.jxparallel.fx.nativeimpl.Native.call(this, com.jxparallel.fx.scene.control.TreeTableView.EditEvent.class, "getOldValue", new Class<?>[] {}, java.lang.Object.class);
-            }
             return (S) com.jxparallel.fx.Fx.jx(((javafx.scene.control.TreeTableView.EditEvent) fxPeer()).getOldValue());
         }
 
         public com.jxparallel.fx.scene.control.TreeTableView<S> getSource() {
-            if (com.jxparallel.fx.Fx.NATIVE) {
-                return (com.jxparallel.fx.scene.control.TreeTableView) com.jxparallel.fx.nativeimpl.Native.call(this, com.jxparallel.fx.scene.control.TreeTableView.EditEvent.class, "getSource", new Class<?>[] {}, com.jxparallel.fx.scene.control.TreeTableView.class);
-            }
             return (com.jxparallel.fx.scene.control.TreeTableView) com.jxparallel.fx.Fx.jx(((javafx.scene.control.TreeTableView.EditEvent) fxPeer()).getSource());
         }
 
         public com.jxparallel.fx.scene.control.TreeItem<S> getTreeItem() {
-            if (com.jxparallel.fx.Fx.NATIVE) {
-                return (com.jxparallel.fx.scene.control.TreeItem) com.jxparallel.fx.nativeimpl.Native.call(this, com.jxparallel.fx.scene.control.TreeTableView.EditEvent.class, "getTreeItem", new Class<?>[] {}, com.jxparallel.fx.scene.control.TreeItem.class);
-            }
             return (com.jxparallel.fx.scene.control.TreeItem) com.jxparallel.fx.Fx.jx(((javafx.scene.control.TreeTableView.EditEvent) fxPeer()).getTreeItem());
         }
     }
@@ -639,21 +627,15 @@ public class TreeTableView<S> extends com.jxparallel.fx.scene.control.Control {
         }
 
         public ResizeFeatures(com.jxparallel.fx.scene.control.TreeTableView<S> arg0, com.jxparallel.fx.scene.control.TreeTableColumn<S, ?> arg1, java.lang.Double arg2) {
-            this(com.jxparallel.fx.Fx.WRAP, com.jxparallel.fx.Fx.NATIVE ? com.jxparallel.fx.nativeimpl.Native.create(javafx.scene.control.TreeTableView.ResizeFeatures.class, new String[] {null, null, null}, new Object[] {arg0, arg1, arg2}) : new com.jxparallel.fx.peer.scene.control.TreeTableView_ResizeFeatures((javafx.scene.control.TreeTableView) com.jxparallel.fx.Fx.fx(arg0), (javafx.scene.control.TreeTableColumn) com.jxparallel.fx.Fx.fx(arg1), arg2));
+            this(com.jxparallel.fx.Fx.WRAP, new com.jxparallel.fx.peer.scene.control.TreeTableView_ResizeFeatures((javafx.scene.control.TreeTableView) com.jxparallel.fx.Fx.fxAs(arg0, javafx.scene.control.TreeTableView.class), (javafx.scene.control.TreeTableColumn) com.jxparallel.fx.Fx.fxAs(arg1, javafx.scene.control.TreeTableColumn.class), arg2));
             com.jxparallel.fx.Fx.own(fxPeer(), this);
         }
 
         public com.jxparallel.fx.scene.control.TreeTableColumn<S, ?> getColumn() {
-            if (com.jxparallel.fx.Fx.NATIVE) {
-                return (com.jxparallel.fx.scene.control.TreeTableColumn) com.jxparallel.fx.nativeimpl.Native.call(this, com.jxparallel.fx.scene.control.TreeTableView.ResizeFeatures.class, "getColumn", new Class<?>[] {}, com.jxparallel.fx.scene.control.TreeTableColumn.class);
-            }
             return (com.jxparallel.fx.scene.control.TreeTableColumn) com.jxparallel.fx.Fx.jx(((javafx.scene.control.TreeTableView.ResizeFeatures) fxPeer()).getColumn());
         }
 
         public com.jxparallel.fx.scene.control.TreeTableView<S> getTable() {
-            if (com.jxparallel.fx.Fx.NATIVE) {
-                return (com.jxparallel.fx.scene.control.TreeTableView) com.jxparallel.fx.nativeimpl.Native.call(this, com.jxparallel.fx.scene.control.TreeTableView.ResizeFeatures.class, "getTable", new Class<?>[] {}, com.jxparallel.fx.scene.control.TreeTableView.class);
-            }
             return (com.jxparallel.fx.scene.control.TreeTableView) com.jxparallel.fx.Fx.jx(((javafx.scene.control.TreeTableView.ResizeFeatures) fxPeer()).getTable());
         }
     }
@@ -664,115 +646,64 @@ public class TreeTableView<S> extends com.jxparallel.fx.scene.control.Control {
         }
 
         public TreeTableViewFocusModel(com.jxparallel.fx.scene.control.TreeTableView<S> arg0) {
-            this(com.jxparallel.fx.Fx.WRAP, com.jxparallel.fx.Fx.NATIVE ? com.jxparallel.fx.nativeimpl.Native.create(javafx.scene.control.TreeTableView.TreeTableViewFocusModel.class, new String[] {null}, new Object[] {arg0}) : new com.jxparallel.fx.peer.scene.control.TreeTableView_TreeTableViewFocusModel((javafx.scene.control.TreeTableView) com.jxparallel.fx.Fx.fx(arg0)));
+            this(com.jxparallel.fx.Fx.WRAP, new com.jxparallel.fx.peer.scene.control.TreeTableView_TreeTableViewFocusModel((javafx.scene.control.TreeTableView) com.jxparallel.fx.Fx.fxAs(arg0, javafx.scene.control.TreeTableView.class)));
             com.jxparallel.fx.Fx.own(fxPeer(), this);
         }
 
         public void focus(com.jxparallel.fx.scene.control.TreeTablePosition<S, ?> arg0) {
-            if (com.jxparallel.fx.Fx.NATIVE) {
-                com.jxparallel.fx.nativeimpl.Native.call(this, com.jxparallel.fx.scene.control.TreeTableView.TreeTableViewFocusModel.class, "focus", new Class<?>[] {com.jxparallel.fx.scene.control.TreeTablePosition.class}, void.class, arg0);
-                return;
-            }
-            ((javafx.scene.control.TreeTableView.TreeTableViewFocusModel) fxPeer()).focus((javafx.scene.control.TreeTablePosition) com.jxparallel.fx.Fx.fx(arg0));
+            ((javafx.scene.control.TreeTableView.TreeTableViewFocusModel) fxPeer()).focus((javafx.scene.control.TreeTablePosition) com.jxparallel.fx.Fx.fxAs(arg0, javafx.scene.control.TreeTablePosition.class));
         }
 
         public void focus(int arg0) {
-            if (com.jxparallel.fx.Fx.NATIVE) {
-                com.jxparallel.fx.nativeimpl.Native.call(this, com.jxparallel.fx.scene.control.TreeTableView.TreeTableViewFocusModel.class, "focus", new Class<?>[] {int.class}, void.class, arg0);
-                return;
-            }
             ((javafx.scene.control.TreeTableView.TreeTableViewFocusModel) fxPeer()).focus(arg0);
         }
 
         public void focus(int arg0, com.jxparallel.fx.scene.control.TreeTableColumn<S, ?> arg1) {
-            if (com.jxparallel.fx.Fx.NATIVE) {
-                com.jxparallel.fx.nativeimpl.Native.call(this, com.jxparallel.fx.scene.control.TreeTableView.TreeTableViewFocusModel.class, "focus", new Class<?>[] {int.class, com.jxparallel.fx.scene.control.TreeTableColumn.class}, void.class, arg0, arg1);
-                return;
-            }
-            ((javafx.scene.control.TreeTableView.TreeTableViewFocusModel) fxPeer()).focus(arg0, (javafx.scene.control.TreeTableColumn) com.jxparallel.fx.Fx.fx(arg1));
+            ((javafx.scene.control.TreeTableView.TreeTableViewFocusModel) fxPeer()).focus(arg0, (javafx.scene.control.TreeTableColumn) com.jxparallel.fx.Fx.fxAs(arg1, javafx.scene.control.TreeTableColumn.class));
         }
 
         public void focusAboveCell() {
-            if (com.jxparallel.fx.Fx.NATIVE) {
-                com.jxparallel.fx.nativeimpl.Native.call(this, com.jxparallel.fx.scene.control.TreeTableView.TreeTableViewFocusModel.class, "focusAboveCell", new Class<?>[] {}, void.class);
-                return;
-            }
             ((javafx.scene.control.TreeTableView.TreeTableViewFocusModel) fxPeer()).focusAboveCell();
         }
 
         public void focusBelowCell() {
-            if (com.jxparallel.fx.Fx.NATIVE) {
-                com.jxparallel.fx.nativeimpl.Native.call(this, com.jxparallel.fx.scene.control.TreeTableView.TreeTableViewFocusModel.class, "focusBelowCell", new Class<?>[] {}, void.class);
-                return;
-            }
             ((javafx.scene.control.TreeTableView.TreeTableViewFocusModel) fxPeer()).focusBelowCell();
         }
 
         public void focusLeftCell() {
-            if (com.jxparallel.fx.Fx.NATIVE) {
-                com.jxparallel.fx.nativeimpl.Native.call(this, com.jxparallel.fx.scene.control.TreeTableView.TreeTableViewFocusModel.class, "focusLeftCell", new Class<?>[] {}, void.class);
-                return;
-            }
             ((javafx.scene.control.TreeTableView.TreeTableViewFocusModel) fxPeer()).focusLeftCell();
         }
 
         public void focusNext() {
-            if (com.jxparallel.fx.Fx.NATIVE) {
-                com.jxparallel.fx.nativeimpl.Native.call(this, com.jxparallel.fx.scene.control.TreeTableView.TreeTableViewFocusModel.class, "focusNext", new Class<?>[] {}, void.class);
-                return;
-            }
             ((javafx.scene.control.TreeTableView.TreeTableViewFocusModel) fxPeer()).focusNext();
         }
 
         public void focusPrevious() {
-            if (com.jxparallel.fx.Fx.NATIVE) {
-                com.jxparallel.fx.nativeimpl.Native.call(this, com.jxparallel.fx.scene.control.TreeTableView.TreeTableViewFocusModel.class, "focusPrevious", new Class<?>[] {}, void.class);
-                return;
-            }
             ((javafx.scene.control.TreeTableView.TreeTableViewFocusModel) fxPeer()).focusPrevious();
         }
 
         public void focusRightCell() {
-            if (com.jxparallel.fx.Fx.NATIVE) {
-                com.jxparallel.fx.nativeimpl.Native.call(this, com.jxparallel.fx.scene.control.TreeTableView.TreeTableViewFocusModel.class, "focusRightCell", new Class<?>[] {}, void.class);
-                return;
-            }
             ((javafx.scene.control.TreeTableView.TreeTableViewFocusModel) fxPeer()).focusRightCell();
         }
 
         public com.jxparallel.fx.beans.property.ReadOnlyObjectProperty<com.jxparallel.fx.scene.control.TreeTablePosition<S, ?>> focusedCellProperty() {
-            if (com.jxparallel.fx.Fx.NATIVE) {
-                return (com.jxparallel.fx.beans.property.ReadOnlyObjectProperty) com.jxparallel.fx.nativeimpl.Native.call(this, com.jxparallel.fx.scene.control.TreeTableView.TreeTableViewFocusModel.class, "focusedCellProperty", new Class<?>[] {}, com.jxparallel.fx.beans.property.ReadOnlyObjectProperty.class);
-            }
             return (com.jxparallel.fx.beans.property.ReadOnlyObjectProperty) com.jxparallel.fx.Fx.jx(((javafx.scene.control.TreeTableView.TreeTableViewFocusModel) fxPeer()).focusedCellProperty());
         }
 
         public com.jxparallel.fx.scene.control.TreeTablePosition<S, ?> getFocusedCell() {
-            if (com.jxparallel.fx.Fx.NATIVE) {
-                return (com.jxparallel.fx.scene.control.TreeTablePosition) com.jxparallel.fx.nativeimpl.Native.call(this, com.jxparallel.fx.scene.control.TreeTableView.TreeTableViewFocusModel.class, "getFocusedCell", new Class<?>[] {}, com.jxparallel.fx.scene.control.TreeTablePosition.class);
-            }
             return (com.jxparallel.fx.scene.control.TreeTablePosition) com.jxparallel.fx.Fx.jx(((javafx.scene.control.TreeTableView.TreeTableViewFocusModel) fxPeer()).getFocusedCell());
         }
 
         protected int getItemCount() {
-            if (com.jxparallel.fx.Fx.NATIVE) {
-                return (Integer) com.jxparallel.fx.nativeimpl.Native.call(this, com.jxparallel.fx.scene.control.TreeTableView.TreeTableViewFocusModel.class, "getItemCount", new Class<?>[] {}, int.class);
-            }
             return (Integer) com.jxparallel.fx.Fx.invoke(fxPeer(), javafx.scene.control.TreeTableView.TreeTableViewFocusModel.class, "getItemCount", new Class<?>[] {});
         }
 
         protected com.jxparallel.fx.scene.control.TreeItem<S> getModelItem(int arg0) {
-            if (com.jxparallel.fx.Fx.NATIVE) {
-                return (com.jxparallel.fx.scene.control.TreeItem) com.jxparallel.fx.nativeimpl.Native.call(this, com.jxparallel.fx.scene.control.TreeTableView.TreeTableViewFocusModel.class, "getModelItem", new Class<?>[] {int.class}, com.jxparallel.fx.scene.control.TreeItem.class, arg0);
-            }
             return (com.jxparallel.fx.scene.control.TreeItem) com.jxparallel.fx.Fx.jx(com.jxparallel.fx.Fx.invoke(fxPeer(), javafx.scene.control.TreeTableView.TreeTableViewFocusModel.class, "getModelItem", new Class<?>[] {int.class}, arg0));
         }
 
         public boolean isFocused(int arg0, com.jxparallel.fx.scene.control.TreeTableColumn<S, ?> arg1) {
-            if (com.jxparallel.fx.Fx.NATIVE) {
-                return (Boolean) com.jxparallel.fx.nativeimpl.Native.call(this, com.jxparallel.fx.scene.control.TreeTableView.TreeTableViewFocusModel.class, "isFocused", new Class<?>[] {int.class, com.jxparallel.fx.scene.control.TreeTableColumn.class}, boolean.class, arg0, arg1);
-            }
-            return ((javafx.scene.control.TreeTableView.TreeTableViewFocusModel) fxPeer()).isFocused(arg0, (javafx.scene.control.TreeTableColumn) com.jxparallel.fx.Fx.fx(arg1));
+            return ((javafx.scene.control.TreeTableView.TreeTableViewFocusModel) fxPeer()).isFocused(arg0, (javafx.scene.control.TreeTableColumn) com.jxparallel.fx.Fx.fxAs(arg1, javafx.scene.control.TreeTableColumn.class));
         }
     }
 
@@ -782,59 +713,36 @@ public class TreeTableView<S> extends com.jxparallel.fx.scene.control.Control {
         }
 
         public TreeTableViewSelectionModel(com.jxparallel.fx.scene.control.TreeTableView<S> arg0) {
-            this(com.jxparallel.fx.Fx.WRAP, com.jxparallel.fx.Fx.NATIVE ? com.jxparallel.fx.nativeimpl.Native.create(javafx.scene.control.TreeTableView.TreeTableViewSelectionModel.class, new String[] {null}, new Object[] {arg0}) : new com.jxparallel.fx.peer.scene.control.TreeTableView_TreeTableViewSelectionModel((javafx.scene.control.TreeTableView) com.jxparallel.fx.Fx.fx(arg0)));
+            this(com.jxparallel.fx.Fx.WRAP, new com.jxparallel.fx.peer.scene.control.TreeTableView_TreeTableViewSelectionModel((javafx.scene.control.TreeTableView) com.jxparallel.fx.Fx.fxAs(arg0, javafx.scene.control.TreeTableView.class)));
             com.jxparallel.fx.Fx.own(fxPeer(), this);
         }
 
         public void focus(int arg0) {
-            if (com.jxparallel.fx.Fx.NATIVE) {
-                com.jxparallel.fx.nativeimpl.Native.call(this, com.jxparallel.fx.scene.control.TreeTableView.TreeTableViewSelectionModel.class, "focus", new Class<?>[] {int.class}, void.class, arg0);
-                return;
-            }
             ((javafx.scene.control.TreeTableView.TreeTableViewSelectionModel) fxPeer()).focus(arg0);
         }
 
         public int getFocusedIndex() {
-            if (com.jxparallel.fx.Fx.NATIVE) {
-                return (Integer) com.jxparallel.fx.nativeimpl.Native.call(this, com.jxparallel.fx.scene.control.TreeTableView.TreeTableViewSelectionModel.class, "getFocusedIndex", new Class<?>[] {}, int.class);
-            }
             return ((javafx.scene.control.TreeTableView.TreeTableViewSelectionModel) fxPeer()).getFocusedIndex();
         }
 
         protected int getItemCount() {
-            if (com.jxparallel.fx.Fx.NATIVE) {
-                return (Integer) com.jxparallel.fx.nativeimpl.Native.call(this, com.jxparallel.fx.scene.control.TreeTableView.TreeTableViewSelectionModel.class, "getItemCount", new Class<?>[] {}, int.class);
-            }
             return (Integer) com.jxparallel.fx.Fx.invoke(fxPeer(), javafx.scene.control.TreeTableView.TreeTableViewSelectionModel.class, "getItemCount", new Class<?>[] {});
         }
 
         public com.jxparallel.fx.scene.control.TreeItem<S> getModelItem(int arg0) {
-            if (com.jxparallel.fx.Fx.NATIVE) {
-                return (com.jxparallel.fx.scene.control.TreeItem) com.jxparallel.fx.nativeimpl.Native.call(this, com.jxparallel.fx.scene.control.TreeTableView.TreeTableViewSelectionModel.class, "getModelItem", new Class<?>[] {int.class}, com.jxparallel.fx.scene.control.TreeItem.class, arg0);
-            }
             return (com.jxparallel.fx.scene.control.TreeItem) com.jxparallel.fx.Fx.jx(((javafx.scene.control.TreeTableView.TreeTableViewSelectionModel) fxPeer()).getModelItem(arg0));
         }
 
         public com.jxparallel.fx.collections.ObservableList<com.jxparallel.fx.scene.control.TreeTablePosition<S, ?>> getSelectedCells() {
-            if (com.jxparallel.fx.Fx.NATIVE) {
-                return (com.jxparallel.fx.collections.ObservableList) com.jxparallel.fx.nativeimpl.Native.call(this, com.jxparallel.fx.scene.control.TreeTableView.TreeTableViewSelectionModel.class, "getSelectedCells", new Class<?>[] {}, com.jxparallel.fx.collections.ObservableList.class);
-            }
             return (com.jxparallel.fx.collections.ObservableList) com.jxparallel.fx.Fx.jx((fxPeer() instanceof com.jxparallel.fx.Fx.Owned ? ((com.jxparallel.fx.Fx.Owned) fxPeer()).callSuper("getSelectedCells()", new Object[] {}) : com.jxparallel.fx.Fx.invoke(fxPeer(), javafx.scene.control.TreeTableView.TreeTableViewSelectionModel.class, "getSelectedCells", new Class<?>[] {})));
         }
 
         public com.jxparallel.fx.scene.control.TreeTableView<S> getTreeTableView() {
-            if (com.jxparallel.fx.Fx.NATIVE) {
-                return (com.jxparallel.fx.scene.control.TreeTableView) com.jxparallel.fx.nativeimpl.Native.call(this, com.jxparallel.fx.scene.control.TreeTableView.TreeTableViewSelectionModel.class, "getTreeTableView", new Class<?>[] {}, com.jxparallel.fx.scene.control.TreeTableView.class);
-            }
             return (com.jxparallel.fx.scene.control.TreeTableView) com.jxparallel.fx.Fx.jx(((javafx.scene.control.TreeTableView.TreeTableViewSelectionModel) fxPeer()).getTreeTableView());
         }
 
         public void selectRange(int arg0, com.jxparallel.fx.scene.control.TableColumnBase<com.jxparallel.fx.scene.control.TreeItem<S>, ?> arg1, int arg2, com.jxparallel.fx.scene.control.TableColumnBase<com.jxparallel.fx.scene.control.TreeItem<S>, ?> arg3) {
-            if (com.jxparallel.fx.Fx.NATIVE) {
-                com.jxparallel.fx.nativeimpl.Native.call(this, com.jxparallel.fx.scene.control.TreeTableView.TreeTableViewSelectionModel.class, "selectRange", new Class<?>[] {int.class, com.jxparallel.fx.scene.control.TableColumnBase.class, int.class, com.jxparallel.fx.scene.control.TableColumnBase.class}, void.class, arg0, arg1, arg2, arg3);
-                return;
-            }
-            ((javafx.scene.control.TreeTableView.TreeTableViewSelectionModel) fxPeer()).selectRange(arg0, (javafx.scene.control.TableColumnBase) com.jxparallel.fx.Fx.fx(arg1), arg2, (javafx.scene.control.TableColumnBase) com.jxparallel.fx.Fx.fx(arg3));
+            ((javafx.scene.control.TreeTableView.TreeTableViewSelectionModel) fxPeer()).selectRange(arg0, (javafx.scene.control.TableColumnBase) com.jxparallel.fx.Fx.fxAs(arg1, javafx.scene.control.TableColumnBase.class), arg2, (javafx.scene.control.TableColumnBase) com.jxparallel.fx.Fx.fxAs(arg3, javafx.scene.control.TableColumnBase.class));
         }
 
         /** Called by the peer: runs the JX (possibly overridden) method. */
@@ -844,28 +752,28 @@ public class TreeTableView<S> extends com.jxparallel.fx.scene.control.Control {
             switch (method) {
                 case "getSelectedCells()":
                     return jx.getSelectedCells();
-                case "select(int,TableColumnBase)":
-                    jx.select((Integer) a[0], (com.jxparallel.fx.scene.control.TableColumnBase) a[1]);
-                    return null;
                 case "isSelected(int,TableColumnBase)":
                     return (Object) jx.isSelected((Integer) a[0], (com.jxparallel.fx.scene.control.TableColumnBase) a[1]);
-                case "clearSelection(int,TableColumnBase)":
-                    jx.clearSelection((Integer) a[0], (com.jxparallel.fx.scene.control.TableColumnBase) a[1]);
-                    return null;
                 case "clearAndSelect(int,TableColumnBase)":
                     jx.clearAndSelect((Integer) a[0], (com.jxparallel.fx.scene.control.TableColumnBase) a[1]);
                     return null;
-                case "selectLeftCell()":
-                    jx.selectLeftCell();
+                case "clearSelection(int,TableColumnBase)":
+                    jx.clearSelection((Integer) a[0], (com.jxparallel.fx.scene.control.TableColumnBase) a[1]);
+                    return null;
+                case "select(int,TableColumnBase)":
+                    jx.select((Integer) a[0], (com.jxparallel.fx.scene.control.TableColumnBase) a[1]);
+                    return null;
+                case "selectAboveCell()":
+                    jx.selectAboveCell();
                     return null;
                 case "selectBelowCell()":
                     jx.selectBelowCell();
                     return null;
+                case "selectLeftCell()":
+                    jx.selectLeftCell();
+                    return null;
                 case "selectRightCell()":
                     jx.selectRightCell();
-                    return null;
-                case "selectAboveCell()":
-                    jx.selectAboveCell();
                     return null;
                 default:
                     throw new IllegalArgumentException(method);

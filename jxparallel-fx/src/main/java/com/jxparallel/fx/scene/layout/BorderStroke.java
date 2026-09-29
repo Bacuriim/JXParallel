@@ -16,26 +16,26 @@ public class BorderStroke implements com.jxparallel.fx.Fx.Backed {
 
     @Override
     public boolean equals(Object o) {
-        return o == this || fxPeer.equals(com.jxparallel.fx.Fx.fx(o));
+        return o == this || fxPeer().equals(com.jxparallel.fx.Fx.fx(o));
     }
 
     @Override
     public int hashCode() {
-        return fxPeer.hashCode();
+        return fxPeer().hashCode();
     }
 
     @Override
     public String toString() {
-        return fxPeer.toString();
-    }
-
-    public BorderStroke(@javafx.beans.NamedArg(value = "stroke") com.jxparallel.fx.scene.paint.Paint arg0, @javafx.beans.NamedArg(value = "style") com.jxparallel.fx.scene.layout.BorderStrokeStyle arg1, @javafx.beans.NamedArg(value = "radii") com.jxparallel.fx.scene.layout.CornerRadii arg2, @javafx.beans.NamedArg(value = "widths") com.jxparallel.fx.scene.layout.BorderWidths arg3, @javafx.beans.NamedArg(value = "insets") com.jxparallel.fx.geometry.Insets arg4) {
-        this(com.jxparallel.fx.Fx.WRAP, new com.jxparallel.fx.peer.scene.layout.BorderStroke((javafx.scene.paint.Paint) com.jxparallel.fx.Fx.fx(arg0), (javafx.scene.layout.BorderStrokeStyle) com.jxparallel.fx.Fx.fx(arg1), (javafx.scene.layout.CornerRadii) com.jxparallel.fx.Fx.fx(arg2), (javafx.scene.layout.BorderWidths) com.jxparallel.fx.Fx.fx(arg3), (javafx.geometry.Insets) com.jxparallel.fx.Fx.fx(arg4)));
-        com.jxparallel.fx.Fx.own(fxPeer(), this);
+        return fxPeer().toString();
     }
 
     public BorderStroke(@javafx.beans.NamedArg(value = "stroke") com.jxparallel.fx.scene.paint.Paint arg0, @javafx.beans.NamedArg(value = "style") com.jxparallel.fx.scene.layout.BorderStrokeStyle arg1, @javafx.beans.NamedArg(value = "radii") com.jxparallel.fx.scene.layout.CornerRadii arg2, @javafx.beans.NamedArg(value = "widths") com.jxparallel.fx.scene.layout.BorderWidths arg3) {
         this(com.jxparallel.fx.Fx.WRAP, new com.jxparallel.fx.peer.scene.layout.BorderStroke((javafx.scene.paint.Paint) com.jxparallel.fx.Fx.fx(arg0), (javafx.scene.layout.BorderStrokeStyle) com.jxparallel.fx.Fx.fx(arg1), (javafx.scene.layout.CornerRadii) com.jxparallel.fx.Fx.fx(arg2), (javafx.scene.layout.BorderWidths) com.jxparallel.fx.Fx.fx(arg3)));
+        com.jxparallel.fx.Fx.own(fxPeer(), this);
+    }
+
+    public BorderStroke(@javafx.beans.NamedArg(value = "stroke") com.jxparallel.fx.scene.paint.Paint arg0, @javafx.beans.NamedArg(value = "style") com.jxparallel.fx.scene.layout.BorderStrokeStyle arg1, @javafx.beans.NamedArg(value = "radii") com.jxparallel.fx.scene.layout.CornerRadii arg2, @javafx.beans.NamedArg(value = "widths") com.jxparallel.fx.scene.layout.BorderWidths arg3, @javafx.beans.NamedArg(value = "insets") com.jxparallel.fx.geometry.Insets arg4) {
+        this(com.jxparallel.fx.Fx.WRAP, new com.jxparallel.fx.peer.scene.layout.BorderStroke((javafx.scene.paint.Paint) com.jxparallel.fx.Fx.fx(arg0), (javafx.scene.layout.BorderStrokeStyle) com.jxparallel.fx.Fx.fx(arg1), (javafx.scene.layout.CornerRadii) com.jxparallel.fx.Fx.fx(arg2), (javafx.scene.layout.BorderWidths) com.jxparallel.fx.Fx.fx(arg3), (javafx.geometry.Insets) com.jxparallel.fx.Fx.fx(arg4)));
         com.jxparallel.fx.Fx.own(fxPeer(), this);
     }
 

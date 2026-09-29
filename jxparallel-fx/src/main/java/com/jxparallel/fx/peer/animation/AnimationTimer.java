@@ -20,20 +20,20 @@ public class AnimationTimer extends javafx.animation.AnimationTimer implements c
     }
 
     @Override
+    public void handle(long arg0) {
+        if (jxOwner == null) {
+            throw new IllegalStateException("handle before the JX object exists");
+        }
+        com.jxparallel.fx.animation.AnimationTimer.$hook(jxOwner, "handle(long)", new Object[] {arg0});
+    }
+
+    @Override
     public void stop() {
         if (jxOwner == null) {
             super.stop();
             return;
         }
         com.jxparallel.fx.animation.AnimationTimer.$hook(jxOwner, "stop()", new Object[] {});
-    }
-
-    @Override
-    public void handle(long arg0) {
-        if (jxOwner == null) {
-            throw new IllegalStateException("handle before the JX object exists");
-        }
-        com.jxparallel.fx.animation.AnimationTimer.$hook(jxOwner, "handle(long)", new Object[] {arg0});
     }
 
     @Override

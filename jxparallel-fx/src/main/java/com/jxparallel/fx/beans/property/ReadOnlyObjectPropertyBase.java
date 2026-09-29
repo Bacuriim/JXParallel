@@ -39,10 +39,10 @@ public class ReadOnlyObjectPropertyBase<T> extends com.jxparallel.fx.beans.prope
         switch (method) {
             case "get()":
                 return jx.get();
-            case "getName()":
-                return jx.getName();
             case "getBean()":
                 return jx.getBean();
+            case "getName()":
+                return jx.getName();
             default:
                 throw new IllegalArgumentException(method);
         }

@@ -5,20 +5,20 @@ package com.jxparallel.fx.peer.scene.control;
 public class Menu extends javafx.scene.control.Menu implements com.jxparallel.fx.Fx.Owned {
     private Object jxOwner;
 
-    public Menu(java.lang.String arg0, javafx.scene.Node arg1, javafx.scene.control.MenuItem... arg2) {
-        super(arg0, arg1, arg2);
-    }
-
-    public Menu(java.lang.String arg0, javafx.scene.Node arg1) {
-        super(arg0, arg1);
+    public Menu() {
+        super();
     }
 
     public Menu(java.lang.String arg0) {
         super(arg0);
     }
 
-    public Menu() {
-        super();
+    public Menu(java.lang.String arg0, javafx.scene.Node arg1) {
+        super(arg0, arg1);
+    }
+
+    public Menu(java.lang.String arg0, javafx.scene.Node arg1, javafx.scene.control.MenuItem... arg2) {
+        super(arg0, arg1, arg2);
     }
 
     @Override

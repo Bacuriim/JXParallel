@@ -16,26 +16,26 @@ public class Event implements java.lang.Cloneable, java.io.Serializable, com.jxp
 
     @Override
     public boolean equals(Object o) {
-        return o == this || fxPeer.equals(com.jxparallel.fx.Fx.fx(o));
+        return o == this || fxPeer().equals(com.jxparallel.fx.Fx.fx(o));
     }
 
     @Override
     public int hashCode() {
-        return fxPeer.hashCode();
+        return fxPeer().hashCode();
     }
 
     @Override
     public String toString() {
-        return fxPeer.toString();
-    }
-
-    public Event(@javafx.beans.NamedArg(value = "eventType") com.jxparallel.fx.event.EventType<? extends com.jxparallel.fx.event.Event> arg0) {
-        this(com.jxparallel.fx.Fx.WRAP, new com.jxparallel.fx.peer.event.Event((javafx.event.EventType) com.jxparallel.fx.Fx.fx(arg0)));
-        com.jxparallel.fx.Fx.own(fxPeer(), this);
+        return fxPeer().toString();
     }
 
     public Event(@javafx.beans.NamedArg(value = "source") java.lang.Object arg0, @javafx.beans.NamedArg(value = "target") com.jxparallel.fx.event.EventTarget arg1, @javafx.beans.NamedArg(value = "eventType") com.jxparallel.fx.event.EventType<? extends com.jxparallel.fx.event.Event> arg2) {
         this(com.jxparallel.fx.Fx.WRAP, new com.jxparallel.fx.peer.event.Event((java.lang.Object) com.jxparallel.fx.Fx.fx(arg0), (javafx.event.EventTarget) com.jxparallel.fx.Fx.fx(arg1), (javafx.event.EventType) com.jxparallel.fx.Fx.fx(arg2)));
+        com.jxparallel.fx.Fx.own(fxPeer(), this);
+    }
+
+    public Event(@javafx.beans.NamedArg(value = "eventType") com.jxparallel.fx.event.EventType<? extends com.jxparallel.fx.event.Event> arg0) {
+        this(com.jxparallel.fx.Fx.WRAP, new com.jxparallel.fx.peer.event.Event((javafx.event.EventType) com.jxparallel.fx.Fx.fx(arg0)));
         com.jxparallel.fx.Fx.own(fxPeer(), this);
     }
 

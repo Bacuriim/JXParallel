@@ -28,27 +28,19 @@ public class SelectionModel<T> extends javafx.scene.control.SelectionModel<T> im
     }
 
     @Override
-    public void select(int arg0) {
-        if (jxOwner == null) {
-            throw new IllegalStateException("select before the JX object exists");
-        }
-        com.jxparallel.fx.scene.control.SelectionModel.$hook(jxOwner, "select(int)", new Object[] {arg0});
-    }
-
-    @Override
-    public void select(T arg0) {
-        if (jxOwner == null) {
-            throw new IllegalStateException("select before the JX object exists");
-        }
-        com.jxparallel.fx.scene.control.SelectionModel.$hook(jxOwner, "select(Object)", new Object[] {com.jxparallel.fx.Fx.jx(arg0)});
-    }
-
-    @Override
     public boolean isSelected(int arg0) {
         if (jxOwner == null) {
             throw new IllegalStateException("isSelected before the JX object exists");
         }
         return (Boolean) com.jxparallel.fx.Fx.fx(com.jxparallel.fx.scene.control.SelectionModel.$hook(jxOwner, "isSelected(int)", new Object[] {arg0}));
+    }
+
+    @Override
+    public void clearAndSelect(int arg0) {
+        if (jxOwner == null) {
+            throw new IllegalStateException("clearAndSelect before the JX object exists");
+        }
+        com.jxparallel.fx.scene.control.SelectionModel.$hook(jxOwner, "clearAndSelect(int)", new Object[] {arg0});
     }
 
     @Override
@@ -68,6 +60,22 @@ public class SelectionModel<T> extends javafx.scene.control.SelectionModel<T> im
     }
 
     @Override
+    public void select(T arg0) {
+        if (jxOwner == null) {
+            throw new IllegalStateException("select before the JX object exists");
+        }
+        com.jxparallel.fx.scene.control.SelectionModel.$hook(jxOwner, "select(Object)", new Object[] {com.jxparallel.fx.Fx.jx(arg0)});
+    }
+
+    @Override
+    public void select(int arg0) {
+        if (jxOwner == null) {
+            throw new IllegalStateException("select before the JX object exists");
+        }
+        com.jxparallel.fx.scene.control.SelectionModel.$hook(jxOwner, "select(int)", new Object[] {arg0});
+    }
+
+    @Override
     public void selectFirst() {
         if (jxOwner == null) {
             throw new IllegalStateException("selectFirst before the JX object exists");
@@ -76,19 +84,11 @@ public class SelectionModel<T> extends javafx.scene.control.SelectionModel<T> im
     }
 
     @Override
-    public void clearAndSelect(int arg0) {
+    public void selectLast() {
         if (jxOwner == null) {
-            throw new IllegalStateException("clearAndSelect before the JX object exists");
+            throw new IllegalStateException("selectLast before the JX object exists");
         }
-        com.jxparallel.fx.scene.control.SelectionModel.$hook(jxOwner, "clearAndSelect(int)", new Object[] {arg0});
-    }
-
-    @Override
-    public void selectPrevious() {
-        if (jxOwner == null) {
-            throw new IllegalStateException("selectPrevious before the JX object exists");
-        }
-        com.jxparallel.fx.scene.control.SelectionModel.$hook(jxOwner, "selectPrevious()", new Object[] {});
+        com.jxparallel.fx.scene.control.SelectionModel.$hook(jxOwner, "selectLast()", new Object[] {});
     }
 
     @Override
@@ -100,11 +100,11 @@ public class SelectionModel<T> extends javafx.scene.control.SelectionModel<T> im
     }
 
     @Override
-    public void selectLast() {
+    public void selectPrevious() {
         if (jxOwner == null) {
-            throw new IllegalStateException("selectLast before the JX object exists");
+            throw new IllegalStateException("selectPrevious before the JX object exists");
         }
-        com.jxparallel.fx.scene.control.SelectionModel.$hook(jxOwner, "selectLast()", new Object[] {});
+        com.jxparallel.fx.scene.control.SelectionModel.$hook(jxOwner, "selectPrevious()", new Object[] {});
     }
 
     @Override

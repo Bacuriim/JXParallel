@@ -7,23 +7,23 @@ public final class ParallelTransition extends com.jxparallel.fx.animation.Transi
         super(wrap, peer);
     }
 
-    public ParallelTransition(com.jxparallel.fx.animation.Animation... arg0) {
-        this(com.jxparallel.fx.Fx.WRAP, com.jxparallel.fx.Fx.NATIVE ? com.jxparallel.fx.nativeimpl.Native.create(javafx.animation.ParallelTransition.class, new String[] {null}, new Object[] {arg0}) : new javafx.animation.ParallelTransition((javafx.animation.Animation[]) com.jxparallel.fx.Fx.fxArray(arg0, javafx.animation.Animation.class)));
-        com.jxparallel.fx.Fx.own(fxPeer(), this);
-    }
-
-    public ParallelTransition(com.jxparallel.fx.scene.Node arg0, com.jxparallel.fx.animation.Animation... arg1) {
-        this(com.jxparallel.fx.Fx.WRAP, com.jxparallel.fx.Fx.NATIVE ? com.jxparallel.fx.nativeimpl.Native.create(javafx.animation.ParallelTransition.class, new String[] {null, null}, new Object[] {arg0, arg1}) : new javafx.animation.ParallelTransition((javafx.scene.Node) com.jxparallel.fx.Fx.fx(arg0), (javafx.animation.Animation[]) com.jxparallel.fx.Fx.fxArray(arg1, javafx.animation.Animation.class)));
-        com.jxparallel.fx.Fx.own(fxPeer(), this);
-    }
-
     public ParallelTransition() {
         this(com.jxparallel.fx.Fx.WRAP, com.jxparallel.fx.Fx.NATIVE ? com.jxparallel.fx.nativeimpl.Native.create(javafx.animation.ParallelTransition.class, new String[] {}, new Object[] {}) : new javafx.animation.ParallelTransition());
         com.jxparallel.fx.Fx.own(fxPeer(), this);
     }
 
+    public ParallelTransition(com.jxparallel.fx.animation.Animation... arg0) {
+        this(com.jxparallel.fx.Fx.WRAP, com.jxparallel.fx.Fx.NATIVE ? com.jxparallel.fx.nativeimpl.Native.create(javafx.animation.ParallelTransition.class, new String[] {null}, new Object[] {arg0}) : new javafx.animation.ParallelTransition((javafx.animation.Animation[]) com.jxparallel.fx.Fx.fxArray(arg0, javafx.animation.Animation.class)));
+        com.jxparallel.fx.Fx.own(fxPeer(), this);
+    }
+
     public ParallelTransition(com.jxparallel.fx.scene.Node arg0) {
         this(com.jxparallel.fx.Fx.WRAP, com.jxparallel.fx.Fx.NATIVE ? com.jxparallel.fx.nativeimpl.Native.create(javafx.animation.ParallelTransition.class, new String[] {null}, new Object[] {arg0}) : new javafx.animation.ParallelTransition((javafx.scene.Node) com.jxparallel.fx.Fx.fx(arg0)));
+        com.jxparallel.fx.Fx.own(fxPeer(), this);
+    }
+
+    public ParallelTransition(com.jxparallel.fx.scene.Node arg0, com.jxparallel.fx.animation.Animation... arg1) {
+        this(com.jxparallel.fx.Fx.WRAP, com.jxparallel.fx.Fx.NATIVE ? com.jxparallel.fx.nativeimpl.Native.create(javafx.animation.ParallelTransition.class, new String[] {null, null}, new Object[] {arg0, arg1}) : new javafx.animation.ParallelTransition((javafx.scene.Node) com.jxparallel.fx.Fx.fx(arg0), (javafx.animation.Animation[]) com.jxparallel.fx.Fx.fxArray(arg1, javafx.animation.Animation.class)));
         com.jxparallel.fx.Fx.own(fxPeer(), this);
     }
 

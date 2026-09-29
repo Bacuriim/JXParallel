@@ -5,12 +5,12 @@ package com.jxparallel.fx.peer.scene.control;
 public class ColorPicker extends javafx.scene.control.ColorPicker implements com.jxparallel.fx.Fx.Owned {
     private Object jxOwner;
 
-    public ColorPicker(javafx.scene.paint.Color arg0) {
-        super(arg0);
-    }
-
     public ColorPicker() {
         super();
+    }
+
+    public ColorPicker(javafx.scene.paint.Color arg0) {
+        super(arg0);
     }
 
     @Override

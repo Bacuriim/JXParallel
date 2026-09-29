@@ -20,12 +20,12 @@ public class ReadOnlyLongProperty extends com.jxparallel.fx.beans.binding.LongEx
         return (com.jxparallel.fx.beans.property.ReadOnlyLongProperty) com.jxparallel.fx.Fx.jx(javafx.beans.property.ReadOnlyLongProperty.readOnlyLongProperty((javafx.beans.property.ReadOnlyProperty) com.jxparallel.fx.Fx.fx(arg0)));
     }
 
-    public java.lang.String getName() {
-        return (java.lang.String) (fxPeer() instanceof com.jxparallel.fx.Fx.Owned ? ((com.jxparallel.fx.Fx.Owned) fxPeer()).callSuper("getName()", new Object[] {}) : com.jxparallel.fx.Fx.invoke(fxPeer(), javafx.beans.property.ReadOnlyProperty.class, "getName", new Class<?>[] {}));
-    }
-
     public java.lang.Object getBean() {
         return (java.lang.Object) com.jxparallel.fx.Fx.jx((fxPeer() instanceof com.jxparallel.fx.Fx.Owned ? ((com.jxparallel.fx.Fx.Owned) fxPeer()).callSuper("getBean()", new Object[] {}) : com.jxparallel.fx.Fx.invoke(fxPeer(), javafx.beans.property.ReadOnlyProperty.class, "getBean", new Class<?>[] {})));
+    }
+
+    public java.lang.String getName() {
+        return (java.lang.String) (fxPeer() instanceof com.jxparallel.fx.Fx.Owned ? ((com.jxparallel.fx.Fx.Owned) fxPeer()).callSuper("getName()", new Object[] {}) : com.jxparallel.fx.Fx.invoke(fxPeer(), javafx.beans.property.ReadOnlyProperty.class, "getName", new Class<?>[] {}));
     }
 
     /** Called by the peer: runs the JX (possibly overridden) method. */
@@ -33,24 +33,24 @@ public class ReadOnlyLongProperty extends com.jxparallel.fx.beans.binding.LongEx
         ReadOnlyLongProperty jx = (ReadOnlyLongProperty) self;
         try {
         switch (method) {
-            case "removeListener(ChangeListener)":
-                jx.removeListener((com.jxparallel.fx.beans.value.ChangeListener) a[0]);
-                return null;
-            case "addListener(ChangeListener)":
-                jx.addListener((com.jxparallel.fx.beans.value.ChangeListener) a[0]);
+            case "getBean()":
+                return jx.getBean();
+            case "getName()":
+                return jx.getName();
+            case "get()":
+                return (Object) jx.get();
+            case "addListener(InvalidationListener)":
+                jx.addListener((com.jxparallel.fx.beans.InvalidationListener) a[0]);
                 return null;
             case "removeListener(InvalidationListener)":
                 jx.removeListener((com.jxparallel.fx.beans.InvalidationListener) a[0]);
                 return null;
-            case "addListener(InvalidationListener)":
-                jx.addListener((com.jxparallel.fx.beans.InvalidationListener) a[0]);
+            case "addListener(ChangeListener)":
+                jx.addListener((com.jxparallel.fx.beans.value.ChangeListener) a[0]);
                 return null;
-            case "get()":
-                return (Object) jx.get();
-            case "getName()":
-                return jx.getName();
-            case "getBean()":
-                return jx.getBean();
+            case "removeListener(ChangeListener)":
+                jx.removeListener((com.jxparallel.fx.beans.value.ChangeListener) a[0]);
+                return null;
             default:
                 throw new IllegalArgumentException(method);
         }

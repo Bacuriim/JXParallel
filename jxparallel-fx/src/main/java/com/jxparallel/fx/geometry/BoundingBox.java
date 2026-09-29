@@ -7,13 +7,13 @@ public class BoundingBox extends com.jxparallel.fx.geometry.Bounds {
         super(wrap, peer);
     }
 
-    public BoundingBox(@javafx.beans.NamedArg(value = "minX") double arg0, @javafx.beans.NamedArg(value = "minY") double arg1, @javafx.beans.NamedArg(value = "minZ") double arg2, @javafx.beans.NamedArg(value = "width") double arg3, @javafx.beans.NamedArg(value = "height") double arg4, @javafx.beans.NamedArg(value = "depth") double arg5) {
-        this(com.jxparallel.fx.Fx.WRAP, new com.jxparallel.fx.peer.geometry.BoundingBox(arg0, arg1, arg2, arg3, arg4, arg5));
+    public BoundingBox(@javafx.beans.NamedArg(value = "minX") double arg0, @javafx.beans.NamedArg(value = "minY") double arg1, @javafx.beans.NamedArg(value = "width") double arg2, @javafx.beans.NamedArg(value = "height") double arg3) {
+        this(com.jxparallel.fx.Fx.WRAP, new com.jxparallel.fx.peer.geometry.BoundingBox(arg0, arg1, arg2, arg3));
         com.jxparallel.fx.Fx.own(fxPeer(), this);
     }
 
-    public BoundingBox(@javafx.beans.NamedArg(value = "minX") double arg0, @javafx.beans.NamedArg(value = "minY") double arg1, @javafx.beans.NamedArg(value = "width") double arg2, @javafx.beans.NamedArg(value = "height") double arg3) {
-        this(com.jxparallel.fx.Fx.WRAP, new com.jxparallel.fx.peer.geometry.BoundingBox(arg0, arg1, arg2, arg3));
+    public BoundingBox(@javafx.beans.NamedArg(value = "minX") double arg0, @javafx.beans.NamedArg(value = "minY") double arg1, @javafx.beans.NamedArg(value = "minZ") double arg2, @javafx.beans.NamedArg(value = "width") double arg3, @javafx.beans.NamedArg(value = "height") double arg4, @javafx.beans.NamedArg(value = "depth") double arg5) {
+        this(com.jxparallel.fx.Fx.WRAP, new com.jxparallel.fx.peer.geometry.BoundingBox(arg0, arg1, arg2, arg3, arg4, arg5));
         com.jxparallel.fx.Fx.own(fxPeer(), this);
     }
 

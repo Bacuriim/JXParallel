@@ -5,20 +5,20 @@ package com.jxparallel.fx.peer.scene.layout;
 public class CornerRadii extends javafx.scene.layout.CornerRadii implements com.jxparallel.fx.Fx.Owned {
     private Object jxOwner;
 
-    public CornerRadii(@javafx.beans.NamedArg(value = "radius") double arg0, @javafx.beans.NamedArg(value = "asPercent") boolean arg1) {
-        super(arg0, arg1);
-    }
-
     public CornerRadii(@javafx.beans.NamedArg(value = "radius") double arg0) {
         super(arg0);
     }
 
-    public CornerRadii(@javafx.beans.NamedArg(value = "topLeftHorizontalRadius") double arg0, @javafx.beans.NamedArg(value = "topLeftVerticalRadius") double arg1, @javafx.beans.NamedArg(value = "topRightVerticalRadius") double arg2, @javafx.beans.NamedArg(value = "topRightHorizontalRadius") double arg3, @javafx.beans.NamedArg(value = "bottomRightHorizontalRadius") double arg4, @javafx.beans.NamedArg(value = "bottomRightVerticalRadius") double arg5, @javafx.beans.NamedArg(value = "bottomLeftVerticalRadius") double arg6, @javafx.beans.NamedArg(value = "bottomLeftHorizontalRadius") double arg7, @javafx.beans.NamedArg(value = "topLeftHorizontalRadiusAsPercent") boolean arg8, @javafx.beans.NamedArg(value = "topLeftVerticalRadiusAsPercent") boolean arg9, @javafx.beans.NamedArg(value = "topRightVerticalRadiusAsPercent") boolean arg10, @javafx.beans.NamedArg(value = "topRightHorizontalRadiusAsPercent") boolean arg11, @javafx.beans.NamedArg(value = "bottomRightHorizontalRadiusAsPercent") boolean arg12, @javafx.beans.NamedArg(value = "bottomRightVerticalRadiusAsPercent") boolean arg13, @javafx.beans.NamedArg(value = "bottomLeftVerticalRadiusAsPercent") boolean arg14, @javafx.beans.NamedArg(value = "bottomLeftHorizontalRadiusAsPercent") boolean arg15) {
-        super(arg0, arg1, arg2, arg3, arg4, arg5, arg6, arg7, arg8, arg9, arg10, arg11, arg12, arg13, arg14, arg15);
+    public CornerRadii(@javafx.beans.NamedArg(value = "radius") double arg0, @javafx.beans.NamedArg(value = "asPercent") boolean arg1) {
+        super(arg0, arg1);
     }
 
     public CornerRadii(@javafx.beans.NamedArg(value = "topLeft") double arg0, @javafx.beans.NamedArg(value = "topRight") double arg1, @javafx.beans.NamedArg(value = "bottomRight") double arg2, @javafx.beans.NamedArg(value = "bottomLeft") double arg3, @javafx.beans.NamedArg(value = "asPercent") boolean arg4) {
         super(arg0, arg1, arg2, arg3, arg4);
+    }
+
+    public CornerRadii(@javafx.beans.NamedArg(value = "topLeftHorizontalRadius") double arg0, @javafx.beans.NamedArg(value = "topLeftVerticalRadius") double arg1, @javafx.beans.NamedArg(value = "topRightVerticalRadius") double arg2, @javafx.beans.NamedArg(value = "topRightHorizontalRadius") double arg3, @javafx.beans.NamedArg(value = "bottomRightHorizontalRadius") double arg4, @javafx.beans.NamedArg(value = "bottomRightVerticalRadius") double arg5, @javafx.beans.NamedArg(value = "bottomLeftVerticalRadius") double arg6, @javafx.beans.NamedArg(value = "bottomLeftHorizontalRadius") double arg7, @javafx.beans.NamedArg(value = "topLeftHorizontalRadiusAsPercent") boolean arg8, @javafx.beans.NamedArg(value = "topLeftVerticalRadiusAsPercent") boolean arg9, @javafx.beans.NamedArg(value = "topRightVerticalRadiusAsPercent") boolean arg10, @javafx.beans.NamedArg(value = "topRightHorizontalRadiusAsPercent") boolean arg11, @javafx.beans.NamedArg(value = "bottomRightHorizontalRadiusAsPercent") boolean arg12, @javafx.beans.NamedArg(value = "bottomRightVerticalRadiusAsPercent") boolean arg13, @javafx.beans.NamedArg(value = "bottomLeftVerticalRadiusAsPercent") boolean arg14, @javafx.beans.NamedArg(value = "bottomLeftHorizontalRadiusAsPercent") boolean arg15) {
+        super(arg0, arg1, arg2, arg3, arg4, arg5, arg6, arg7, arg8, arg9, arg10, arg11, arg12, arg13, arg14, arg15);
     }
 
     @Override

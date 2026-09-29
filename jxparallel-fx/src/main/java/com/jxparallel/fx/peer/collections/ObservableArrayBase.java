@@ -20,19 +20,19 @@ public class ObservableArrayBase<T extends javafx.collections.ObservableArray<T>
     }
 
     @Override
-    public void clear() {
-        if (jxOwner == null) {
-            throw new IllegalStateException("clear before the JX object exists");
-        }
-        com.jxparallel.fx.collections.ObservableArrayBase.$hook(jxOwner, "clear()", new Object[] {});
-    }
-
-    @Override
     public int size() {
         if (jxOwner == null) {
             throw new IllegalStateException("size before the JX object exists");
         }
         return (Integer) com.jxparallel.fx.Fx.fx(com.jxparallel.fx.collections.ObservableArrayBase.$hook(jxOwner, "size()", new Object[] {}));
+    }
+
+    @Override
+    public void clear() {
+        if (jxOwner == null) {
+            throw new IllegalStateException("clear before the JX object exists");
+        }
+        com.jxparallel.fx.collections.ObservableArrayBase.$hook(jxOwner, "clear()", new Object[] {});
     }
 
     @Override
@@ -44,19 +44,19 @@ public class ObservableArrayBase<T extends javafx.collections.ObservableArray<T>
     }
 
     @Override
-    public void trimToSize() {
-        if (jxOwner == null) {
-            throw new IllegalStateException("trimToSize before the JX object exists");
-        }
-        com.jxparallel.fx.collections.ObservableArrayBase.$hook(jxOwner, "trimToSize()", new Object[] {});
-    }
-
-    @Override
     public void resize(int arg0) {
         if (jxOwner == null) {
             throw new IllegalStateException("resize before the JX object exists");
         }
         com.jxparallel.fx.collections.ObservableArrayBase.$hook(jxOwner, "resize(int)", new Object[] {arg0});
+    }
+
+    @Override
+    public void trimToSize() {
+        if (jxOwner == null) {
+            throw new IllegalStateException("trimToSize before the JX object exists");
+        }
+        com.jxparallel.fx.collections.ObservableArrayBase.$hook(jxOwner, "trimToSize()", new Object[] {});
     }
 
     @Override

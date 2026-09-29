@@ -66,10 +66,10 @@ public class FloatPropertyBase extends com.jxparallel.fx.beans.property.FloatPro
         FloatPropertyBase jx = (FloatPropertyBase) self;
         try {
         switch (method) {
-            case "getName()":
-                return jx.getName();
             case "getBean()":
                 return jx.getBean();
+            case "getName()":
+                return jx.getName();
             default:
                 throw new IllegalArgumentException(method);
         }

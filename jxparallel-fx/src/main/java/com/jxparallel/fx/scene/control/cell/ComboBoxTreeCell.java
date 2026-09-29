@@ -17,17 +17,17 @@ public class ComboBoxTreeCell<T> implements com.jxparallel.fx.scene.control.Skin
 
     @Override
     public boolean equals(Object o) {
-        return o == this || fxPeer.equals(com.jxparallel.fx.Fx.fx(o));
+        return o == this || fxPeer().equals(com.jxparallel.fx.Fx.fx(o));
     }
 
     @Override
     public int hashCode() {
-        return fxPeer.hashCode();
+        return fxPeer().hashCode();
     }
 
     @Override
     public String toString() {
-        return fxPeer.toString();
+        return fxPeer().toString();
     }
 
     public ComboBoxTreeCell() {
@@ -40,6 +40,11 @@ public class ComboBoxTreeCell<T> implements com.jxparallel.fx.scene.control.Skin
         com.jxparallel.fx.Fx.own(fxPeer(), this);
     }
 
+    public ComboBoxTreeCell(com.jxparallel.fx.collections.ObservableList<T> arg0) {
+        this(com.jxparallel.fx.Fx.WRAP, com.jxparallel.fx.Fx.NATIVE ? com.jxparallel.fx.nativeimpl.Native.create(javafx.scene.control.cell.ComboBoxTreeCell.class, new String[] {null}, new Object[] {arg0}) : new com.jxparallel.fx.peer.scene.control.cell.ComboBoxTreeCell((javafx.collections.ObservableList) com.jxparallel.fx.Fx.fx(arg0)));
+        com.jxparallel.fx.Fx.own(fxPeer(), this);
+    }
+
     public ComboBoxTreeCell(com.jxparallel.fx.util.StringConverter<T> arg0, T... arg1) {
         this(com.jxparallel.fx.Fx.WRAP, com.jxparallel.fx.Fx.NATIVE ? com.jxparallel.fx.nativeimpl.Native.create(javafx.scene.control.cell.ComboBoxTreeCell.class, new String[] {null, null}, new Object[] {arg0, arg1}) : new com.jxparallel.fx.peer.scene.control.cell.ComboBoxTreeCell((javafx.util.StringConverter) com.jxparallel.fx.Fx.fx(arg0), (T[]) com.jxparallel.fx.Fx.fxArray(arg1, java.lang.Object.class)));
         com.jxparallel.fx.Fx.own(fxPeer(), this);
@@ -47,11 +52,6 @@ public class ComboBoxTreeCell<T> implements com.jxparallel.fx.scene.control.Skin
 
     public ComboBoxTreeCell(com.jxparallel.fx.util.StringConverter<T> arg0, com.jxparallel.fx.collections.ObservableList<T> arg1) {
         this(com.jxparallel.fx.Fx.WRAP, com.jxparallel.fx.Fx.NATIVE ? com.jxparallel.fx.nativeimpl.Native.create(javafx.scene.control.cell.ComboBoxTreeCell.class, new String[] {null, null}, new Object[] {arg0, arg1}) : new com.jxparallel.fx.peer.scene.control.cell.ComboBoxTreeCell((javafx.util.StringConverter) com.jxparallel.fx.Fx.fx(arg0), (javafx.collections.ObservableList) com.jxparallel.fx.Fx.fx(arg1)));
-        com.jxparallel.fx.Fx.own(fxPeer(), this);
-    }
-
-    public ComboBoxTreeCell(com.jxparallel.fx.collections.ObservableList<T> arg0) {
-        this(com.jxparallel.fx.Fx.WRAP, com.jxparallel.fx.Fx.NATIVE ? com.jxparallel.fx.nativeimpl.Native.create(javafx.scene.control.cell.ComboBoxTreeCell.class, new String[] {null}, new Object[] {arg0}) : new com.jxparallel.fx.peer.scene.control.cell.ComboBoxTreeCell((javafx.collections.ObservableList) com.jxparallel.fx.Fx.fx(arg0)));
         com.jxparallel.fx.Fx.own(fxPeer(), this);
     }
 
@@ -170,6 +170,79 @@ public class ComboBoxTreeCell<T> implements com.jxparallel.fx.scene.control.Skin
         }
     }
 
+    public com.jxparallel.fx.beans.property.ObjectProperty<com.jxparallel.fx.scene.Node> disclosureNodeProperty() {
+        if (com.jxparallel.fx.Fx.NATIVE) {
+            return (com.jxparallel.fx.beans.property.ObjectProperty) com.jxparallel.fx.nativeimpl.Native.call(this, com.jxparallel.fx.scene.control.cell.ComboBoxTreeCell.class, "disclosureNodeProperty", new Class<?>[] {}, com.jxparallel.fx.beans.property.ObjectProperty.class);
+        }
+        return (com.jxparallel.fx.beans.property.ObjectProperty) com.jxparallel.fx.Fx.jx(((javafx.scene.control.cell.ComboBoxTreeCell) fxPeer()).disclosureNodeProperty());
+    }
+
+    public com.jxparallel.fx.beans.property.ReadOnlyObjectProperty<com.jxparallel.fx.scene.control.TreeItem<T>> treeItemProperty() {
+        if (com.jxparallel.fx.Fx.NATIVE) {
+            return (com.jxparallel.fx.beans.property.ReadOnlyObjectProperty) com.jxparallel.fx.nativeimpl.Native.call(this, com.jxparallel.fx.scene.control.cell.ComboBoxTreeCell.class, "treeItemProperty", new Class<?>[] {}, com.jxparallel.fx.beans.property.ReadOnlyObjectProperty.class);
+        }
+        return (com.jxparallel.fx.beans.property.ReadOnlyObjectProperty) com.jxparallel.fx.Fx.jx(((javafx.scene.control.cell.ComboBoxTreeCell) fxPeer()).treeItemProperty());
+    }
+
+    public com.jxparallel.fx.beans.property.ReadOnlyObjectProperty<com.jxparallel.fx.scene.control.TreeView<T>> treeViewProperty() {
+        if (com.jxparallel.fx.Fx.NATIVE) {
+            return (com.jxparallel.fx.beans.property.ReadOnlyObjectProperty) com.jxparallel.fx.nativeimpl.Native.call(this, com.jxparallel.fx.scene.control.cell.ComboBoxTreeCell.class, "treeViewProperty", new Class<?>[] {}, com.jxparallel.fx.beans.property.ReadOnlyObjectProperty.class);
+        }
+        return (com.jxparallel.fx.beans.property.ReadOnlyObjectProperty) com.jxparallel.fx.Fx.jx(((javafx.scene.control.cell.ComboBoxTreeCell) fxPeer()).treeViewProperty());
+    }
+
+    public com.jxparallel.fx.scene.Node getDisclosureNode() {
+        if (com.jxparallel.fx.Fx.NATIVE) {
+            return (com.jxparallel.fx.scene.Node) com.jxparallel.fx.nativeimpl.Native.call(this, com.jxparallel.fx.scene.control.cell.ComboBoxTreeCell.class, "getDisclosureNode", new Class<?>[] {}, com.jxparallel.fx.scene.Node.class);
+        }
+        return (com.jxparallel.fx.scene.Node) com.jxparallel.fx.Fx.jx(((javafx.scene.control.cell.ComboBoxTreeCell) fxPeer()).getDisclosureNode());
+    }
+
+    public com.jxparallel.fx.scene.control.TreeItem<T> getTreeItem() {
+        if (com.jxparallel.fx.Fx.NATIVE) {
+            return (com.jxparallel.fx.scene.control.TreeItem) com.jxparallel.fx.nativeimpl.Native.call(this, com.jxparallel.fx.scene.control.cell.ComboBoxTreeCell.class, "getTreeItem", new Class<?>[] {}, com.jxparallel.fx.scene.control.TreeItem.class);
+        }
+        return (com.jxparallel.fx.scene.control.TreeItem) com.jxparallel.fx.Fx.jx(((javafx.scene.control.cell.ComboBoxTreeCell) fxPeer()).getTreeItem());
+    }
+
+    public com.jxparallel.fx.scene.control.TreeView<T> getTreeView() {
+        if (com.jxparallel.fx.Fx.NATIVE) {
+            return (com.jxparallel.fx.scene.control.TreeView) com.jxparallel.fx.nativeimpl.Native.call(this, com.jxparallel.fx.scene.control.cell.ComboBoxTreeCell.class, "getTreeView", new Class<?>[] {}, com.jxparallel.fx.scene.control.TreeView.class);
+        }
+        return (com.jxparallel.fx.scene.control.TreeView) com.jxparallel.fx.Fx.jx(((javafx.scene.control.cell.ComboBoxTreeCell) fxPeer()).getTreeView());
+    }
+
+    public void setDisclosureNode(com.jxparallel.fx.scene.Node arg0) {
+        if (com.jxparallel.fx.Fx.NATIVE) {
+            com.jxparallel.fx.nativeimpl.Native.call(this, com.jxparallel.fx.scene.control.cell.ComboBoxTreeCell.class, "setDisclosureNode", new Class<?>[] {com.jxparallel.fx.scene.Node.class}, void.class, arg0);
+            return;
+        }
+        ((javafx.scene.control.cell.ComboBoxTreeCell) fxPeer()).setDisclosureNode((javafx.scene.Node) com.jxparallel.fx.Fx.fx(arg0));
+    }
+
+    public void updateTreeItem(com.jxparallel.fx.scene.control.TreeItem<T> arg0) {
+        if (com.jxparallel.fx.Fx.NATIVE) {
+            com.jxparallel.fx.nativeimpl.Native.call(this, com.jxparallel.fx.scene.control.cell.ComboBoxTreeCell.class, "updateTreeItem", new Class<?>[] {com.jxparallel.fx.scene.control.TreeItem.class}, void.class, arg0);
+            return;
+        }
+        ((javafx.scene.control.cell.ComboBoxTreeCell) fxPeer()).updateTreeItem((javafx.scene.control.TreeItem) com.jxparallel.fx.Fx.fx(arg0));
+    }
+
+    public void updateTreeView(com.jxparallel.fx.scene.control.TreeView<T> arg0) {
+        if (com.jxparallel.fx.Fx.NATIVE) {
+            com.jxparallel.fx.nativeimpl.Native.call(this, com.jxparallel.fx.scene.control.cell.ComboBoxTreeCell.class, "updateTreeView", new Class<?>[] {com.jxparallel.fx.scene.control.TreeView.class}, void.class, arg0);
+            return;
+        }
+        ((javafx.scene.control.cell.ComboBoxTreeCell) fxPeer()).updateTreeView((javafx.scene.control.TreeView) com.jxparallel.fx.Fx.fx(arg0));
+    }
+
+    public java.lang.Object queryAccessibleAttribute(com.jxparallel.fx.scene.AccessibleAttribute arg0, java.lang.Object... arg1) {
+        if (com.jxparallel.fx.Fx.NATIVE) {
+            return (java.lang.Object) com.jxparallel.fx.nativeimpl.Native.call(this, com.jxparallel.fx.scene.control.cell.ComboBoxTreeCell.class, "queryAccessibleAttribute", new Class<?>[] {com.jxparallel.fx.scene.AccessibleAttribute.class, java.lang.Object[].class}, java.lang.Object.class, arg0, arg1);
+        }
+        return (java.lang.Object) com.jxparallel.fx.Fx.jx(((javafx.scene.control.cell.ComboBoxTreeCell) fxPeer()).queryAccessibleAttribute((javafx.scene.AccessibleAttribute) com.jxparallel.fx.Fx.fx(arg0), (java.lang.Object[]) com.jxparallel.fx.Fx.fxArray(arg1, java.lang.Object.class)));
+    }
+
     public void commitEdit(T arg0) {
         if (com.jxparallel.fx.Fx.NATIVE) {
             com.jxparallel.fx.nativeimpl.Native.call(this, com.jxparallel.fx.scene.control.cell.ComboBoxTreeCell.class, "commitEdit", new Class<?>[] {java.lang.Object.class}, void.class, arg0);
@@ -186,84 +259,18 @@ public class ComboBoxTreeCell<T> implements com.jxparallel.fx.scene.control.Skin
         ((javafx.scene.control.cell.ComboBoxTreeCell) fxPeer()).executeAccessibleAction((javafx.scene.AccessibleAction) com.jxparallel.fx.Fx.fx(arg0), (java.lang.Object[]) com.jxparallel.fx.Fx.fxArray(arg1, java.lang.Object.class));
     }
 
-    public java.lang.Object queryAccessibleAttribute(com.jxparallel.fx.scene.AccessibleAttribute arg0, java.lang.Object... arg1) {
-        if (com.jxparallel.fx.Fx.NATIVE) {
-            return (java.lang.Object) com.jxparallel.fx.nativeimpl.Native.call(this, com.jxparallel.fx.scene.control.cell.ComboBoxTreeCell.class, "queryAccessibleAttribute", new Class<?>[] {com.jxparallel.fx.scene.AccessibleAttribute.class, java.lang.Object[].class}, java.lang.Object.class, arg0, arg1);
-        }
-        return (java.lang.Object) com.jxparallel.fx.Fx.jx(((javafx.scene.control.cell.ComboBoxTreeCell) fxPeer()).queryAccessibleAttribute((javafx.scene.AccessibleAttribute) com.jxparallel.fx.Fx.fx(arg0), (java.lang.Object[]) com.jxparallel.fx.Fx.fxArray(arg1, java.lang.Object.class)));
-    }
-
-    public void setDisclosureNode(com.jxparallel.fx.scene.Node arg0) {
-        if (com.jxparallel.fx.Fx.NATIVE) {
-            com.jxparallel.fx.nativeimpl.Native.call(this, com.jxparallel.fx.scene.control.cell.ComboBoxTreeCell.class, "setDisclosureNode", new Class<?>[] {com.jxparallel.fx.scene.Node.class}, void.class, arg0);
-            return;
-        }
-        ((javafx.scene.control.cell.ComboBoxTreeCell) fxPeer()).setDisclosureNode((javafx.scene.Node) com.jxparallel.fx.Fx.fx(arg0));
-    }
-
-    public com.jxparallel.fx.scene.Node getDisclosureNode() {
-        if (com.jxparallel.fx.Fx.NATIVE) {
-            return (com.jxparallel.fx.scene.Node) com.jxparallel.fx.nativeimpl.Native.call(this, com.jxparallel.fx.scene.control.cell.ComboBoxTreeCell.class, "getDisclosureNode", new Class<?>[] {}, com.jxparallel.fx.scene.Node.class);
-        }
-        return (com.jxparallel.fx.scene.Node) com.jxparallel.fx.Fx.jx(((javafx.scene.control.cell.ComboBoxTreeCell) fxPeer()).getDisclosureNode());
-    }
-
-    public com.jxparallel.fx.beans.property.ObjectProperty<com.jxparallel.fx.scene.Node> disclosureNodeProperty() {
-        if (com.jxparallel.fx.Fx.NATIVE) {
-            return (com.jxparallel.fx.beans.property.ObjectProperty) com.jxparallel.fx.nativeimpl.Native.call(this, com.jxparallel.fx.scene.control.cell.ComboBoxTreeCell.class, "disclosureNodeProperty", new Class<?>[] {}, com.jxparallel.fx.beans.property.ObjectProperty.class);
-        }
-        return (com.jxparallel.fx.beans.property.ObjectProperty) com.jxparallel.fx.Fx.jx(((javafx.scene.control.cell.ComboBoxTreeCell) fxPeer()).disclosureNodeProperty());
-    }
-
-    public com.jxparallel.fx.scene.control.TreeView<T> getTreeView() {
-        if (com.jxparallel.fx.Fx.NATIVE) {
-            return (com.jxparallel.fx.scene.control.TreeView) com.jxparallel.fx.nativeimpl.Native.call(this, com.jxparallel.fx.scene.control.cell.ComboBoxTreeCell.class, "getTreeView", new Class<?>[] {}, com.jxparallel.fx.scene.control.TreeView.class);
-        }
-        return (com.jxparallel.fx.scene.control.TreeView) com.jxparallel.fx.Fx.jx(((javafx.scene.control.cell.ComboBoxTreeCell) fxPeer()).getTreeView());
-    }
-
-    public com.jxparallel.fx.beans.property.ReadOnlyObjectProperty<com.jxparallel.fx.scene.control.TreeItem<T>> treeItemProperty() {
-        if (com.jxparallel.fx.Fx.NATIVE) {
-            return (com.jxparallel.fx.beans.property.ReadOnlyObjectProperty) com.jxparallel.fx.nativeimpl.Native.call(this, com.jxparallel.fx.scene.control.cell.ComboBoxTreeCell.class, "treeItemProperty", new Class<?>[] {}, com.jxparallel.fx.beans.property.ReadOnlyObjectProperty.class);
-        }
-        return (com.jxparallel.fx.beans.property.ReadOnlyObjectProperty) com.jxparallel.fx.Fx.jx(((javafx.scene.control.cell.ComboBoxTreeCell) fxPeer()).treeItemProperty());
-    }
-
-    public com.jxparallel.fx.scene.control.TreeItem<T> getTreeItem() {
-        if (com.jxparallel.fx.Fx.NATIVE) {
-            return (com.jxparallel.fx.scene.control.TreeItem) com.jxparallel.fx.nativeimpl.Native.call(this, com.jxparallel.fx.scene.control.cell.ComboBoxTreeCell.class, "getTreeItem", new Class<?>[] {}, com.jxparallel.fx.scene.control.TreeItem.class);
-        }
-        return (com.jxparallel.fx.scene.control.TreeItem) com.jxparallel.fx.Fx.jx(((javafx.scene.control.cell.ComboBoxTreeCell) fxPeer()).getTreeItem());
-    }
-
-    public void updateTreeItem(com.jxparallel.fx.scene.control.TreeItem<T> arg0) {
-        if (com.jxparallel.fx.Fx.NATIVE) {
-            com.jxparallel.fx.nativeimpl.Native.call(this, com.jxparallel.fx.scene.control.cell.ComboBoxTreeCell.class, "updateTreeItem", new Class<?>[] {com.jxparallel.fx.scene.control.TreeItem.class}, void.class, arg0);
-            return;
-        }
-        ((javafx.scene.control.cell.ComboBoxTreeCell) fxPeer()).updateTreeItem((javafx.scene.control.TreeItem) com.jxparallel.fx.Fx.fx(arg0));
-    }
-
-    public com.jxparallel.fx.beans.property.ReadOnlyObjectProperty<com.jxparallel.fx.scene.control.TreeView<T>> treeViewProperty() {
-        if (com.jxparallel.fx.Fx.NATIVE) {
-            return (com.jxparallel.fx.beans.property.ReadOnlyObjectProperty) com.jxparallel.fx.nativeimpl.Native.call(this, com.jxparallel.fx.scene.control.cell.ComboBoxTreeCell.class, "treeViewProperty", new Class<?>[] {}, com.jxparallel.fx.beans.property.ReadOnlyObjectProperty.class);
-        }
-        return (com.jxparallel.fx.beans.property.ReadOnlyObjectProperty) com.jxparallel.fx.Fx.jx(((javafx.scene.control.cell.ComboBoxTreeCell) fxPeer()).treeViewProperty());
-    }
-
-    public void updateTreeView(com.jxparallel.fx.scene.control.TreeView<T> arg0) {
-        if (com.jxparallel.fx.Fx.NATIVE) {
-            com.jxparallel.fx.nativeimpl.Native.call(this, com.jxparallel.fx.scene.control.cell.ComboBoxTreeCell.class, "updateTreeView", new Class<?>[] {com.jxparallel.fx.scene.control.TreeView.class}, void.class, arg0);
-            return;
-        }
-        ((javafx.scene.control.cell.ComboBoxTreeCell) fxPeer()).updateTreeView((javafx.scene.control.TreeView) com.jxparallel.fx.Fx.fx(arg0));
-    }
-
     public int getIndex() {
         if (com.jxparallel.fx.Fx.NATIVE) {
             return (Integer) com.jxparallel.fx.nativeimpl.Native.call(this, com.jxparallel.fx.scene.control.cell.ComboBoxTreeCell.class, "getIndex", new Class<?>[] {}, int.class);
         }
         return ((javafx.scene.control.cell.ComboBoxTreeCell) fxPeer()).getIndex();
+    }
+
+    public com.jxparallel.fx.beans.property.ReadOnlyIntegerProperty indexProperty() {
+        if (com.jxparallel.fx.Fx.NATIVE) {
+            return (com.jxparallel.fx.beans.property.ReadOnlyIntegerProperty) com.jxparallel.fx.nativeimpl.Native.call(this, com.jxparallel.fx.scene.control.cell.ComboBoxTreeCell.class, "indexProperty", new Class<?>[] {}, com.jxparallel.fx.beans.property.ReadOnlyIntegerProperty.class);
+        }
+        return (com.jxparallel.fx.beans.property.ReadOnlyIntegerProperty) com.jxparallel.fx.Fx.jx(((javafx.scene.control.cell.ComboBoxTreeCell) fxPeer()).indexProperty());
     }
 
     public void updateIndex(int arg0) {
@@ -274,11 +281,25 @@ public class ComboBoxTreeCell<T> implements com.jxparallel.fx.scene.control.Skin
         ((javafx.scene.control.cell.ComboBoxTreeCell) fxPeer()).updateIndex(arg0);
     }
 
-    public com.jxparallel.fx.beans.property.ReadOnlyIntegerProperty indexProperty() {
+    public T getItem() {
         if (com.jxparallel.fx.Fx.NATIVE) {
-            return (com.jxparallel.fx.beans.property.ReadOnlyIntegerProperty) com.jxparallel.fx.nativeimpl.Native.call(this, com.jxparallel.fx.scene.control.cell.ComboBoxTreeCell.class, "indexProperty", new Class<?>[] {}, com.jxparallel.fx.beans.property.ReadOnlyIntegerProperty.class);
+            return (T) com.jxparallel.fx.nativeimpl.Native.call(this, com.jxparallel.fx.scene.control.cell.ComboBoxTreeCell.class, "getItem", new Class<?>[] {}, java.lang.Object.class);
         }
-        return (com.jxparallel.fx.beans.property.ReadOnlyIntegerProperty) com.jxparallel.fx.Fx.jx(((javafx.scene.control.cell.ComboBoxTreeCell) fxPeer()).indexProperty());
+        return (T) com.jxparallel.fx.Fx.jx(((javafx.scene.control.cell.ComboBoxTreeCell) fxPeer()).getItem());
+    }
+
+    public boolean isEditable() {
+        if (com.jxparallel.fx.Fx.NATIVE) {
+            return (Boolean) com.jxparallel.fx.nativeimpl.Native.call(this, com.jxparallel.fx.scene.control.cell.ComboBoxTreeCell.class, "isEditable", new Class<?>[] {}, boolean.class);
+        }
+        return ((javafx.scene.control.cell.ComboBoxTreeCell) fxPeer()).isEditable();
+    }
+
+    public boolean isEditing() {
+        if (com.jxparallel.fx.Fx.NATIVE) {
+            return (Boolean) com.jxparallel.fx.nativeimpl.Native.call(this, com.jxparallel.fx.scene.control.cell.ComboBoxTreeCell.class, "isEditing", new Class<?>[] {}, boolean.class);
+        }
+        return ((javafx.scene.control.cell.ComboBoxTreeCell) fxPeer()).isEditing();
     }
 
     public boolean isEmpty() {
@@ -288,34 +309,18 @@ public class ComboBoxTreeCell<T> implements com.jxparallel.fx.scene.control.Skin
         return ((javafx.scene.control.cell.ComboBoxTreeCell) fxPeer()).isEmpty();
     }
 
-    public void updateSelected(boolean arg0) {
+    public boolean isSelected() {
         if (com.jxparallel.fx.Fx.NATIVE) {
-            com.jxparallel.fx.nativeimpl.Native.call(this, com.jxparallel.fx.scene.control.cell.ComboBoxTreeCell.class, "updateSelected", new Class<?>[] {boolean.class}, void.class, arg0);
-            return;
+            return (Boolean) com.jxparallel.fx.nativeimpl.Native.call(this, com.jxparallel.fx.scene.control.cell.ComboBoxTreeCell.class, "isSelected", new Class<?>[] {}, boolean.class);
         }
-        ((javafx.scene.control.cell.ComboBoxTreeCell) fxPeer()).updateSelected(arg0);
+        return ((javafx.scene.control.cell.ComboBoxTreeCell) fxPeer()).isSelected();
     }
 
-    public com.jxparallel.fx.beans.property.ReadOnlyBooleanProperty emptyProperty() {
+    public com.jxparallel.fx.beans.property.BooleanProperty editableProperty() {
         if (com.jxparallel.fx.Fx.NATIVE) {
-            return (com.jxparallel.fx.beans.property.ReadOnlyBooleanProperty) com.jxparallel.fx.nativeimpl.Native.call(this, com.jxparallel.fx.scene.control.cell.ComboBoxTreeCell.class, "emptyProperty", new Class<?>[] {}, com.jxparallel.fx.beans.property.ReadOnlyBooleanProperty.class);
+            return (com.jxparallel.fx.beans.property.BooleanProperty) com.jxparallel.fx.nativeimpl.Native.call(this, com.jxparallel.fx.scene.control.cell.ComboBoxTreeCell.class, "editableProperty", new Class<?>[] {}, com.jxparallel.fx.beans.property.BooleanProperty.class);
         }
-        return (com.jxparallel.fx.beans.property.ReadOnlyBooleanProperty) com.jxparallel.fx.Fx.jx(((javafx.scene.control.cell.ComboBoxTreeCell) fxPeer()).emptyProperty());
-    }
-
-    public T getItem() {
-        if (com.jxparallel.fx.Fx.NATIVE) {
-            return (T) com.jxparallel.fx.nativeimpl.Native.call(this, com.jxparallel.fx.scene.control.cell.ComboBoxTreeCell.class, "getItem", new Class<?>[] {}, java.lang.Object.class);
-        }
-        return (T) com.jxparallel.fx.Fx.jx(((javafx.scene.control.cell.ComboBoxTreeCell) fxPeer()).getItem());
-    }
-
-    public void setItem(T arg0) {
-        if (com.jxparallel.fx.Fx.NATIVE) {
-            com.jxparallel.fx.nativeimpl.Native.call(this, com.jxparallel.fx.scene.control.cell.ComboBoxTreeCell.class, "setItem", new Class<?>[] {java.lang.Object.class}, void.class, arg0);
-            return;
-        }
-        ((javafx.scene.control.cell.ComboBoxTreeCell) fxPeer()).setItem((T) com.jxparallel.fx.Fx.fx(arg0));
+        return (com.jxparallel.fx.beans.property.BooleanProperty) com.jxparallel.fx.Fx.jx(((javafx.scene.control.cell.ComboBoxTreeCell) fxPeer()).editableProperty());
     }
 
     public com.jxparallel.fx.beans.property.ObjectProperty<T> itemProperty() {
@@ -325,11 +330,18 @@ public class ComboBoxTreeCell<T> implements com.jxparallel.fx.scene.control.Skin
         return (com.jxparallel.fx.beans.property.ObjectProperty) com.jxparallel.fx.Fx.jx(((javafx.scene.control.cell.ComboBoxTreeCell) fxPeer()).itemProperty());
     }
 
-    public boolean isSelected() {
+    public com.jxparallel.fx.beans.property.ReadOnlyBooleanProperty editingProperty() {
         if (com.jxparallel.fx.Fx.NATIVE) {
-            return (Boolean) com.jxparallel.fx.nativeimpl.Native.call(this, com.jxparallel.fx.scene.control.cell.ComboBoxTreeCell.class, "isSelected", new Class<?>[] {}, boolean.class);
+            return (com.jxparallel.fx.beans.property.ReadOnlyBooleanProperty) com.jxparallel.fx.nativeimpl.Native.call(this, com.jxparallel.fx.scene.control.cell.ComboBoxTreeCell.class, "editingProperty", new Class<?>[] {}, com.jxparallel.fx.beans.property.ReadOnlyBooleanProperty.class);
         }
-        return ((javafx.scene.control.cell.ComboBoxTreeCell) fxPeer()).isSelected();
+        return (com.jxparallel.fx.beans.property.ReadOnlyBooleanProperty) com.jxparallel.fx.Fx.jx(((javafx.scene.control.cell.ComboBoxTreeCell) fxPeer()).editingProperty());
+    }
+
+    public com.jxparallel.fx.beans.property.ReadOnlyBooleanProperty emptyProperty() {
+        if (com.jxparallel.fx.Fx.NATIVE) {
+            return (com.jxparallel.fx.beans.property.ReadOnlyBooleanProperty) com.jxparallel.fx.nativeimpl.Native.call(this, com.jxparallel.fx.scene.control.cell.ComboBoxTreeCell.class, "emptyProperty", new Class<?>[] {}, com.jxparallel.fx.beans.property.ReadOnlyBooleanProperty.class);
+        }
+        return (com.jxparallel.fx.beans.property.ReadOnlyBooleanProperty) com.jxparallel.fx.Fx.jx(((javafx.scene.control.cell.ComboBoxTreeCell) fxPeer()).emptyProperty());
     }
 
     public com.jxparallel.fx.beans.property.ReadOnlyBooleanProperty selectedProperty() {
@@ -347,32 +359,62 @@ public class ComboBoxTreeCell<T> implements com.jxparallel.fx.scene.control.Skin
         ((javafx.scene.control.cell.ComboBoxTreeCell) fxPeer()).setEditable(arg0);
     }
 
-    public com.jxparallel.fx.beans.property.BooleanProperty editableProperty() {
+    public void setItem(T arg0) {
         if (com.jxparallel.fx.Fx.NATIVE) {
-            return (com.jxparallel.fx.beans.property.BooleanProperty) com.jxparallel.fx.nativeimpl.Native.call(this, com.jxparallel.fx.scene.control.cell.ComboBoxTreeCell.class, "editableProperty", new Class<?>[] {}, com.jxparallel.fx.beans.property.BooleanProperty.class);
+            com.jxparallel.fx.nativeimpl.Native.call(this, com.jxparallel.fx.scene.control.cell.ComboBoxTreeCell.class, "setItem", new Class<?>[] {java.lang.Object.class}, void.class, arg0);
+            return;
         }
-        return (com.jxparallel.fx.beans.property.BooleanProperty) com.jxparallel.fx.Fx.jx(((javafx.scene.control.cell.ComboBoxTreeCell) fxPeer()).editableProperty());
+        ((javafx.scene.control.cell.ComboBoxTreeCell) fxPeer()).setItem((T) com.jxparallel.fx.Fx.fx(arg0));
     }
 
-    public com.jxparallel.fx.beans.property.ReadOnlyBooleanProperty editingProperty() {
+    public void updateSelected(boolean arg0) {
         if (com.jxparallel.fx.Fx.NATIVE) {
-            return (com.jxparallel.fx.beans.property.ReadOnlyBooleanProperty) com.jxparallel.fx.nativeimpl.Native.call(this, com.jxparallel.fx.scene.control.cell.ComboBoxTreeCell.class, "editingProperty", new Class<?>[] {}, com.jxparallel.fx.beans.property.ReadOnlyBooleanProperty.class);
+            com.jxparallel.fx.nativeimpl.Native.call(this, com.jxparallel.fx.scene.control.cell.ComboBoxTreeCell.class, "updateSelected", new Class<?>[] {boolean.class}, void.class, arg0);
+            return;
         }
-        return (com.jxparallel.fx.beans.property.ReadOnlyBooleanProperty) com.jxparallel.fx.Fx.jx(((javafx.scene.control.cell.ComboBoxTreeCell) fxPeer()).editingProperty());
+        ((javafx.scene.control.cell.ComboBoxTreeCell) fxPeer()).updateSelected(arg0);
     }
 
-    public boolean isEditable() {
+    public boolean isMnemonicParsing() {
         if (com.jxparallel.fx.Fx.NATIVE) {
-            return (Boolean) com.jxparallel.fx.nativeimpl.Native.call(this, com.jxparallel.fx.scene.control.cell.ComboBoxTreeCell.class, "isEditable", new Class<?>[] {}, boolean.class);
+            return (Boolean) com.jxparallel.fx.nativeimpl.Native.call(this, com.jxparallel.fx.scene.control.cell.ComboBoxTreeCell.class, "isMnemonicParsing", new Class<?>[] {}, boolean.class);
         }
-        return ((javafx.scene.control.cell.ComboBoxTreeCell) fxPeer()).isEditable();
+        return ((javafx.scene.control.cell.ComboBoxTreeCell) fxPeer()).isMnemonicParsing();
     }
 
-    public boolean isEditing() {
+    public boolean isUnderline() {
         if (com.jxparallel.fx.Fx.NATIVE) {
-            return (Boolean) com.jxparallel.fx.nativeimpl.Native.call(this, com.jxparallel.fx.scene.control.cell.ComboBoxTreeCell.class, "isEditing", new Class<?>[] {}, boolean.class);
+            return (Boolean) com.jxparallel.fx.nativeimpl.Native.call(this, com.jxparallel.fx.scene.control.cell.ComboBoxTreeCell.class, "isUnderline", new Class<?>[] {}, boolean.class);
         }
-        return ((javafx.scene.control.cell.ComboBoxTreeCell) fxPeer()).isEditing();
+        return ((javafx.scene.control.cell.ComboBoxTreeCell) fxPeer()).isUnderline();
+    }
+
+    public boolean isWrapText() {
+        if (com.jxparallel.fx.Fx.NATIVE) {
+            return (Boolean) com.jxparallel.fx.nativeimpl.Native.call(this, com.jxparallel.fx.scene.control.cell.ComboBoxTreeCell.class, "isWrapText", new Class<?>[] {}, boolean.class);
+        }
+        return ((javafx.scene.control.cell.ComboBoxTreeCell) fxPeer()).isWrapText();
+    }
+
+    public double getGraphicTextGap() {
+        if (com.jxparallel.fx.Fx.NATIVE) {
+            return (Double) com.jxparallel.fx.nativeimpl.Native.call(this, com.jxparallel.fx.scene.control.cell.ComboBoxTreeCell.class, "getGraphicTextGap", new Class<?>[] {}, double.class);
+        }
+        return ((javafx.scene.control.cell.ComboBoxTreeCell) fxPeer()).getGraphicTextGap();
+    }
+
+    public double getLineSpacing() {
+        if (com.jxparallel.fx.Fx.NATIVE) {
+            return (Double) com.jxparallel.fx.nativeimpl.Native.call(this, com.jxparallel.fx.scene.control.cell.ComboBoxTreeCell.class, "getLineSpacing", new Class<?>[] {}, double.class);
+        }
+        return ((javafx.scene.control.cell.ComboBoxTreeCell) fxPeer()).getLineSpacing();
+    }
+
+    public java.lang.String getEllipsisString() {
+        if (com.jxparallel.fx.Fx.NATIVE) {
+            return (java.lang.String) com.jxparallel.fx.nativeimpl.Native.call(this, com.jxparallel.fx.scene.control.cell.ComboBoxTreeCell.class, "getEllipsisString", new Class<?>[] {}, java.lang.String.class);
+        }
+        return ((javafx.scene.control.cell.ComboBoxTreeCell) fxPeer()).getEllipsisString();
     }
 
     public java.lang.String getText() {
@@ -382,48 +424,46 @@ public class ComboBoxTreeCell<T> implements com.jxparallel.fx.scene.control.Skin
         return ((javafx.scene.control.cell.ComboBoxTreeCell) fxPeer()).getText();
     }
 
-    public com.jxparallel.fx.scene.text.Font getFont() {
+    public com.jxparallel.fx.beans.property.BooleanProperty mnemonicParsingProperty() {
         if (com.jxparallel.fx.Fx.NATIVE) {
-            return (com.jxparallel.fx.scene.text.Font) com.jxparallel.fx.nativeimpl.Native.call(this, com.jxparallel.fx.scene.control.cell.ComboBoxTreeCell.class, "getFont", new Class<?>[] {}, com.jxparallel.fx.scene.text.Font.class);
+            return (com.jxparallel.fx.beans.property.BooleanProperty) com.jxparallel.fx.nativeimpl.Native.call(this, com.jxparallel.fx.scene.control.cell.ComboBoxTreeCell.class, "mnemonicParsingProperty", new Class<?>[] {}, com.jxparallel.fx.beans.property.BooleanProperty.class);
         }
-        return (com.jxparallel.fx.scene.text.Font) com.jxparallel.fx.Fx.jx(((javafx.scene.control.cell.ComboBoxTreeCell) fxPeer()).getFont());
+        return (com.jxparallel.fx.beans.property.BooleanProperty) com.jxparallel.fx.Fx.jx(((javafx.scene.control.cell.ComboBoxTreeCell) fxPeer()).mnemonicParsingProperty());
     }
 
-    public void setFont(com.jxparallel.fx.scene.text.Font arg0) {
+    public com.jxparallel.fx.beans.property.BooleanProperty underlineProperty() {
         if (com.jxparallel.fx.Fx.NATIVE) {
-            com.jxparallel.fx.nativeimpl.Native.call(this, com.jxparallel.fx.scene.control.cell.ComboBoxTreeCell.class, "setFont", new Class<?>[] {com.jxparallel.fx.scene.text.Font.class}, void.class, arg0);
-            return;
+            return (com.jxparallel.fx.beans.property.BooleanProperty) com.jxparallel.fx.nativeimpl.Native.call(this, com.jxparallel.fx.scene.control.cell.ComboBoxTreeCell.class, "underlineProperty", new Class<?>[] {}, com.jxparallel.fx.beans.property.BooleanProperty.class);
         }
-        ((javafx.scene.control.cell.ComboBoxTreeCell) fxPeer()).setFont((javafx.scene.text.Font) com.jxparallel.fx.Fx.fx(arg0));
+        return (com.jxparallel.fx.beans.property.BooleanProperty) com.jxparallel.fx.Fx.jx(((javafx.scene.control.cell.ComboBoxTreeCell) fxPeer()).underlineProperty());
     }
 
-    public void setText(java.lang.String arg0) {
+    public com.jxparallel.fx.beans.property.BooleanProperty wrapTextProperty() {
         if (com.jxparallel.fx.Fx.NATIVE) {
-            com.jxparallel.fx.nativeimpl.Native.call(this, com.jxparallel.fx.scene.control.cell.ComboBoxTreeCell.class, "setText", new Class<?>[] {java.lang.String.class}, void.class, arg0);
-            return;
+            return (com.jxparallel.fx.beans.property.BooleanProperty) com.jxparallel.fx.nativeimpl.Native.call(this, com.jxparallel.fx.scene.control.cell.ComboBoxTreeCell.class, "wrapTextProperty", new Class<?>[] {}, com.jxparallel.fx.beans.property.BooleanProperty.class);
         }
-        ((javafx.scene.control.cell.ComboBoxTreeCell) fxPeer()).setText(arg0);
+        return (com.jxparallel.fx.beans.property.BooleanProperty) com.jxparallel.fx.Fx.jx(((javafx.scene.control.cell.ComboBoxTreeCell) fxPeer()).wrapTextProperty());
     }
 
-    public com.jxparallel.fx.geometry.Orientation getContentBias() {
+    public com.jxparallel.fx.beans.property.DoubleProperty graphicTextGapProperty() {
         if (com.jxparallel.fx.Fx.NATIVE) {
-            return (com.jxparallel.fx.geometry.Orientation) com.jxparallel.fx.nativeimpl.Native.call(this, com.jxparallel.fx.scene.control.cell.ComboBoxTreeCell.class, "getContentBias", new Class<?>[] {}, com.jxparallel.fx.geometry.Orientation.class);
+            return (com.jxparallel.fx.beans.property.DoubleProperty) com.jxparallel.fx.nativeimpl.Native.call(this, com.jxparallel.fx.scene.control.cell.ComboBoxTreeCell.class, "graphicTextGapProperty", new Class<?>[] {}, com.jxparallel.fx.beans.property.DoubleProperty.class);
         }
-        return (com.jxparallel.fx.geometry.Orientation) com.jxparallel.fx.Fx.jx(((javafx.scene.control.cell.ComboBoxTreeCell) fxPeer()).getContentBias());
+        return (com.jxparallel.fx.beans.property.DoubleProperty) com.jxparallel.fx.Fx.jx(((javafx.scene.control.cell.ComboBoxTreeCell) fxPeer()).graphicTextGapProperty());
     }
 
-    public com.jxparallel.fx.scene.Node getGraphic() {
+    public com.jxparallel.fx.beans.property.DoubleProperty lineSpacingProperty() {
         if (com.jxparallel.fx.Fx.NATIVE) {
-            return (com.jxparallel.fx.scene.Node) com.jxparallel.fx.nativeimpl.Native.call(this, com.jxparallel.fx.scene.control.cell.ComboBoxTreeCell.class, "getGraphic", new Class<?>[] {}, com.jxparallel.fx.scene.Node.class);
+            return (com.jxparallel.fx.beans.property.DoubleProperty) com.jxparallel.fx.nativeimpl.Native.call(this, com.jxparallel.fx.scene.control.cell.ComboBoxTreeCell.class, "lineSpacingProperty", new Class<?>[] {}, com.jxparallel.fx.beans.property.DoubleProperty.class);
         }
-        return (com.jxparallel.fx.scene.Node) com.jxparallel.fx.Fx.jx(((javafx.scene.control.cell.ComboBoxTreeCell) fxPeer()).getGraphic());
+        return (com.jxparallel.fx.beans.property.DoubleProperty) com.jxparallel.fx.Fx.jx(((javafx.scene.control.cell.ComboBoxTreeCell) fxPeer()).lineSpacingProperty());
     }
 
-    public java.util.List<javafx.css.CssMetaData<? extends javafx.css.Styleable, ?>> getControlCssMetaData() {
+    public com.jxparallel.fx.beans.property.ObjectProperty<com.jxparallel.fx.geometry.Pos> alignmentProperty() {
         if (com.jxparallel.fx.Fx.NATIVE) {
-            return (java.util.List) com.jxparallel.fx.nativeimpl.Native.call(this, com.jxparallel.fx.scene.control.cell.ComboBoxTreeCell.class, "getControlCssMetaData", new Class<?>[] {}, java.util.List.class);
+            return (com.jxparallel.fx.beans.property.ObjectProperty) com.jxparallel.fx.nativeimpl.Native.call(this, com.jxparallel.fx.scene.control.cell.ComboBoxTreeCell.class, "alignmentProperty", new Class<?>[] {}, com.jxparallel.fx.beans.property.ObjectProperty.class);
         }
-        return ((javafx.scene.control.cell.ComboBoxTreeCell) fxPeer()).getControlCssMetaData();
+        return (com.jxparallel.fx.beans.property.ObjectProperty) com.jxparallel.fx.Fx.jx(((javafx.scene.control.cell.ComboBoxTreeCell) fxPeer()).alignmentProperty());
     }
 
     public com.jxparallel.fx.beans.property.ObjectProperty<com.jxparallel.fx.scene.Node> graphicProperty() {
@@ -433,12 +473,116 @@ public class ComboBoxTreeCell<T> implements com.jxparallel.fx.scene.control.Skin
         return (com.jxparallel.fx.beans.property.ObjectProperty) com.jxparallel.fx.Fx.jx(((javafx.scene.control.cell.ComboBoxTreeCell) fxPeer()).graphicProperty());
     }
 
-    public void setGraphic(com.jxparallel.fx.scene.Node arg0) {
+    public com.jxparallel.fx.beans.property.ObjectProperty<com.jxparallel.fx.scene.control.ContentDisplay> contentDisplayProperty() {
         if (com.jxparallel.fx.Fx.NATIVE) {
-            com.jxparallel.fx.nativeimpl.Native.call(this, com.jxparallel.fx.scene.control.cell.ComboBoxTreeCell.class, "setGraphic", new Class<?>[] {com.jxparallel.fx.scene.Node.class}, void.class, arg0);
-            return;
+            return (com.jxparallel.fx.beans.property.ObjectProperty) com.jxparallel.fx.nativeimpl.Native.call(this, com.jxparallel.fx.scene.control.cell.ComboBoxTreeCell.class, "contentDisplayProperty", new Class<?>[] {}, com.jxparallel.fx.beans.property.ObjectProperty.class);
         }
-        ((javafx.scene.control.cell.ComboBoxTreeCell) fxPeer()).setGraphic((javafx.scene.Node) com.jxparallel.fx.Fx.fx(arg0));
+        return (com.jxparallel.fx.beans.property.ObjectProperty) com.jxparallel.fx.Fx.jx(((javafx.scene.control.cell.ComboBoxTreeCell) fxPeer()).contentDisplayProperty());
+    }
+
+    public com.jxparallel.fx.beans.property.ObjectProperty<com.jxparallel.fx.scene.control.OverrunStyle> textOverrunProperty() {
+        if (com.jxparallel.fx.Fx.NATIVE) {
+            return (com.jxparallel.fx.beans.property.ObjectProperty) com.jxparallel.fx.nativeimpl.Native.call(this, com.jxparallel.fx.scene.control.cell.ComboBoxTreeCell.class, "textOverrunProperty", new Class<?>[] {}, com.jxparallel.fx.beans.property.ObjectProperty.class);
+        }
+        return (com.jxparallel.fx.beans.property.ObjectProperty) com.jxparallel.fx.Fx.jx(((javafx.scene.control.cell.ComboBoxTreeCell) fxPeer()).textOverrunProperty());
+    }
+
+    public com.jxparallel.fx.beans.property.ObjectProperty<com.jxparallel.fx.scene.paint.Paint> textFillProperty() {
+        if (com.jxparallel.fx.Fx.NATIVE) {
+            return (com.jxparallel.fx.beans.property.ObjectProperty) com.jxparallel.fx.nativeimpl.Native.call(this, com.jxparallel.fx.scene.control.cell.ComboBoxTreeCell.class, "textFillProperty", new Class<?>[] {}, com.jxparallel.fx.beans.property.ObjectProperty.class);
+        }
+        return (com.jxparallel.fx.beans.property.ObjectProperty) com.jxparallel.fx.Fx.jx(((javafx.scene.control.cell.ComboBoxTreeCell) fxPeer()).textFillProperty());
+    }
+
+    public com.jxparallel.fx.beans.property.ObjectProperty<com.jxparallel.fx.scene.text.Font> fontProperty() {
+        if (com.jxparallel.fx.Fx.NATIVE) {
+            return (com.jxparallel.fx.beans.property.ObjectProperty) com.jxparallel.fx.nativeimpl.Native.call(this, com.jxparallel.fx.scene.control.cell.ComboBoxTreeCell.class, "fontProperty", new Class<?>[] {}, com.jxparallel.fx.beans.property.ObjectProperty.class);
+        }
+        return (com.jxparallel.fx.beans.property.ObjectProperty) com.jxparallel.fx.Fx.jx(((javafx.scene.control.cell.ComboBoxTreeCell) fxPeer()).fontProperty());
+    }
+
+    public com.jxparallel.fx.beans.property.ObjectProperty<com.jxparallel.fx.scene.text.TextAlignment> textAlignmentProperty() {
+        if (com.jxparallel.fx.Fx.NATIVE) {
+            return (com.jxparallel.fx.beans.property.ObjectProperty) com.jxparallel.fx.nativeimpl.Native.call(this, com.jxparallel.fx.scene.control.cell.ComboBoxTreeCell.class, "textAlignmentProperty", new Class<?>[] {}, com.jxparallel.fx.beans.property.ObjectProperty.class);
+        }
+        return (com.jxparallel.fx.beans.property.ObjectProperty) com.jxparallel.fx.Fx.jx(((javafx.scene.control.cell.ComboBoxTreeCell) fxPeer()).textAlignmentProperty());
+    }
+
+    public com.jxparallel.fx.beans.property.ReadOnlyObjectProperty<com.jxparallel.fx.geometry.Insets> labelPaddingProperty() {
+        if (com.jxparallel.fx.Fx.NATIVE) {
+            return (com.jxparallel.fx.beans.property.ReadOnlyObjectProperty) com.jxparallel.fx.nativeimpl.Native.call(this, com.jxparallel.fx.scene.control.cell.ComboBoxTreeCell.class, "labelPaddingProperty", new Class<?>[] {}, com.jxparallel.fx.beans.property.ReadOnlyObjectProperty.class);
+        }
+        return (com.jxparallel.fx.beans.property.ReadOnlyObjectProperty) com.jxparallel.fx.Fx.jx(((javafx.scene.control.cell.ComboBoxTreeCell) fxPeer()).labelPaddingProperty());
+    }
+
+    public com.jxparallel.fx.beans.property.StringProperty ellipsisStringProperty() {
+        if (com.jxparallel.fx.Fx.NATIVE) {
+            return (com.jxparallel.fx.beans.property.StringProperty) com.jxparallel.fx.nativeimpl.Native.call(this, com.jxparallel.fx.scene.control.cell.ComboBoxTreeCell.class, "ellipsisStringProperty", new Class<?>[] {}, com.jxparallel.fx.beans.property.StringProperty.class);
+        }
+        return (com.jxparallel.fx.beans.property.StringProperty) com.jxparallel.fx.Fx.jx(((javafx.scene.control.cell.ComboBoxTreeCell) fxPeer()).ellipsisStringProperty());
+    }
+
+    public com.jxparallel.fx.beans.property.StringProperty textProperty() {
+        if (com.jxparallel.fx.Fx.NATIVE) {
+            return (com.jxparallel.fx.beans.property.StringProperty) com.jxparallel.fx.nativeimpl.Native.call(this, com.jxparallel.fx.scene.control.cell.ComboBoxTreeCell.class, "textProperty", new Class<?>[] {}, com.jxparallel.fx.beans.property.StringProperty.class);
+        }
+        return (com.jxparallel.fx.beans.property.StringProperty) com.jxparallel.fx.Fx.jx(((javafx.scene.control.cell.ComboBoxTreeCell) fxPeer()).textProperty());
+    }
+
+    public com.jxparallel.fx.geometry.Insets getLabelPadding() {
+        if (com.jxparallel.fx.Fx.NATIVE) {
+            return (com.jxparallel.fx.geometry.Insets) com.jxparallel.fx.nativeimpl.Native.call(this, com.jxparallel.fx.scene.control.cell.ComboBoxTreeCell.class, "getLabelPadding", new Class<?>[] {}, com.jxparallel.fx.geometry.Insets.class);
+        }
+        return (com.jxparallel.fx.geometry.Insets) com.jxparallel.fx.Fx.jx(((javafx.scene.control.cell.ComboBoxTreeCell) fxPeer()).getLabelPadding());
+    }
+
+    public com.jxparallel.fx.geometry.Pos getAlignment() {
+        if (com.jxparallel.fx.Fx.NATIVE) {
+            return (com.jxparallel.fx.geometry.Pos) com.jxparallel.fx.nativeimpl.Native.call(this, com.jxparallel.fx.scene.control.cell.ComboBoxTreeCell.class, "getAlignment", new Class<?>[] {}, com.jxparallel.fx.geometry.Pos.class);
+        }
+        return (com.jxparallel.fx.geometry.Pos) com.jxparallel.fx.Fx.jx(((javafx.scene.control.cell.ComboBoxTreeCell) fxPeer()).getAlignment());
+    }
+
+    public com.jxparallel.fx.scene.Node getGraphic() {
+        if (com.jxparallel.fx.Fx.NATIVE) {
+            return (com.jxparallel.fx.scene.Node) com.jxparallel.fx.nativeimpl.Native.call(this, com.jxparallel.fx.scene.control.cell.ComboBoxTreeCell.class, "getGraphic", new Class<?>[] {}, com.jxparallel.fx.scene.Node.class);
+        }
+        return (com.jxparallel.fx.scene.Node) com.jxparallel.fx.Fx.jx(((javafx.scene.control.cell.ComboBoxTreeCell) fxPeer()).getGraphic());
+    }
+
+    public com.jxparallel.fx.scene.control.ContentDisplay getContentDisplay() {
+        if (com.jxparallel.fx.Fx.NATIVE) {
+            return (com.jxparallel.fx.scene.control.ContentDisplay) com.jxparallel.fx.nativeimpl.Native.call(this, com.jxparallel.fx.scene.control.cell.ComboBoxTreeCell.class, "getContentDisplay", new Class<?>[] {}, com.jxparallel.fx.scene.control.ContentDisplay.class);
+        }
+        return (com.jxparallel.fx.scene.control.ContentDisplay) com.jxparallel.fx.Fx.jx(((javafx.scene.control.cell.ComboBoxTreeCell) fxPeer()).getContentDisplay());
+    }
+
+    public com.jxparallel.fx.scene.control.OverrunStyle getTextOverrun() {
+        if (com.jxparallel.fx.Fx.NATIVE) {
+            return (com.jxparallel.fx.scene.control.OverrunStyle) com.jxparallel.fx.nativeimpl.Native.call(this, com.jxparallel.fx.scene.control.cell.ComboBoxTreeCell.class, "getTextOverrun", new Class<?>[] {}, com.jxparallel.fx.scene.control.OverrunStyle.class);
+        }
+        return (com.jxparallel.fx.scene.control.OverrunStyle) com.jxparallel.fx.Fx.jx(((javafx.scene.control.cell.ComboBoxTreeCell) fxPeer()).getTextOverrun());
+    }
+
+    public com.jxparallel.fx.scene.paint.Paint getTextFill() {
+        if (com.jxparallel.fx.Fx.NATIVE) {
+            return (com.jxparallel.fx.scene.paint.Paint) com.jxparallel.fx.nativeimpl.Native.call(this, com.jxparallel.fx.scene.control.cell.ComboBoxTreeCell.class, "getTextFill", new Class<?>[] {}, com.jxparallel.fx.scene.paint.Paint.class);
+        }
+        return (com.jxparallel.fx.scene.paint.Paint) com.jxparallel.fx.Fx.jx(((javafx.scene.control.cell.ComboBoxTreeCell) fxPeer()).getTextFill());
+    }
+
+    public com.jxparallel.fx.scene.text.Font getFont() {
+        if (com.jxparallel.fx.Fx.NATIVE) {
+            return (com.jxparallel.fx.scene.text.Font) com.jxparallel.fx.nativeimpl.Native.call(this, com.jxparallel.fx.scene.control.cell.ComboBoxTreeCell.class, "getFont", new Class<?>[] {}, com.jxparallel.fx.scene.text.Font.class);
+        }
+        return (com.jxparallel.fx.scene.text.Font) com.jxparallel.fx.Fx.jx(((javafx.scene.control.cell.ComboBoxTreeCell) fxPeer()).getFont());
+    }
+
+    public com.jxparallel.fx.scene.text.TextAlignment getTextAlignment() {
+        if (com.jxparallel.fx.Fx.NATIVE) {
+            return (com.jxparallel.fx.scene.text.TextAlignment) com.jxparallel.fx.nativeimpl.Native.call(this, com.jxparallel.fx.scene.control.cell.ComboBoxTreeCell.class, "getTextAlignment", new Class<?>[] {}, com.jxparallel.fx.scene.text.TextAlignment.class);
+        }
+        return (com.jxparallel.fx.scene.text.TextAlignment) com.jxparallel.fx.Fx.jx(((javafx.scene.control.cell.ComboBoxTreeCell) fxPeer()).getTextAlignment());
     }
 
     public void setAlignment(com.jxparallel.fx.geometry.Pos arg0) {
@@ -449,55 +593,44 @@ public class ComboBoxTreeCell<T> implements com.jxparallel.fx.scene.control.Skin
         ((javafx.scene.control.cell.ComboBoxTreeCell) fxPeer()).setAlignment((javafx.geometry.Pos) com.jxparallel.fx.Fx.fx(arg0));
     }
 
-    public void setTextAlignment(com.jxparallel.fx.scene.text.TextAlignment arg0) {
+    public void setContentDisplay(com.jxparallel.fx.scene.control.ContentDisplay arg0) {
         if (com.jxparallel.fx.Fx.NATIVE) {
-            com.jxparallel.fx.nativeimpl.Native.call(this, com.jxparallel.fx.scene.control.cell.ComboBoxTreeCell.class, "setTextAlignment", new Class<?>[] {com.jxparallel.fx.scene.text.TextAlignment.class}, void.class, arg0);
+            com.jxparallel.fx.nativeimpl.Native.call(this, com.jxparallel.fx.scene.control.cell.ComboBoxTreeCell.class, "setContentDisplay", new Class<?>[] {com.jxparallel.fx.scene.control.ContentDisplay.class}, void.class, arg0);
             return;
         }
-        ((javafx.scene.control.cell.ComboBoxTreeCell) fxPeer()).setTextAlignment((javafx.scene.text.TextAlignment) com.jxparallel.fx.Fx.fx(arg0));
+        ((javafx.scene.control.cell.ComboBoxTreeCell) fxPeer()).setContentDisplay((javafx.scene.control.ContentDisplay) com.jxparallel.fx.Fx.fx(arg0));
     }
 
-    public com.jxparallel.fx.scene.paint.Paint getTextFill() {
+    public void setEllipsisString(java.lang.String arg0) {
         if (com.jxparallel.fx.Fx.NATIVE) {
-            return (com.jxparallel.fx.scene.paint.Paint) com.jxparallel.fx.nativeimpl.Native.call(this, com.jxparallel.fx.scene.control.cell.ComboBoxTreeCell.class, "getTextFill", new Class<?>[] {}, com.jxparallel.fx.scene.paint.Paint.class);
-        }
-        return (com.jxparallel.fx.scene.paint.Paint) com.jxparallel.fx.Fx.jx(((javafx.scene.control.cell.ComboBoxTreeCell) fxPeer()).getTextFill());
-    }
-
-    public com.jxparallel.fx.geometry.Insets getLabelPadding() {
-        if (com.jxparallel.fx.Fx.NATIVE) {
-            return (com.jxparallel.fx.geometry.Insets) com.jxparallel.fx.nativeimpl.Native.call(this, com.jxparallel.fx.scene.control.cell.ComboBoxTreeCell.class, "getLabelPadding", new Class<?>[] {}, com.jxparallel.fx.geometry.Insets.class);
-        }
-        return (com.jxparallel.fx.geometry.Insets) com.jxparallel.fx.Fx.jx(((javafx.scene.control.cell.ComboBoxTreeCell) fxPeer()).getLabelPadding());
-    }
-
-    public void setTextFill(com.jxparallel.fx.scene.paint.Paint arg0) {
-        if (com.jxparallel.fx.Fx.NATIVE) {
-            com.jxparallel.fx.nativeimpl.Native.call(this, com.jxparallel.fx.scene.control.cell.ComboBoxTreeCell.class, "setTextFill", new Class<?>[] {com.jxparallel.fx.scene.paint.Paint.class}, void.class, arg0);
+            com.jxparallel.fx.nativeimpl.Native.call(this, com.jxparallel.fx.scene.control.cell.ComboBoxTreeCell.class, "setEllipsisString", new Class<?>[] {java.lang.String.class}, void.class, arg0);
             return;
         }
-        ((javafx.scene.control.cell.ComboBoxTreeCell) fxPeer()).setTextFill((javafx.scene.paint.Paint) com.jxparallel.fx.Fx.fx(arg0));
+        ((javafx.scene.control.cell.ComboBoxTreeCell) fxPeer()).setEllipsisString(arg0);
     }
 
-    public com.jxparallel.fx.beans.property.ObjectProperty<com.jxparallel.fx.scene.text.Font> fontProperty() {
+    public void setFont(com.jxparallel.fx.scene.text.Font arg0) {
         if (com.jxparallel.fx.Fx.NATIVE) {
-            return (com.jxparallel.fx.beans.property.ObjectProperty) com.jxparallel.fx.nativeimpl.Native.call(this, com.jxparallel.fx.scene.control.cell.ComboBoxTreeCell.class, "fontProperty", new Class<?>[] {}, com.jxparallel.fx.beans.property.ObjectProperty.class);
+            com.jxparallel.fx.nativeimpl.Native.call(this, com.jxparallel.fx.scene.control.cell.ComboBoxTreeCell.class, "setFont", new Class<?>[] {com.jxparallel.fx.scene.text.Font.class}, void.class, arg0);
+            return;
         }
-        return (com.jxparallel.fx.beans.property.ObjectProperty) com.jxparallel.fx.Fx.jx(((javafx.scene.control.cell.ComboBoxTreeCell) fxPeer()).fontProperty());
+        ((javafx.scene.control.cell.ComboBoxTreeCell) fxPeer()).setFont((javafx.scene.text.Font) com.jxparallel.fx.Fx.fx(arg0));
     }
 
-    public boolean isUnderline() {
+    public void setGraphic(com.jxparallel.fx.scene.Node arg0) {
         if (com.jxparallel.fx.Fx.NATIVE) {
-            return (Boolean) com.jxparallel.fx.nativeimpl.Native.call(this, com.jxparallel.fx.scene.control.cell.ComboBoxTreeCell.class, "isUnderline", new Class<?>[] {}, boolean.class);
+            com.jxparallel.fx.nativeimpl.Native.call(this, com.jxparallel.fx.scene.control.cell.ComboBoxTreeCell.class, "setGraphic", new Class<?>[] {com.jxparallel.fx.scene.Node.class}, void.class, arg0);
+            return;
         }
-        return ((javafx.scene.control.cell.ComboBoxTreeCell) fxPeer()).isUnderline();
+        ((javafx.scene.control.cell.ComboBoxTreeCell) fxPeer()).setGraphic((javafx.scene.Node) com.jxparallel.fx.Fx.fx(arg0));
     }
 
-    public com.jxparallel.fx.geometry.Pos getAlignment() {
+    public void setGraphicTextGap(double arg0) {
         if (com.jxparallel.fx.Fx.NATIVE) {
-            return (com.jxparallel.fx.geometry.Pos) com.jxparallel.fx.nativeimpl.Native.call(this, com.jxparallel.fx.scene.control.cell.ComboBoxTreeCell.class, "getAlignment", new Class<?>[] {}, com.jxparallel.fx.geometry.Pos.class);
+            com.jxparallel.fx.nativeimpl.Native.call(this, com.jxparallel.fx.scene.control.cell.ComboBoxTreeCell.class, "setGraphicTextGap", new Class<?>[] {double.class}, void.class, arg0);
+            return;
         }
-        return (com.jxparallel.fx.geometry.Pos) com.jxparallel.fx.Fx.jx(((javafx.scene.control.cell.ComboBoxTreeCell) fxPeer()).getAlignment());
+        ((javafx.scene.control.cell.ComboBoxTreeCell) fxPeer()).setGraphicTextGap(arg0);
     }
 
     public void setLineSpacing(double arg0) {
@@ -508,54 +641,36 @@ public class ComboBoxTreeCell<T> implements com.jxparallel.fx.scene.control.Skin
         ((javafx.scene.control.cell.ComboBoxTreeCell) fxPeer()).setLineSpacing(arg0);
     }
 
-    public double getLineSpacing() {
+    public void setMnemonicParsing(boolean arg0) {
         if (com.jxparallel.fx.Fx.NATIVE) {
-            return (Double) com.jxparallel.fx.nativeimpl.Native.call(this, com.jxparallel.fx.scene.control.cell.ComboBoxTreeCell.class, "getLineSpacing", new Class<?>[] {}, double.class);
-        }
-        return ((javafx.scene.control.cell.ComboBoxTreeCell) fxPeer()).getLineSpacing();
-    }
-
-    public com.jxparallel.fx.scene.text.TextAlignment getTextAlignment() {
-        if (com.jxparallel.fx.Fx.NATIVE) {
-            return (com.jxparallel.fx.scene.text.TextAlignment) com.jxparallel.fx.nativeimpl.Native.call(this, com.jxparallel.fx.scene.control.cell.ComboBoxTreeCell.class, "getTextAlignment", new Class<?>[] {}, com.jxparallel.fx.scene.text.TextAlignment.class);
-        }
-        return (com.jxparallel.fx.scene.text.TextAlignment) com.jxparallel.fx.Fx.jx(((javafx.scene.control.cell.ComboBoxTreeCell) fxPeer()).getTextAlignment());
-    }
-
-    public com.jxparallel.fx.scene.control.OverrunStyle getTextOverrun() {
-        if (com.jxparallel.fx.Fx.NATIVE) {
-            return (com.jxparallel.fx.scene.control.OverrunStyle) com.jxparallel.fx.nativeimpl.Native.call(this, com.jxparallel.fx.scene.control.cell.ComboBoxTreeCell.class, "getTextOverrun", new Class<?>[] {}, com.jxparallel.fx.scene.control.OverrunStyle.class);
-        }
-        return (com.jxparallel.fx.scene.control.OverrunStyle) com.jxparallel.fx.Fx.jx(((javafx.scene.control.cell.ComboBoxTreeCell) fxPeer()).getTextOverrun());
-    }
-
-    public boolean isWrapText() {
-        if (com.jxparallel.fx.Fx.NATIVE) {
-            return (Boolean) com.jxparallel.fx.nativeimpl.Native.call(this, com.jxparallel.fx.scene.control.cell.ComboBoxTreeCell.class, "isWrapText", new Class<?>[] {}, boolean.class);
-        }
-        return ((javafx.scene.control.cell.ComboBoxTreeCell) fxPeer()).isWrapText();
-    }
-
-    public void setWrapText(boolean arg0) {
-        if (com.jxparallel.fx.Fx.NATIVE) {
-            com.jxparallel.fx.nativeimpl.Native.call(this, com.jxparallel.fx.scene.control.cell.ComboBoxTreeCell.class, "setWrapText", new Class<?>[] {boolean.class}, void.class, arg0);
+            com.jxparallel.fx.nativeimpl.Native.call(this, com.jxparallel.fx.scene.control.cell.ComboBoxTreeCell.class, "setMnemonicParsing", new Class<?>[] {boolean.class}, void.class, arg0);
             return;
         }
-        ((javafx.scene.control.cell.ComboBoxTreeCell) fxPeer()).setWrapText(arg0);
+        ((javafx.scene.control.cell.ComboBoxTreeCell) fxPeer()).setMnemonicParsing(arg0);
     }
 
-    public com.jxparallel.fx.beans.property.BooleanProperty wrapTextProperty() {
+    public void setText(java.lang.String arg0) {
         if (com.jxparallel.fx.Fx.NATIVE) {
-            return (com.jxparallel.fx.beans.property.BooleanProperty) com.jxparallel.fx.nativeimpl.Native.call(this, com.jxparallel.fx.scene.control.cell.ComboBoxTreeCell.class, "wrapTextProperty", new Class<?>[] {}, com.jxparallel.fx.beans.property.BooleanProperty.class);
+            com.jxparallel.fx.nativeimpl.Native.call(this, com.jxparallel.fx.scene.control.cell.ComboBoxTreeCell.class, "setText", new Class<?>[] {java.lang.String.class}, void.class, arg0);
+            return;
         }
-        return (com.jxparallel.fx.beans.property.BooleanProperty) com.jxparallel.fx.Fx.jx(((javafx.scene.control.cell.ComboBoxTreeCell) fxPeer()).wrapTextProperty());
+        ((javafx.scene.control.cell.ComboBoxTreeCell) fxPeer()).setText(arg0);
     }
 
-    public com.jxparallel.fx.beans.property.StringProperty textProperty() {
+    public void setTextAlignment(com.jxparallel.fx.scene.text.TextAlignment arg0) {
         if (com.jxparallel.fx.Fx.NATIVE) {
-            return (com.jxparallel.fx.beans.property.StringProperty) com.jxparallel.fx.nativeimpl.Native.call(this, com.jxparallel.fx.scene.control.cell.ComboBoxTreeCell.class, "textProperty", new Class<?>[] {}, com.jxparallel.fx.beans.property.StringProperty.class);
+            com.jxparallel.fx.nativeimpl.Native.call(this, com.jxparallel.fx.scene.control.cell.ComboBoxTreeCell.class, "setTextAlignment", new Class<?>[] {com.jxparallel.fx.scene.text.TextAlignment.class}, void.class, arg0);
+            return;
         }
-        return (com.jxparallel.fx.beans.property.StringProperty) com.jxparallel.fx.Fx.jx(((javafx.scene.control.cell.ComboBoxTreeCell) fxPeer()).textProperty());
+        ((javafx.scene.control.cell.ComboBoxTreeCell) fxPeer()).setTextAlignment((javafx.scene.text.TextAlignment) com.jxparallel.fx.Fx.fx(arg0));
+    }
+
+    public void setTextFill(com.jxparallel.fx.scene.paint.Paint arg0) {
+        if (com.jxparallel.fx.Fx.NATIVE) {
+            com.jxparallel.fx.nativeimpl.Native.call(this, com.jxparallel.fx.scene.control.cell.ComboBoxTreeCell.class, "setTextFill", new Class<?>[] {com.jxparallel.fx.scene.paint.Paint.class}, void.class, arg0);
+            return;
+        }
+        ((javafx.scene.control.cell.ComboBoxTreeCell) fxPeer()).setTextFill((javafx.scene.paint.Paint) com.jxparallel.fx.Fx.fx(arg0));
     }
 
     public void setTextOverrun(com.jxparallel.fx.scene.control.OverrunStyle arg0) {
@@ -574,156 +689,33 @@ public class ComboBoxTreeCell<T> implements com.jxparallel.fx.scene.control.Skin
         ((javafx.scene.control.cell.ComboBoxTreeCell) fxPeer()).setUnderline(arg0);
     }
 
-    public com.jxparallel.fx.beans.property.ObjectProperty<com.jxparallel.fx.scene.paint.Paint> textFillProperty() {
+    public void setWrapText(boolean arg0) {
         if (com.jxparallel.fx.Fx.NATIVE) {
-            return (com.jxparallel.fx.beans.property.ObjectProperty) com.jxparallel.fx.nativeimpl.Native.call(this, com.jxparallel.fx.scene.control.cell.ComboBoxTreeCell.class, "textFillProperty", new Class<?>[] {}, com.jxparallel.fx.beans.property.ObjectProperty.class);
-        }
-        return (com.jxparallel.fx.beans.property.ObjectProperty) com.jxparallel.fx.Fx.jx(((javafx.scene.control.cell.ComboBoxTreeCell) fxPeer()).textFillProperty());
-    }
-
-    public com.jxparallel.fx.beans.property.ObjectProperty<com.jxparallel.fx.scene.control.ContentDisplay> contentDisplayProperty() {
-        if (com.jxparallel.fx.Fx.NATIVE) {
-            return (com.jxparallel.fx.beans.property.ObjectProperty) com.jxparallel.fx.nativeimpl.Native.call(this, com.jxparallel.fx.scene.control.cell.ComboBoxTreeCell.class, "contentDisplayProperty", new Class<?>[] {}, com.jxparallel.fx.beans.property.ObjectProperty.class);
-        }
-        return (com.jxparallel.fx.beans.property.ObjectProperty) com.jxparallel.fx.Fx.jx(((javafx.scene.control.cell.ComboBoxTreeCell) fxPeer()).contentDisplayProperty());
-    }
-
-    public com.jxparallel.fx.scene.control.ContentDisplay getContentDisplay() {
-        if (com.jxparallel.fx.Fx.NATIVE) {
-            return (com.jxparallel.fx.scene.control.ContentDisplay) com.jxparallel.fx.nativeimpl.Native.call(this, com.jxparallel.fx.scene.control.cell.ComboBoxTreeCell.class, "getContentDisplay", new Class<?>[] {}, com.jxparallel.fx.scene.control.ContentDisplay.class);
-        }
-        return (com.jxparallel.fx.scene.control.ContentDisplay) com.jxparallel.fx.Fx.jx(((javafx.scene.control.cell.ComboBoxTreeCell) fxPeer()).getContentDisplay());
-    }
-
-    public com.jxparallel.fx.beans.property.BooleanProperty underlineProperty() {
-        if (com.jxparallel.fx.Fx.NATIVE) {
-            return (com.jxparallel.fx.beans.property.BooleanProperty) com.jxparallel.fx.nativeimpl.Native.call(this, com.jxparallel.fx.scene.control.cell.ComboBoxTreeCell.class, "underlineProperty", new Class<?>[] {}, com.jxparallel.fx.beans.property.BooleanProperty.class);
-        }
-        return (com.jxparallel.fx.beans.property.BooleanProperty) com.jxparallel.fx.Fx.jx(((javafx.scene.control.cell.ComboBoxTreeCell) fxPeer()).underlineProperty());
-    }
-
-    public com.jxparallel.fx.beans.property.StringProperty ellipsisStringProperty() {
-        if (com.jxparallel.fx.Fx.NATIVE) {
-            return (com.jxparallel.fx.beans.property.StringProperty) com.jxparallel.fx.nativeimpl.Native.call(this, com.jxparallel.fx.scene.control.cell.ComboBoxTreeCell.class, "ellipsisStringProperty", new Class<?>[] {}, com.jxparallel.fx.beans.property.StringProperty.class);
-        }
-        return (com.jxparallel.fx.beans.property.StringProperty) com.jxparallel.fx.Fx.jx(((javafx.scene.control.cell.ComboBoxTreeCell) fxPeer()).ellipsisStringProperty());
-    }
-
-    public java.lang.String getEllipsisString() {
-        if (com.jxparallel.fx.Fx.NATIVE) {
-            return (java.lang.String) com.jxparallel.fx.nativeimpl.Native.call(this, com.jxparallel.fx.scene.control.cell.ComboBoxTreeCell.class, "getEllipsisString", new Class<?>[] {}, java.lang.String.class);
-        }
-        return ((javafx.scene.control.cell.ComboBoxTreeCell) fxPeer()).getEllipsisString();
-    }
-
-    public void setMnemonicParsing(boolean arg0) {
-        if (com.jxparallel.fx.Fx.NATIVE) {
-            com.jxparallel.fx.nativeimpl.Native.call(this, com.jxparallel.fx.scene.control.cell.ComboBoxTreeCell.class, "setMnemonicParsing", new Class<?>[] {boolean.class}, void.class, arg0);
+            com.jxparallel.fx.nativeimpl.Native.call(this, com.jxparallel.fx.scene.control.cell.ComboBoxTreeCell.class, "setWrapText", new Class<?>[] {boolean.class}, void.class, arg0);
             return;
         }
-        ((javafx.scene.control.cell.ComboBoxTreeCell) fxPeer()).setMnemonicParsing(arg0);
+        ((javafx.scene.control.cell.ComboBoxTreeCell) fxPeer()).setWrapText(arg0);
     }
 
-    public double getGraphicTextGap() {
+    public java.util.List<javafx.css.CssMetaData<? extends javafx.css.Styleable, ?>> getControlCssMetaData() {
         if (com.jxparallel.fx.Fx.NATIVE) {
-            return (Double) com.jxparallel.fx.nativeimpl.Native.call(this, com.jxparallel.fx.scene.control.cell.ComboBoxTreeCell.class, "getGraphicTextGap", new Class<?>[] {}, double.class);
+            return (java.util.List) com.jxparallel.fx.nativeimpl.Native.call(this, com.jxparallel.fx.scene.control.cell.ComboBoxTreeCell.class, "getControlCssMetaData", new Class<?>[] {}, java.util.List.class);
         }
-        return ((javafx.scene.control.cell.ComboBoxTreeCell) fxPeer()).getGraphicTextGap();
+        return ((javafx.scene.control.cell.ComboBoxTreeCell) fxPeer()).getControlCssMetaData();
     }
 
-    public com.jxparallel.fx.beans.property.ReadOnlyObjectProperty<com.jxparallel.fx.geometry.Insets> labelPaddingProperty() {
+    public com.jxparallel.fx.geometry.Orientation getContentBias() {
         if (com.jxparallel.fx.Fx.NATIVE) {
-            return (com.jxparallel.fx.beans.property.ReadOnlyObjectProperty) com.jxparallel.fx.nativeimpl.Native.call(this, com.jxparallel.fx.scene.control.cell.ComboBoxTreeCell.class, "labelPaddingProperty", new Class<?>[] {}, com.jxparallel.fx.beans.property.ReadOnlyObjectProperty.class);
+            return (com.jxparallel.fx.geometry.Orientation) com.jxparallel.fx.nativeimpl.Native.call(this, com.jxparallel.fx.scene.control.cell.ComboBoxTreeCell.class, "getContentBias", new Class<?>[] {}, com.jxparallel.fx.geometry.Orientation.class);
         }
-        return (com.jxparallel.fx.beans.property.ReadOnlyObjectProperty) com.jxparallel.fx.Fx.jx(((javafx.scene.control.cell.ComboBoxTreeCell) fxPeer()).labelPaddingProperty());
+        return (com.jxparallel.fx.geometry.Orientation) com.jxparallel.fx.Fx.jx(((javafx.scene.control.cell.ComboBoxTreeCell) fxPeer()).getContentBias());
     }
 
-    public com.jxparallel.fx.beans.property.DoubleProperty lineSpacingProperty() {
+    public boolean isResizable() {
         if (com.jxparallel.fx.Fx.NATIVE) {
-            return (com.jxparallel.fx.beans.property.DoubleProperty) com.jxparallel.fx.nativeimpl.Native.call(this, com.jxparallel.fx.scene.control.cell.ComboBoxTreeCell.class, "lineSpacingProperty", new Class<?>[] {}, com.jxparallel.fx.beans.property.DoubleProperty.class);
+            return (Boolean) com.jxparallel.fx.nativeimpl.Native.call(this, com.jxparallel.fx.scene.control.cell.ComboBoxTreeCell.class, "isResizable", new Class<?>[] {}, boolean.class);
         }
-        return (com.jxparallel.fx.beans.property.DoubleProperty) com.jxparallel.fx.Fx.jx(((javafx.scene.control.cell.ComboBoxTreeCell) fxPeer()).lineSpacingProperty());
-    }
-
-    public com.jxparallel.fx.beans.property.BooleanProperty mnemonicParsingProperty() {
-        if (com.jxparallel.fx.Fx.NATIVE) {
-            return (com.jxparallel.fx.beans.property.BooleanProperty) com.jxparallel.fx.nativeimpl.Native.call(this, com.jxparallel.fx.scene.control.cell.ComboBoxTreeCell.class, "mnemonicParsingProperty", new Class<?>[] {}, com.jxparallel.fx.beans.property.BooleanProperty.class);
-        }
-        return (com.jxparallel.fx.beans.property.BooleanProperty) com.jxparallel.fx.Fx.jx(((javafx.scene.control.cell.ComboBoxTreeCell) fxPeer()).mnemonicParsingProperty());
-    }
-
-    public void setEllipsisString(java.lang.String arg0) {
-        if (com.jxparallel.fx.Fx.NATIVE) {
-            com.jxparallel.fx.nativeimpl.Native.call(this, com.jxparallel.fx.scene.control.cell.ComboBoxTreeCell.class, "setEllipsisString", new Class<?>[] {java.lang.String.class}, void.class, arg0);
-            return;
-        }
-        ((javafx.scene.control.cell.ComboBoxTreeCell) fxPeer()).setEllipsisString(arg0);
-    }
-
-    public void setGraphicTextGap(double arg0) {
-        if (com.jxparallel.fx.Fx.NATIVE) {
-            com.jxparallel.fx.nativeimpl.Native.call(this, com.jxparallel.fx.scene.control.cell.ComboBoxTreeCell.class, "setGraphicTextGap", new Class<?>[] {double.class}, void.class, arg0);
-            return;
-        }
-        ((javafx.scene.control.cell.ComboBoxTreeCell) fxPeer()).setGraphicTextGap(arg0);
-    }
-
-    public void setContentDisplay(com.jxparallel.fx.scene.control.ContentDisplay arg0) {
-        if (com.jxparallel.fx.Fx.NATIVE) {
-            com.jxparallel.fx.nativeimpl.Native.call(this, com.jxparallel.fx.scene.control.cell.ComboBoxTreeCell.class, "setContentDisplay", new Class<?>[] {com.jxparallel.fx.scene.control.ContentDisplay.class}, void.class, arg0);
-            return;
-        }
-        ((javafx.scene.control.cell.ComboBoxTreeCell) fxPeer()).setContentDisplay((javafx.scene.control.ContentDisplay) com.jxparallel.fx.Fx.fx(arg0));
-    }
-
-    public com.jxparallel.fx.beans.property.ObjectProperty<com.jxparallel.fx.scene.text.TextAlignment> textAlignmentProperty() {
-        if (com.jxparallel.fx.Fx.NATIVE) {
-            return (com.jxparallel.fx.beans.property.ObjectProperty) com.jxparallel.fx.nativeimpl.Native.call(this, com.jxparallel.fx.scene.control.cell.ComboBoxTreeCell.class, "textAlignmentProperty", new Class<?>[] {}, com.jxparallel.fx.beans.property.ObjectProperty.class);
-        }
-        return (com.jxparallel.fx.beans.property.ObjectProperty) com.jxparallel.fx.Fx.jx(((javafx.scene.control.cell.ComboBoxTreeCell) fxPeer()).textAlignmentProperty());
-    }
-
-    public com.jxparallel.fx.beans.property.ObjectProperty<com.jxparallel.fx.scene.control.OverrunStyle> textOverrunProperty() {
-        if (com.jxparallel.fx.Fx.NATIVE) {
-            return (com.jxparallel.fx.beans.property.ObjectProperty) com.jxparallel.fx.nativeimpl.Native.call(this, com.jxparallel.fx.scene.control.cell.ComboBoxTreeCell.class, "textOverrunProperty", new Class<?>[] {}, com.jxparallel.fx.beans.property.ObjectProperty.class);
-        }
-        return (com.jxparallel.fx.beans.property.ObjectProperty) com.jxparallel.fx.Fx.jx(((javafx.scene.control.cell.ComboBoxTreeCell) fxPeer()).textOverrunProperty());
-    }
-
-    public com.jxparallel.fx.beans.property.ObjectProperty<com.jxparallel.fx.geometry.Pos> alignmentProperty() {
-        if (com.jxparallel.fx.Fx.NATIVE) {
-            return (com.jxparallel.fx.beans.property.ObjectProperty) com.jxparallel.fx.nativeimpl.Native.call(this, com.jxparallel.fx.scene.control.cell.ComboBoxTreeCell.class, "alignmentProperty", new Class<?>[] {}, com.jxparallel.fx.beans.property.ObjectProperty.class);
-        }
-        return (com.jxparallel.fx.beans.property.ObjectProperty) com.jxparallel.fx.Fx.jx(((javafx.scene.control.cell.ComboBoxTreeCell) fxPeer()).alignmentProperty());
-    }
-
-    public boolean isMnemonicParsing() {
-        if (com.jxparallel.fx.Fx.NATIVE) {
-            return (Boolean) com.jxparallel.fx.nativeimpl.Native.call(this, com.jxparallel.fx.scene.control.cell.ComboBoxTreeCell.class, "isMnemonicParsing", new Class<?>[] {}, boolean.class);
-        }
-        return ((javafx.scene.control.cell.ComboBoxTreeCell) fxPeer()).isMnemonicParsing();
-    }
-
-    public com.jxparallel.fx.beans.property.DoubleProperty graphicTextGapProperty() {
-        if (com.jxparallel.fx.Fx.NATIVE) {
-            return (com.jxparallel.fx.beans.property.DoubleProperty) com.jxparallel.fx.nativeimpl.Native.call(this, com.jxparallel.fx.scene.control.cell.ComboBoxTreeCell.class, "graphicTextGapProperty", new Class<?>[] {}, com.jxparallel.fx.beans.property.DoubleProperty.class);
-        }
-        return (com.jxparallel.fx.beans.property.DoubleProperty) com.jxparallel.fx.Fx.jx(((javafx.scene.control.cell.ComboBoxTreeCell) fxPeer()).graphicTextGapProperty());
-    }
-
-    public com.jxparallel.fx.scene.control.Skin<?> getSkin() {
-        if (com.jxparallel.fx.Fx.NATIVE) {
-            return (com.jxparallel.fx.scene.control.Skin) com.jxparallel.fx.nativeimpl.Native.call(this, com.jxparallel.fx.scene.control.cell.ComboBoxTreeCell.class, "getSkin", new Class<?>[] {}, com.jxparallel.fx.scene.control.Skin.class);
-        }
-        return (com.jxparallel.fx.scene.control.Skin) com.jxparallel.fx.Fx.jx(((javafx.scene.control.cell.ComboBoxTreeCell) fxPeer()).getSkin());
-    }
-
-    public void setSkin(com.jxparallel.fx.scene.control.Skin<?> arg0) {
-        if (com.jxparallel.fx.Fx.NATIVE) {
-            com.jxparallel.fx.nativeimpl.Native.call(this, com.jxparallel.fx.scene.control.cell.ComboBoxTreeCell.class, "setSkin", new Class<?>[] {com.jxparallel.fx.scene.control.Skin.class}, void.class, arg0);
-            return;
-        }
-        ((javafx.scene.control.cell.ComboBoxTreeCell) fxPeer()).setSkin((javafx.scene.control.Skin) com.jxparallel.fx.Fx.fx(arg0));
+        return ((javafx.scene.control.cell.ComboBoxTreeCell) fxPeer()).isResizable();
     }
 
     public double getBaselineOffset() {
@@ -740,26 +732,11 @@ public class ComboBoxTreeCell<T> implements com.jxparallel.fx.scene.control.Skin
         return ((javafx.scene.control.cell.ComboBoxTreeCell) fxPeer()).getCssMetaData();
     }
 
-    public boolean isResizable() {
+    public com.jxparallel.fx.beans.property.ObjectProperty<com.jxparallel.fx.scene.control.ContextMenu> contextMenuProperty() {
         if (com.jxparallel.fx.Fx.NATIVE) {
-            return (Boolean) com.jxparallel.fx.nativeimpl.Native.call(this, com.jxparallel.fx.scene.control.cell.ComboBoxTreeCell.class, "isResizable", new Class<?>[] {}, boolean.class);
+            return (com.jxparallel.fx.beans.property.ObjectProperty) com.jxparallel.fx.nativeimpl.Native.call(this, com.jxparallel.fx.scene.control.cell.ComboBoxTreeCell.class, "contextMenuProperty", new Class<?>[] {}, com.jxparallel.fx.beans.property.ObjectProperty.class);
         }
-        return ((javafx.scene.control.cell.ComboBoxTreeCell) fxPeer()).isResizable();
-    }
-
-    public void setTooltip(com.jxparallel.fx.scene.control.Tooltip arg0) {
-        if (com.jxparallel.fx.Fx.NATIVE) {
-            com.jxparallel.fx.nativeimpl.Native.call(this, com.jxparallel.fx.scene.control.cell.ComboBoxTreeCell.class, "setTooltip", new Class<?>[] {com.jxparallel.fx.scene.control.Tooltip.class}, void.class, arg0);
-            return;
-        }
-        ((javafx.scene.control.cell.ComboBoxTreeCell) fxPeer()).setTooltip((javafx.scene.control.Tooltip) com.jxparallel.fx.Fx.fx(arg0));
-    }
-
-    public com.jxparallel.fx.scene.control.ContextMenu getContextMenu() {
-        if (com.jxparallel.fx.Fx.NATIVE) {
-            return (com.jxparallel.fx.scene.control.ContextMenu) com.jxparallel.fx.nativeimpl.Native.call(this, com.jxparallel.fx.scene.control.cell.ComboBoxTreeCell.class, "getContextMenu", new Class<?>[] {}, com.jxparallel.fx.scene.control.ContextMenu.class);
-        }
-        return (com.jxparallel.fx.scene.control.ContextMenu) com.jxparallel.fx.Fx.jx(((javafx.scene.control.cell.ComboBoxTreeCell) fxPeer()).getContextMenu());
+        return (com.jxparallel.fx.beans.property.ObjectProperty) com.jxparallel.fx.Fx.jx(((javafx.scene.control.cell.ComboBoxTreeCell) fxPeer()).contextMenuProperty());
     }
 
     public com.jxparallel.fx.beans.property.ObjectProperty<com.jxparallel.fx.scene.control.Skin<?>> skinProperty() {
@@ -776,12 +753,18 @@ public class ComboBoxTreeCell<T> implements com.jxparallel.fx.scene.control.Skin
         return (com.jxparallel.fx.beans.property.ObjectProperty) com.jxparallel.fx.Fx.jx(((javafx.scene.control.cell.ComboBoxTreeCell) fxPeer()).tooltipProperty());
     }
 
-    public void setContextMenu(com.jxparallel.fx.scene.control.ContextMenu arg0) {
+    public com.jxparallel.fx.scene.control.ContextMenu getContextMenu() {
         if (com.jxparallel.fx.Fx.NATIVE) {
-            com.jxparallel.fx.nativeimpl.Native.call(this, com.jxparallel.fx.scene.control.cell.ComboBoxTreeCell.class, "setContextMenu", new Class<?>[] {com.jxparallel.fx.scene.control.ContextMenu.class}, void.class, arg0);
-            return;
+            return (com.jxparallel.fx.scene.control.ContextMenu) com.jxparallel.fx.nativeimpl.Native.call(this, com.jxparallel.fx.scene.control.cell.ComboBoxTreeCell.class, "getContextMenu", new Class<?>[] {}, com.jxparallel.fx.scene.control.ContextMenu.class);
         }
-        ((javafx.scene.control.cell.ComboBoxTreeCell) fxPeer()).setContextMenu((javafx.scene.control.ContextMenu) com.jxparallel.fx.Fx.fx(arg0));
+        return (com.jxparallel.fx.scene.control.ContextMenu) com.jxparallel.fx.Fx.jx(((javafx.scene.control.cell.ComboBoxTreeCell) fxPeer()).getContextMenu());
+    }
+
+    public com.jxparallel.fx.scene.control.Skin<?> getSkin() {
+        if (com.jxparallel.fx.Fx.NATIVE) {
+            return (com.jxparallel.fx.scene.control.Skin) com.jxparallel.fx.nativeimpl.Native.call(this, com.jxparallel.fx.scene.control.cell.ComboBoxTreeCell.class, "getSkin", new Class<?>[] {}, com.jxparallel.fx.scene.control.Skin.class);
+        }
+        return (com.jxparallel.fx.scene.control.Skin) com.jxparallel.fx.Fx.jx(((javafx.scene.control.cell.ComboBoxTreeCell) fxPeer()).getSkin());
     }
 
     public com.jxparallel.fx.scene.control.Tooltip getTooltip() {
@@ -791,69 +774,28 @@ public class ComboBoxTreeCell<T> implements com.jxparallel.fx.scene.control.Skin
         return (com.jxparallel.fx.scene.control.Tooltip) com.jxparallel.fx.Fx.jx(((javafx.scene.control.cell.ComboBoxTreeCell) fxPeer()).getTooltip());
     }
 
-    public com.jxparallel.fx.beans.property.ObjectProperty<com.jxparallel.fx.scene.control.ContextMenu> contextMenuProperty() {
+    public void setContextMenu(com.jxparallel.fx.scene.control.ContextMenu arg0) {
         if (com.jxparallel.fx.Fx.NATIVE) {
-            return (com.jxparallel.fx.beans.property.ObjectProperty) com.jxparallel.fx.nativeimpl.Native.call(this, com.jxparallel.fx.scene.control.cell.ComboBoxTreeCell.class, "contextMenuProperty", new Class<?>[] {}, com.jxparallel.fx.beans.property.ObjectProperty.class);
-        }
-        return (com.jxparallel.fx.beans.property.ObjectProperty) com.jxparallel.fx.Fx.jx(((javafx.scene.control.cell.ComboBoxTreeCell) fxPeer()).contextMenuProperty());
-    }
-
-    public void resize(double arg0, double arg1) {
-        if (com.jxparallel.fx.Fx.NATIVE) {
-            com.jxparallel.fx.nativeimpl.Native.call(this, com.jxparallel.fx.scene.control.cell.ComboBoxTreeCell.class, "resize", new Class<?>[] {double.class, double.class}, void.class, arg0, arg1);
+            com.jxparallel.fx.nativeimpl.Native.call(this, com.jxparallel.fx.scene.control.cell.ComboBoxTreeCell.class, "setContextMenu", new Class<?>[] {com.jxparallel.fx.scene.control.ContextMenu.class}, void.class, arg0);
             return;
         }
-        ((javafx.scene.control.cell.ComboBoxTreeCell) fxPeer()).resize(arg0, arg1);
+        ((javafx.scene.control.cell.ComboBoxTreeCell) fxPeer()).setContextMenu((javafx.scene.control.ContextMenu) com.jxparallel.fx.Fx.fx(arg0));
     }
 
-    public com.jxparallel.fx.beans.property.ObjectProperty<com.jxparallel.fx.scene.shape.Shape> shapeProperty() {
+    public void setSkin(com.jxparallel.fx.scene.control.Skin<?> arg0) {
         if (com.jxparallel.fx.Fx.NATIVE) {
-            return (com.jxparallel.fx.beans.property.ObjectProperty) com.jxparallel.fx.nativeimpl.Native.call(this, com.jxparallel.fx.scene.control.cell.ComboBoxTreeCell.class, "shapeProperty", new Class<?>[] {}, com.jxparallel.fx.beans.property.ObjectProperty.class);
-        }
-        return (com.jxparallel.fx.beans.property.ObjectProperty) com.jxparallel.fx.Fx.jx(((javafx.scene.control.cell.ComboBoxTreeCell) fxPeer()).shapeProperty());
-    }
-
-    public com.jxparallel.fx.scene.shape.Shape getShape() {
-        if (com.jxparallel.fx.Fx.NATIVE) {
-            return (com.jxparallel.fx.scene.shape.Shape) com.jxparallel.fx.nativeimpl.Native.call(this, com.jxparallel.fx.scene.control.cell.ComboBoxTreeCell.class, "getShape", new Class<?>[] {}, com.jxparallel.fx.scene.shape.Shape.class);
-        }
-        return (com.jxparallel.fx.scene.shape.Shape) com.jxparallel.fx.Fx.jx(((javafx.scene.control.cell.ComboBoxTreeCell) fxPeer()).getShape());
-    }
-
-    public void setShape(com.jxparallel.fx.scene.shape.Shape arg0) {
-        if (com.jxparallel.fx.Fx.NATIVE) {
-            com.jxparallel.fx.nativeimpl.Native.call(this, com.jxparallel.fx.scene.control.cell.ComboBoxTreeCell.class, "setShape", new Class<?>[] {com.jxparallel.fx.scene.shape.Shape.class}, void.class, arg0);
+            com.jxparallel.fx.nativeimpl.Native.call(this, com.jxparallel.fx.scene.control.cell.ComboBoxTreeCell.class, "setSkin", new Class<?>[] {com.jxparallel.fx.scene.control.Skin.class}, void.class, arg0);
             return;
         }
-        ((javafx.scene.control.cell.ComboBoxTreeCell) fxPeer()).setShape((javafx.scene.shape.Shape) com.jxparallel.fx.Fx.fx(arg0));
+        ((javafx.scene.control.cell.ComboBoxTreeCell) fxPeer()).setSkin((javafx.scene.control.Skin) com.jxparallel.fx.Fx.fx(arg0));
     }
 
-    public double getWidth() {
+    public void setTooltip(com.jxparallel.fx.scene.control.Tooltip arg0) {
         if (com.jxparallel.fx.Fx.NATIVE) {
-            return (Double) com.jxparallel.fx.nativeimpl.Native.call(this, com.jxparallel.fx.scene.control.cell.ComboBoxTreeCell.class, "getWidth", new Class<?>[] {}, double.class);
+            com.jxparallel.fx.nativeimpl.Native.call(this, com.jxparallel.fx.scene.control.cell.ComboBoxTreeCell.class, "setTooltip", new Class<?>[] {com.jxparallel.fx.scene.control.Tooltip.class}, void.class, arg0);
+            return;
         }
-        return ((javafx.scene.control.cell.ComboBoxTreeCell) fxPeer()).getWidth();
-    }
-
-    public double getHeight() {
-        if (com.jxparallel.fx.Fx.NATIVE) {
-            return (Double) com.jxparallel.fx.nativeimpl.Native.call(this, com.jxparallel.fx.scene.control.cell.ComboBoxTreeCell.class, "getHeight", new Class<?>[] {}, double.class);
-        }
-        return ((javafx.scene.control.cell.ComboBoxTreeCell) fxPeer()).getHeight();
-    }
-
-    public double maxWidth(double arg0) {
-        if (com.jxparallel.fx.Fx.NATIVE) {
-            return (Double) com.jxparallel.fx.nativeimpl.Native.call(this, com.jxparallel.fx.scene.control.cell.ComboBoxTreeCell.class, "maxWidth", new Class<?>[] {double.class}, double.class, arg0);
-        }
-        return ((javafx.scene.control.cell.ComboBoxTreeCell) fxPeer()).maxWidth(arg0);
-    }
-
-    public double minWidth(double arg0) {
-        if (com.jxparallel.fx.Fx.NATIVE) {
-            return (Double) com.jxparallel.fx.nativeimpl.Native.call(this, com.jxparallel.fx.scene.control.cell.ComboBoxTreeCell.class, "minWidth", new Class<?>[] {double.class}, double.class, arg0);
-        }
-        return ((javafx.scene.control.cell.ComboBoxTreeCell) fxPeer()).minWidth(arg0);
+        ((javafx.scene.control.cell.ComboBoxTreeCell) fxPeer()).setTooltip((javafx.scene.control.Tooltip) com.jxparallel.fx.Fx.fx(arg0));
     }
 
     public com.sun.javafx.geom.BaseBounds impl_computeGeomBounds(com.sun.javafx.geom.BaseBounds arg0, com.sun.javafx.geom.transform.BaseTransform arg1) {
@@ -870,138 +812,11 @@ public class ComboBoxTreeCell<T> implements com.jxparallel.fx.scene.control.Skin
         return ((javafx.scene.control.cell.ComboBoxTreeCell) fxPeer()).impl_createPeer();
     }
 
-    public void impl_updatePeer() {
-        if (com.jxparallel.fx.Fx.NATIVE) {
-            com.jxparallel.fx.nativeimpl.Native.call(this, com.jxparallel.fx.scene.control.cell.ComboBoxTreeCell.class, "impl_updatePeer", new Class<?>[] {}, void.class);
-            return;
-        }
-        ((javafx.scene.control.cell.ComboBoxTreeCell) fxPeer()).impl_updatePeer();
-    }
-
-    public double maxHeight(double arg0) {
-        if (com.jxparallel.fx.Fx.NATIVE) {
-            return (Double) com.jxparallel.fx.nativeimpl.Native.call(this, com.jxparallel.fx.scene.control.cell.ComboBoxTreeCell.class, "maxHeight", new Class<?>[] {double.class}, double.class, arg0);
-        }
-        return ((javafx.scene.control.cell.ComboBoxTreeCell) fxPeer()).maxHeight(arg0);
-    }
-
-    public double minHeight(double arg0) {
-        if (com.jxparallel.fx.Fx.NATIVE) {
-            return (Double) com.jxparallel.fx.nativeimpl.Native.call(this, com.jxparallel.fx.scene.control.cell.ComboBoxTreeCell.class, "minHeight", new Class<?>[] {double.class}, double.class, arg0);
-        }
-        return ((javafx.scene.control.cell.ComboBoxTreeCell) fxPeer()).minHeight(arg0);
-    }
-
-    public double prefWidth(double arg0) {
-        if (com.jxparallel.fx.Fx.NATIVE) {
-            return (Double) com.jxparallel.fx.nativeimpl.Native.call(this, com.jxparallel.fx.scene.control.cell.ComboBoxTreeCell.class, "prefWidth", new Class<?>[] {double.class}, double.class, arg0);
-        }
-        return ((javafx.scene.control.cell.ComboBoxTreeCell) fxPeer()).prefWidth(arg0);
-    }
-
-    public double prefHeight(double arg0) {
-        if (com.jxparallel.fx.Fx.NATIVE) {
-            return (Double) com.jxparallel.fx.nativeimpl.Native.call(this, com.jxparallel.fx.scene.control.cell.ComboBoxTreeCell.class, "prefHeight", new Class<?>[] {double.class}, double.class, arg0);
-        }
-        return ((javafx.scene.control.cell.ComboBoxTreeCell) fxPeer()).prefHeight(arg0);
-    }
-
-    public java.lang.String getUserAgentStylesheet() {
-        if (com.jxparallel.fx.Fx.NATIVE) {
-            return (java.lang.String) com.jxparallel.fx.nativeimpl.Native.call(this, com.jxparallel.fx.scene.control.cell.ComboBoxTreeCell.class, "getUserAgentStylesheet", new Class<?>[] {}, java.lang.String.class);
-        }
-        return ((javafx.scene.control.cell.ComboBoxTreeCell) fxPeer()).getUserAgentStylesheet();
-    }
-
-    public com.jxparallel.fx.geometry.Insets getOpaqueInsets() {
-        if (com.jxparallel.fx.Fx.NATIVE) {
-            return (com.jxparallel.fx.geometry.Insets) com.jxparallel.fx.nativeimpl.Native.call(this, com.jxparallel.fx.scene.control.cell.ComboBoxTreeCell.class, "getOpaqueInsets", new Class<?>[] {}, com.jxparallel.fx.geometry.Insets.class);
-        }
-        return (com.jxparallel.fx.geometry.Insets) com.jxparallel.fx.Fx.jx(((javafx.scene.control.cell.ComboBoxTreeCell) fxPeer()).getOpaqueInsets());
-    }
-
-    public com.jxparallel.fx.geometry.Insets getPadding() {
-        if (com.jxparallel.fx.Fx.NATIVE) {
-            return (com.jxparallel.fx.geometry.Insets) com.jxparallel.fx.nativeimpl.Native.call(this, com.jxparallel.fx.scene.control.cell.ComboBoxTreeCell.class, "getPadding", new Class<?>[] {}, com.jxparallel.fx.geometry.Insets.class);
-        }
-        return (com.jxparallel.fx.geometry.Insets) com.jxparallel.fx.Fx.jx(((javafx.scene.control.cell.ComboBoxTreeCell) fxPeer()).getPadding());
-    }
-
-    public com.jxparallel.fx.beans.property.ReadOnlyObjectProperty<com.jxparallel.fx.geometry.Insets> insetsProperty() {
-        if (com.jxparallel.fx.Fx.NATIVE) {
-            return (com.jxparallel.fx.beans.property.ReadOnlyObjectProperty) com.jxparallel.fx.nativeimpl.Native.call(this, com.jxparallel.fx.scene.control.cell.ComboBoxTreeCell.class, "insetsProperty", new Class<?>[] {}, com.jxparallel.fx.beans.property.ReadOnlyObjectProperty.class);
-        }
-        return (com.jxparallel.fx.beans.property.ReadOnlyObjectProperty) com.jxparallel.fx.Fx.jx(((javafx.scene.control.cell.ComboBoxTreeCell) fxPeer()).insetsProperty());
-    }
-
-    public double getMaxHeight() {
-        if (com.jxparallel.fx.Fx.NATIVE) {
-            return (Double) com.jxparallel.fx.nativeimpl.Native.call(this, com.jxparallel.fx.scene.control.cell.ComboBoxTreeCell.class, "getMaxHeight", new Class<?>[] {}, double.class);
-        }
-        return ((javafx.scene.control.cell.ComboBoxTreeCell) fxPeer()).getMaxHeight();
-    }
-
-    public boolean isSnapToPixel() {
-        if (com.jxparallel.fx.Fx.NATIVE) {
-            return (Boolean) com.jxparallel.fx.nativeimpl.Native.call(this, com.jxparallel.fx.scene.control.cell.ComboBoxTreeCell.class, "isSnapToPixel", new Class<?>[] {}, boolean.class);
-        }
-        return ((javafx.scene.control.cell.ComboBoxTreeCell) fxPeer()).isSnapToPixel();
-    }
-
-    public boolean isScaleShape() {
-        if (com.jxparallel.fx.Fx.NATIVE) {
-            return (Boolean) com.jxparallel.fx.nativeimpl.Native.call(this, com.jxparallel.fx.scene.control.cell.ComboBoxTreeCell.class, "isScaleShape", new Class<?>[] {}, boolean.class);
-        }
-        return ((javafx.scene.control.cell.ComboBoxTreeCell) fxPeer()).isScaleShape();
-    }
-
-    public double getPrefWidth() {
-        if (com.jxparallel.fx.Fx.NATIVE) {
-            return (Double) com.jxparallel.fx.nativeimpl.Native.call(this, com.jxparallel.fx.scene.control.cell.ComboBoxTreeCell.class, "getPrefWidth", new Class<?>[] {}, double.class);
-        }
-        return ((javafx.scene.control.cell.ComboBoxTreeCell) fxPeer()).getPrefWidth();
-    }
-
     public boolean isCacheShape() {
         if (com.jxparallel.fx.Fx.NATIVE) {
             return (Boolean) com.jxparallel.fx.nativeimpl.Native.call(this, com.jxparallel.fx.scene.control.cell.ComboBoxTreeCell.class, "isCacheShape", new Class<?>[] {}, boolean.class);
         }
         return ((javafx.scene.control.cell.ComboBoxTreeCell) fxPeer()).isCacheShape();
-    }
-
-    public double getMinHeight() {
-        if (com.jxparallel.fx.Fx.NATIVE) {
-            return (Double) com.jxparallel.fx.nativeimpl.Native.call(this, com.jxparallel.fx.scene.control.cell.ComboBoxTreeCell.class, "getMinHeight", new Class<?>[] {}, double.class);
-        }
-        return ((javafx.scene.control.cell.ComboBoxTreeCell) fxPeer()).getMinHeight();
-    }
-
-    public double getPrefHeight() {
-        if (com.jxparallel.fx.Fx.NATIVE) {
-            return (Double) com.jxparallel.fx.nativeimpl.Native.call(this, com.jxparallel.fx.scene.control.cell.ComboBoxTreeCell.class, "getPrefHeight", new Class<?>[] {}, double.class);
-        }
-        return ((javafx.scene.control.cell.ComboBoxTreeCell) fxPeer()).getPrefHeight();
-    }
-
-    public com.jxparallel.fx.beans.property.DoubleProperty maxWidthProperty() {
-        if (com.jxparallel.fx.Fx.NATIVE) {
-            return (com.jxparallel.fx.beans.property.DoubleProperty) com.jxparallel.fx.nativeimpl.Native.call(this, com.jxparallel.fx.scene.control.cell.ComboBoxTreeCell.class, "maxWidthProperty", new Class<?>[] {}, com.jxparallel.fx.beans.property.DoubleProperty.class);
-        }
-        return (com.jxparallel.fx.beans.property.DoubleProperty) com.jxparallel.fx.Fx.jx(((javafx.scene.control.cell.ComboBoxTreeCell) fxPeer()).maxWidthProperty());
-    }
-
-    public com.jxparallel.fx.beans.property.DoubleProperty minWidthProperty() {
-        if (com.jxparallel.fx.Fx.NATIVE) {
-            return (com.jxparallel.fx.beans.property.DoubleProperty) com.jxparallel.fx.nativeimpl.Native.call(this, com.jxparallel.fx.scene.control.cell.ComboBoxTreeCell.class, "minWidthProperty", new Class<?>[] {}, com.jxparallel.fx.beans.property.DoubleProperty.class);
-        }
-        return (com.jxparallel.fx.beans.property.DoubleProperty) com.jxparallel.fx.Fx.jx(((javafx.scene.control.cell.ComboBoxTreeCell) fxPeer()).minWidthProperty());
-    }
-
-    public double getMaxWidth() {
-        if (com.jxparallel.fx.Fx.NATIVE) {
-            return (Double) com.jxparallel.fx.nativeimpl.Native.call(this, com.jxparallel.fx.scene.control.cell.ComboBoxTreeCell.class, "getMaxWidth", new Class<?>[] {}, double.class);
-        }
-        return ((javafx.scene.control.cell.ComboBoxTreeCell) fxPeer()).getMaxWidth();
     }
 
     public boolean isCenterShape() {
@@ -1011,6 +826,48 @@ public class ComboBoxTreeCell<T> implements com.jxparallel.fx.scene.control.Skin
         return ((javafx.scene.control.cell.ComboBoxTreeCell) fxPeer()).isCenterShape();
     }
 
+    public boolean isScaleShape() {
+        if (com.jxparallel.fx.Fx.NATIVE) {
+            return (Boolean) com.jxparallel.fx.nativeimpl.Native.call(this, com.jxparallel.fx.scene.control.cell.ComboBoxTreeCell.class, "isScaleShape", new Class<?>[] {}, boolean.class);
+        }
+        return ((javafx.scene.control.cell.ComboBoxTreeCell) fxPeer()).isScaleShape();
+    }
+
+    public boolean isSnapToPixel() {
+        if (com.jxparallel.fx.Fx.NATIVE) {
+            return (Boolean) com.jxparallel.fx.nativeimpl.Native.call(this, com.jxparallel.fx.scene.control.cell.ComboBoxTreeCell.class, "isSnapToPixel", new Class<?>[] {}, boolean.class);
+        }
+        return ((javafx.scene.control.cell.ComboBoxTreeCell) fxPeer()).isSnapToPixel();
+    }
+
+    public double getHeight() {
+        if (com.jxparallel.fx.Fx.NATIVE) {
+            return (Double) com.jxparallel.fx.nativeimpl.Native.call(this, com.jxparallel.fx.scene.control.cell.ComboBoxTreeCell.class, "getHeight", new Class<?>[] {}, double.class);
+        }
+        return ((javafx.scene.control.cell.ComboBoxTreeCell) fxPeer()).getHeight();
+    }
+
+    public double getMaxHeight() {
+        if (com.jxparallel.fx.Fx.NATIVE) {
+            return (Double) com.jxparallel.fx.nativeimpl.Native.call(this, com.jxparallel.fx.scene.control.cell.ComboBoxTreeCell.class, "getMaxHeight", new Class<?>[] {}, double.class);
+        }
+        return ((javafx.scene.control.cell.ComboBoxTreeCell) fxPeer()).getMaxHeight();
+    }
+
+    public double getMaxWidth() {
+        if (com.jxparallel.fx.Fx.NATIVE) {
+            return (Double) com.jxparallel.fx.nativeimpl.Native.call(this, com.jxparallel.fx.scene.control.cell.ComboBoxTreeCell.class, "getMaxWidth", new Class<?>[] {}, double.class);
+        }
+        return ((javafx.scene.control.cell.ComboBoxTreeCell) fxPeer()).getMaxWidth();
+    }
+
+    public double getMinHeight() {
+        if (com.jxparallel.fx.Fx.NATIVE) {
+            return (Double) com.jxparallel.fx.nativeimpl.Native.call(this, com.jxparallel.fx.scene.control.cell.ComboBoxTreeCell.class, "getMinHeight", new Class<?>[] {}, double.class);
+        }
+        return ((javafx.scene.control.cell.ComboBoxTreeCell) fxPeer()).getMinHeight();
+    }
+
     public double getMinWidth() {
         if (com.jxparallel.fx.Fx.NATIVE) {
             return (Double) com.jxparallel.fx.nativeimpl.Native.call(this, com.jxparallel.fx.scene.control.cell.ComboBoxTreeCell.class, "getMinWidth", new Class<?>[] {}, double.class);
@@ -1018,168 +875,74 @@ public class ComboBoxTreeCell<T> implements com.jxparallel.fx.scene.control.Skin
         return ((javafx.scene.control.cell.ComboBoxTreeCell) fxPeer()).getMinWidth();
     }
 
-    public com.jxparallel.fx.beans.property.ObjectProperty<com.jxparallel.fx.geometry.Insets> paddingProperty() {
+    public double getPrefHeight() {
         if (com.jxparallel.fx.Fx.NATIVE) {
-            return (com.jxparallel.fx.beans.property.ObjectProperty) com.jxparallel.fx.nativeimpl.Native.call(this, com.jxparallel.fx.scene.control.cell.ComboBoxTreeCell.class, "paddingProperty", new Class<?>[] {}, com.jxparallel.fx.beans.property.ObjectProperty.class);
+            return (Double) com.jxparallel.fx.nativeimpl.Native.call(this, com.jxparallel.fx.scene.control.cell.ComboBoxTreeCell.class, "getPrefHeight", new Class<?>[] {}, double.class);
         }
-        return (com.jxparallel.fx.beans.property.ObjectProperty) com.jxparallel.fx.Fx.jx(((javafx.scene.control.cell.ComboBoxTreeCell) fxPeer()).paddingProperty());
+        return ((javafx.scene.control.cell.ComboBoxTreeCell) fxPeer()).getPrefHeight();
     }
 
-    public void setCenterShape(boolean arg0) {
+    public double getPrefWidth() {
         if (com.jxparallel.fx.Fx.NATIVE) {
-            com.jxparallel.fx.nativeimpl.Native.call(this, com.jxparallel.fx.scene.control.cell.ComboBoxTreeCell.class, "setCenterShape", new Class<?>[] {boolean.class}, void.class, arg0);
-            return;
+            return (Double) com.jxparallel.fx.nativeimpl.Native.call(this, com.jxparallel.fx.scene.control.cell.ComboBoxTreeCell.class, "getPrefWidth", new Class<?>[] {}, double.class);
         }
-        ((javafx.scene.control.cell.ComboBoxTreeCell) fxPeer()).setCenterShape(arg0);
+        return ((javafx.scene.control.cell.ComboBoxTreeCell) fxPeer()).getPrefWidth();
     }
 
-    public void setBorder(com.jxparallel.fx.scene.layout.Border arg0) {
+    public double getWidth() {
         if (com.jxparallel.fx.Fx.NATIVE) {
-            com.jxparallel.fx.nativeimpl.Native.call(this, com.jxparallel.fx.scene.control.cell.ComboBoxTreeCell.class, "setBorder", new Class<?>[] {com.jxparallel.fx.scene.layout.Border.class}, void.class, arg0);
-            return;
+            return (Double) com.jxparallel.fx.nativeimpl.Native.call(this, com.jxparallel.fx.scene.control.cell.ComboBoxTreeCell.class, "getWidth", new Class<?>[] {}, double.class);
         }
-        ((javafx.scene.control.cell.ComboBoxTreeCell) fxPeer()).setBorder((javafx.scene.layout.Border) com.jxparallel.fx.Fx.fx(arg0));
+        return ((javafx.scene.control.cell.ComboBoxTreeCell) fxPeer()).getWidth();
     }
 
-    public void setMinWidth(double arg0) {
+    public double maxHeight(double arg0) {
         if (com.jxparallel.fx.Fx.NATIVE) {
-            com.jxparallel.fx.nativeimpl.Native.call(this, com.jxparallel.fx.scene.control.cell.ComboBoxTreeCell.class, "setMinWidth", new Class<?>[] {double.class}, void.class, arg0);
-            return;
+            return (Double) com.jxparallel.fx.nativeimpl.Native.call(this, com.jxparallel.fx.scene.control.cell.ComboBoxTreeCell.class, "maxHeight", new Class<?>[] {double.class}, double.class, arg0);
         }
-        ((javafx.scene.control.cell.ComboBoxTreeCell) fxPeer()).setMinWidth(arg0);
+        return ((javafx.scene.control.cell.ComboBoxTreeCell) fxPeer()).maxHeight(arg0);
     }
 
-    public void setMinHeight(double arg0) {
+    public double maxWidth(double arg0) {
         if (com.jxparallel.fx.Fx.NATIVE) {
-            com.jxparallel.fx.nativeimpl.Native.call(this, com.jxparallel.fx.scene.control.cell.ComboBoxTreeCell.class, "setMinHeight", new Class<?>[] {double.class}, void.class, arg0);
-            return;
+            return (Double) com.jxparallel.fx.nativeimpl.Native.call(this, com.jxparallel.fx.scene.control.cell.ComboBoxTreeCell.class, "maxWidth", new Class<?>[] {double.class}, double.class, arg0);
         }
-        ((javafx.scene.control.cell.ComboBoxTreeCell) fxPeer()).setMinHeight(arg0);
+        return ((javafx.scene.control.cell.ComboBoxTreeCell) fxPeer()).maxWidth(arg0);
     }
 
-    public void setOpaqueInsets(com.jxparallel.fx.geometry.Insets arg0) {
+    public double minHeight(double arg0) {
         if (com.jxparallel.fx.Fx.NATIVE) {
-            com.jxparallel.fx.nativeimpl.Native.call(this, com.jxparallel.fx.scene.control.cell.ComboBoxTreeCell.class, "setOpaqueInsets", new Class<?>[] {com.jxparallel.fx.geometry.Insets.class}, void.class, arg0);
-            return;
+            return (Double) com.jxparallel.fx.nativeimpl.Native.call(this, com.jxparallel.fx.scene.control.cell.ComboBoxTreeCell.class, "minHeight", new Class<?>[] {double.class}, double.class, arg0);
         }
-        ((javafx.scene.control.cell.ComboBoxTreeCell) fxPeer()).setOpaqueInsets((javafx.geometry.Insets) com.jxparallel.fx.Fx.fx(arg0));
+        return ((javafx.scene.control.cell.ComboBoxTreeCell) fxPeer()).minHeight(arg0);
     }
 
-    public void setPrefSize(double arg0, double arg1) {
+    public double minWidth(double arg0) {
         if (com.jxparallel.fx.Fx.NATIVE) {
-            com.jxparallel.fx.nativeimpl.Native.call(this, com.jxparallel.fx.scene.control.cell.ComboBoxTreeCell.class, "setPrefSize", new Class<?>[] {double.class, double.class}, void.class, arg0, arg1);
-            return;
+            return (Double) com.jxparallel.fx.nativeimpl.Native.call(this, com.jxparallel.fx.scene.control.cell.ComboBoxTreeCell.class, "minWidth", new Class<?>[] {double.class}, double.class, arg0);
         }
-        ((javafx.scene.control.cell.ComboBoxTreeCell) fxPeer()).setPrefSize(arg0, arg1);
+        return ((javafx.scene.control.cell.ComboBoxTreeCell) fxPeer()).minWidth(arg0);
     }
 
-    public void setPrefWidth(double arg0) {
+    public double prefHeight(double arg0) {
         if (com.jxparallel.fx.Fx.NATIVE) {
-            com.jxparallel.fx.nativeimpl.Native.call(this, com.jxparallel.fx.scene.control.cell.ComboBoxTreeCell.class, "setPrefWidth", new Class<?>[] {double.class}, void.class, arg0);
-            return;
+            return (Double) com.jxparallel.fx.nativeimpl.Native.call(this, com.jxparallel.fx.scene.control.cell.ComboBoxTreeCell.class, "prefHeight", new Class<?>[] {double.class}, double.class, arg0);
         }
-        ((javafx.scene.control.cell.ComboBoxTreeCell) fxPeer()).setPrefWidth(arg0);
+        return ((javafx.scene.control.cell.ComboBoxTreeCell) fxPeer()).prefHeight(arg0);
     }
 
-    public void setMaxSize(double arg0, double arg1) {
+    public double prefWidth(double arg0) {
         if (com.jxparallel.fx.Fx.NATIVE) {
-            com.jxparallel.fx.nativeimpl.Native.call(this, com.jxparallel.fx.scene.control.cell.ComboBoxTreeCell.class, "setMaxSize", new Class<?>[] {double.class, double.class}, void.class, arg0, arg1);
-            return;
+            return (Double) com.jxparallel.fx.nativeimpl.Native.call(this, com.jxparallel.fx.scene.control.cell.ComboBoxTreeCell.class, "prefWidth", new Class<?>[] {double.class}, double.class, arg0);
         }
-        ((javafx.scene.control.cell.ComboBoxTreeCell) fxPeer()).setMaxSize(arg0, arg1);
+        return ((javafx.scene.control.cell.ComboBoxTreeCell) fxPeer()).prefWidth(arg0);
     }
 
-    public void setBackground(com.jxparallel.fx.scene.layout.Background arg0) {
+    public double snappedBottomInset() {
         if (com.jxparallel.fx.Fx.NATIVE) {
-            com.jxparallel.fx.nativeimpl.Native.call(this, com.jxparallel.fx.scene.control.cell.ComboBoxTreeCell.class, "setBackground", new Class<?>[] {com.jxparallel.fx.scene.layout.Background.class}, void.class, arg0);
-            return;
+            return (Double) com.jxparallel.fx.nativeimpl.Native.call(this, com.jxparallel.fx.scene.control.cell.ComboBoxTreeCell.class, "snappedBottomInset", new Class<?>[] {}, double.class);
         }
-        ((javafx.scene.control.cell.ComboBoxTreeCell) fxPeer()).setBackground((javafx.scene.layout.Background) com.jxparallel.fx.Fx.fx(arg0));
-    }
-
-    public void setScaleShape(boolean arg0) {
-        if (com.jxparallel.fx.Fx.NATIVE) {
-            com.jxparallel.fx.nativeimpl.Native.call(this, com.jxparallel.fx.scene.control.cell.ComboBoxTreeCell.class, "setScaleShape", new Class<?>[] {boolean.class}, void.class, arg0);
-            return;
-        }
-        ((javafx.scene.control.cell.ComboBoxTreeCell) fxPeer()).setScaleShape(arg0);
-    }
-
-    public void setPrefHeight(double arg0) {
-        if (com.jxparallel.fx.Fx.NATIVE) {
-            com.jxparallel.fx.nativeimpl.Native.call(this, com.jxparallel.fx.scene.control.cell.ComboBoxTreeCell.class, "setPrefHeight", new Class<?>[] {double.class}, void.class, arg0);
-            return;
-        }
-        ((javafx.scene.control.cell.ComboBoxTreeCell) fxPeer()).setPrefHeight(arg0);
-    }
-
-    public void setPadding(com.jxparallel.fx.geometry.Insets arg0) {
-        if (com.jxparallel.fx.Fx.NATIVE) {
-            com.jxparallel.fx.nativeimpl.Native.call(this, com.jxparallel.fx.scene.control.cell.ComboBoxTreeCell.class, "setPadding", new Class<?>[] {com.jxparallel.fx.geometry.Insets.class}, void.class, arg0);
-            return;
-        }
-        ((javafx.scene.control.cell.ComboBoxTreeCell) fxPeer()).setPadding((javafx.geometry.Insets) com.jxparallel.fx.Fx.fx(arg0));
-    }
-
-    public void setCacheShape(boolean arg0) {
-        if (com.jxparallel.fx.Fx.NATIVE) {
-            com.jxparallel.fx.nativeimpl.Native.call(this, com.jxparallel.fx.scene.control.cell.ComboBoxTreeCell.class, "setCacheShape", new Class<?>[] {boolean.class}, void.class, arg0);
-            return;
-        }
-        ((javafx.scene.control.cell.ComboBoxTreeCell) fxPeer()).setCacheShape(arg0);
-    }
-
-    public void setSnapToPixel(boolean arg0) {
-        if (com.jxparallel.fx.Fx.NATIVE) {
-            com.jxparallel.fx.nativeimpl.Native.call(this, com.jxparallel.fx.scene.control.cell.ComboBoxTreeCell.class, "setSnapToPixel", new Class<?>[] {boolean.class}, void.class, arg0);
-            return;
-        }
-        ((javafx.scene.control.cell.ComboBoxTreeCell) fxPeer()).setSnapToPixel(arg0);
-    }
-
-    public void setMaxHeight(double arg0) {
-        if (com.jxparallel.fx.Fx.NATIVE) {
-            com.jxparallel.fx.nativeimpl.Native.call(this, com.jxparallel.fx.scene.control.cell.ComboBoxTreeCell.class, "setMaxHeight", new Class<?>[] {double.class}, void.class, arg0);
-            return;
-        }
-        ((javafx.scene.control.cell.ComboBoxTreeCell) fxPeer()).setMaxHeight(arg0);
-    }
-
-    public void setMinSize(double arg0, double arg1) {
-        if (com.jxparallel.fx.Fx.NATIVE) {
-            com.jxparallel.fx.nativeimpl.Native.call(this, com.jxparallel.fx.scene.control.cell.ComboBoxTreeCell.class, "setMinSize", new Class<?>[] {double.class, double.class}, void.class, arg0, arg1);
-            return;
-        }
-        ((javafx.scene.control.cell.ComboBoxTreeCell) fxPeer()).setMinSize(arg0, arg1);
-    }
-
-    public void setMaxWidth(double arg0) {
-        if (com.jxparallel.fx.Fx.NATIVE) {
-            com.jxparallel.fx.nativeimpl.Native.call(this, com.jxparallel.fx.scene.control.cell.ComboBoxTreeCell.class, "setMaxWidth", new Class<?>[] {double.class}, void.class, arg0);
-            return;
-        }
-        ((javafx.scene.control.cell.ComboBoxTreeCell) fxPeer()).setMaxWidth(arg0);
-    }
-
-    public com.jxparallel.fx.beans.property.ReadOnlyDoubleProperty heightProperty() {
-        if (com.jxparallel.fx.Fx.NATIVE) {
-            return (com.jxparallel.fx.beans.property.ReadOnlyDoubleProperty) com.jxparallel.fx.nativeimpl.Native.call(this, com.jxparallel.fx.scene.control.cell.ComboBoxTreeCell.class, "heightProperty", new Class<?>[] {}, com.jxparallel.fx.beans.property.ReadOnlyDoubleProperty.class);
-        }
-        return (com.jxparallel.fx.beans.property.ReadOnlyDoubleProperty) com.jxparallel.fx.Fx.jx(((javafx.scene.control.cell.ComboBoxTreeCell) fxPeer()).heightProperty());
-    }
-
-    public com.jxparallel.fx.beans.property.ReadOnlyDoubleProperty widthProperty() {
-        if (com.jxparallel.fx.Fx.NATIVE) {
-            return (com.jxparallel.fx.beans.property.ReadOnlyDoubleProperty) com.jxparallel.fx.nativeimpl.Native.call(this, com.jxparallel.fx.scene.control.cell.ComboBoxTreeCell.class, "widthProperty", new Class<?>[] {}, com.jxparallel.fx.beans.property.ReadOnlyDoubleProperty.class);
-        }
-        return (com.jxparallel.fx.beans.property.ReadOnlyDoubleProperty) com.jxparallel.fx.Fx.jx(((javafx.scene.control.cell.ComboBoxTreeCell) fxPeer()).widthProperty());
-    }
-
-    public double snappedTopInset() {
-        if (com.jxparallel.fx.Fx.NATIVE) {
-            return (Double) com.jxparallel.fx.nativeimpl.Native.call(this, com.jxparallel.fx.scene.control.cell.ComboBoxTreeCell.class, "snappedTopInset", new Class<?>[] {}, double.class);
-        }
-        return ((javafx.scene.control.cell.ComboBoxTreeCell) fxPeer()).snappedTopInset();
+        return ((javafx.scene.control.cell.ComboBoxTreeCell) fxPeer()).snappedBottomInset();
     }
 
     public double snappedLeftInset() {
@@ -1189,34 +952,6 @@ public class ComboBoxTreeCell<T> implements com.jxparallel.fx.scene.control.Skin
         return ((javafx.scene.control.cell.ComboBoxTreeCell) fxPeer()).snappedLeftInset();
     }
 
-    public com.jxparallel.fx.scene.layout.Border getBorder() {
-        if (com.jxparallel.fx.Fx.NATIVE) {
-            return (com.jxparallel.fx.scene.layout.Border) com.jxparallel.fx.nativeimpl.Native.call(this, com.jxparallel.fx.scene.control.cell.ComboBoxTreeCell.class, "getBorder", new Class<?>[] {}, com.jxparallel.fx.scene.layout.Border.class);
-        }
-        return (com.jxparallel.fx.scene.layout.Border) com.jxparallel.fx.Fx.jx(((javafx.scene.control.cell.ComboBoxTreeCell) fxPeer()).getBorder());
-    }
-
-    public com.jxparallel.fx.geometry.Insets getInsets() {
-        if (com.jxparallel.fx.Fx.NATIVE) {
-            return (com.jxparallel.fx.geometry.Insets) com.jxparallel.fx.nativeimpl.Native.call(this, com.jxparallel.fx.scene.control.cell.ComboBoxTreeCell.class, "getInsets", new Class<?>[] {}, com.jxparallel.fx.geometry.Insets.class);
-        }
-        return (com.jxparallel.fx.geometry.Insets) com.jxparallel.fx.Fx.jx(((javafx.scene.control.cell.ComboBoxTreeCell) fxPeer()).getInsets());
-    }
-
-    public com.jxparallel.fx.scene.layout.Background getBackground() {
-        if (com.jxparallel.fx.Fx.NATIVE) {
-            return (com.jxparallel.fx.scene.layout.Background) com.jxparallel.fx.nativeimpl.Native.call(this, com.jxparallel.fx.scene.control.cell.ComboBoxTreeCell.class, "getBackground", new Class<?>[] {}, com.jxparallel.fx.scene.layout.Background.class);
-        }
-        return (com.jxparallel.fx.scene.layout.Background) com.jxparallel.fx.Fx.jx(((javafx.scene.control.cell.ComboBoxTreeCell) fxPeer()).getBackground());
-    }
-
-    public com.jxparallel.fx.beans.property.ObjectProperty<com.jxparallel.fx.scene.layout.Border> borderProperty() {
-        if (com.jxparallel.fx.Fx.NATIVE) {
-            return (com.jxparallel.fx.beans.property.ObjectProperty) com.jxparallel.fx.nativeimpl.Native.call(this, com.jxparallel.fx.scene.control.cell.ComboBoxTreeCell.class, "borderProperty", new Class<?>[] {}, com.jxparallel.fx.beans.property.ObjectProperty.class);
-        }
-        return (com.jxparallel.fx.beans.property.ObjectProperty) com.jxparallel.fx.Fx.jx(((javafx.scene.control.cell.ComboBoxTreeCell) fxPeer()).borderProperty());
-    }
-
     public double snappedRightInset() {
         if (com.jxparallel.fx.Fx.NATIVE) {
             return (Double) com.jxparallel.fx.nativeimpl.Native.call(this, com.jxparallel.fx.scene.control.cell.ComboBoxTreeCell.class, "snappedRightInset", new Class<?>[] {}, double.class);
@@ -1224,11 +959,11 @@ public class ComboBoxTreeCell<T> implements com.jxparallel.fx.scene.control.Skin
         return ((javafx.scene.control.cell.ComboBoxTreeCell) fxPeer()).snappedRightInset();
     }
 
-    public double snappedBottomInset() {
+    public double snappedTopInset() {
         if (com.jxparallel.fx.Fx.NATIVE) {
-            return (Double) com.jxparallel.fx.nativeimpl.Native.call(this, com.jxparallel.fx.scene.control.cell.ComboBoxTreeCell.class, "snappedBottomInset", new Class<?>[] {}, double.class);
+            return (Double) com.jxparallel.fx.nativeimpl.Native.call(this, com.jxparallel.fx.scene.control.cell.ComboBoxTreeCell.class, "snappedTopInset", new Class<?>[] {}, double.class);
         }
-        return ((javafx.scene.control.cell.ComboBoxTreeCell) fxPeer()).snappedBottomInset();
+        return ((javafx.scene.control.cell.ComboBoxTreeCell) fxPeer()).snappedTopInset();
     }
 
     public com.jxparallel.fx.beans.property.BooleanProperty cacheShapeProperty() {
@@ -1245,25 +980,11 @@ public class ComboBoxTreeCell<T> implements com.jxparallel.fx.scene.control.Skin
         return (com.jxparallel.fx.beans.property.BooleanProperty) com.jxparallel.fx.Fx.jx(((javafx.scene.control.cell.ComboBoxTreeCell) fxPeer()).centerShapeProperty());
     }
 
-    public com.jxparallel.fx.beans.property.ObjectProperty<com.jxparallel.fx.scene.layout.Background> backgroundProperty() {
+    public com.jxparallel.fx.beans.property.BooleanProperty scaleShapeProperty() {
         if (com.jxparallel.fx.Fx.NATIVE) {
-            return (com.jxparallel.fx.beans.property.ObjectProperty) com.jxparallel.fx.nativeimpl.Native.call(this, com.jxparallel.fx.scene.control.cell.ComboBoxTreeCell.class, "backgroundProperty", new Class<?>[] {}, com.jxparallel.fx.beans.property.ObjectProperty.class);
+            return (com.jxparallel.fx.beans.property.BooleanProperty) com.jxparallel.fx.nativeimpl.Native.call(this, com.jxparallel.fx.scene.control.cell.ComboBoxTreeCell.class, "scaleShapeProperty", new Class<?>[] {}, com.jxparallel.fx.beans.property.BooleanProperty.class);
         }
-        return (com.jxparallel.fx.beans.property.ObjectProperty) com.jxparallel.fx.Fx.jx(((javafx.scene.control.cell.ComboBoxTreeCell) fxPeer()).backgroundProperty());
-    }
-
-    public com.jxparallel.fx.beans.property.DoubleProperty maxHeightProperty() {
-        if (com.jxparallel.fx.Fx.NATIVE) {
-            return (com.jxparallel.fx.beans.property.DoubleProperty) com.jxparallel.fx.nativeimpl.Native.call(this, com.jxparallel.fx.scene.control.cell.ComboBoxTreeCell.class, "maxHeightProperty", new Class<?>[] {}, com.jxparallel.fx.beans.property.DoubleProperty.class);
-        }
-        return (com.jxparallel.fx.beans.property.DoubleProperty) com.jxparallel.fx.Fx.jx(((javafx.scene.control.cell.ComboBoxTreeCell) fxPeer()).maxHeightProperty());
-    }
-
-    public com.jxparallel.fx.beans.property.DoubleProperty minHeightProperty() {
-        if (com.jxparallel.fx.Fx.NATIVE) {
-            return (com.jxparallel.fx.beans.property.DoubleProperty) com.jxparallel.fx.nativeimpl.Native.call(this, com.jxparallel.fx.scene.control.cell.ComboBoxTreeCell.class, "minHeightProperty", new Class<?>[] {}, com.jxparallel.fx.beans.property.DoubleProperty.class);
-        }
-        return (com.jxparallel.fx.beans.property.DoubleProperty) com.jxparallel.fx.Fx.jx(((javafx.scene.control.cell.ComboBoxTreeCell) fxPeer()).minHeightProperty());
+        return (com.jxparallel.fx.beans.property.BooleanProperty) com.jxparallel.fx.Fx.jx(((javafx.scene.control.cell.ComboBoxTreeCell) fxPeer()).scaleShapeProperty());
     }
 
     public com.jxparallel.fx.beans.property.BooleanProperty snapToPixelProperty() {
@@ -1273,18 +994,32 @@ public class ComboBoxTreeCell<T> implements com.jxparallel.fx.scene.control.Skin
         return (com.jxparallel.fx.beans.property.BooleanProperty) com.jxparallel.fx.Fx.jx(((javafx.scene.control.cell.ComboBoxTreeCell) fxPeer()).snapToPixelProperty());
     }
 
-    public com.jxparallel.fx.beans.property.DoubleProperty prefWidthProperty() {
+    public com.jxparallel.fx.beans.property.DoubleProperty maxHeightProperty() {
         if (com.jxparallel.fx.Fx.NATIVE) {
-            return (com.jxparallel.fx.beans.property.DoubleProperty) com.jxparallel.fx.nativeimpl.Native.call(this, com.jxparallel.fx.scene.control.cell.ComboBoxTreeCell.class, "prefWidthProperty", new Class<?>[] {}, com.jxparallel.fx.beans.property.DoubleProperty.class);
+            return (com.jxparallel.fx.beans.property.DoubleProperty) com.jxparallel.fx.nativeimpl.Native.call(this, com.jxparallel.fx.scene.control.cell.ComboBoxTreeCell.class, "maxHeightProperty", new Class<?>[] {}, com.jxparallel.fx.beans.property.DoubleProperty.class);
         }
-        return (com.jxparallel.fx.beans.property.DoubleProperty) com.jxparallel.fx.Fx.jx(((javafx.scene.control.cell.ComboBoxTreeCell) fxPeer()).prefWidthProperty());
+        return (com.jxparallel.fx.beans.property.DoubleProperty) com.jxparallel.fx.Fx.jx(((javafx.scene.control.cell.ComboBoxTreeCell) fxPeer()).maxHeightProperty());
     }
 
-    public com.jxparallel.fx.beans.property.BooleanProperty scaleShapeProperty() {
+    public com.jxparallel.fx.beans.property.DoubleProperty maxWidthProperty() {
         if (com.jxparallel.fx.Fx.NATIVE) {
-            return (com.jxparallel.fx.beans.property.BooleanProperty) com.jxparallel.fx.nativeimpl.Native.call(this, com.jxparallel.fx.scene.control.cell.ComboBoxTreeCell.class, "scaleShapeProperty", new Class<?>[] {}, com.jxparallel.fx.beans.property.BooleanProperty.class);
+            return (com.jxparallel.fx.beans.property.DoubleProperty) com.jxparallel.fx.nativeimpl.Native.call(this, com.jxparallel.fx.scene.control.cell.ComboBoxTreeCell.class, "maxWidthProperty", new Class<?>[] {}, com.jxparallel.fx.beans.property.DoubleProperty.class);
         }
-        return (com.jxparallel.fx.beans.property.BooleanProperty) com.jxparallel.fx.Fx.jx(((javafx.scene.control.cell.ComboBoxTreeCell) fxPeer()).scaleShapeProperty());
+        return (com.jxparallel.fx.beans.property.DoubleProperty) com.jxparallel.fx.Fx.jx(((javafx.scene.control.cell.ComboBoxTreeCell) fxPeer()).maxWidthProperty());
+    }
+
+    public com.jxparallel.fx.beans.property.DoubleProperty minHeightProperty() {
+        if (com.jxparallel.fx.Fx.NATIVE) {
+            return (com.jxparallel.fx.beans.property.DoubleProperty) com.jxparallel.fx.nativeimpl.Native.call(this, com.jxparallel.fx.scene.control.cell.ComboBoxTreeCell.class, "minHeightProperty", new Class<?>[] {}, com.jxparallel.fx.beans.property.DoubleProperty.class);
+        }
+        return (com.jxparallel.fx.beans.property.DoubleProperty) com.jxparallel.fx.Fx.jx(((javafx.scene.control.cell.ComboBoxTreeCell) fxPeer()).minHeightProperty());
+    }
+
+    public com.jxparallel.fx.beans.property.DoubleProperty minWidthProperty() {
+        if (com.jxparallel.fx.Fx.NATIVE) {
+            return (com.jxparallel.fx.beans.property.DoubleProperty) com.jxparallel.fx.nativeimpl.Native.call(this, com.jxparallel.fx.scene.control.cell.ComboBoxTreeCell.class, "minWidthProperty", new Class<?>[] {}, com.jxparallel.fx.beans.property.DoubleProperty.class);
+        }
+        return (com.jxparallel.fx.beans.property.DoubleProperty) com.jxparallel.fx.Fx.jx(((javafx.scene.control.cell.ComboBoxTreeCell) fxPeer()).minWidthProperty());
     }
 
     public com.jxparallel.fx.beans.property.DoubleProperty prefHeightProperty() {
@@ -1294,6 +1029,13 @@ public class ComboBoxTreeCell<T> implements com.jxparallel.fx.scene.control.Skin
         return (com.jxparallel.fx.beans.property.DoubleProperty) com.jxparallel.fx.Fx.jx(((javafx.scene.control.cell.ComboBoxTreeCell) fxPeer()).prefHeightProperty());
     }
 
+    public com.jxparallel.fx.beans.property.DoubleProperty prefWidthProperty() {
+        if (com.jxparallel.fx.Fx.NATIVE) {
+            return (com.jxparallel.fx.beans.property.DoubleProperty) com.jxparallel.fx.nativeimpl.Native.call(this, com.jxparallel.fx.scene.control.cell.ComboBoxTreeCell.class, "prefWidthProperty", new Class<?>[] {}, com.jxparallel.fx.beans.property.DoubleProperty.class);
+        }
+        return (com.jxparallel.fx.beans.property.DoubleProperty) com.jxparallel.fx.Fx.jx(((javafx.scene.control.cell.ComboBoxTreeCell) fxPeer()).prefWidthProperty());
+    }
+
     public com.jxparallel.fx.beans.property.ObjectProperty<com.jxparallel.fx.geometry.Insets> opaqueInsetsProperty() {
         if (com.jxparallel.fx.Fx.NATIVE) {
             return (com.jxparallel.fx.beans.property.ObjectProperty) com.jxparallel.fx.nativeimpl.Native.call(this, com.jxparallel.fx.scene.control.cell.ComboBoxTreeCell.class, "opaqueInsetsProperty", new Class<?>[] {}, com.jxparallel.fx.beans.property.ObjectProperty.class);
@@ -1301,49 +1043,269 @@ public class ComboBoxTreeCell<T> implements com.jxparallel.fx.scene.control.Skin
         return (com.jxparallel.fx.beans.property.ObjectProperty) com.jxparallel.fx.Fx.jx(((javafx.scene.control.cell.ComboBoxTreeCell) fxPeer()).opaqueInsetsProperty());
     }
 
-    public com.jxparallel.fx.scene.Node lookup(java.lang.String arg0) {
+    public com.jxparallel.fx.beans.property.ObjectProperty<com.jxparallel.fx.geometry.Insets> paddingProperty() {
         if (com.jxparallel.fx.Fx.NATIVE) {
-            return (com.jxparallel.fx.scene.Node) com.jxparallel.fx.nativeimpl.Native.call(this, com.jxparallel.fx.scene.control.cell.ComboBoxTreeCell.class, "lookup", new Class<?>[] {java.lang.String.class}, com.jxparallel.fx.scene.Node.class, arg0);
+            return (com.jxparallel.fx.beans.property.ObjectProperty) com.jxparallel.fx.nativeimpl.Native.call(this, com.jxparallel.fx.scene.control.cell.ComboBoxTreeCell.class, "paddingProperty", new Class<?>[] {}, com.jxparallel.fx.beans.property.ObjectProperty.class);
         }
-        return (com.jxparallel.fx.scene.Node) com.jxparallel.fx.Fx.jx(((javafx.scene.control.cell.ComboBoxTreeCell) fxPeer()).lookup(arg0));
+        return (com.jxparallel.fx.beans.property.ObjectProperty) com.jxparallel.fx.Fx.jx(((javafx.scene.control.cell.ComboBoxTreeCell) fxPeer()).paddingProperty());
     }
 
-    public void layout() {
+    public com.jxparallel.fx.beans.property.ObjectProperty<com.jxparallel.fx.scene.layout.Background> backgroundProperty() {
         if (com.jxparallel.fx.Fx.NATIVE) {
-            com.jxparallel.fx.nativeimpl.Native.call(this, com.jxparallel.fx.scene.control.cell.ComboBoxTreeCell.class, "layout", new Class<?>[] {}, void.class);
+            return (com.jxparallel.fx.beans.property.ObjectProperty) com.jxparallel.fx.nativeimpl.Native.call(this, com.jxparallel.fx.scene.control.cell.ComboBoxTreeCell.class, "backgroundProperty", new Class<?>[] {}, com.jxparallel.fx.beans.property.ObjectProperty.class);
+        }
+        return (com.jxparallel.fx.beans.property.ObjectProperty) com.jxparallel.fx.Fx.jx(((javafx.scene.control.cell.ComboBoxTreeCell) fxPeer()).backgroundProperty());
+    }
+
+    public com.jxparallel.fx.beans.property.ObjectProperty<com.jxparallel.fx.scene.layout.Border> borderProperty() {
+        if (com.jxparallel.fx.Fx.NATIVE) {
+            return (com.jxparallel.fx.beans.property.ObjectProperty) com.jxparallel.fx.nativeimpl.Native.call(this, com.jxparallel.fx.scene.control.cell.ComboBoxTreeCell.class, "borderProperty", new Class<?>[] {}, com.jxparallel.fx.beans.property.ObjectProperty.class);
+        }
+        return (com.jxparallel.fx.beans.property.ObjectProperty) com.jxparallel.fx.Fx.jx(((javafx.scene.control.cell.ComboBoxTreeCell) fxPeer()).borderProperty());
+    }
+
+    public com.jxparallel.fx.beans.property.ObjectProperty<com.jxparallel.fx.scene.shape.Shape> shapeProperty() {
+        if (com.jxparallel.fx.Fx.NATIVE) {
+            return (com.jxparallel.fx.beans.property.ObjectProperty) com.jxparallel.fx.nativeimpl.Native.call(this, com.jxparallel.fx.scene.control.cell.ComboBoxTreeCell.class, "shapeProperty", new Class<?>[] {}, com.jxparallel.fx.beans.property.ObjectProperty.class);
+        }
+        return (com.jxparallel.fx.beans.property.ObjectProperty) com.jxparallel.fx.Fx.jx(((javafx.scene.control.cell.ComboBoxTreeCell) fxPeer()).shapeProperty());
+    }
+
+    public com.jxparallel.fx.beans.property.ReadOnlyDoubleProperty heightProperty() {
+        if (com.jxparallel.fx.Fx.NATIVE) {
+            return (com.jxparallel.fx.beans.property.ReadOnlyDoubleProperty) com.jxparallel.fx.nativeimpl.Native.call(this, com.jxparallel.fx.scene.control.cell.ComboBoxTreeCell.class, "heightProperty", new Class<?>[] {}, com.jxparallel.fx.beans.property.ReadOnlyDoubleProperty.class);
+        }
+        return (com.jxparallel.fx.beans.property.ReadOnlyDoubleProperty) com.jxparallel.fx.Fx.jx(((javafx.scene.control.cell.ComboBoxTreeCell) fxPeer()).heightProperty());
+    }
+
+    public com.jxparallel.fx.beans.property.ReadOnlyDoubleProperty widthProperty() {
+        if (com.jxparallel.fx.Fx.NATIVE) {
+            return (com.jxparallel.fx.beans.property.ReadOnlyDoubleProperty) com.jxparallel.fx.nativeimpl.Native.call(this, com.jxparallel.fx.scene.control.cell.ComboBoxTreeCell.class, "widthProperty", new Class<?>[] {}, com.jxparallel.fx.beans.property.ReadOnlyDoubleProperty.class);
+        }
+        return (com.jxparallel.fx.beans.property.ReadOnlyDoubleProperty) com.jxparallel.fx.Fx.jx(((javafx.scene.control.cell.ComboBoxTreeCell) fxPeer()).widthProperty());
+    }
+
+    public com.jxparallel.fx.beans.property.ReadOnlyObjectProperty<com.jxparallel.fx.geometry.Insets> insetsProperty() {
+        if (com.jxparallel.fx.Fx.NATIVE) {
+            return (com.jxparallel.fx.beans.property.ReadOnlyObjectProperty) com.jxparallel.fx.nativeimpl.Native.call(this, com.jxparallel.fx.scene.control.cell.ComboBoxTreeCell.class, "insetsProperty", new Class<?>[] {}, com.jxparallel.fx.beans.property.ReadOnlyObjectProperty.class);
+        }
+        return (com.jxparallel.fx.beans.property.ReadOnlyObjectProperty) com.jxparallel.fx.Fx.jx(((javafx.scene.control.cell.ComboBoxTreeCell) fxPeer()).insetsProperty());
+    }
+
+    public com.jxparallel.fx.geometry.Insets getInsets() {
+        if (com.jxparallel.fx.Fx.NATIVE) {
+            return (com.jxparallel.fx.geometry.Insets) com.jxparallel.fx.nativeimpl.Native.call(this, com.jxparallel.fx.scene.control.cell.ComboBoxTreeCell.class, "getInsets", new Class<?>[] {}, com.jxparallel.fx.geometry.Insets.class);
+        }
+        return (com.jxparallel.fx.geometry.Insets) com.jxparallel.fx.Fx.jx(((javafx.scene.control.cell.ComboBoxTreeCell) fxPeer()).getInsets());
+    }
+
+    public com.jxparallel.fx.geometry.Insets getOpaqueInsets() {
+        if (com.jxparallel.fx.Fx.NATIVE) {
+            return (com.jxparallel.fx.geometry.Insets) com.jxparallel.fx.nativeimpl.Native.call(this, com.jxparallel.fx.scene.control.cell.ComboBoxTreeCell.class, "getOpaqueInsets", new Class<?>[] {}, com.jxparallel.fx.geometry.Insets.class);
+        }
+        return (com.jxparallel.fx.geometry.Insets) com.jxparallel.fx.Fx.jx(((javafx.scene.control.cell.ComboBoxTreeCell) fxPeer()).getOpaqueInsets());
+    }
+
+    public com.jxparallel.fx.geometry.Insets getPadding() {
+        if (com.jxparallel.fx.Fx.NATIVE) {
+            return (com.jxparallel.fx.geometry.Insets) com.jxparallel.fx.nativeimpl.Native.call(this, com.jxparallel.fx.scene.control.cell.ComboBoxTreeCell.class, "getPadding", new Class<?>[] {}, com.jxparallel.fx.geometry.Insets.class);
+        }
+        return (com.jxparallel.fx.geometry.Insets) com.jxparallel.fx.Fx.jx(((javafx.scene.control.cell.ComboBoxTreeCell) fxPeer()).getPadding());
+    }
+
+    public com.jxparallel.fx.scene.layout.Background getBackground() {
+        if (com.jxparallel.fx.Fx.NATIVE) {
+            return (com.jxparallel.fx.scene.layout.Background) com.jxparallel.fx.nativeimpl.Native.call(this, com.jxparallel.fx.scene.control.cell.ComboBoxTreeCell.class, "getBackground", new Class<?>[] {}, com.jxparallel.fx.scene.layout.Background.class);
+        }
+        return (com.jxparallel.fx.scene.layout.Background) com.jxparallel.fx.Fx.jx(((javafx.scene.control.cell.ComboBoxTreeCell) fxPeer()).getBackground());
+    }
+
+    public com.jxparallel.fx.scene.layout.Border getBorder() {
+        if (com.jxparallel.fx.Fx.NATIVE) {
+            return (com.jxparallel.fx.scene.layout.Border) com.jxparallel.fx.nativeimpl.Native.call(this, com.jxparallel.fx.scene.control.cell.ComboBoxTreeCell.class, "getBorder", new Class<?>[] {}, com.jxparallel.fx.scene.layout.Border.class);
+        }
+        return (com.jxparallel.fx.scene.layout.Border) com.jxparallel.fx.Fx.jx(((javafx.scene.control.cell.ComboBoxTreeCell) fxPeer()).getBorder());
+    }
+
+    public com.jxparallel.fx.scene.shape.Shape getShape() {
+        if (com.jxparallel.fx.Fx.NATIVE) {
+            return (com.jxparallel.fx.scene.shape.Shape) com.jxparallel.fx.nativeimpl.Native.call(this, com.jxparallel.fx.scene.control.cell.ComboBoxTreeCell.class, "getShape", new Class<?>[] {}, com.jxparallel.fx.scene.shape.Shape.class);
+        }
+        return (com.jxparallel.fx.scene.shape.Shape) com.jxparallel.fx.Fx.jx(((javafx.scene.control.cell.ComboBoxTreeCell) fxPeer()).getShape());
+    }
+
+    public void setBackground(com.jxparallel.fx.scene.layout.Background arg0) {
+        if (com.jxparallel.fx.Fx.NATIVE) {
+            com.jxparallel.fx.nativeimpl.Native.call(this, com.jxparallel.fx.scene.control.cell.ComboBoxTreeCell.class, "setBackground", new Class<?>[] {com.jxparallel.fx.scene.layout.Background.class}, void.class, arg0);
             return;
         }
-        ((javafx.scene.control.cell.ComboBoxTreeCell) fxPeer()).layout();
+        ((javafx.scene.control.cell.ComboBoxTreeCell) fxPeer()).setBackground((javafx.scene.layout.Background) com.jxparallel.fx.Fx.fx(arg0));
     }
 
-    public java.lang.Object impl_processMXNode(com.sun.javafx.jmx.MXNodeAlgorithm arg0, com.sun.javafx.jmx.MXNodeAlgorithmContext arg1) {
+    public void setBorder(com.jxparallel.fx.scene.layout.Border arg0) {
         if (com.jxparallel.fx.Fx.NATIVE) {
-            return (java.lang.Object) com.jxparallel.fx.nativeimpl.Native.call(this, com.jxparallel.fx.scene.control.cell.ComboBoxTreeCell.class, "impl_processMXNode", new Class<?>[] {com.sun.javafx.jmx.MXNodeAlgorithm.class, com.sun.javafx.jmx.MXNodeAlgorithmContext.class}, java.lang.Object.class, arg0, arg1);
-        }
-        return (java.lang.Object) com.jxparallel.fx.Fx.jx(((javafx.scene.control.cell.ComboBoxTreeCell) fxPeer()).impl_processMXNode(arg0, arg1));
-    }
-
-    public void requestLayout() {
-        if (com.jxparallel.fx.Fx.NATIVE) {
-            com.jxparallel.fx.nativeimpl.Native.call(this, com.jxparallel.fx.scene.control.cell.ComboBoxTreeCell.class, "requestLayout", new Class<?>[] {}, void.class);
+            com.jxparallel.fx.nativeimpl.Native.call(this, com.jxparallel.fx.scene.control.cell.ComboBoxTreeCell.class, "setBorder", new Class<?>[] {com.jxparallel.fx.scene.layout.Border.class}, void.class, arg0);
             return;
         }
-        ((javafx.scene.control.cell.ComboBoxTreeCell) fxPeer()).requestLayout();
+        ((javafx.scene.control.cell.ComboBoxTreeCell) fxPeer()).setBorder((javafx.scene.layout.Border) com.jxparallel.fx.Fx.fx(arg0));
     }
 
-    public void setImpl_traversalEngine(com.sun.javafx.scene.traversal.ParentTraversalEngine arg0) {
+    public void setCacheShape(boolean arg0) {
         if (com.jxparallel.fx.Fx.NATIVE) {
-            com.jxparallel.fx.nativeimpl.Native.call(this, com.jxparallel.fx.scene.control.cell.ComboBoxTreeCell.class, "setImpl_traversalEngine", new Class<?>[] {com.sun.javafx.scene.traversal.ParentTraversalEngine.class}, void.class, arg0);
+            com.jxparallel.fx.nativeimpl.Native.call(this, com.jxparallel.fx.scene.control.cell.ComboBoxTreeCell.class, "setCacheShape", new Class<?>[] {boolean.class}, void.class, arg0);
             return;
         }
-        ((javafx.scene.control.cell.ComboBoxTreeCell) fxPeer()).setImpl_traversalEngine(arg0);
+        ((javafx.scene.control.cell.ComboBoxTreeCell) fxPeer()).setCacheShape(arg0);
     }
 
-    public com.jxparallel.fx.collections.ObservableList<com.jxparallel.fx.scene.Node> getChildrenUnmodifiable() {
+    public void setCenterShape(boolean arg0) {
         if (com.jxparallel.fx.Fx.NATIVE) {
-            return (com.jxparallel.fx.collections.ObservableList) com.jxparallel.fx.nativeimpl.Native.call(this, com.jxparallel.fx.scene.control.cell.ComboBoxTreeCell.class, "getChildrenUnmodifiable", new Class<?>[] {}, com.jxparallel.fx.collections.ObservableList.class);
+            com.jxparallel.fx.nativeimpl.Native.call(this, com.jxparallel.fx.scene.control.cell.ComboBoxTreeCell.class, "setCenterShape", new Class<?>[] {boolean.class}, void.class, arg0);
+            return;
         }
-        return (com.jxparallel.fx.collections.ObservableList) com.jxparallel.fx.Fx.jx(((javafx.scene.control.cell.ComboBoxTreeCell) fxPeer()).getChildrenUnmodifiable());
+        ((javafx.scene.control.cell.ComboBoxTreeCell) fxPeer()).setCenterShape(arg0);
+    }
+
+    public void setMaxHeight(double arg0) {
+        if (com.jxparallel.fx.Fx.NATIVE) {
+            com.jxparallel.fx.nativeimpl.Native.call(this, com.jxparallel.fx.scene.control.cell.ComboBoxTreeCell.class, "setMaxHeight", new Class<?>[] {double.class}, void.class, arg0);
+            return;
+        }
+        ((javafx.scene.control.cell.ComboBoxTreeCell) fxPeer()).setMaxHeight(arg0);
+    }
+
+    public void setMaxWidth(double arg0) {
+        if (com.jxparallel.fx.Fx.NATIVE) {
+            com.jxparallel.fx.nativeimpl.Native.call(this, com.jxparallel.fx.scene.control.cell.ComboBoxTreeCell.class, "setMaxWidth", new Class<?>[] {double.class}, void.class, arg0);
+            return;
+        }
+        ((javafx.scene.control.cell.ComboBoxTreeCell) fxPeer()).setMaxWidth(arg0);
+    }
+
+    public void setMinHeight(double arg0) {
+        if (com.jxparallel.fx.Fx.NATIVE) {
+            com.jxparallel.fx.nativeimpl.Native.call(this, com.jxparallel.fx.scene.control.cell.ComboBoxTreeCell.class, "setMinHeight", new Class<?>[] {double.class}, void.class, arg0);
+            return;
+        }
+        ((javafx.scene.control.cell.ComboBoxTreeCell) fxPeer()).setMinHeight(arg0);
+    }
+
+    public void setMinWidth(double arg0) {
+        if (com.jxparallel.fx.Fx.NATIVE) {
+            com.jxparallel.fx.nativeimpl.Native.call(this, com.jxparallel.fx.scene.control.cell.ComboBoxTreeCell.class, "setMinWidth", new Class<?>[] {double.class}, void.class, arg0);
+            return;
+        }
+        ((javafx.scene.control.cell.ComboBoxTreeCell) fxPeer()).setMinWidth(arg0);
+    }
+
+    public void setOpaqueInsets(com.jxparallel.fx.geometry.Insets arg0) {
+        if (com.jxparallel.fx.Fx.NATIVE) {
+            com.jxparallel.fx.nativeimpl.Native.call(this, com.jxparallel.fx.scene.control.cell.ComboBoxTreeCell.class, "setOpaqueInsets", new Class<?>[] {com.jxparallel.fx.geometry.Insets.class}, void.class, arg0);
+            return;
+        }
+        ((javafx.scene.control.cell.ComboBoxTreeCell) fxPeer()).setOpaqueInsets((javafx.geometry.Insets) com.jxparallel.fx.Fx.fx(arg0));
+    }
+
+    public void setPadding(com.jxparallel.fx.geometry.Insets arg0) {
+        if (com.jxparallel.fx.Fx.NATIVE) {
+            com.jxparallel.fx.nativeimpl.Native.call(this, com.jxparallel.fx.scene.control.cell.ComboBoxTreeCell.class, "setPadding", new Class<?>[] {com.jxparallel.fx.geometry.Insets.class}, void.class, arg0);
+            return;
+        }
+        ((javafx.scene.control.cell.ComboBoxTreeCell) fxPeer()).setPadding((javafx.geometry.Insets) com.jxparallel.fx.Fx.fx(arg0));
+    }
+
+    public void setPrefHeight(double arg0) {
+        if (com.jxparallel.fx.Fx.NATIVE) {
+            com.jxparallel.fx.nativeimpl.Native.call(this, com.jxparallel.fx.scene.control.cell.ComboBoxTreeCell.class, "setPrefHeight", new Class<?>[] {double.class}, void.class, arg0);
+            return;
+        }
+        ((javafx.scene.control.cell.ComboBoxTreeCell) fxPeer()).setPrefHeight(arg0);
+    }
+
+    public void setPrefWidth(double arg0) {
+        if (com.jxparallel.fx.Fx.NATIVE) {
+            com.jxparallel.fx.nativeimpl.Native.call(this, com.jxparallel.fx.scene.control.cell.ComboBoxTreeCell.class, "setPrefWidth", new Class<?>[] {double.class}, void.class, arg0);
+            return;
+        }
+        ((javafx.scene.control.cell.ComboBoxTreeCell) fxPeer()).setPrefWidth(arg0);
+    }
+
+    public void setScaleShape(boolean arg0) {
+        if (com.jxparallel.fx.Fx.NATIVE) {
+            com.jxparallel.fx.nativeimpl.Native.call(this, com.jxparallel.fx.scene.control.cell.ComboBoxTreeCell.class, "setScaleShape", new Class<?>[] {boolean.class}, void.class, arg0);
+            return;
+        }
+        ((javafx.scene.control.cell.ComboBoxTreeCell) fxPeer()).setScaleShape(arg0);
+    }
+
+    public void setShape(com.jxparallel.fx.scene.shape.Shape arg0) {
+        if (com.jxparallel.fx.Fx.NATIVE) {
+            com.jxparallel.fx.nativeimpl.Native.call(this, com.jxparallel.fx.scene.control.cell.ComboBoxTreeCell.class, "setShape", new Class<?>[] {com.jxparallel.fx.scene.shape.Shape.class}, void.class, arg0);
+            return;
+        }
+        ((javafx.scene.control.cell.ComboBoxTreeCell) fxPeer()).setShape((javafx.scene.shape.Shape) com.jxparallel.fx.Fx.fx(arg0));
+    }
+
+    public void setSnapToPixel(boolean arg0) {
+        if (com.jxparallel.fx.Fx.NATIVE) {
+            com.jxparallel.fx.nativeimpl.Native.call(this, com.jxparallel.fx.scene.control.cell.ComboBoxTreeCell.class, "setSnapToPixel", new Class<?>[] {boolean.class}, void.class, arg0);
+            return;
+        }
+        ((javafx.scene.control.cell.ComboBoxTreeCell) fxPeer()).setSnapToPixel(arg0);
+    }
+
+    public java.lang.String getUserAgentStylesheet() {
+        if (com.jxparallel.fx.Fx.NATIVE) {
+            return (java.lang.String) com.jxparallel.fx.nativeimpl.Native.call(this, com.jxparallel.fx.scene.control.cell.ComboBoxTreeCell.class, "getUserAgentStylesheet", new Class<?>[] {}, java.lang.String.class);
+        }
+        return ((javafx.scene.control.cell.ComboBoxTreeCell) fxPeer()).getUserAgentStylesheet();
+    }
+
+    public void impl_updatePeer() {
+        if (com.jxparallel.fx.Fx.NATIVE) {
+            com.jxparallel.fx.nativeimpl.Native.call(this, com.jxparallel.fx.scene.control.cell.ComboBoxTreeCell.class, "impl_updatePeer", new Class<?>[] {}, void.class);
+            return;
+        }
+        ((javafx.scene.control.cell.ComboBoxTreeCell) fxPeer()).impl_updatePeer();
+    }
+
+    public void resize(double arg0, double arg1) {
+        if (com.jxparallel.fx.Fx.NATIVE) {
+            com.jxparallel.fx.nativeimpl.Native.call(this, com.jxparallel.fx.scene.control.cell.ComboBoxTreeCell.class, "resize", new Class<?>[] {double.class, double.class}, void.class, arg0, arg1);
+            return;
+        }
+        ((javafx.scene.control.cell.ComboBoxTreeCell) fxPeer()).resize(arg0, arg1);
+    }
+
+    public void setMaxSize(double arg0, double arg1) {
+        if (com.jxparallel.fx.Fx.NATIVE) {
+            com.jxparallel.fx.nativeimpl.Native.call(this, com.jxparallel.fx.scene.control.cell.ComboBoxTreeCell.class, "setMaxSize", new Class<?>[] {double.class, double.class}, void.class, arg0, arg1);
+            return;
+        }
+        ((javafx.scene.control.cell.ComboBoxTreeCell) fxPeer()).setMaxSize(arg0, arg1);
+    }
+
+    public void setMinSize(double arg0, double arg1) {
+        if (com.jxparallel.fx.Fx.NATIVE) {
+            com.jxparallel.fx.nativeimpl.Native.call(this, com.jxparallel.fx.scene.control.cell.ComboBoxTreeCell.class, "setMinSize", new Class<?>[] {double.class, double.class}, void.class, arg0, arg1);
+            return;
+        }
+        ((javafx.scene.control.cell.ComboBoxTreeCell) fxPeer()).setMinSize(arg0, arg1);
+    }
+
+    public void setPrefSize(double arg0, double arg1) {
+        if (com.jxparallel.fx.Fx.NATIVE) {
+            com.jxparallel.fx.nativeimpl.Native.call(this, com.jxparallel.fx.scene.control.cell.ComboBoxTreeCell.class, "setPrefSize", new Class<?>[] {double.class, double.class}, void.class, arg0, arg1);
+            return;
+        }
+        ((javafx.scene.control.cell.ComboBoxTreeCell) fxPeer()).setPrefSize(arg0, arg1);
+    }
+
+    public boolean isNeedsLayout() {
+        if (com.jxparallel.fx.Fx.NATIVE) {
+            return (Boolean) com.jxparallel.fx.nativeimpl.Native.call(this, com.jxparallel.fx.scene.control.cell.ComboBoxTreeCell.class, "isNeedsLayout", new Class<?>[] {}, boolean.class);
+        }
+        return ((javafx.scene.control.cell.ComboBoxTreeCell) fxPeer()).isNeedsLayout();
     }
 
     public com.sun.javafx.scene.traversal.ParentTraversalEngine getImpl_traversalEngine() {
@@ -1351,6 +1313,13 @@ public class ComboBoxTreeCell<T> implements com.jxparallel.fx.scene.control.Skin
             return (com.sun.javafx.scene.traversal.ParentTraversalEngine) com.jxparallel.fx.nativeimpl.Native.call(this, com.jxparallel.fx.scene.control.cell.ComboBoxTreeCell.class, "getImpl_traversalEngine", new Class<?>[] {}, com.sun.javafx.scene.traversal.ParentTraversalEngine.class);
         }
         return ((javafx.scene.control.cell.ComboBoxTreeCell) fxPeer()).getImpl_traversalEngine();
+    }
+
+    public javafx.beans.property.ObjectProperty<com.sun.javafx.scene.traversal.ParentTraversalEngine> impl_traversalEngineProperty() {
+        if (com.jxparallel.fx.Fx.NATIVE) {
+            return (javafx.beans.property.ObjectProperty) com.jxparallel.fx.nativeimpl.Native.call(this, com.jxparallel.fx.scene.control.cell.ComboBoxTreeCell.class, "impl_traversalEngineProperty", new Class<?>[] {}, com.jxparallel.fx.beans.property.ObjectProperty.class);
+        }
+        return ((javafx.scene.control.cell.ComboBoxTreeCell) fxPeer()).impl_traversalEngineProperty();
     }
 
     public com.jxparallel.fx.beans.property.ReadOnlyBooleanProperty needsLayoutProperty() {
@@ -1367,11 +1336,27 @@ public class ComboBoxTreeCell<T> implements com.jxparallel.fx.scene.control.Skin
         return (com.jxparallel.fx.collections.ObservableList) com.jxparallel.fx.Fx.jx(((javafx.scene.control.cell.ComboBoxTreeCell) fxPeer()).getStylesheets());
     }
 
-    public boolean isNeedsLayout() {
+    public void layout() {
         if (com.jxparallel.fx.Fx.NATIVE) {
-            return (Boolean) com.jxparallel.fx.nativeimpl.Native.call(this, com.jxparallel.fx.scene.control.cell.ComboBoxTreeCell.class, "isNeedsLayout", new Class<?>[] {}, boolean.class);
+            com.jxparallel.fx.nativeimpl.Native.call(this, com.jxparallel.fx.scene.control.cell.ComboBoxTreeCell.class, "layout", new Class<?>[] {}, void.class);
+            return;
         }
-        return ((javafx.scene.control.cell.ComboBoxTreeCell) fxPeer()).isNeedsLayout();
+        ((javafx.scene.control.cell.ComboBoxTreeCell) fxPeer()).layout();
+    }
+
+    public void setImpl_traversalEngine(com.sun.javafx.scene.traversal.ParentTraversalEngine arg0) {
+        if (com.jxparallel.fx.Fx.NATIVE) {
+            com.jxparallel.fx.nativeimpl.Native.call(this, com.jxparallel.fx.scene.control.cell.ComboBoxTreeCell.class, "setImpl_traversalEngine", new Class<?>[] {com.sun.javafx.scene.traversal.ParentTraversalEngine.class}, void.class, arg0);
+            return;
+        }
+        ((javafx.scene.control.cell.ComboBoxTreeCell) fxPeer()).setImpl_traversalEngine(arg0);
+    }
+
+    public java.lang.Object impl_processMXNode(com.sun.javafx.jmx.MXNodeAlgorithm arg0, com.sun.javafx.jmx.MXNodeAlgorithmContext arg1) {
+        if (com.jxparallel.fx.Fx.NATIVE) {
+            return (java.lang.Object) com.jxparallel.fx.nativeimpl.Native.call(this, com.jxparallel.fx.scene.control.cell.ComboBoxTreeCell.class, "impl_processMXNode", new Class<?>[] {com.sun.javafx.jmx.MXNodeAlgorithm.class, com.sun.javafx.jmx.MXNodeAlgorithmContext.class}, java.lang.Object.class, arg0, arg1);
+        }
+        return (java.lang.Object) com.jxparallel.fx.Fx.jx(((javafx.scene.control.cell.ComboBoxTreeCell) fxPeer()).impl_processMXNode(arg0, arg1));
     }
 
     public java.util.List<java.lang.String> impl_getAllParentStylesheets() {
@@ -1381,11 +1366,33 @@ public class ComboBoxTreeCell<T> implements com.jxparallel.fx.scene.control.Skin
         return (java.util.List) com.jxparallel.fx.Fx.jxList((java.util.List) ((javafx.scene.control.cell.ComboBoxTreeCell) fxPeer()).impl_getAllParentStylesheets());
     }
 
-    public javafx.beans.property.ObjectProperty<com.sun.javafx.scene.traversal.ParentTraversalEngine> impl_traversalEngineProperty() {
+    public com.jxparallel.fx.collections.ObservableList<com.jxparallel.fx.scene.Node> getChildrenUnmodifiable() {
         if (com.jxparallel.fx.Fx.NATIVE) {
-            return (javafx.beans.property.ObjectProperty) com.jxparallel.fx.nativeimpl.Native.call(this, com.jxparallel.fx.scene.control.cell.ComboBoxTreeCell.class, "impl_traversalEngineProperty", new Class<?>[] {}, com.jxparallel.fx.beans.property.ObjectProperty.class);
+            return (com.jxparallel.fx.collections.ObservableList) com.jxparallel.fx.nativeimpl.Native.call(this, com.jxparallel.fx.scene.control.cell.ComboBoxTreeCell.class, "getChildrenUnmodifiable", new Class<?>[] {}, com.jxparallel.fx.collections.ObservableList.class);
         }
-        return ((javafx.scene.control.cell.ComboBoxTreeCell) fxPeer()).impl_traversalEngineProperty();
+        return (com.jxparallel.fx.collections.ObservableList) com.jxparallel.fx.Fx.jx(((javafx.scene.control.cell.ComboBoxTreeCell) fxPeer()).getChildrenUnmodifiable());
+    }
+
+    public com.jxparallel.fx.scene.Node lookup(java.lang.String arg0) {
+        if (com.jxparallel.fx.Fx.NATIVE) {
+            return (com.jxparallel.fx.scene.Node) com.jxparallel.fx.nativeimpl.Native.call(this, com.jxparallel.fx.scene.control.cell.ComboBoxTreeCell.class, "lookup", new Class<?>[] {java.lang.String.class}, com.jxparallel.fx.scene.Node.class, arg0);
+        }
+        return (com.jxparallel.fx.scene.Node) com.jxparallel.fx.Fx.jx(((javafx.scene.control.cell.ComboBoxTreeCell) fxPeer()).lookup(arg0));
+    }
+
+    public void requestLayout() {
+        if (com.jxparallel.fx.Fx.NATIVE) {
+            com.jxparallel.fx.nativeimpl.Native.call(this, com.jxparallel.fx.scene.control.cell.ComboBoxTreeCell.class, "requestLayout", new Class<?>[] {}, void.class);
+            return;
+        }
+        ((javafx.scene.control.cell.ComboBoxTreeCell) fxPeer()).requestLayout();
+    }
+
+    public <P extends com.sun.javafx.sg.prism.NGNode> P impl_getPeer() {
+        if (com.jxparallel.fx.Fx.NATIVE) {
+            return (P) com.jxparallel.fx.nativeimpl.Native.call(this, com.jxparallel.fx.scene.control.cell.ComboBoxTreeCell.class, "impl_getPeer", new Class<?>[] {}, com.sun.javafx.sg.prism.NGNode.class);
+        }
+        return ((javafx.scene.control.cell.ComboBoxTreeCell) fxPeer()).impl_getPeer();
     }
 
     public boolean contains(double arg0, double arg1) {
@@ -1402,25 +1409,18 @@ public class ComboBoxTreeCell<T> implements com.jxparallel.fx.scene.control.Skin
         return ((javafx.scene.control.cell.ComboBoxTreeCell) fxPeer()).contains((javafx.geometry.Point2D) com.jxparallel.fx.Fx.fx(arg0));
     }
 
-    public com.jxparallel.fx.scene.Parent getParent() {
+    public boolean hasProperties() {
         if (com.jxparallel.fx.Fx.NATIVE) {
-            return (com.jxparallel.fx.scene.Parent) com.jxparallel.fx.nativeimpl.Native.call(this, com.jxparallel.fx.scene.control.cell.ComboBoxTreeCell.class, "getParent", new Class<?>[] {}, com.jxparallel.fx.scene.Parent.class);
+            return (Boolean) com.jxparallel.fx.nativeimpl.Native.call(this, com.jxparallel.fx.scene.control.cell.ComboBoxTreeCell.class, "hasProperties", new Class<?>[] {}, boolean.class);
         }
-        return (com.jxparallel.fx.scene.Parent) com.jxparallel.fx.Fx.jx(((javafx.scene.control.cell.ComboBoxTreeCell) fxPeer()).getParent());
+        return ((javafx.scene.control.cell.ComboBoxTreeCell) fxPeer()).hasProperties();
     }
 
-    public javafx.collections.ObservableMap<java.lang.Object, java.lang.Object> getProperties() {
+    public boolean impl_hasTransforms() {
         if (com.jxparallel.fx.Fx.NATIVE) {
-            return (javafx.collections.ObservableMap) com.jxparallel.fx.nativeimpl.Native.call(this, com.jxparallel.fx.scene.control.cell.ComboBoxTreeCell.class, "getProperties", new Class<?>[] {}, javafx.collections.ObservableMap.class);
+            return (Boolean) com.jxparallel.fx.nativeimpl.Native.call(this, com.jxparallel.fx.scene.control.cell.ComboBoxTreeCell.class, "impl_hasTransforms", new Class<?>[] {}, boolean.class);
         }
-        return ((javafx.scene.control.cell.ComboBoxTreeCell) fxPeer()).getProperties();
-    }
-
-    public java.lang.String getId() {
-        if (com.jxparallel.fx.Fx.NATIVE) {
-            return (java.lang.String) com.jxparallel.fx.nativeimpl.Native.call(this, com.jxparallel.fx.scene.control.cell.ComboBoxTreeCell.class, "getId", new Class<?>[] {}, java.lang.String.class);
-        }
-        return ((javafx.scene.control.cell.ComboBoxTreeCell) fxPeer()).getId();
+        return ((javafx.scene.control.cell.ComboBoxTreeCell) fxPeer()).impl_hasTransforms();
     }
 
     public boolean intersects(double arg0, double arg1, double arg2, double arg3) {
@@ -1437,175 +1437,34 @@ public class ComboBoxTreeCell<T> implements com.jxparallel.fx.scene.control.Skin
         return ((javafx.scene.control.cell.ComboBoxTreeCell) fxPeer()).intersects((javafx.geometry.Bounds) com.jxparallel.fx.Fx.fx(arg0));
     }
 
-    public void setCache(boolean arg0) {
+    public boolean usesMirroring() {
         if (com.jxparallel.fx.Fx.NATIVE) {
-            com.jxparallel.fx.nativeimpl.Native.call(this, com.jxparallel.fx.scene.control.cell.ComboBoxTreeCell.class, "setCache", new Class<?>[] {boolean.class}, void.class, arg0);
+            return (Boolean) com.jxparallel.fx.nativeimpl.Native.call(this, com.jxparallel.fx.scene.control.cell.ComboBoxTreeCell.class, "usesMirroring", new Class<?>[] {}, boolean.class);
+        }
+        return ((javafx.scene.control.cell.ComboBoxTreeCell) fxPeer()).usesMirroring();
+    }
+
+    public double computeAreaInScreen() {
+        if (com.jxparallel.fx.Fx.NATIVE) {
+            return (Double) com.jxparallel.fx.nativeimpl.Native.call(this, com.jxparallel.fx.scene.control.cell.ComboBoxTreeCell.class, "computeAreaInScreen", new Class<?>[] {}, double.class);
+        }
+        return ((javafx.scene.control.cell.ComboBoxTreeCell) fxPeer()).computeAreaInScreen();
+    }
+
+    public <T extends com.jxparallel.fx.event.Event> void addEventFilter(com.jxparallel.fx.event.EventType<T> arg0, com.jxparallel.fx.event.EventHandler<? super T> arg1) {
+        if (com.jxparallel.fx.Fx.NATIVE) {
+            com.jxparallel.fx.nativeimpl.Native.call(this, com.jxparallel.fx.scene.control.cell.ComboBoxTreeCell.class, "addEventFilter", new Class<?>[] {com.jxparallel.fx.event.EventType.class, com.jxparallel.fx.event.EventHandler.class}, void.class, arg0, arg1);
             return;
         }
-        ((javafx.scene.control.cell.ComboBoxTreeCell) fxPeer()).setCache(arg0);
+        ((javafx.scene.control.cell.ComboBoxTreeCell) fxPeer()).addEventFilter((javafx.event.EventType) com.jxparallel.fx.Fx.fx(arg0), (javafx.event.EventHandler) com.jxparallel.fx.Fx.fx(arg1));
     }
 
-    public com.sun.javafx.geom.transform.BaseTransform impl_getLeafTransform() {
+    public <T extends com.jxparallel.fx.event.Event> void addEventHandler(com.jxparallel.fx.event.EventType<T> arg0, com.jxparallel.fx.event.EventHandler<? super T> arg1) {
         if (com.jxparallel.fx.Fx.NATIVE) {
-            return (com.sun.javafx.geom.transform.BaseTransform) com.jxparallel.fx.nativeimpl.Native.call(this, com.jxparallel.fx.scene.control.cell.ComboBoxTreeCell.class, "impl_getLeafTransform", new Class<?>[] {}, com.sun.javafx.geom.transform.BaseTransform.class);
-        }
-        return ((javafx.scene.control.cell.ComboBoxTreeCell) fxPeer()).impl_getLeafTransform();
-    }
-
-    public double impl_getPivotY() {
-        if (com.jxparallel.fx.Fx.NATIVE) {
-            return (Double) com.jxparallel.fx.nativeimpl.Native.call(this, com.jxparallel.fx.scene.control.cell.ComboBoxTreeCell.class, "impl_getPivotY", new Class<?>[] {}, double.class);
-        }
-        return ((javafx.scene.control.cell.ComboBoxTreeCell) fxPeer()).impl_getPivotY();
-    }
-
-    public com.jxparallel.fx.geometry.Bounds getLayoutBounds() {
-        if (com.jxparallel.fx.Fx.NATIVE) {
-            return (com.jxparallel.fx.geometry.Bounds) com.jxparallel.fx.nativeimpl.Native.call(this, com.jxparallel.fx.scene.control.cell.ComboBoxTreeCell.class, "getLayoutBounds", new Class<?>[] {}, com.jxparallel.fx.geometry.Bounds.class);
-        }
-        return (com.jxparallel.fx.geometry.Bounds) com.jxparallel.fx.Fx.jx(((javafx.scene.control.cell.ComboBoxTreeCell) fxPeer()).getLayoutBounds());
-    }
-
-    public double impl_getPivotX() {
-        if (com.jxparallel.fx.Fx.NATIVE) {
-            return (Double) com.jxparallel.fx.nativeimpl.Native.call(this, com.jxparallel.fx.scene.control.cell.ComboBoxTreeCell.class, "impl_getPivotX", new Class<?>[] {}, double.class);
-        }
-        return ((javafx.scene.control.cell.ComboBoxTreeCell) fxPeer()).impl_getPivotX();
-    }
-
-    public void setOpacity(double arg0) {
-        if (com.jxparallel.fx.Fx.NATIVE) {
-            com.jxparallel.fx.nativeimpl.Native.call(this, com.jxparallel.fx.scene.control.cell.ComboBoxTreeCell.class, "setOpacity", new Class<?>[] {double.class}, void.class, arg0);
+            com.jxparallel.fx.nativeimpl.Native.call(this, com.jxparallel.fx.scene.control.cell.ComboBoxTreeCell.class, "addEventHandler", new Class<?>[] {com.jxparallel.fx.event.EventType.class, com.jxparallel.fx.event.EventHandler.class}, void.class, arg0, arg1);
             return;
         }
-        ((javafx.scene.control.cell.ComboBoxTreeCell) fxPeer()).setOpacity(arg0);
-    }
-
-    public double getOpacity() {
-        if (com.jxparallel.fx.Fx.NATIVE) {
-            return (Double) com.jxparallel.fx.nativeimpl.Native.call(this, com.jxparallel.fx.scene.control.cell.ComboBoxTreeCell.class, "getOpacity", new Class<?>[] {}, double.class);
-        }
-        return ((javafx.scene.control.cell.ComboBoxTreeCell) fxPeer()).getOpacity();
-    }
-
-    public void setTranslateX(double arg0) {
-        if (com.jxparallel.fx.Fx.NATIVE) {
-            com.jxparallel.fx.nativeimpl.Native.call(this, com.jxparallel.fx.scene.control.cell.ComboBoxTreeCell.class, "setTranslateX", new Class<?>[] {double.class}, void.class, arg0);
-            return;
-        }
-        ((javafx.scene.control.cell.ComboBoxTreeCell) fxPeer()).setTranslateX(arg0);
-    }
-
-    public void setRotate(double arg0) {
-        if (com.jxparallel.fx.Fx.NATIVE) {
-            com.jxparallel.fx.nativeimpl.Native.call(this, com.jxparallel.fx.scene.control.cell.ComboBoxTreeCell.class, "setRotate", new Class<?>[] {double.class}, void.class, arg0);
-            return;
-        }
-        ((javafx.scene.control.cell.ComboBoxTreeCell) fxPeer()).setRotate(arg0);
-    }
-
-    public void setTranslateY(double arg0) {
-        if (com.jxparallel.fx.Fx.NATIVE) {
-            com.jxparallel.fx.nativeimpl.Native.call(this, com.jxparallel.fx.scene.control.cell.ComboBoxTreeCell.class, "setTranslateY", new Class<?>[] {double.class}, void.class, arg0);
-            return;
-        }
-        ((javafx.scene.control.cell.ComboBoxTreeCell) fxPeer()).setTranslateY(arg0);
-    }
-
-    public void setRotationAxis(com.jxparallel.fx.geometry.Point3D arg0) {
-        if (com.jxparallel.fx.Fx.NATIVE) {
-            com.jxparallel.fx.nativeimpl.Native.call(this, com.jxparallel.fx.scene.control.cell.ComboBoxTreeCell.class, "setRotationAxis", new Class<?>[] {com.jxparallel.fx.geometry.Point3D.class}, void.class, arg0);
-            return;
-        }
-        ((javafx.scene.control.cell.ComboBoxTreeCell) fxPeer()).setRotationAxis((javafx.geometry.Point3D) com.jxparallel.fx.Fx.fx(arg0));
-    }
-
-    public double getRotate() {
-        if (com.jxparallel.fx.Fx.NATIVE) {
-            return (Double) com.jxparallel.fx.nativeimpl.Native.call(this, com.jxparallel.fx.scene.control.cell.ComboBoxTreeCell.class, "getRotate", new Class<?>[] {}, double.class);
-        }
-        return ((javafx.scene.control.cell.ComboBoxTreeCell) fxPeer()).getRotate();
-    }
-
-    public void setScaleY(double arg0) {
-        if (com.jxparallel.fx.Fx.NATIVE) {
-            com.jxparallel.fx.nativeimpl.Native.call(this, com.jxparallel.fx.scene.control.cell.ComboBoxTreeCell.class, "setScaleY", new Class<?>[] {double.class}, void.class, arg0);
-            return;
-        }
-        ((javafx.scene.control.cell.ComboBoxTreeCell) fxPeer()).setScaleY(arg0);
-    }
-
-    public double getTranslateY() {
-        if (com.jxparallel.fx.Fx.NATIVE) {
-            return (Double) com.jxparallel.fx.nativeimpl.Native.call(this, com.jxparallel.fx.scene.control.cell.ComboBoxTreeCell.class, "getTranslateY", new Class<?>[] {}, double.class);
-        }
-        return ((javafx.scene.control.cell.ComboBoxTreeCell) fxPeer()).getTranslateY();
-    }
-
-    public void setScaleZ(double arg0) {
-        if (com.jxparallel.fx.Fx.NATIVE) {
-            com.jxparallel.fx.nativeimpl.Native.call(this, com.jxparallel.fx.scene.control.cell.ComboBoxTreeCell.class, "setScaleZ", new Class<?>[] {double.class}, void.class, arg0);
-            return;
-        }
-        ((javafx.scene.control.cell.ComboBoxTreeCell) fxPeer()).setScaleZ(arg0);
-    }
-
-    public double getTranslateZ() {
-        if (com.jxparallel.fx.Fx.NATIVE) {
-            return (Double) com.jxparallel.fx.nativeimpl.Native.call(this, com.jxparallel.fx.scene.control.cell.ComboBoxTreeCell.class, "getTranslateZ", new Class<?>[] {}, double.class);
-        }
-        return ((javafx.scene.control.cell.ComboBoxTreeCell) fxPeer()).getTranslateZ();
-    }
-
-    public void setTranslateZ(double arg0) {
-        if (com.jxparallel.fx.Fx.NATIVE) {
-            com.jxparallel.fx.nativeimpl.Native.call(this, com.jxparallel.fx.scene.control.cell.ComboBoxTreeCell.class, "setTranslateZ", new Class<?>[] {double.class}, void.class, arg0);
-            return;
-        }
-        ((javafx.scene.control.cell.ComboBoxTreeCell) fxPeer()).setTranslateZ(arg0);
-    }
-
-    public double getScaleY() {
-        if (com.jxparallel.fx.Fx.NATIVE) {
-            return (Double) com.jxparallel.fx.nativeimpl.Native.call(this, com.jxparallel.fx.scene.control.cell.ComboBoxTreeCell.class, "getScaleY", new Class<?>[] {}, double.class);
-        }
-        return ((javafx.scene.control.cell.ComboBoxTreeCell) fxPeer()).getScaleY();
-    }
-
-    public void setScaleX(double arg0) {
-        if (com.jxparallel.fx.Fx.NATIVE) {
-            com.jxparallel.fx.nativeimpl.Native.call(this, com.jxparallel.fx.scene.control.cell.ComboBoxTreeCell.class, "setScaleX", new Class<?>[] {double.class}, void.class, arg0);
-            return;
-        }
-        ((javafx.scene.control.cell.ComboBoxTreeCell) fxPeer()).setScaleX(arg0);
-    }
-
-    public double getScaleZ() {
-        if (com.jxparallel.fx.Fx.NATIVE) {
-            return (Double) com.jxparallel.fx.nativeimpl.Native.call(this, com.jxparallel.fx.scene.control.cell.ComboBoxTreeCell.class, "getScaleZ", new Class<?>[] {}, double.class);
-        }
-        return ((javafx.scene.control.cell.ComboBoxTreeCell) fxPeer()).getScaleZ();
-    }
-
-    public double getTranslateX() {
-        if (com.jxparallel.fx.Fx.NATIVE) {
-            return (Double) com.jxparallel.fx.nativeimpl.Native.call(this, com.jxparallel.fx.scene.control.cell.ComboBoxTreeCell.class, "getTranslateX", new Class<?>[] {}, double.class);
-        }
-        return ((javafx.scene.control.cell.ComboBoxTreeCell) fxPeer()).getTranslateX();
-    }
-
-    public double getScaleX() {
-        if (com.jxparallel.fx.Fx.NATIVE) {
-            return (Double) com.jxparallel.fx.nativeimpl.Native.call(this, com.jxparallel.fx.scene.control.cell.ComboBoxTreeCell.class, "getScaleX", new Class<?>[] {}, double.class);
-        }
-        return ((javafx.scene.control.cell.ComboBoxTreeCell) fxPeer()).getScaleX();
-    }
-
-    public com.jxparallel.fx.event.EventDispatchChain buildEventDispatchChain(com.jxparallel.fx.event.EventDispatchChain arg0) {
-        if (com.jxparallel.fx.Fx.NATIVE) {
-            return (com.jxparallel.fx.event.EventDispatchChain) com.jxparallel.fx.nativeimpl.Native.call(this, com.jxparallel.fx.scene.control.cell.ComboBoxTreeCell.class, "buildEventDispatchChain", new Class<?>[] {com.jxparallel.fx.event.EventDispatchChain.class}, com.jxparallel.fx.event.EventDispatchChain.class, arg0);
-        }
-        return (com.jxparallel.fx.event.EventDispatchChain) com.jxparallel.fx.Fx.jx(((javafx.scene.control.cell.ComboBoxTreeCell) fxPeer()).buildEventDispatchChain((javafx.event.EventDispatchChain) com.jxparallel.fx.Fx.fx(arg0)));
+        ((javafx.scene.control.cell.ComboBoxTreeCell) fxPeer()).addEventHandler((javafx.event.EventType) com.jxparallel.fx.Fx.fx(arg0), (javafx.event.EventHandler) com.jxparallel.fx.Fx.fx(arg1));
     }
 
     public <T extends com.jxparallel.fx.event.Event> void removeEventFilter(com.jxparallel.fx.event.EventType<T> arg0, com.jxparallel.fx.event.EventHandler<? super T> arg1) {
@@ -1624,496 +1483,11 @@ public class ComboBoxTreeCell<T> implements com.jxparallel.fx.scene.control.Skin
         ((javafx.scene.control.cell.ComboBoxTreeCell) fxPeer()).removeEventHandler((javafx.event.EventType) com.jxparallel.fx.Fx.fx(arg0), (javafx.event.EventHandler) com.jxparallel.fx.Fx.fx(arg1));
     }
 
-    public <T extends com.jxparallel.fx.event.Event> void addEventHandler(com.jxparallel.fx.event.EventType<T> arg0, com.jxparallel.fx.event.EventHandler<? super T> arg1) {
+    public boolean impl_isShowMnemonics() {
         if (com.jxparallel.fx.Fx.NATIVE) {
-            com.jxparallel.fx.nativeimpl.Native.call(this, com.jxparallel.fx.scene.control.cell.ComboBoxTreeCell.class, "addEventHandler", new Class<?>[] {com.jxparallel.fx.event.EventType.class, com.jxparallel.fx.event.EventHandler.class}, void.class, arg0, arg1);
-            return;
+            return (Boolean) com.jxparallel.fx.nativeimpl.Native.call(this, com.jxparallel.fx.scene.control.cell.ComboBoxTreeCell.class, "impl_isShowMnemonics", new Class<?>[] {}, boolean.class);
         }
-        ((javafx.scene.control.cell.ComboBoxTreeCell) fxPeer()).addEventHandler((javafx.event.EventType) com.jxparallel.fx.Fx.fx(arg0), (javafx.event.EventHandler) com.jxparallel.fx.Fx.fx(arg1));
-    }
-
-    public <T extends com.jxparallel.fx.event.Event> void addEventFilter(com.jxparallel.fx.event.EventType<T> arg0, com.jxparallel.fx.event.EventHandler<? super T> arg1) {
-        if (com.jxparallel.fx.Fx.NATIVE) {
-            com.jxparallel.fx.nativeimpl.Native.call(this, com.jxparallel.fx.scene.control.cell.ComboBoxTreeCell.class, "addEventFilter", new Class<?>[] {com.jxparallel.fx.event.EventType.class, com.jxparallel.fx.event.EventHandler.class}, void.class, arg0, arg1);
-            return;
-        }
-        ((javafx.scene.control.cell.ComboBoxTreeCell) fxPeer()).addEventFilter((javafx.event.EventType) com.jxparallel.fx.Fx.fx(arg0), (javafx.event.EventHandler) com.jxparallel.fx.Fx.fx(arg1));
-    }
-
-    public void fireEvent(com.jxparallel.fx.event.Event arg0) {
-        if (com.jxparallel.fx.Fx.NATIVE) {
-            com.jxparallel.fx.nativeimpl.Native.call(this, com.jxparallel.fx.scene.control.cell.ComboBoxTreeCell.class, "fireEvent", new Class<?>[] {com.jxparallel.fx.event.Event.class}, void.class, arg0);
-            return;
-        }
-        ((javafx.scene.control.cell.ComboBoxTreeCell) fxPeer()).fireEvent((javafx.event.Event) com.jxparallel.fx.Fx.fx(arg0));
-    }
-
-    public javafx.beans.property.ReadOnlyObjectProperty<javafx.scene.transform.Transform> localToSceneTransformProperty() {
-        if (com.jxparallel.fx.Fx.NATIVE) {
-            return (javafx.beans.property.ReadOnlyObjectProperty) com.jxparallel.fx.nativeimpl.Native.call(this, com.jxparallel.fx.scene.control.cell.ComboBoxTreeCell.class, "localToSceneTransformProperty", new Class<?>[] {}, com.jxparallel.fx.beans.property.ReadOnlyObjectProperty.class);
-        }
-        return ((javafx.scene.control.cell.ComboBoxTreeCell) fxPeer()).localToSceneTransformProperty();
-    }
-
-    public void toFront() {
-        if (com.jxparallel.fx.Fx.NATIVE) {
-            com.jxparallel.fx.nativeimpl.Native.call(this, com.jxparallel.fx.scene.control.cell.ComboBoxTreeCell.class, "toFront", new Class<?>[] {}, void.class);
-            return;
-        }
-        ((javafx.scene.control.cell.ComboBoxTreeCell) fxPeer()).toFront();
-    }
-
-    public void toBack() {
-        if (com.jxparallel.fx.Fx.NATIVE) {
-            com.jxparallel.fx.nativeimpl.Native.call(this, com.jxparallel.fx.scene.control.cell.ComboBoxTreeCell.class, "toBack", new Class<?>[] {}, void.class);
-            return;
-        }
-        ((javafx.scene.control.cell.ComboBoxTreeCell) fxPeer()).toBack();
-    }
-
-    public com.jxparallel.fx.scene.Scene getScene() {
-        if (com.jxparallel.fx.Fx.NATIVE) {
-            return (com.jxparallel.fx.scene.Scene) com.jxparallel.fx.nativeimpl.Native.call(this, com.jxparallel.fx.scene.control.cell.ComboBoxTreeCell.class, "getScene", new Class<?>[] {}, com.jxparallel.fx.scene.Scene.class);
-        }
-        return (com.jxparallel.fx.scene.Scene) com.jxparallel.fx.Fx.jx(((javafx.scene.control.cell.ComboBoxTreeCell) fxPeer()).getScene());
-    }
-
-    public void autosize() {
-        if (com.jxparallel.fx.Fx.NATIVE) {
-            com.jxparallel.fx.nativeimpl.Native.call(this, com.jxparallel.fx.scene.control.cell.ComboBoxTreeCell.class, "autosize", new Class<?>[] {}, void.class);
-            return;
-        }
-        ((javafx.scene.control.cell.ComboBoxTreeCell) fxPeer()).autosize();
-    }
-
-    public void applyCss() {
-        if (com.jxparallel.fx.Fx.NATIVE) {
-            com.jxparallel.fx.nativeimpl.Native.call(this, com.jxparallel.fx.scene.control.cell.ComboBoxTreeCell.class, "applyCss", new Class<?>[] {}, void.class);
-            return;
-        }
-        ((javafx.scene.control.cell.ComboBoxTreeCell) fxPeer()).applyCss();
-    }
-
-    public com.jxparallel.fx.scene.Node getClip() {
-        if (com.jxparallel.fx.Fx.NATIVE) {
-            return (com.jxparallel.fx.scene.Node) com.jxparallel.fx.nativeimpl.Native.call(this, com.jxparallel.fx.scene.control.cell.ComboBoxTreeCell.class, "getClip", new Class<?>[] {}, com.jxparallel.fx.scene.Node.class);
-        }
-        return (com.jxparallel.fx.scene.Node) com.jxparallel.fx.Fx.jx(((javafx.scene.control.cell.ComboBoxTreeCell) fxPeer()).getClip());
-    }
-
-    public boolean isHover() {
-        if (com.jxparallel.fx.Fx.NATIVE) {
-            return (Boolean) com.jxparallel.fx.nativeimpl.Native.call(this, com.jxparallel.fx.scene.control.cell.ComboBoxTreeCell.class, "isHover", new Class<?>[] {}, boolean.class);
-        }
-        return ((javafx.scene.control.cell.ComboBoxTreeCell) fxPeer()).isHover();
-    }
-
-    public java.lang.String getStyle() {
-        if (com.jxparallel.fx.Fx.NATIVE) {
-            return (java.lang.String) com.jxparallel.fx.nativeimpl.Native.call(this, com.jxparallel.fx.scene.control.cell.ComboBoxTreeCell.class, "getStyle", new Class<?>[] {}, java.lang.String.class);
-        }
-        return ((javafx.scene.control.cell.ComboBoxTreeCell) fxPeer()).getStyle();
-    }
-
-    public boolean isCache() {
-        if (com.jxparallel.fx.Fx.NATIVE) {
-            return (Boolean) com.jxparallel.fx.nativeimpl.Native.call(this, com.jxparallel.fx.scene.control.cell.ComboBoxTreeCell.class, "isCache", new Class<?>[] {}, boolean.class);
-        }
-        return ((javafx.scene.control.cell.ComboBoxTreeCell) fxPeer()).isCache();
-    }
-
-    public void setId(java.lang.String arg0) {
-        if (com.jxparallel.fx.Fx.NATIVE) {
-            com.jxparallel.fx.nativeimpl.Native.call(this, com.jxparallel.fx.scene.control.cell.ComboBoxTreeCell.class, "setId", new Class<?>[] {java.lang.String.class}, void.class, arg0);
-            return;
-        }
-        ((javafx.scene.control.cell.ComboBoxTreeCell) fxPeer()).setId(arg0);
-    }
-
-    public void relocate(double arg0, double arg1) {
-        if (com.jxparallel.fx.Fx.NATIVE) {
-            com.jxparallel.fx.nativeimpl.Native.call(this, com.jxparallel.fx.scene.control.cell.ComboBoxTreeCell.class, "relocate", new Class<?>[] {double.class, double.class}, void.class, arg0, arg1);
-            return;
-        }
-        ((javafx.scene.control.cell.ComboBoxTreeCell) fxPeer()).relocate(arg0, arg1);
-    }
-
-    public void snapshot(com.jxparallel.fx.util.Callback<com.jxparallel.fx.scene.SnapshotResult, java.lang.Void> arg0, com.jxparallel.fx.scene.SnapshotParameters arg1, com.jxparallel.fx.scene.image.WritableImage arg2) {
-        if (com.jxparallel.fx.Fx.NATIVE) {
-            com.jxparallel.fx.nativeimpl.Native.call(this, com.jxparallel.fx.scene.control.cell.ComboBoxTreeCell.class, "snapshot", new Class<?>[] {com.jxparallel.fx.util.Callback.class, com.jxparallel.fx.scene.SnapshotParameters.class, com.jxparallel.fx.scene.image.WritableImage.class}, void.class, arg0, arg1, arg2);
-            return;
-        }
-        ((javafx.scene.control.cell.ComboBoxTreeCell) fxPeer()).snapshot((javafx.util.Callback) com.jxparallel.fx.Fx.fx(arg0), (javafx.scene.SnapshotParameters) com.jxparallel.fx.Fx.fx(arg1), (javafx.scene.image.WritableImage) com.jxparallel.fx.Fx.fx(arg2));
-    }
-
-    public com.jxparallel.fx.scene.image.WritableImage snapshot(com.jxparallel.fx.scene.SnapshotParameters arg0, com.jxparallel.fx.scene.image.WritableImage arg1) {
-        if (com.jxparallel.fx.Fx.NATIVE) {
-            return (com.jxparallel.fx.scene.image.WritableImage) com.jxparallel.fx.nativeimpl.Native.call(this, com.jxparallel.fx.scene.control.cell.ComboBoxTreeCell.class, "snapshot", new Class<?>[] {com.jxparallel.fx.scene.SnapshotParameters.class, com.jxparallel.fx.scene.image.WritableImage.class}, com.jxparallel.fx.scene.image.WritableImage.class, arg0, arg1);
-        }
-        return (com.jxparallel.fx.scene.image.WritableImage) com.jxparallel.fx.Fx.jx(((javafx.scene.control.cell.ComboBoxTreeCell) fxPeer()).snapshot((javafx.scene.SnapshotParameters) com.jxparallel.fx.Fx.fx(arg0), (javafx.scene.image.WritableImage) com.jxparallel.fx.Fx.fx(arg1)));
-    }
-
-    public void setStyle(java.lang.String arg0) {
-        if (com.jxparallel.fx.Fx.NATIVE) {
-            com.jxparallel.fx.nativeimpl.Native.call(this, com.jxparallel.fx.scene.control.cell.ComboBoxTreeCell.class, "setStyle", new Class<?>[] {java.lang.String.class}, void.class, arg0);
-            return;
-        }
-        ((javafx.scene.control.cell.ComboBoxTreeCell) fxPeer()).setStyle(arg0);
-    }
-
-    public void setClip(com.jxparallel.fx.scene.Node arg0) {
-        if (com.jxparallel.fx.Fx.NATIVE) {
-            com.jxparallel.fx.nativeimpl.Native.call(this, com.jxparallel.fx.scene.control.cell.ComboBoxTreeCell.class, "setClip", new Class<?>[] {com.jxparallel.fx.scene.Node.class}, void.class, arg0);
-            return;
-        }
-        ((javafx.scene.control.cell.ComboBoxTreeCell) fxPeer()).setClip((javafx.scene.Node) com.jxparallel.fx.Fx.fx(arg0));
-    }
-
-    public javafx.scene.transform.Transform getLocalToSceneTransform() {
-        if (com.jxparallel.fx.Fx.NATIVE) {
-            return (javafx.scene.transform.Transform) com.jxparallel.fx.nativeimpl.Native.call(this, com.jxparallel.fx.scene.control.cell.ComboBoxTreeCell.class, "getLocalToSceneTransform", new Class<?>[] {}, javafx.scene.transform.Transform.class);
-        }
-        return ((javafx.scene.control.cell.ComboBoxTreeCell) fxPeer()).getLocalToSceneTransform();
-    }
-
-    public <P extends com.sun.javafx.sg.prism.NGNode> P impl_getPeer() {
-        if (com.jxparallel.fx.Fx.NATIVE) {
-            return (P) com.jxparallel.fx.nativeimpl.Native.call(this, com.jxparallel.fx.scene.control.cell.ComboBoxTreeCell.class, "impl_getPeer", new Class<?>[] {}, com.sun.javafx.sg.prism.NGNode.class);
-        }
-        return ((javafx.scene.control.cell.ComboBoxTreeCell) fxPeer()).impl_getPeer();
-    }
-
-    public com.jxparallel.fx.beans.property.ObjectProperty<com.jxparallel.fx.scene.Cursor> cursorProperty() {
-        if (com.jxparallel.fx.Fx.NATIVE) {
-            return (com.jxparallel.fx.beans.property.ObjectProperty) com.jxparallel.fx.nativeimpl.Native.call(this, com.jxparallel.fx.scene.control.cell.ComboBoxTreeCell.class, "cursorProperty", new Class<?>[] {}, com.jxparallel.fx.beans.property.ObjectProperty.class);
-        }
-        return (com.jxparallel.fx.beans.property.ObjectProperty) com.jxparallel.fx.Fx.jx(((javafx.scene.control.cell.ComboBoxTreeCell) fxPeer()).cursorProperty());
-    }
-
-    public com.jxparallel.fx.beans.property.ObjectProperty<com.jxparallel.fx.scene.Node> clipProperty() {
-        if (com.jxparallel.fx.Fx.NATIVE) {
-            return (com.jxparallel.fx.beans.property.ObjectProperty) com.jxparallel.fx.nativeimpl.Native.call(this, com.jxparallel.fx.scene.control.cell.ComboBoxTreeCell.class, "clipProperty", new Class<?>[] {}, com.jxparallel.fx.beans.property.ObjectProperty.class);
-        }
-        return (com.jxparallel.fx.beans.property.ObjectProperty) com.jxparallel.fx.Fx.jx(((javafx.scene.control.cell.ComboBoxTreeCell) fxPeer()).clipProperty());
-    }
-
-    public com.jxparallel.fx.beans.property.BooleanProperty cacheProperty() {
-        if (com.jxparallel.fx.Fx.NATIVE) {
-            return (com.jxparallel.fx.beans.property.BooleanProperty) com.jxparallel.fx.nativeimpl.Native.call(this, com.jxparallel.fx.scene.control.cell.ComboBoxTreeCell.class, "cacheProperty", new Class<?>[] {}, com.jxparallel.fx.beans.property.BooleanProperty.class);
-        }
-        return (com.jxparallel.fx.beans.property.BooleanProperty) com.jxparallel.fx.Fx.jx(((javafx.scene.control.cell.ComboBoxTreeCell) fxPeer()).cacheProperty());
-    }
-
-    public com.jxparallel.fx.beans.property.ObjectProperty<java.lang.String> accessibleRoleDescriptionProperty() {
-        if (com.jxparallel.fx.Fx.NATIVE) {
-            return (com.jxparallel.fx.beans.property.ObjectProperty) com.jxparallel.fx.nativeimpl.Native.call(this, com.jxparallel.fx.scene.control.cell.ComboBoxTreeCell.class, "accessibleRoleDescriptionProperty", new Class<?>[] {}, com.jxparallel.fx.beans.property.ObjectProperty.class);
-        }
-        return (com.jxparallel.fx.beans.property.ObjectProperty) com.jxparallel.fx.Fx.jx(((javafx.scene.control.cell.ComboBoxTreeCell) fxPeer()).accessibleRoleDescriptionProperty());
-    }
-
-    public com.jxparallel.fx.geometry.NodeOrientation getEffectiveNodeOrientation() {
-        if (com.jxparallel.fx.Fx.NATIVE) {
-            return (com.jxparallel.fx.geometry.NodeOrientation) com.jxparallel.fx.nativeimpl.Native.call(this, com.jxparallel.fx.scene.control.cell.ComboBoxTreeCell.class, "getEffectiveNodeOrientation", new Class<?>[] {}, com.jxparallel.fx.geometry.NodeOrientation.class);
-        }
-        return (com.jxparallel.fx.geometry.NodeOrientation) com.jxparallel.fx.Fx.jx(((javafx.scene.control.cell.ComboBoxTreeCell) fxPeer()).getEffectiveNodeOrientation());
-    }
-
-    public com.jxparallel.fx.beans.property.ObjectProperty<com.jxparallel.fx.scene.input.InputMethodRequests> inputMethodRequestsProperty() {
-        if (com.jxparallel.fx.Fx.NATIVE) {
-            return (com.jxparallel.fx.beans.property.ObjectProperty) com.jxparallel.fx.nativeimpl.Native.call(this, com.jxparallel.fx.scene.control.cell.ComboBoxTreeCell.class, "inputMethodRequestsProperty", new Class<?>[] {}, com.jxparallel.fx.beans.property.ObjectProperty.class);
-        }
-        return (com.jxparallel.fx.beans.property.ObjectProperty) com.jxparallel.fx.Fx.jx(((javafx.scene.control.cell.ComboBoxTreeCell) fxPeer()).inputMethodRequestsProperty());
-    }
-
-    public java.lang.String getAccessibleRoleDescription() {
-        if (com.jxparallel.fx.Fx.NATIVE) {
-            return (java.lang.String) com.jxparallel.fx.nativeimpl.Native.call(this, com.jxparallel.fx.scene.control.cell.ComboBoxTreeCell.class, "getAccessibleRoleDescription", new Class<?>[] {}, java.lang.String.class);
-        }
-        return ((javafx.scene.control.cell.ComboBoxTreeCell) fxPeer()).getAccessibleRoleDescription();
-    }
-
-    public javafx.scene.transform.Transform getLocalToParentTransform() {
-        if (com.jxparallel.fx.Fx.NATIVE) {
-            return (javafx.scene.transform.Transform) com.jxparallel.fx.nativeimpl.Native.call(this, com.jxparallel.fx.scene.control.cell.ComboBoxTreeCell.class, "getLocalToParentTransform", new Class<?>[] {}, javafx.scene.transform.Transform.class);
-        }
-        return ((javafx.scene.control.cell.ComboBoxTreeCell) fxPeer()).getLocalToParentTransform();
-    }
-
-    public com.jxparallel.fx.event.EventHandler<? super com.jxparallel.fx.scene.input.ContextMenuEvent> getOnContextMenuRequested() {
-        if (com.jxparallel.fx.Fx.NATIVE) {
-            return (com.jxparallel.fx.event.EventHandler) com.jxparallel.fx.nativeimpl.Native.call(this, com.jxparallel.fx.scene.control.cell.ComboBoxTreeCell.class, "getOnContextMenuRequested", new Class<?>[] {}, com.jxparallel.fx.event.EventHandler.class);
-        }
-        return (com.jxparallel.fx.event.EventHandler) com.jxparallel.fx.Fx.jx(((javafx.scene.control.cell.ComboBoxTreeCell) fxPeer()).getOnContextMenuRequested());
-    }
-
-    public com.jxparallel.fx.beans.property.BooleanProperty impl_showMnemonicsProperty() {
-        if (com.jxparallel.fx.Fx.NATIVE) {
-            return (com.jxparallel.fx.beans.property.BooleanProperty) com.jxparallel.fx.nativeimpl.Native.call(this, com.jxparallel.fx.scene.control.cell.ComboBoxTreeCell.class, "impl_showMnemonicsProperty", new Class<?>[] {}, com.jxparallel.fx.beans.property.BooleanProperty.class);
-        }
-        return (com.jxparallel.fx.beans.property.BooleanProperty) com.jxparallel.fx.Fx.jx(((javafx.scene.control.cell.ComboBoxTreeCell) fxPeer()).impl_showMnemonicsProperty());
-    }
-
-    public com.jxparallel.fx.beans.property.ReadOnlyObjectProperty<com.jxparallel.fx.geometry.NodeOrientation> effectiveNodeOrientationProperty() {
-        if (com.jxparallel.fx.Fx.NATIVE) {
-            return (com.jxparallel.fx.beans.property.ReadOnlyObjectProperty) com.jxparallel.fx.nativeimpl.Native.call(this, com.jxparallel.fx.scene.control.cell.ComboBoxTreeCell.class, "effectiveNodeOrientationProperty", new Class<?>[] {}, com.jxparallel.fx.beans.property.ReadOnlyObjectProperty.class);
-        }
-        return (com.jxparallel.fx.beans.property.ReadOnlyObjectProperty) com.jxparallel.fx.Fx.jx(((javafx.scene.control.cell.ComboBoxTreeCell) fxPeer()).effectiveNodeOrientationProperty());
-    }
-
-    public com.jxparallel.fx.event.EventHandler<? super com.jxparallel.fx.scene.input.InputMethodEvent> getOnInputMethodTextChanged() {
-        if (com.jxparallel.fx.Fx.NATIVE) {
-            return (com.jxparallel.fx.event.EventHandler) com.jxparallel.fx.nativeimpl.Native.call(this, com.jxparallel.fx.scene.control.cell.ComboBoxTreeCell.class, "getOnInputMethodTextChanged", new Class<?>[] {}, com.jxparallel.fx.event.EventHandler.class);
-        }
-        return (com.jxparallel.fx.event.EventHandler) com.jxparallel.fx.Fx.jx(((javafx.scene.control.cell.ComboBoxTreeCell) fxPeer()).getOnInputMethodTextChanged());
-    }
-
-    public com.jxparallel.fx.beans.property.ObjectProperty<com.jxparallel.fx.event.EventHandler<? super com.jxparallel.fx.scene.input.TouchEvent>> onTouchStationaryProperty() {
-        if (com.jxparallel.fx.Fx.NATIVE) {
-            return (com.jxparallel.fx.beans.property.ObjectProperty) com.jxparallel.fx.nativeimpl.Native.call(this, com.jxparallel.fx.scene.control.cell.ComboBoxTreeCell.class, "onTouchStationaryProperty", new Class<?>[] {}, com.jxparallel.fx.beans.property.ObjectProperty.class);
-        }
-        return (com.jxparallel.fx.beans.property.ObjectProperty) com.jxparallel.fx.Fx.jx(((javafx.scene.control.cell.ComboBoxTreeCell) fxPeer()).onTouchStationaryProperty());
-    }
-
-    public void setAccessibleRoleDescription(java.lang.String arg0) {
-        if (com.jxparallel.fx.Fx.NATIVE) {
-            com.jxparallel.fx.nativeimpl.Native.call(this, com.jxparallel.fx.scene.control.cell.ComboBoxTreeCell.class, "setAccessibleRoleDescription", new Class<?>[] {java.lang.String.class}, void.class, arg0);
-            return;
-        }
-        ((javafx.scene.control.cell.ComboBoxTreeCell) fxPeer()).setAccessibleRoleDescription(arg0);
-    }
-
-    public javafx.beans.property.ReadOnlyObjectProperty<javafx.scene.transform.Transform> localToParentTransformProperty() {
-        if (com.jxparallel.fx.Fx.NATIVE) {
-            return (javafx.beans.property.ReadOnlyObjectProperty) com.jxparallel.fx.nativeimpl.Native.call(this, com.jxparallel.fx.scene.control.cell.ComboBoxTreeCell.class, "localToParentTransformProperty", new Class<?>[] {}, com.jxparallel.fx.beans.property.ReadOnlyObjectProperty.class);
-        }
-        return ((javafx.scene.control.cell.ComboBoxTreeCell) fxPeer()).localToParentTransformProperty();
-    }
-
-    public com.jxparallel.fx.beans.property.ObjectProperty<com.jxparallel.fx.event.EventHandler<? super com.jxparallel.fx.scene.input.RotateEvent>> onRotationFinishedProperty() {
-        if (com.jxparallel.fx.Fx.NATIVE) {
-            return (com.jxparallel.fx.beans.property.ObjectProperty) com.jxparallel.fx.nativeimpl.Native.call(this, com.jxparallel.fx.scene.control.cell.ComboBoxTreeCell.class, "onRotationFinishedProperty", new Class<?>[] {}, com.jxparallel.fx.beans.property.ObjectProperty.class);
-        }
-        return (com.jxparallel.fx.beans.property.ObjectProperty) com.jxparallel.fx.Fx.jx(((javafx.scene.control.cell.ComboBoxTreeCell) fxPeer()).onRotationFinishedProperty());
-    }
-
-    public void setOnContextMenuRequested(com.jxparallel.fx.event.EventHandler<? super com.jxparallel.fx.scene.input.ContextMenuEvent> arg0) {
-        if (com.jxparallel.fx.Fx.NATIVE) {
-            com.jxparallel.fx.nativeimpl.Native.call(this, com.jxparallel.fx.scene.control.cell.ComboBoxTreeCell.class, "setOnContextMenuRequested", new Class<?>[] {com.jxparallel.fx.event.EventHandler.class}, void.class, arg0);
-            return;
-        }
-        ((javafx.scene.control.cell.ComboBoxTreeCell) fxPeer()).setOnContextMenuRequested((javafx.event.EventHandler) com.jxparallel.fx.Fx.fx(arg0));
-    }
-
-    public com.jxparallel.fx.beans.property.ObjectProperty<com.jxparallel.fx.event.EventHandler<? super com.jxparallel.fx.scene.input.MouseDragEvent>> onMouseDragExitedProperty() {
-        if (com.jxparallel.fx.Fx.NATIVE) {
-            return (com.jxparallel.fx.beans.property.ObjectProperty) com.jxparallel.fx.nativeimpl.Native.call(this, com.jxparallel.fx.scene.control.cell.ComboBoxTreeCell.class, "onMouseDragExitedProperty", new Class<?>[] {}, com.jxparallel.fx.beans.property.ObjectProperty.class);
-        }
-        return (com.jxparallel.fx.beans.property.ObjectProperty) com.jxparallel.fx.Fx.jx(((javafx.scene.control.cell.ComboBoxTreeCell) fxPeer()).onMouseDragExitedProperty());
-    }
-
-    public void setOnInputMethodTextChanged(com.jxparallel.fx.event.EventHandler<? super com.jxparallel.fx.scene.input.InputMethodEvent> arg0) {
-        if (com.jxparallel.fx.Fx.NATIVE) {
-            com.jxparallel.fx.nativeimpl.Native.call(this, com.jxparallel.fx.scene.control.cell.ComboBoxTreeCell.class, "setOnInputMethodTextChanged", new Class<?>[] {com.jxparallel.fx.event.EventHandler.class}, void.class, arg0);
-            return;
-        }
-        ((javafx.scene.control.cell.ComboBoxTreeCell) fxPeer()).setOnInputMethodTextChanged((javafx.event.EventHandler) com.jxparallel.fx.Fx.fx(arg0));
-    }
-
-    public com.jxparallel.fx.beans.property.ObjectProperty<com.jxparallel.fx.event.EventHandler<? super com.jxparallel.fx.scene.input.InputMethodEvent>> onInputMethodTextChangedProperty() {
-        if (com.jxparallel.fx.Fx.NATIVE) {
-            return (com.jxparallel.fx.beans.property.ObjectProperty) com.jxparallel.fx.nativeimpl.Native.call(this, com.jxparallel.fx.scene.control.cell.ComboBoxTreeCell.class, "onInputMethodTextChangedProperty", new Class<?>[] {}, com.jxparallel.fx.beans.property.ObjectProperty.class);
-        }
-        return (com.jxparallel.fx.beans.property.ObjectProperty) com.jxparallel.fx.Fx.jx(((javafx.scene.control.cell.ComboBoxTreeCell) fxPeer()).onInputMethodTextChangedProperty());
-    }
-
-    public com.jxparallel.fx.beans.property.ObjectProperty<com.jxparallel.fx.event.EventHandler<? super com.jxparallel.fx.scene.input.ContextMenuEvent>> onContextMenuRequestedProperty() {
-        if (com.jxparallel.fx.Fx.NATIVE) {
-            return (com.jxparallel.fx.beans.property.ObjectProperty) com.jxparallel.fx.nativeimpl.Native.call(this, com.jxparallel.fx.scene.control.cell.ComboBoxTreeCell.class, "onContextMenuRequestedProperty", new Class<?>[] {}, com.jxparallel.fx.beans.property.ObjectProperty.class);
-        }
-        return (com.jxparallel.fx.beans.property.ObjectProperty) com.jxparallel.fx.Fx.jx(((javafx.scene.control.cell.ComboBoxTreeCell) fxPeer()).onContextMenuRequestedProperty());
-    }
-
-    public com.jxparallel.fx.beans.property.ObjectProperty<com.jxparallel.fx.event.EventHandler<? super com.jxparallel.fx.scene.input.MouseDragEvent>> onMouseDragReleasedProperty() {
-        if (com.jxparallel.fx.Fx.NATIVE) {
-            return (com.jxparallel.fx.beans.property.ObjectProperty) com.jxparallel.fx.nativeimpl.Native.call(this, com.jxparallel.fx.scene.control.cell.ComboBoxTreeCell.class, "onMouseDragReleasedProperty", new Class<?>[] {}, com.jxparallel.fx.beans.property.ObjectProperty.class);
-        }
-        return (com.jxparallel.fx.beans.property.ObjectProperty) com.jxparallel.fx.Fx.jx(((javafx.scene.control.cell.ComboBoxTreeCell) fxPeer()).onMouseDragReleasedProperty());
-    }
-
-    public void notifyAccessibleAttributeChanged(com.jxparallel.fx.scene.AccessibleAttribute arg0) {
-        if (com.jxparallel.fx.Fx.NATIVE) {
-            com.jxparallel.fx.nativeimpl.Native.call(this, com.jxparallel.fx.scene.control.cell.ComboBoxTreeCell.class, "notifyAccessibleAttributeChanged", new Class<?>[] {com.jxparallel.fx.scene.AccessibleAttribute.class}, void.class, arg0);
-            return;
-        }
-        ((javafx.scene.control.cell.ComboBoxTreeCell) fxPeer()).notifyAccessibleAttributeChanged((javafx.scene.AccessibleAttribute) com.jxparallel.fx.Fx.fx(arg0));
-    }
-
-    public com.jxparallel.fx.beans.property.ObjectProperty<com.jxparallel.fx.event.EventHandler<? super com.jxparallel.fx.scene.input.MouseDragEvent>> onMouseDragEnteredProperty() {
-        if (com.jxparallel.fx.Fx.NATIVE) {
-            return (com.jxparallel.fx.beans.property.ObjectProperty) com.jxparallel.fx.nativeimpl.Native.call(this, com.jxparallel.fx.scene.control.cell.ComboBoxTreeCell.class, "onMouseDragEnteredProperty", new Class<?>[] {}, com.jxparallel.fx.beans.property.ObjectProperty.class);
-        }
-        return (com.jxparallel.fx.beans.property.ObjectProperty) com.jxparallel.fx.Fx.jx(((javafx.scene.control.cell.ComboBoxTreeCell) fxPeer()).onMouseDragEnteredProperty());
-    }
-
-    public com.jxparallel.fx.beans.property.ObjectProperty<com.jxparallel.fx.event.EventHandler<? super com.jxparallel.fx.scene.input.RotateEvent>> onRotationStartedProperty() {
-        if (com.jxparallel.fx.Fx.NATIVE) {
-            return (com.jxparallel.fx.beans.property.ObjectProperty) com.jxparallel.fx.nativeimpl.Native.call(this, com.jxparallel.fx.scene.control.cell.ComboBoxTreeCell.class, "onRotationStartedProperty", new Class<?>[] {}, com.jxparallel.fx.beans.property.ObjectProperty.class);
-        }
-        return (com.jxparallel.fx.beans.property.ObjectProperty) com.jxparallel.fx.Fx.jx(((javafx.scene.control.cell.ComboBoxTreeCell) fxPeer()).onRotationStartedProperty());
-    }
-
-    public com.jxparallel.fx.beans.property.ObjectProperty<java.lang.String> accessibleHelpProperty() {
-        if (com.jxparallel.fx.Fx.NATIVE) {
-            return (com.jxparallel.fx.beans.property.ObjectProperty) com.jxparallel.fx.nativeimpl.Native.call(this, com.jxparallel.fx.scene.control.cell.ComboBoxTreeCell.class, "accessibleHelpProperty", new Class<?>[] {}, com.jxparallel.fx.beans.property.ObjectProperty.class);
-        }
-        return (com.jxparallel.fx.beans.property.ObjectProperty) com.jxparallel.fx.Fx.jx(((javafx.scene.control.cell.ComboBoxTreeCell) fxPeer()).accessibleHelpProperty());
-    }
-
-    public com.jxparallel.fx.beans.property.ObjectProperty<com.jxparallel.fx.scene.AccessibleRole> accessibleRoleProperty() {
-        if (com.jxparallel.fx.Fx.NATIVE) {
-            return (com.jxparallel.fx.beans.property.ObjectProperty) com.jxparallel.fx.nativeimpl.Native.call(this, com.jxparallel.fx.scene.control.cell.ComboBoxTreeCell.class, "accessibleRoleProperty", new Class<?>[] {}, com.jxparallel.fx.beans.property.ObjectProperty.class);
-        }
-        return (com.jxparallel.fx.beans.property.ObjectProperty) com.jxparallel.fx.Fx.jx(((javafx.scene.control.cell.ComboBoxTreeCell) fxPeer()).accessibleRoleProperty());
-    }
-
-    public javafx.beans.property.ObjectProperty<javafx.scene.effect.BlendMode> blendModeProperty() {
-        if (com.jxparallel.fx.Fx.NATIVE) {
-            return (javafx.beans.property.ObjectProperty) com.jxparallel.fx.nativeimpl.Native.call(this, com.jxparallel.fx.scene.control.cell.ComboBoxTreeCell.class, "blendModeProperty", new Class<?>[] {}, com.jxparallel.fx.beans.property.ObjectProperty.class);
-        }
-        return ((javafx.scene.control.cell.ComboBoxTreeCell) fxPeer()).blendModeProperty();
-    }
-
-    public double computeAreaInScreen() {
-        if (com.jxparallel.fx.Fx.NATIVE) {
-            return (Double) com.jxparallel.fx.nativeimpl.Native.call(this, com.jxparallel.fx.scene.control.cell.ComboBoxTreeCell.class, "computeAreaInScreen", new Class<?>[] {}, double.class);
-        }
-        return ((javafx.scene.control.cell.ComboBoxTreeCell) fxPeer()).computeAreaInScreen();
-    }
-
-    public com.jxparallel.fx.beans.property.ObjectProperty<com.jxparallel.fx.scene.DepthTest> depthTestProperty() {
-        if (com.jxparallel.fx.Fx.NATIVE) {
-            return (com.jxparallel.fx.beans.property.ObjectProperty) com.jxparallel.fx.nativeimpl.Native.call(this, com.jxparallel.fx.scene.control.cell.ComboBoxTreeCell.class, "depthTestProperty", new Class<?>[] {}, com.jxparallel.fx.beans.property.ObjectProperty.class);
-        }
-        return (com.jxparallel.fx.beans.property.ObjectProperty) com.jxparallel.fx.Fx.jx(((javafx.scene.control.cell.ComboBoxTreeCell) fxPeer()).depthTestProperty());
-    }
-
-    public com.jxparallel.fx.beans.property.ReadOnlyObjectProperty<com.jxparallel.fx.geometry.Bounds> boundsInLocalProperty() {
-        if (com.jxparallel.fx.Fx.NATIVE) {
-            return (com.jxparallel.fx.beans.property.ReadOnlyObjectProperty) com.jxparallel.fx.nativeimpl.Native.call(this, com.jxparallel.fx.scene.control.cell.ComboBoxTreeCell.class, "boundsInLocalProperty", new Class<?>[] {}, com.jxparallel.fx.beans.property.ReadOnlyObjectProperty.class);
-        }
-        return (com.jxparallel.fx.beans.property.ReadOnlyObjectProperty) com.jxparallel.fx.Fx.jx(((javafx.scene.control.cell.ComboBoxTreeCell) fxPeer()).boundsInLocalProperty());
-    }
-
-    public com.jxparallel.fx.beans.property.ObjectProperty<com.jxparallel.fx.scene.CacheHint> cacheHintProperty() {
-        if (com.jxparallel.fx.Fx.NATIVE) {
-            return (com.jxparallel.fx.beans.property.ObjectProperty) com.jxparallel.fx.nativeimpl.Native.call(this, com.jxparallel.fx.scene.control.cell.ComboBoxTreeCell.class, "cacheHintProperty", new Class<?>[] {}, com.jxparallel.fx.beans.property.ObjectProperty.class);
-        }
-        return (com.jxparallel.fx.beans.property.ObjectProperty) com.jxparallel.fx.Fx.jx(((javafx.scene.control.cell.ComboBoxTreeCell) fxPeer()).cacheHintProperty());
-    }
-
-    public com.jxparallel.fx.beans.property.ObjectProperty<java.lang.String> accessibleTextProperty() {
-        if (com.jxparallel.fx.Fx.NATIVE) {
-            return (com.jxparallel.fx.beans.property.ObjectProperty) com.jxparallel.fx.nativeimpl.Native.call(this, com.jxparallel.fx.scene.control.cell.ComboBoxTreeCell.class, "accessibleTextProperty", new Class<?>[] {}, com.jxparallel.fx.beans.property.ObjectProperty.class);
-        }
-        return (com.jxparallel.fx.beans.property.ObjectProperty) com.jxparallel.fx.Fx.jx(((javafx.scene.control.cell.ComboBoxTreeCell) fxPeer()).accessibleTextProperty());
-    }
-
-    public com.jxparallel.fx.beans.property.ReadOnlyObjectProperty<com.jxparallel.fx.geometry.Bounds> boundsInParentProperty() {
-        if (com.jxparallel.fx.Fx.NATIVE) {
-            return (com.jxparallel.fx.beans.property.ReadOnlyObjectProperty) com.jxparallel.fx.nativeimpl.Native.call(this, com.jxparallel.fx.scene.control.cell.ComboBoxTreeCell.class, "boundsInParentProperty", new Class<?>[] {}, com.jxparallel.fx.beans.property.ReadOnlyObjectProperty.class);
-        }
-        return (com.jxparallel.fx.beans.property.ReadOnlyObjectProperty) com.jxparallel.fx.Fx.jx(((javafx.scene.control.cell.ComboBoxTreeCell) fxPeer()).boundsInParentProperty());
-    }
-
-    public com.jxparallel.fx.geometry.NodeOrientation getNodeOrientation() {
-        if (com.jxparallel.fx.Fx.NATIVE) {
-            return (com.jxparallel.fx.geometry.NodeOrientation) com.jxparallel.fx.nativeimpl.Native.call(this, com.jxparallel.fx.scene.control.cell.ComboBoxTreeCell.class, "getNodeOrientation", new Class<?>[] {}, com.jxparallel.fx.geometry.NodeOrientation.class);
-        }
-        return (com.jxparallel.fx.geometry.NodeOrientation) com.jxparallel.fx.Fx.jx(((javafx.scene.control.cell.ComboBoxTreeCell) fxPeer()).getNodeOrientation());
-    }
-
-    public java.lang.String getAccessibleText() {
-        if (com.jxparallel.fx.Fx.NATIVE) {
-            return (java.lang.String) com.jxparallel.fx.nativeimpl.Native.call(this, com.jxparallel.fx.scene.control.cell.ComboBoxTreeCell.class, "getAccessibleText", new Class<?>[] {}, java.lang.String.class);
-        }
-        return ((javafx.scene.control.cell.ComboBoxTreeCell) fxPeer()).getAccessibleText();
-    }
-
-    public com.jxparallel.fx.event.EventHandler<? super com.jxparallel.fx.scene.input.MouseEvent> getOnDragDetected() {
-        if (com.jxparallel.fx.Fx.NATIVE) {
-            return (com.jxparallel.fx.event.EventHandler) com.jxparallel.fx.nativeimpl.Native.call(this, com.jxparallel.fx.scene.control.cell.ComboBoxTreeCell.class, "getOnDragDetected", new Class<?>[] {}, com.jxparallel.fx.event.EventHandler.class);
-        }
-        return (com.jxparallel.fx.event.EventHandler) com.jxparallel.fx.Fx.jx(((javafx.scene.control.cell.ComboBoxTreeCell) fxPeer()).getOnDragDetected());
-    }
-
-    public java.lang.String getAccessibleHelp() {
-        if (com.jxparallel.fx.Fx.NATIVE) {
-            return (java.lang.String) com.jxparallel.fx.nativeimpl.Native.call(this, com.jxparallel.fx.scene.control.cell.ComboBoxTreeCell.class, "getAccessibleHelp", new Class<?>[] {}, java.lang.String.class);
-        }
-        return ((javafx.scene.control.cell.ComboBoxTreeCell) fxPeer()).getAccessibleHelp();
-    }
-
-    public com.jxparallel.fx.geometry.Bounds getBoundsInParent() {
-        if (com.jxparallel.fx.Fx.NATIVE) {
-            return (com.jxparallel.fx.geometry.Bounds) com.jxparallel.fx.nativeimpl.Native.call(this, com.jxparallel.fx.scene.control.cell.ComboBoxTreeCell.class, "getBoundsInParent", new Class<?>[] {}, com.jxparallel.fx.geometry.Bounds.class);
-        }
-        return (com.jxparallel.fx.geometry.Bounds) com.jxparallel.fx.Fx.jx(((javafx.scene.control.cell.ComboBoxTreeCell) fxPeer()).getBoundsInParent());
-    }
-
-    public com.jxparallel.fx.beans.property.BooleanProperty focusTraversableProperty() {
-        if (com.jxparallel.fx.Fx.NATIVE) {
-            return (com.jxparallel.fx.beans.property.BooleanProperty) com.jxparallel.fx.nativeimpl.Native.call(this, com.jxparallel.fx.scene.control.cell.ComboBoxTreeCell.class, "focusTraversableProperty", new Class<?>[] {}, com.jxparallel.fx.beans.property.BooleanProperty.class);
-        }
-        return (com.jxparallel.fx.beans.property.BooleanProperty) com.jxparallel.fx.Fx.jx(((javafx.scene.control.cell.ComboBoxTreeCell) fxPeer()).focusTraversableProperty());
-    }
-
-    public com.jxparallel.fx.scene.AccessibleRole getAccessibleRole() {
-        if (com.jxparallel.fx.Fx.NATIVE) {
-            return (com.jxparallel.fx.scene.AccessibleRole) com.jxparallel.fx.nativeimpl.Native.call(this, com.jxparallel.fx.scene.control.cell.ComboBoxTreeCell.class, "getAccessibleRole", new Class<?>[] {}, com.jxparallel.fx.scene.AccessibleRole.class);
-        }
-        return (com.jxparallel.fx.scene.AccessibleRole) com.jxparallel.fx.Fx.jx(((javafx.scene.control.cell.ComboBoxTreeCell) fxPeer()).getAccessibleRole());
-    }
-
-    public com.jxparallel.fx.beans.property.ObjectProperty<com.jxparallel.fx.event.EventDispatcher> eventDispatcherProperty() {
-        if (com.jxparallel.fx.Fx.NATIVE) {
-            return (com.jxparallel.fx.beans.property.ObjectProperty) com.jxparallel.fx.nativeimpl.Native.call(this, com.jxparallel.fx.scene.control.cell.ComboBoxTreeCell.class, "eventDispatcherProperty", new Class<?>[] {}, com.jxparallel.fx.beans.property.ObjectProperty.class);
-        }
-        return (com.jxparallel.fx.beans.property.ObjectProperty) com.jxparallel.fx.Fx.jx(((javafx.scene.control.cell.ComboBoxTreeCell) fxPeer()).eventDispatcherProperty());
-    }
-
-    public com.jxparallel.fx.event.EventDispatcher getEventDispatcher() {
-        if (com.jxparallel.fx.Fx.NATIVE) {
-            return (com.jxparallel.fx.event.EventDispatcher) com.jxparallel.fx.nativeimpl.Native.call(this, com.jxparallel.fx.scene.control.cell.ComboBoxTreeCell.class, "getEventDispatcher", new Class<?>[] {}, com.jxparallel.fx.event.EventDispatcher.class);
-        }
-        return (com.jxparallel.fx.event.EventDispatcher) com.jxparallel.fx.Fx.jx(((javafx.scene.control.cell.ComboBoxTreeCell) fxPeer()).getEventDispatcher());
-    }
-
-    public com.jxparallel.fx.event.EventHandler<? super com.jxparallel.fx.scene.input.MouseEvent> getOnMouseClicked() {
-        if (com.jxparallel.fx.Fx.NATIVE) {
-            return (com.jxparallel.fx.event.EventHandler) com.jxparallel.fx.nativeimpl.Native.call(this, com.jxparallel.fx.scene.control.cell.ComboBoxTreeCell.class, "getOnMouseClicked", new Class<?>[] {}, com.jxparallel.fx.event.EventHandler.class);
-        }
-        return (com.jxparallel.fx.event.EventHandler) com.jxparallel.fx.Fx.jx(((javafx.scene.control.cell.ComboBoxTreeCell) fxPeer()).getOnMouseClicked());
-    }
-
-    public com.jxparallel.fx.scene.input.InputMethodRequests getInputMethodRequests() {
-        if (com.jxparallel.fx.Fx.NATIVE) {
-            return (com.jxparallel.fx.scene.input.InputMethodRequests) com.jxparallel.fx.nativeimpl.Native.call(this, com.jxparallel.fx.scene.control.cell.ComboBoxTreeCell.class, "getInputMethodRequests", new Class<?>[] {}, com.jxparallel.fx.scene.input.InputMethodRequests.class);
-        }
-        return (com.jxparallel.fx.scene.input.InputMethodRequests) com.jxparallel.fx.Fx.jx(((javafx.scene.control.cell.ComboBoxTreeCell) fxPeer()).getInputMethodRequests());
-    }
-
-    public com.jxparallel.fx.event.EventHandler<? super com.jxparallel.fx.scene.input.MouseDragEvent> getOnMouseDragEntered() {
-        if (com.jxparallel.fx.Fx.NATIVE) {
-            return (com.jxparallel.fx.event.EventHandler) com.jxparallel.fx.nativeimpl.Native.call(this, com.jxparallel.fx.scene.control.cell.ComboBoxTreeCell.class, "getOnMouseDragEntered", new Class<?>[] {}, com.jxparallel.fx.event.EventHandler.class);
-        }
-        return (com.jxparallel.fx.event.EventHandler) com.jxparallel.fx.Fx.jx(((javafx.scene.control.cell.ComboBoxTreeCell) fxPeer()).getOnMouseDragEntered());
-    }
-
-    public com.jxparallel.fx.event.EventHandler<? super com.jxparallel.fx.scene.input.MouseDragEvent> getOnMouseDragExited() {
-        if (com.jxparallel.fx.Fx.NATIVE) {
-            return (com.jxparallel.fx.event.EventHandler) com.jxparallel.fx.nativeimpl.Native.call(this, com.jxparallel.fx.scene.control.cell.ComboBoxTreeCell.class, "getOnMouseDragExited", new Class<?>[] {}, com.jxparallel.fx.event.EventHandler.class);
-        }
-        return (com.jxparallel.fx.event.EventHandler) com.jxparallel.fx.Fx.jx(((javafx.scene.control.cell.ComboBoxTreeCell) fxPeer()).getOnMouseDragExited());
+        return ((javafx.scene.control.cell.ComboBoxTreeCell) fxPeer()).impl_isShowMnemonics();
     }
 
     public boolean impl_isTreeVisible() {
@@ -2123,153 +1497,270 @@ public class ComboBoxTreeCell<T> implements com.jxparallel.fx.scene.control.Skin
         return ((javafx.scene.control.cell.ComboBoxTreeCell) fxPeer()).impl_isTreeVisible();
     }
 
-    public com.jxparallel.fx.event.EventHandler<? super com.jxparallel.fx.scene.input.ZoomEvent> getOnZoomFinished() {
+    public boolean impl_traverse(com.sun.javafx.scene.traversal.Direction arg0) {
         if (com.jxparallel.fx.Fx.NATIVE) {
-            return (com.jxparallel.fx.event.EventHandler) com.jxparallel.fx.nativeimpl.Native.call(this, com.jxparallel.fx.scene.control.cell.ComboBoxTreeCell.class, "getOnZoomFinished", new Class<?>[] {}, com.jxparallel.fx.event.EventHandler.class);
+            return (Boolean) com.jxparallel.fx.nativeimpl.Native.call(this, com.jxparallel.fx.scene.control.cell.ComboBoxTreeCell.class, "impl_traverse", new Class<?>[] {com.sun.javafx.scene.traversal.Direction.class}, boolean.class, arg0);
         }
-        return (com.jxparallel.fx.event.EventHandler) com.jxparallel.fx.Fx.jx(((javafx.scene.control.cell.ComboBoxTreeCell) fxPeer()).getOnZoomFinished());
+        return ((javafx.scene.control.cell.ComboBoxTreeCell) fxPeer()).impl_traverse(arg0);
     }
 
-    public com.jxparallel.fx.event.EventHandler<? super com.jxparallel.fx.scene.input.MouseEvent> getOnMouseDragged() {
+    public boolean isCache() {
         if (com.jxparallel.fx.Fx.NATIVE) {
-            return (com.jxparallel.fx.event.EventHandler) com.jxparallel.fx.nativeimpl.Native.call(this, com.jxparallel.fx.scene.control.cell.ComboBoxTreeCell.class, "getOnMouseDragged", new Class<?>[] {}, com.jxparallel.fx.event.EventHandler.class);
+            return (Boolean) com.jxparallel.fx.nativeimpl.Native.call(this, com.jxparallel.fx.scene.control.cell.ComboBoxTreeCell.class, "isCache", new Class<?>[] {}, boolean.class);
         }
-        return (com.jxparallel.fx.event.EventHandler) com.jxparallel.fx.Fx.jx(((javafx.scene.control.cell.ComboBoxTreeCell) fxPeer()).getOnMouseDragged());
+        return ((javafx.scene.control.cell.ComboBoxTreeCell) fxPeer()).isCache();
     }
 
-    public com.jxparallel.fx.event.EventHandler<? super com.jxparallel.fx.scene.input.MouseDragEvent> getOnMouseDragOver() {
+    public boolean isDisable() {
         if (com.jxparallel.fx.Fx.NATIVE) {
-            return (com.jxparallel.fx.event.EventHandler) com.jxparallel.fx.nativeimpl.Native.call(this, com.jxparallel.fx.scene.control.cell.ComboBoxTreeCell.class, "getOnMouseDragOver", new Class<?>[] {}, com.jxparallel.fx.event.EventHandler.class);
+            return (Boolean) com.jxparallel.fx.nativeimpl.Native.call(this, com.jxparallel.fx.scene.control.cell.ComboBoxTreeCell.class, "isDisable", new Class<?>[] {}, boolean.class);
         }
-        return (com.jxparallel.fx.event.EventHandler) com.jxparallel.fx.Fx.jx(((javafx.scene.control.cell.ComboBoxTreeCell) fxPeer()).getOnMouseDragOver());
+        return ((javafx.scene.control.cell.ComboBoxTreeCell) fxPeer()).isDisable();
     }
 
-    public com.jxparallel.fx.event.EventHandler<? super com.jxparallel.fx.scene.input.ScrollEvent> getOnScrollStarted() {
+    public boolean isDisabled() {
         if (com.jxparallel.fx.Fx.NATIVE) {
-            return (com.jxparallel.fx.event.EventHandler) com.jxparallel.fx.nativeimpl.Native.call(this, com.jxparallel.fx.scene.control.cell.ComboBoxTreeCell.class, "getOnScrollStarted", new Class<?>[] {}, com.jxparallel.fx.event.EventHandler.class);
+            return (Boolean) com.jxparallel.fx.nativeimpl.Native.call(this, com.jxparallel.fx.scene.control.cell.ComboBoxTreeCell.class, "isDisabled", new Class<?>[] {}, boolean.class);
         }
-        return (com.jxparallel.fx.event.EventHandler) com.jxparallel.fx.Fx.jx(((javafx.scene.control.cell.ComboBoxTreeCell) fxPeer()).getOnScrollStarted());
+        return ((javafx.scene.control.cell.ComboBoxTreeCell) fxPeer()).isDisabled();
     }
 
-    public com.jxparallel.fx.event.EventHandler<? super com.jxparallel.fx.scene.input.MouseEvent> getOnMouseReleased() {
+    public boolean isFocusTraversable() {
         if (com.jxparallel.fx.Fx.NATIVE) {
-            return (com.jxparallel.fx.event.EventHandler) com.jxparallel.fx.nativeimpl.Native.call(this, com.jxparallel.fx.scene.control.cell.ComboBoxTreeCell.class, "getOnMouseReleased", new Class<?>[] {}, com.jxparallel.fx.event.EventHandler.class);
+            return (Boolean) com.jxparallel.fx.nativeimpl.Native.call(this, com.jxparallel.fx.scene.control.cell.ComboBoxTreeCell.class, "isFocusTraversable", new Class<?>[] {}, boolean.class);
         }
-        return (com.jxparallel.fx.event.EventHandler) com.jxparallel.fx.Fx.jx(((javafx.scene.control.cell.ComboBoxTreeCell) fxPeer()).getOnMouseReleased());
+        return ((javafx.scene.control.cell.ComboBoxTreeCell) fxPeer()).isFocusTraversable();
     }
 
-    public com.jxparallel.fx.event.EventHandler<? super com.jxparallel.fx.scene.input.MouseDragEvent> getOnMouseDragReleased() {
+    public boolean isFocused() {
         if (com.jxparallel.fx.Fx.NATIVE) {
-            return (com.jxparallel.fx.event.EventHandler) com.jxparallel.fx.nativeimpl.Native.call(this, com.jxparallel.fx.scene.control.cell.ComboBoxTreeCell.class, "getOnMouseDragReleased", new Class<?>[] {}, com.jxparallel.fx.event.EventHandler.class);
+            return (Boolean) com.jxparallel.fx.nativeimpl.Native.call(this, com.jxparallel.fx.scene.control.cell.ComboBoxTreeCell.class, "isFocused", new Class<?>[] {}, boolean.class);
         }
-        return (com.jxparallel.fx.event.EventHandler) com.jxparallel.fx.Fx.jx(((javafx.scene.control.cell.ComboBoxTreeCell) fxPeer()).getOnMouseDragReleased());
+        return ((javafx.scene.control.cell.ComboBoxTreeCell) fxPeer()).isFocused();
     }
 
-    public com.jxparallel.fx.event.EventHandler<? super com.jxparallel.fx.scene.input.MouseEvent> getOnMouseEntered() {
+    public boolean isHover() {
         if (com.jxparallel.fx.Fx.NATIVE) {
-            return (com.jxparallel.fx.event.EventHandler) com.jxparallel.fx.nativeimpl.Native.call(this, com.jxparallel.fx.scene.control.cell.ComboBoxTreeCell.class, "getOnMouseEntered", new Class<?>[] {}, com.jxparallel.fx.event.EventHandler.class);
+            return (Boolean) com.jxparallel.fx.nativeimpl.Native.call(this, com.jxparallel.fx.scene.control.cell.ComboBoxTreeCell.class, "isHover", new Class<?>[] {}, boolean.class);
         }
-        return (com.jxparallel.fx.event.EventHandler) com.jxparallel.fx.Fx.jx(((javafx.scene.control.cell.ComboBoxTreeCell) fxPeer()).getOnMouseEntered());
+        return ((javafx.scene.control.cell.ComboBoxTreeCell) fxPeer()).isHover();
     }
 
-    public com.jxparallel.fx.event.EventHandler<? super com.jxparallel.fx.scene.input.RotateEvent> getOnRotationStarted() {
+    public boolean isManaged() {
         if (com.jxparallel.fx.Fx.NATIVE) {
-            return (com.jxparallel.fx.event.EventHandler) com.jxparallel.fx.nativeimpl.Native.call(this, com.jxparallel.fx.scene.control.cell.ComboBoxTreeCell.class, "getOnRotationStarted", new Class<?>[] {}, com.jxparallel.fx.event.EventHandler.class);
+            return (Boolean) com.jxparallel.fx.nativeimpl.Native.call(this, com.jxparallel.fx.scene.control.cell.ComboBoxTreeCell.class, "isManaged", new Class<?>[] {}, boolean.class);
         }
-        return (com.jxparallel.fx.event.EventHandler) com.jxparallel.fx.Fx.jx(((javafx.scene.control.cell.ComboBoxTreeCell) fxPeer()).getOnRotationStarted());
+        return ((javafx.scene.control.cell.ComboBoxTreeCell) fxPeer()).isManaged();
     }
 
-    public com.jxparallel.fx.event.EventHandler<? super com.jxparallel.fx.scene.input.TouchEvent> getOnTouchStationary() {
+    public boolean isMouseTransparent() {
         if (com.jxparallel.fx.Fx.NATIVE) {
-            return (com.jxparallel.fx.event.EventHandler) com.jxparallel.fx.nativeimpl.Native.call(this, com.jxparallel.fx.scene.control.cell.ComboBoxTreeCell.class, "getOnTouchStationary", new Class<?>[] {}, com.jxparallel.fx.event.EventHandler.class);
+            return (Boolean) com.jxparallel.fx.nativeimpl.Native.call(this, com.jxparallel.fx.scene.control.cell.ComboBoxTreeCell.class, "isMouseTransparent", new Class<?>[] {}, boolean.class);
         }
-        return (com.jxparallel.fx.event.EventHandler) com.jxparallel.fx.Fx.jx(((javafx.scene.control.cell.ComboBoxTreeCell) fxPeer()).getOnTouchStationary());
+        return ((javafx.scene.control.cell.ComboBoxTreeCell) fxPeer()).isMouseTransparent();
     }
 
-    public com.jxparallel.fx.event.EventHandler<? super com.jxparallel.fx.scene.input.TouchEvent> getOnTouchReleased() {
+    public boolean isPickOnBounds() {
         if (com.jxparallel.fx.Fx.NATIVE) {
-            return (com.jxparallel.fx.event.EventHandler) com.jxparallel.fx.nativeimpl.Native.call(this, com.jxparallel.fx.scene.control.cell.ComboBoxTreeCell.class, "getOnTouchReleased", new Class<?>[] {}, com.jxparallel.fx.event.EventHandler.class);
+            return (Boolean) com.jxparallel.fx.nativeimpl.Native.call(this, com.jxparallel.fx.scene.control.cell.ComboBoxTreeCell.class, "isPickOnBounds", new Class<?>[] {}, boolean.class);
         }
-        return (com.jxparallel.fx.event.EventHandler) com.jxparallel.fx.Fx.jx(((javafx.scene.control.cell.ComboBoxTreeCell) fxPeer()).getOnTouchReleased());
+        return ((javafx.scene.control.cell.ComboBoxTreeCell) fxPeer()).isPickOnBounds();
     }
 
-    public com.jxparallel.fx.css.Styleable getStyleableParent() {
+    public boolean isPressed() {
         if (com.jxparallel.fx.Fx.NATIVE) {
-            return (com.jxparallel.fx.css.Styleable) com.jxparallel.fx.nativeimpl.Native.call(this, com.jxparallel.fx.scene.control.cell.ComboBoxTreeCell.class, "getStyleableParent", new Class<?>[] {}, com.jxparallel.fx.css.Styleable.class);
+            return (Boolean) com.jxparallel.fx.nativeimpl.Native.call(this, com.jxparallel.fx.scene.control.cell.ComboBoxTreeCell.class, "isPressed", new Class<?>[] {}, boolean.class);
         }
-        return (com.jxparallel.fx.css.Styleable) com.jxparallel.fx.Fx.jx(((javafx.scene.control.cell.ComboBoxTreeCell) fxPeer()).getStyleableParent());
+        return ((javafx.scene.control.cell.ComboBoxTreeCell) fxPeer()).isPressed();
     }
 
-    public javafx.collections.ObservableSet<javafx.css.PseudoClass> getPseudoClassStates() {
+    public boolean isVisible() {
         if (com.jxparallel.fx.Fx.NATIVE) {
-            return (javafx.collections.ObservableSet) com.jxparallel.fx.nativeimpl.Native.call(this, com.jxparallel.fx.scene.control.cell.ComboBoxTreeCell.class, "getPseudoClassStates", new Class<?>[] {}, javafx.collections.ObservableSet.class);
+            return (Boolean) com.jxparallel.fx.nativeimpl.Native.call(this, com.jxparallel.fx.scene.control.cell.ComboBoxTreeCell.class, "isVisible", new Class<?>[] {}, boolean.class);
         }
-        return ((javafx.scene.control.cell.ComboBoxTreeCell) fxPeer()).getPseudoClassStates();
+        return ((javafx.scene.control.cell.ComboBoxTreeCell) fxPeer()).isVisible();
     }
 
-    public com.jxparallel.fx.event.EventHandler<? super com.jxparallel.fx.scene.input.RotateEvent> getOnRotationFinished() {
+    public com.sun.javafx.geom.transform.BaseTransform impl_getLeafTransform() {
         if (com.jxparallel.fx.Fx.NATIVE) {
-            return (com.jxparallel.fx.event.EventHandler) com.jxparallel.fx.nativeimpl.Native.call(this, com.jxparallel.fx.scene.control.cell.ComboBoxTreeCell.class, "getOnRotationFinished", new Class<?>[] {}, com.jxparallel.fx.event.EventHandler.class);
+            return (com.sun.javafx.geom.transform.BaseTransform) com.jxparallel.fx.nativeimpl.Native.call(this, com.jxparallel.fx.scene.control.cell.ComboBoxTreeCell.class, "impl_getLeafTransform", new Class<?>[] {}, com.sun.javafx.geom.transform.BaseTransform.class);
         }
-        return (com.jxparallel.fx.event.EventHandler) com.jxparallel.fx.Fx.jx(((javafx.scene.control.cell.ComboBoxTreeCell) fxPeer()).getOnRotationFinished());
+        return ((javafx.scene.control.cell.ComboBoxTreeCell) fxPeer()).impl_getLeafTransform();
     }
 
-    public com.jxparallel.fx.event.EventHandler<? super com.jxparallel.fx.scene.input.ScrollEvent> getOnScrollFinished() {
+    public double getLayoutX() {
         if (com.jxparallel.fx.Fx.NATIVE) {
-            return (com.jxparallel.fx.event.EventHandler) com.jxparallel.fx.nativeimpl.Native.call(this, com.jxparallel.fx.scene.control.cell.ComboBoxTreeCell.class, "getOnScrollFinished", new Class<?>[] {}, com.jxparallel.fx.event.EventHandler.class);
+            return (Double) com.jxparallel.fx.nativeimpl.Native.call(this, com.jxparallel.fx.scene.control.cell.ComboBoxTreeCell.class, "getLayoutX", new Class<?>[] {}, double.class);
         }
-        return (com.jxparallel.fx.event.EventHandler) com.jxparallel.fx.Fx.jx(((javafx.scene.control.cell.ComboBoxTreeCell) fxPeer()).getOnScrollFinished());
+        return ((javafx.scene.control.cell.ComboBoxTreeCell) fxPeer()).getLayoutX();
     }
 
-    public com.jxparallel.fx.event.EventHandler<? super com.jxparallel.fx.scene.input.TouchEvent> getOnTouchPressed() {
+    public double getLayoutY() {
         if (com.jxparallel.fx.Fx.NATIVE) {
-            return (com.jxparallel.fx.event.EventHandler) com.jxparallel.fx.nativeimpl.Native.call(this, com.jxparallel.fx.scene.control.cell.ComboBoxTreeCell.class, "getOnTouchPressed", new Class<?>[] {}, com.jxparallel.fx.event.EventHandler.class);
+            return (Double) com.jxparallel.fx.nativeimpl.Native.call(this, com.jxparallel.fx.scene.control.cell.ComboBoxTreeCell.class, "getLayoutY", new Class<?>[] {}, double.class);
         }
-        return (com.jxparallel.fx.event.EventHandler) com.jxparallel.fx.Fx.jx(((javafx.scene.control.cell.ComboBoxTreeCell) fxPeer()).getOnTouchPressed());
+        return ((javafx.scene.control.cell.ComboBoxTreeCell) fxPeer()).getLayoutY();
     }
 
-    public com.jxparallel.fx.event.EventHandler<? super com.jxparallel.fx.scene.input.MouseEvent> getOnMousePressed() {
+    public double getOpacity() {
         if (com.jxparallel.fx.Fx.NATIVE) {
-            return (com.jxparallel.fx.event.EventHandler) com.jxparallel.fx.nativeimpl.Native.call(this, com.jxparallel.fx.scene.control.cell.ComboBoxTreeCell.class, "getOnMousePressed", new Class<?>[] {}, com.jxparallel.fx.event.EventHandler.class);
+            return (Double) com.jxparallel.fx.nativeimpl.Native.call(this, com.jxparallel.fx.scene.control.cell.ComboBoxTreeCell.class, "getOpacity", new Class<?>[] {}, double.class);
         }
-        return (com.jxparallel.fx.event.EventHandler) com.jxparallel.fx.Fx.jx(((javafx.scene.control.cell.ComboBoxTreeCell) fxPeer()).getOnMousePressed());
+        return ((javafx.scene.control.cell.ComboBoxTreeCell) fxPeer()).getOpacity();
     }
 
-    public boolean impl_hasTransforms() {
+    public double getRotate() {
         if (com.jxparallel.fx.Fx.NATIVE) {
-            return (Boolean) com.jxparallel.fx.nativeimpl.Native.call(this, com.jxparallel.fx.scene.control.cell.ComboBoxTreeCell.class, "impl_hasTransforms", new Class<?>[] {}, boolean.class);
+            return (Double) com.jxparallel.fx.nativeimpl.Native.call(this, com.jxparallel.fx.scene.control.cell.ComboBoxTreeCell.class, "getRotate", new Class<?>[] {}, double.class);
         }
-        return ((javafx.scene.control.cell.ComboBoxTreeCell) fxPeer()).impl_hasTransforms();
+        return ((javafx.scene.control.cell.ComboBoxTreeCell) fxPeer()).getRotate();
     }
 
-    public boolean impl_isShowMnemonics() {
+    public double getScaleX() {
         if (com.jxparallel.fx.Fx.NATIVE) {
-            return (Boolean) com.jxparallel.fx.nativeimpl.Native.call(this, com.jxparallel.fx.scene.control.cell.ComboBoxTreeCell.class, "impl_isShowMnemonics", new Class<?>[] {}, boolean.class);
+            return (Double) com.jxparallel.fx.nativeimpl.Native.call(this, com.jxparallel.fx.scene.control.cell.ComboBoxTreeCell.class, "getScaleX", new Class<?>[] {}, double.class);
         }
-        return ((javafx.scene.control.cell.ComboBoxTreeCell) fxPeer()).impl_isShowMnemonics();
+        return ((javafx.scene.control.cell.ComboBoxTreeCell) fxPeer()).getScaleX();
     }
 
-    public void impl_transformsChanged() {
+    public double getScaleY() {
         if (com.jxparallel.fx.Fx.NATIVE) {
-            com.jxparallel.fx.nativeimpl.Native.call(this, com.jxparallel.fx.scene.control.cell.ComboBoxTreeCell.class, "impl_transformsChanged", new Class<?>[] {}, void.class);
-            return;
+            return (Double) com.jxparallel.fx.nativeimpl.Native.call(this, com.jxparallel.fx.scene.control.cell.ComboBoxTreeCell.class, "getScaleY", new Class<?>[] {}, double.class);
         }
-        ((javafx.scene.control.cell.ComboBoxTreeCell) fxPeer()).impl_transformsChanged();
+        return ((javafx.scene.control.cell.ComboBoxTreeCell) fxPeer()).getScaleY();
     }
 
-    public void impl_setShowMnemonics(boolean arg0) {
+    public double getScaleZ() {
         if (com.jxparallel.fx.Fx.NATIVE) {
-            com.jxparallel.fx.nativeimpl.Native.call(this, com.jxparallel.fx.scene.control.cell.ComboBoxTreeCell.class, "impl_setShowMnemonics", new Class<?>[] {boolean.class}, void.class, arg0);
-            return;
+            return (Double) com.jxparallel.fx.nativeimpl.Native.call(this, com.jxparallel.fx.scene.control.cell.ComboBoxTreeCell.class, "getScaleZ", new Class<?>[] {}, double.class);
         }
-        ((javafx.scene.control.cell.ComboBoxTreeCell) fxPeer()).impl_setShowMnemonics(arg0);
+        return ((javafx.scene.control.cell.ComboBoxTreeCell) fxPeer()).getScaleZ();
     }
 
-    public com.jxparallel.fx.scene.input.Dragboard startDragAndDrop(com.jxparallel.fx.scene.input.TransferMode... arg0) {
+    public double getTranslateX() {
         if (com.jxparallel.fx.Fx.NATIVE) {
-            return (com.jxparallel.fx.scene.input.Dragboard) com.jxparallel.fx.nativeimpl.Native.call(this, com.jxparallel.fx.scene.control.cell.ComboBoxTreeCell.class, "startDragAndDrop", new Class<?>[] {com.jxparallel.fx.scene.input.TransferMode[].class}, com.jxparallel.fx.scene.input.Dragboard.class, arg0);
+            return (Double) com.jxparallel.fx.nativeimpl.Native.call(this, com.jxparallel.fx.scene.control.cell.ComboBoxTreeCell.class, "getTranslateX", new Class<?>[] {}, double.class);
         }
-        return (com.jxparallel.fx.scene.input.Dragboard) com.jxparallel.fx.Fx.jx(((javafx.scene.control.cell.ComboBoxTreeCell) fxPeer()).startDragAndDrop((javafx.scene.input.TransferMode[]) com.jxparallel.fx.Fx.fxArray(arg0, javafx.scene.input.TransferMode.class)));
+        return ((javafx.scene.control.cell.ComboBoxTreeCell) fxPeer()).getTranslateX();
+    }
+
+    public double getTranslateY() {
+        if (com.jxparallel.fx.Fx.NATIVE) {
+            return (Double) com.jxparallel.fx.nativeimpl.Native.call(this, com.jxparallel.fx.scene.control.cell.ComboBoxTreeCell.class, "getTranslateY", new Class<?>[] {}, double.class);
+        }
+        return ((javafx.scene.control.cell.ComboBoxTreeCell) fxPeer()).getTranslateY();
+    }
+
+    public double getTranslateZ() {
+        if (com.jxparallel.fx.Fx.NATIVE) {
+            return (Double) com.jxparallel.fx.nativeimpl.Native.call(this, com.jxparallel.fx.scene.control.cell.ComboBoxTreeCell.class, "getTranslateZ", new Class<?>[] {}, double.class);
+        }
+        return ((javafx.scene.control.cell.ComboBoxTreeCell) fxPeer()).getTranslateZ();
+    }
+
+    public double impl_getPivotX() {
+        if (com.jxparallel.fx.Fx.NATIVE) {
+            return (Double) com.jxparallel.fx.nativeimpl.Native.call(this, com.jxparallel.fx.scene.control.cell.ComboBoxTreeCell.class, "impl_getPivotX", new Class<?>[] {}, double.class);
+        }
+        return ((javafx.scene.control.cell.ComboBoxTreeCell) fxPeer()).impl_getPivotX();
+    }
+
+    public double impl_getPivotY() {
+        if (com.jxparallel.fx.Fx.NATIVE) {
+            return (Double) com.jxparallel.fx.nativeimpl.Native.call(this, com.jxparallel.fx.scene.control.cell.ComboBoxTreeCell.class, "impl_getPivotY", new Class<?>[] {}, double.class);
+        }
+        return ((javafx.scene.control.cell.ComboBoxTreeCell) fxPeer()).impl_getPivotY();
+    }
+
+    public double impl_getPivotZ() {
+        if (com.jxparallel.fx.Fx.NATIVE) {
+            return (Double) com.jxparallel.fx.nativeimpl.Native.call(this, com.jxparallel.fx.scene.control.cell.ComboBoxTreeCell.class, "impl_getPivotZ", new Class<?>[] {}, double.class);
+        }
+        return ((javafx.scene.control.cell.ComboBoxTreeCell) fxPeer()).impl_getPivotZ();
+    }
+
+    public java.lang.String getAccessibleHelp() {
+        if (com.jxparallel.fx.Fx.NATIVE) {
+            return (java.lang.String) com.jxparallel.fx.nativeimpl.Native.call(this, com.jxparallel.fx.scene.control.cell.ComboBoxTreeCell.class, "getAccessibleHelp", new Class<?>[] {}, java.lang.String.class);
+        }
+        return ((javafx.scene.control.cell.ComboBoxTreeCell) fxPeer()).getAccessibleHelp();
+    }
+
+    public java.lang.String getAccessibleRoleDescription() {
+        if (com.jxparallel.fx.Fx.NATIVE) {
+            return (java.lang.String) com.jxparallel.fx.nativeimpl.Native.call(this, com.jxparallel.fx.scene.control.cell.ComboBoxTreeCell.class, "getAccessibleRoleDescription", new Class<?>[] {}, java.lang.String.class);
+        }
+        return ((javafx.scene.control.cell.ComboBoxTreeCell) fxPeer()).getAccessibleRoleDescription();
+    }
+
+    public java.lang.String getAccessibleText() {
+        if (com.jxparallel.fx.Fx.NATIVE) {
+            return (java.lang.String) com.jxparallel.fx.nativeimpl.Native.call(this, com.jxparallel.fx.scene.control.cell.ComboBoxTreeCell.class, "getAccessibleText", new Class<?>[] {}, java.lang.String.class);
+        }
+        return ((javafx.scene.control.cell.ComboBoxTreeCell) fxPeer()).getAccessibleText();
+    }
+
+    public java.lang.String getId() {
+        if (com.jxparallel.fx.Fx.NATIVE) {
+            return (java.lang.String) com.jxparallel.fx.nativeimpl.Native.call(this, com.jxparallel.fx.scene.control.cell.ComboBoxTreeCell.class, "getId", new Class<?>[] {}, java.lang.String.class);
+        }
+        return ((javafx.scene.control.cell.ComboBoxTreeCell) fxPeer()).getId();
+    }
+
+    public java.lang.String getStyle() {
+        if (com.jxparallel.fx.Fx.NATIVE) {
+            return (java.lang.String) com.jxparallel.fx.nativeimpl.Native.call(this, com.jxparallel.fx.scene.control.cell.ComboBoxTreeCell.class, "getStyle", new Class<?>[] {}, java.lang.String.class);
+        }
+        return ((javafx.scene.control.cell.ComboBoxTreeCell) fxPeer()).getStyle();
+    }
+
+    public com.jxparallel.fx.beans.property.BooleanProperty cacheProperty() {
+        if (com.jxparallel.fx.Fx.NATIVE) {
+            return (com.jxparallel.fx.beans.property.BooleanProperty) com.jxparallel.fx.nativeimpl.Native.call(this, com.jxparallel.fx.scene.control.cell.ComboBoxTreeCell.class, "cacheProperty", new Class<?>[] {}, com.jxparallel.fx.beans.property.BooleanProperty.class);
+        }
+        return (com.jxparallel.fx.beans.property.BooleanProperty) com.jxparallel.fx.Fx.jx(((javafx.scene.control.cell.ComboBoxTreeCell) fxPeer()).cacheProperty());
+    }
+
+    public com.jxparallel.fx.beans.property.BooleanProperty disableProperty() {
+        if (com.jxparallel.fx.Fx.NATIVE) {
+            return (com.jxparallel.fx.beans.property.BooleanProperty) com.jxparallel.fx.nativeimpl.Native.call(this, com.jxparallel.fx.scene.control.cell.ComboBoxTreeCell.class, "disableProperty", new Class<?>[] {}, com.jxparallel.fx.beans.property.BooleanProperty.class);
+        }
+        return (com.jxparallel.fx.beans.property.BooleanProperty) com.jxparallel.fx.Fx.jx(((javafx.scene.control.cell.ComboBoxTreeCell) fxPeer()).disableProperty());
+    }
+
+    public com.jxparallel.fx.beans.property.BooleanProperty focusTraversableProperty() {
+        if (com.jxparallel.fx.Fx.NATIVE) {
+            return (com.jxparallel.fx.beans.property.BooleanProperty) com.jxparallel.fx.nativeimpl.Native.call(this, com.jxparallel.fx.scene.control.cell.ComboBoxTreeCell.class, "focusTraversableProperty", new Class<?>[] {}, com.jxparallel.fx.beans.property.BooleanProperty.class);
+        }
+        return (com.jxparallel.fx.beans.property.BooleanProperty) com.jxparallel.fx.Fx.jx(((javafx.scene.control.cell.ComboBoxTreeCell) fxPeer()).focusTraversableProperty());
+    }
+
+    public com.jxparallel.fx.beans.property.BooleanProperty impl_showMnemonicsProperty() {
+        if (com.jxparallel.fx.Fx.NATIVE) {
+            return (com.jxparallel.fx.beans.property.BooleanProperty) com.jxparallel.fx.nativeimpl.Native.call(this, com.jxparallel.fx.scene.control.cell.ComboBoxTreeCell.class, "impl_showMnemonicsProperty", new Class<?>[] {}, com.jxparallel.fx.beans.property.BooleanProperty.class);
+        }
+        return (com.jxparallel.fx.beans.property.BooleanProperty) com.jxparallel.fx.Fx.jx(((javafx.scene.control.cell.ComboBoxTreeCell) fxPeer()).impl_showMnemonicsProperty());
+    }
+
+    public com.jxparallel.fx.beans.property.BooleanProperty managedProperty() {
+        if (com.jxparallel.fx.Fx.NATIVE) {
+            return (com.jxparallel.fx.beans.property.BooleanProperty) com.jxparallel.fx.nativeimpl.Native.call(this, com.jxparallel.fx.scene.control.cell.ComboBoxTreeCell.class, "managedProperty", new Class<?>[] {}, com.jxparallel.fx.beans.property.BooleanProperty.class);
+        }
+        return (com.jxparallel.fx.beans.property.BooleanProperty) com.jxparallel.fx.Fx.jx(((javafx.scene.control.cell.ComboBoxTreeCell) fxPeer()).managedProperty());
+    }
+
+    public com.jxparallel.fx.beans.property.BooleanProperty mouseTransparentProperty() {
+        if (com.jxparallel.fx.Fx.NATIVE) {
+            return (com.jxparallel.fx.beans.property.BooleanProperty) com.jxparallel.fx.nativeimpl.Native.call(this, com.jxparallel.fx.scene.control.cell.ComboBoxTreeCell.class, "mouseTransparentProperty", new Class<?>[] {}, com.jxparallel.fx.beans.property.BooleanProperty.class);
+        }
+        return (com.jxparallel.fx.beans.property.BooleanProperty) com.jxparallel.fx.Fx.jx(((javafx.scene.control.cell.ComboBoxTreeCell) fxPeer()).mouseTransparentProperty());
+    }
+
+    public com.jxparallel.fx.beans.property.BooleanProperty pickOnBoundsProperty() {
+        if (com.jxparallel.fx.Fx.NATIVE) {
+            return (com.jxparallel.fx.beans.property.BooleanProperty) com.jxparallel.fx.nativeimpl.Native.call(this, com.jxparallel.fx.scene.control.cell.ComboBoxTreeCell.class, "pickOnBoundsProperty", new Class<?>[] {}, com.jxparallel.fx.beans.property.BooleanProperty.class);
+        }
+        return (com.jxparallel.fx.beans.property.BooleanProperty) com.jxparallel.fx.Fx.jx(((javafx.scene.control.cell.ComboBoxTreeCell) fxPeer()).pickOnBoundsProperty());
     }
 
     public com.jxparallel.fx.beans.property.BooleanProperty visibleProperty() {
@@ -2279,89 +1770,445 @@ public class ComboBoxTreeCell<T> implements com.jxparallel.fx.scene.control.Skin
         return (com.jxparallel.fx.beans.property.BooleanProperty) com.jxparallel.fx.Fx.jx(((javafx.scene.control.cell.ComboBoxTreeCell) fxPeer()).visibleProperty());
     }
 
-    public void startFullDrag() {
+    public com.jxparallel.fx.beans.property.DoubleProperty layoutXProperty() {
         if (com.jxparallel.fx.Fx.NATIVE) {
-            com.jxparallel.fx.nativeimpl.Native.call(this, com.jxparallel.fx.scene.control.cell.ComboBoxTreeCell.class, "startFullDrag", new Class<?>[] {}, void.class);
-            return;
+            return (com.jxparallel.fx.beans.property.DoubleProperty) com.jxparallel.fx.nativeimpl.Native.call(this, com.jxparallel.fx.scene.control.cell.ComboBoxTreeCell.class, "layoutXProperty", new Class<?>[] {}, com.jxparallel.fx.beans.property.DoubleProperty.class);
         }
-        ((javafx.scene.control.cell.ComboBoxTreeCell) fxPeer()).startFullDrag();
+        return (com.jxparallel.fx.beans.property.DoubleProperty) com.jxparallel.fx.Fx.jx(((javafx.scene.control.cell.ComboBoxTreeCell) fxPeer()).layoutXProperty());
     }
 
-    public void setOnZoom(com.jxparallel.fx.event.EventHandler<? super com.jxparallel.fx.scene.input.ZoomEvent> arg0) {
+    public com.jxparallel.fx.beans.property.DoubleProperty layoutYProperty() {
         if (com.jxparallel.fx.Fx.NATIVE) {
-            com.jxparallel.fx.nativeimpl.Native.call(this, com.jxparallel.fx.scene.control.cell.ComboBoxTreeCell.class, "setOnZoom", new Class<?>[] {com.jxparallel.fx.event.EventHandler.class}, void.class, arg0);
-            return;
+            return (com.jxparallel.fx.beans.property.DoubleProperty) com.jxparallel.fx.nativeimpl.Native.call(this, com.jxparallel.fx.scene.control.cell.ComboBoxTreeCell.class, "layoutYProperty", new Class<?>[] {}, com.jxparallel.fx.beans.property.DoubleProperty.class);
         }
-        ((javafx.scene.control.cell.ComboBoxTreeCell) fxPeer()).setOnZoom((javafx.event.EventHandler) com.jxparallel.fx.Fx.fx(arg0));
+        return (com.jxparallel.fx.beans.property.DoubleProperty) com.jxparallel.fx.Fx.jx(((javafx.scene.control.cell.ComboBoxTreeCell) fxPeer()).layoutYProperty());
     }
 
-    public com.jxparallel.fx.beans.property.StringProperty styleProperty() {
+    public com.jxparallel.fx.beans.property.DoubleProperty opacityProperty() {
         if (com.jxparallel.fx.Fx.NATIVE) {
-            return (com.jxparallel.fx.beans.property.StringProperty) com.jxparallel.fx.nativeimpl.Native.call(this, com.jxparallel.fx.scene.control.cell.ComboBoxTreeCell.class, "styleProperty", new Class<?>[] {}, com.jxparallel.fx.beans.property.StringProperty.class);
+            return (com.jxparallel.fx.beans.property.DoubleProperty) com.jxparallel.fx.nativeimpl.Native.call(this, com.jxparallel.fx.scene.control.cell.ComboBoxTreeCell.class, "opacityProperty", new Class<?>[] {}, com.jxparallel.fx.beans.property.DoubleProperty.class);
         }
-        return (com.jxparallel.fx.beans.property.StringProperty) com.jxparallel.fx.Fx.jx(((javafx.scene.control.cell.ComboBoxTreeCell) fxPeer()).styleProperty());
+        return (com.jxparallel.fx.beans.property.DoubleProperty) com.jxparallel.fx.Fx.jx(((javafx.scene.control.cell.ComboBoxTreeCell) fxPeer()).opacityProperty());
     }
 
-    public void setOnZoomStarted(com.jxparallel.fx.event.EventHandler<? super com.jxparallel.fx.scene.input.ZoomEvent> arg0) {
+    public com.jxparallel.fx.beans.property.DoubleProperty rotateProperty() {
         if (com.jxparallel.fx.Fx.NATIVE) {
-            com.jxparallel.fx.nativeimpl.Native.call(this, com.jxparallel.fx.scene.control.cell.ComboBoxTreeCell.class, "setOnZoomStarted", new Class<?>[] {com.jxparallel.fx.event.EventHandler.class}, void.class, arg0);
-            return;
+            return (com.jxparallel.fx.beans.property.DoubleProperty) com.jxparallel.fx.nativeimpl.Native.call(this, com.jxparallel.fx.scene.control.cell.ComboBoxTreeCell.class, "rotateProperty", new Class<?>[] {}, com.jxparallel.fx.beans.property.DoubleProperty.class);
         }
-        ((javafx.scene.control.cell.ComboBoxTreeCell) fxPeer()).setOnZoomStarted((javafx.event.EventHandler) com.jxparallel.fx.Fx.fx(arg0));
+        return (com.jxparallel.fx.beans.property.DoubleProperty) com.jxparallel.fx.Fx.jx(((javafx.scene.control.cell.ComboBoxTreeCell) fxPeer()).rotateProperty());
     }
 
-    public void setOnSwipeUp(com.jxparallel.fx.event.EventHandler<? super com.jxparallel.fx.scene.input.SwipeEvent> arg0) {
+    public com.jxparallel.fx.beans.property.DoubleProperty scaleXProperty() {
         if (com.jxparallel.fx.Fx.NATIVE) {
-            com.jxparallel.fx.nativeimpl.Native.call(this, com.jxparallel.fx.scene.control.cell.ComboBoxTreeCell.class, "setOnSwipeUp", new Class<?>[] {com.jxparallel.fx.event.EventHandler.class}, void.class, arg0);
-            return;
+            return (com.jxparallel.fx.beans.property.DoubleProperty) com.jxparallel.fx.nativeimpl.Native.call(this, com.jxparallel.fx.scene.control.cell.ComboBoxTreeCell.class, "scaleXProperty", new Class<?>[] {}, com.jxparallel.fx.beans.property.DoubleProperty.class);
         }
-        ((javafx.scene.control.cell.ComboBoxTreeCell) fxPeer()).setOnSwipeUp((javafx.event.EventHandler) com.jxparallel.fx.Fx.fx(arg0));
+        return (com.jxparallel.fx.beans.property.DoubleProperty) com.jxparallel.fx.Fx.jx(((javafx.scene.control.cell.ComboBoxTreeCell) fxPeer()).scaleXProperty());
     }
 
-    public void setVisible(boolean arg0) {
+    public com.jxparallel.fx.beans.property.DoubleProperty scaleYProperty() {
         if (com.jxparallel.fx.Fx.NATIVE) {
-            com.jxparallel.fx.nativeimpl.Native.call(this, com.jxparallel.fx.scene.control.cell.ComboBoxTreeCell.class, "setVisible", new Class<?>[] {boolean.class}, void.class, arg0);
-            return;
+            return (com.jxparallel.fx.beans.property.DoubleProperty) com.jxparallel.fx.nativeimpl.Native.call(this, com.jxparallel.fx.scene.control.cell.ComboBoxTreeCell.class, "scaleYProperty", new Class<?>[] {}, com.jxparallel.fx.beans.property.DoubleProperty.class);
         }
-        ((javafx.scene.control.cell.ComboBoxTreeCell) fxPeer()).setVisible(arg0);
+        return (com.jxparallel.fx.beans.property.DoubleProperty) com.jxparallel.fx.Fx.jx(((javafx.scene.control.cell.ComboBoxTreeCell) fxPeer()).scaleYProperty());
     }
 
-    public void setUserData(java.lang.Object arg0) {
+    public com.jxparallel.fx.beans.property.DoubleProperty scaleZProperty() {
         if (com.jxparallel.fx.Fx.NATIVE) {
-            com.jxparallel.fx.nativeimpl.Native.call(this, com.jxparallel.fx.scene.control.cell.ComboBoxTreeCell.class, "setUserData", new Class<?>[] {java.lang.Object.class}, void.class, arg0);
-            return;
+            return (com.jxparallel.fx.beans.property.DoubleProperty) com.jxparallel.fx.nativeimpl.Native.call(this, com.jxparallel.fx.scene.control.cell.ComboBoxTreeCell.class, "scaleZProperty", new Class<?>[] {}, com.jxparallel.fx.beans.property.DoubleProperty.class);
         }
-        ((javafx.scene.control.cell.ComboBoxTreeCell) fxPeer()).setUserData((java.lang.Object) com.jxparallel.fx.Fx.fx(arg0));
+        return (com.jxparallel.fx.beans.property.DoubleProperty) com.jxparallel.fx.Fx.jx(((javafx.scene.control.cell.ComboBoxTreeCell) fxPeer()).scaleZProperty());
     }
 
-    public boolean usesMirroring() {
+    public com.jxparallel.fx.beans.property.DoubleProperty translateXProperty() {
         if (com.jxparallel.fx.Fx.NATIVE) {
-            return (Boolean) com.jxparallel.fx.nativeimpl.Native.call(this, com.jxparallel.fx.scene.control.cell.ComboBoxTreeCell.class, "usesMirroring", new Class<?>[] {}, boolean.class);
+            return (com.jxparallel.fx.beans.property.DoubleProperty) com.jxparallel.fx.nativeimpl.Native.call(this, com.jxparallel.fx.scene.control.cell.ComboBoxTreeCell.class, "translateXProperty", new Class<?>[] {}, com.jxparallel.fx.beans.property.DoubleProperty.class);
         }
-        return ((javafx.scene.control.cell.ComboBoxTreeCell) fxPeer()).usesMirroring();
+        return (com.jxparallel.fx.beans.property.DoubleProperty) com.jxparallel.fx.Fx.jx(((javafx.scene.control.cell.ComboBoxTreeCell) fxPeer()).translateXProperty());
     }
 
-    public void setPickOnBounds(boolean arg0) {
+    public com.jxparallel.fx.beans.property.DoubleProperty translateYProperty() {
         if (com.jxparallel.fx.Fx.NATIVE) {
-            com.jxparallel.fx.nativeimpl.Native.call(this, com.jxparallel.fx.scene.control.cell.ComboBoxTreeCell.class, "setPickOnBounds", new Class<?>[] {boolean.class}, void.class, arg0);
-            return;
+            return (com.jxparallel.fx.beans.property.DoubleProperty) com.jxparallel.fx.nativeimpl.Native.call(this, com.jxparallel.fx.scene.control.cell.ComboBoxTreeCell.class, "translateYProperty", new Class<?>[] {}, com.jxparallel.fx.beans.property.DoubleProperty.class);
         }
-        ((javafx.scene.control.cell.ComboBoxTreeCell) fxPeer()).setPickOnBounds(arg0);
+        return (com.jxparallel.fx.beans.property.DoubleProperty) com.jxparallel.fx.Fx.jx(((javafx.scene.control.cell.ComboBoxTreeCell) fxPeer()).translateYProperty());
     }
 
-    public void setOnTouchMoved(com.jxparallel.fx.event.EventHandler<? super com.jxparallel.fx.scene.input.TouchEvent> arg0) {
+    public com.jxparallel.fx.beans.property.DoubleProperty translateZProperty() {
         if (com.jxparallel.fx.Fx.NATIVE) {
-            com.jxparallel.fx.nativeimpl.Native.call(this, com.jxparallel.fx.scene.control.cell.ComboBoxTreeCell.class, "setOnTouchMoved", new Class<?>[] {com.jxparallel.fx.event.EventHandler.class}, void.class, arg0);
-            return;
+            return (com.jxparallel.fx.beans.property.DoubleProperty) com.jxparallel.fx.nativeimpl.Native.call(this, com.jxparallel.fx.scene.control.cell.ComboBoxTreeCell.class, "translateZProperty", new Class<?>[] {}, com.jxparallel.fx.beans.property.DoubleProperty.class);
         }
-        ((javafx.scene.control.cell.ComboBoxTreeCell) fxPeer()).setOnTouchMoved((javafx.event.EventHandler) com.jxparallel.fx.Fx.fx(arg0));
+        return (com.jxparallel.fx.beans.property.DoubleProperty) com.jxparallel.fx.Fx.jx(((javafx.scene.control.cell.ComboBoxTreeCell) fxPeer()).translateZProperty());
     }
 
-    public double getLayoutX() {
+    public com.jxparallel.fx.beans.property.ObjectProperty<java.lang.String> accessibleHelpProperty() {
         if (com.jxparallel.fx.Fx.NATIVE) {
-            return (Double) com.jxparallel.fx.nativeimpl.Native.call(this, com.jxparallel.fx.scene.control.cell.ComboBoxTreeCell.class, "getLayoutX", new Class<?>[] {}, double.class);
+            return (com.jxparallel.fx.beans.property.ObjectProperty) com.jxparallel.fx.nativeimpl.Native.call(this, com.jxparallel.fx.scene.control.cell.ComboBoxTreeCell.class, "accessibleHelpProperty", new Class<?>[] {}, com.jxparallel.fx.beans.property.ObjectProperty.class);
         }
-        return ((javafx.scene.control.cell.ComboBoxTreeCell) fxPeer()).getLayoutX();
+        return (com.jxparallel.fx.beans.property.ObjectProperty) com.jxparallel.fx.Fx.jx(((javafx.scene.control.cell.ComboBoxTreeCell) fxPeer()).accessibleHelpProperty());
+    }
+
+    public com.jxparallel.fx.beans.property.ObjectProperty<java.lang.String> accessibleRoleDescriptionProperty() {
+        if (com.jxparallel.fx.Fx.NATIVE) {
+            return (com.jxparallel.fx.beans.property.ObjectProperty) com.jxparallel.fx.nativeimpl.Native.call(this, com.jxparallel.fx.scene.control.cell.ComboBoxTreeCell.class, "accessibleRoleDescriptionProperty", new Class<?>[] {}, com.jxparallel.fx.beans.property.ObjectProperty.class);
+        }
+        return (com.jxparallel.fx.beans.property.ObjectProperty) com.jxparallel.fx.Fx.jx(((javafx.scene.control.cell.ComboBoxTreeCell) fxPeer()).accessibleRoleDescriptionProperty());
+    }
+
+    public com.jxparallel.fx.beans.property.ObjectProperty<java.lang.String> accessibleTextProperty() {
+        if (com.jxparallel.fx.Fx.NATIVE) {
+            return (com.jxparallel.fx.beans.property.ObjectProperty) com.jxparallel.fx.nativeimpl.Native.call(this, com.jxparallel.fx.scene.control.cell.ComboBoxTreeCell.class, "accessibleTextProperty", new Class<?>[] {}, com.jxparallel.fx.beans.property.ObjectProperty.class);
+        }
+        return (com.jxparallel.fx.beans.property.ObjectProperty) com.jxparallel.fx.Fx.jx(((javafx.scene.control.cell.ComboBoxTreeCell) fxPeer()).accessibleTextProperty());
+    }
+
+    public com.jxparallel.fx.beans.property.ObjectProperty<com.jxparallel.fx.event.EventDispatcher> eventDispatcherProperty() {
+        if (com.jxparallel.fx.Fx.NATIVE) {
+            return (com.jxparallel.fx.beans.property.ObjectProperty) com.jxparallel.fx.nativeimpl.Native.call(this, com.jxparallel.fx.scene.control.cell.ComboBoxTreeCell.class, "eventDispatcherProperty", new Class<?>[] {}, com.jxparallel.fx.beans.property.ObjectProperty.class);
+        }
+        return (com.jxparallel.fx.beans.property.ObjectProperty) com.jxparallel.fx.Fx.jx(((javafx.scene.control.cell.ComboBoxTreeCell) fxPeer()).eventDispatcherProperty());
+    }
+
+    public com.jxparallel.fx.beans.property.ObjectProperty<com.jxparallel.fx.event.EventHandler<? super com.jxparallel.fx.scene.input.ContextMenuEvent>> onContextMenuRequestedProperty() {
+        if (com.jxparallel.fx.Fx.NATIVE) {
+            return (com.jxparallel.fx.beans.property.ObjectProperty) com.jxparallel.fx.nativeimpl.Native.call(this, com.jxparallel.fx.scene.control.cell.ComboBoxTreeCell.class, "onContextMenuRequestedProperty", new Class<?>[] {}, com.jxparallel.fx.beans.property.ObjectProperty.class);
+        }
+        return (com.jxparallel.fx.beans.property.ObjectProperty) com.jxparallel.fx.Fx.jx(((javafx.scene.control.cell.ComboBoxTreeCell) fxPeer()).onContextMenuRequestedProperty());
+    }
+
+    public com.jxparallel.fx.beans.property.ObjectProperty<com.jxparallel.fx.event.EventHandler<? super com.jxparallel.fx.scene.input.DragEvent>> onDragDoneProperty() {
+        if (com.jxparallel.fx.Fx.NATIVE) {
+            return (com.jxparallel.fx.beans.property.ObjectProperty) com.jxparallel.fx.nativeimpl.Native.call(this, com.jxparallel.fx.scene.control.cell.ComboBoxTreeCell.class, "onDragDoneProperty", new Class<?>[] {}, com.jxparallel.fx.beans.property.ObjectProperty.class);
+        }
+        return (com.jxparallel.fx.beans.property.ObjectProperty) com.jxparallel.fx.Fx.jx(((javafx.scene.control.cell.ComboBoxTreeCell) fxPeer()).onDragDoneProperty());
+    }
+
+    public com.jxparallel.fx.beans.property.ObjectProperty<com.jxparallel.fx.event.EventHandler<? super com.jxparallel.fx.scene.input.DragEvent>> onDragDroppedProperty() {
+        if (com.jxparallel.fx.Fx.NATIVE) {
+            return (com.jxparallel.fx.beans.property.ObjectProperty) com.jxparallel.fx.nativeimpl.Native.call(this, com.jxparallel.fx.scene.control.cell.ComboBoxTreeCell.class, "onDragDroppedProperty", new Class<?>[] {}, com.jxparallel.fx.beans.property.ObjectProperty.class);
+        }
+        return (com.jxparallel.fx.beans.property.ObjectProperty) com.jxparallel.fx.Fx.jx(((javafx.scene.control.cell.ComboBoxTreeCell) fxPeer()).onDragDroppedProperty());
+    }
+
+    public com.jxparallel.fx.beans.property.ObjectProperty<com.jxparallel.fx.event.EventHandler<? super com.jxparallel.fx.scene.input.DragEvent>> onDragEnteredProperty() {
+        if (com.jxparallel.fx.Fx.NATIVE) {
+            return (com.jxparallel.fx.beans.property.ObjectProperty) com.jxparallel.fx.nativeimpl.Native.call(this, com.jxparallel.fx.scene.control.cell.ComboBoxTreeCell.class, "onDragEnteredProperty", new Class<?>[] {}, com.jxparallel.fx.beans.property.ObjectProperty.class);
+        }
+        return (com.jxparallel.fx.beans.property.ObjectProperty) com.jxparallel.fx.Fx.jx(((javafx.scene.control.cell.ComboBoxTreeCell) fxPeer()).onDragEnteredProperty());
+    }
+
+    public com.jxparallel.fx.beans.property.ObjectProperty<com.jxparallel.fx.event.EventHandler<? super com.jxparallel.fx.scene.input.DragEvent>> onDragExitedProperty() {
+        if (com.jxparallel.fx.Fx.NATIVE) {
+            return (com.jxparallel.fx.beans.property.ObjectProperty) com.jxparallel.fx.nativeimpl.Native.call(this, com.jxparallel.fx.scene.control.cell.ComboBoxTreeCell.class, "onDragExitedProperty", new Class<?>[] {}, com.jxparallel.fx.beans.property.ObjectProperty.class);
+        }
+        return (com.jxparallel.fx.beans.property.ObjectProperty) com.jxparallel.fx.Fx.jx(((javafx.scene.control.cell.ComboBoxTreeCell) fxPeer()).onDragExitedProperty());
+    }
+
+    public com.jxparallel.fx.beans.property.ObjectProperty<com.jxparallel.fx.event.EventHandler<? super com.jxparallel.fx.scene.input.DragEvent>> onDragOverProperty() {
+        if (com.jxparallel.fx.Fx.NATIVE) {
+            return (com.jxparallel.fx.beans.property.ObjectProperty) com.jxparallel.fx.nativeimpl.Native.call(this, com.jxparallel.fx.scene.control.cell.ComboBoxTreeCell.class, "onDragOverProperty", new Class<?>[] {}, com.jxparallel.fx.beans.property.ObjectProperty.class);
+        }
+        return (com.jxparallel.fx.beans.property.ObjectProperty) com.jxparallel.fx.Fx.jx(((javafx.scene.control.cell.ComboBoxTreeCell) fxPeer()).onDragOverProperty());
+    }
+
+    public com.jxparallel.fx.beans.property.ObjectProperty<com.jxparallel.fx.event.EventHandler<? super com.jxparallel.fx.scene.input.InputMethodEvent>> onInputMethodTextChangedProperty() {
+        if (com.jxparallel.fx.Fx.NATIVE) {
+            return (com.jxparallel.fx.beans.property.ObjectProperty) com.jxparallel.fx.nativeimpl.Native.call(this, com.jxparallel.fx.scene.control.cell.ComboBoxTreeCell.class, "onInputMethodTextChangedProperty", new Class<?>[] {}, com.jxparallel.fx.beans.property.ObjectProperty.class);
+        }
+        return (com.jxparallel.fx.beans.property.ObjectProperty) com.jxparallel.fx.Fx.jx(((javafx.scene.control.cell.ComboBoxTreeCell) fxPeer()).onInputMethodTextChangedProperty());
+    }
+
+    public com.jxparallel.fx.beans.property.ObjectProperty<com.jxparallel.fx.event.EventHandler<? super com.jxparallel.fx.scene.input.KeyEvent>> onKeyPressedProperty() {
+        if (com.jxparallel.fx.Fx.NATIVE) {
+            return (com.jxparallel.fx.beans.property.ObjectProperty) com.jxparallel.fx.nativeimpl.Native.call(this, com.jxparallel.fx.scene.control.cell.ComboBoxTreeCell.class, "onKeyPressedProperty", new Class<?>[] {}, com.jxparallel.fx.beans.property.ObjectProperty.class);
+        }
+        return (com.jxparallel.fx.beans.property.ObjectProperty) com.jxparallel.fx.Fx.jx(((javafx.scene.control.cell.ComboBoxTreeCell) fxPeer()).onKeyPressedProperty());
+    }
+
+    public com.jxparallel.fx.beans.property.ObjectProperty<com.jxparallel.fx.event.EventHandler<? super com.jxparallel.fx.scene.input.KeyEvent>> onKeyReleasedProperty() {
+        if (com.jxparallel.fx.Fx.NATIVE) {
+            return (com.jxparallel.fx.beans.property.ObjectProperty) com.jxparallel.fx.nativeimpl.Native.call(this, com.jxparallel.fx.scene.control.cell.ComboBoxTreeCell.class, "onKeyReleasedProperty", new Class<?>[] {}, com.jxparallel.fx.beans.property.ObjectProperty.class);
+        }
+        return (com.jxparallel.fx.beans.property.ObjectProperty) com.jxparallel.fx.Fx.jx(((javafx.scene.control.cell.ComboBoxTreeCell) fxPeer()).onKeyReleasedProperty());
+    }
+
+    public com.jxparallel.fx.beans.property.ObjectProperty<com.jxparallel.fx.event.EventHandler<? super com.jxparallel.fx.scene.input.KeyEvent>> onKeyTypedProperty() {
+        if (com.jxparallel.fx.Fx.NATIVE) {
+            return (com.jxparallel.fx.beans.property.ObjectProperty) com.jxparallel.fx.nativeimpl.Native.call(this, com.jxparallel.fx.scene.control.cell.ComboBoxTreeCell.class, "onKeyTypedProperty", new Class<?>[] {}, com.jxparallel.fx.beans.property.ObjectProperty.class);
+        }
+        return (com.jxparallel.fx.beans.property.ObjectProperty) com.jxparallel.fx.Fx.jx(((javafx.scene.control.cell.ComboBoxTreeCell) fxPeer()).onKeyTypedProperty());
+    }
+
+    public com.jxparallel.fx.beans.property.ObjectProperty<com.jxparallel.fx.event.EventHandler<? super com.jxparallel.fx.scene.input.MouseDragEvent>> onMouseDragEnteredProperty() {
+        if (com.jxparallel.fx.Fx.NATIVE) {
+            return (com.jxparallel.fx.beans.property.ObjectProperty) com.jxparallel.fx.nativeimpl.Native.call(this, com.jxparallel.fx.scene.control.cell.ComboBoxTreeCell.class, "onMouseDragEnteredProperty", new Class<?>[] {}, com.jxparallel.fx.beans.property.ObjectProperty.class);
+        }
+        return (com.jxparallel.fx.beans.property.ObjectProperty) com.jxparallel.fx.Fx.jx(((javafx.scene.control.cell.ComboBoxTreeCell) fxPeer()).onMouseDragEnteredProperty());
+    }
+
+    public com.jxparallel.fx.beans.property.ObjectProperty<com.jxparallel.fx.event.EventHandler<? super com.jxparallel.fx.scene.input.MouseDragEvent>> onMouseDragExitedProperty() {
+        if (com.jxparallel.fx.Fx.NATIVE) {
+            return (com.jxparallel.fx.beans.property.ObjectProperty) com.jxparallel.fx.nativeimpl.Native.call(this, com.jxparallel.fx.scene.control.cell.ComboBoxTreeCell.class, "onMouseDragExitedProperty", new Class<?>[] {}, com.jxparallel.fx.beans.property.ObjectProperty.class);
+        }
+        return (com.jxparallel.fx.beans.property.ObjectProperty) com.jxparallel.fx.Fx.jx(((javafx.scene.control.cell.ComboBoxTreeCell) fxPeer()).onMouseDragExitedProperty());
+    }
+
+    public com.jxparallel.fx.beans.property.ObjectProperty<com.jxparallel.fx.event.EventHandler<? super com.jxparallel.fx.scene.input.MouseDragEvent>> onMouseDragOverProperty() {
+        if (com.jxparallel.fx.Fx.NATIVE) {
+            return (com.jxparallel.fx.beans.property.ObjectProperty) com.jxparallel.fx.nativeimpl.Native.call(this, com.jxparallel.fx.scene.control.cell.ComboBoxTreeCell.class, "onMouseDragOverProperty", new Class<?>[] {}, com.jxparallel.fx.beans.property.ObjectProperty.class);
+        }
+        return (com.jxparallel.fx.beans.property.ObjectProperty) com.jxparallel.fx.Fx.jx(((javafx.scene.control.cell.ComboBoxTreeCell) fxPeer()).onMouseDragOverProperty());
+    }
+
+    public com.jxparallel.fx.beans.property.ObjectProperty<com.jxparallel.fx.event.EventHandler<? super com.jxparallel.fx.scene.input.MouseDragEvent>> onMouseDragReleasedProperty() {
+        if (com.jxparallel.fx.Fx.NATIVE) {
+            return (com.jxparallel.fx.beans.property.ObjectProperty) com.jxparallel.fx.nativeimpl.Native.call(this, com.jxparallel.fx.scene.control.cell.ComboBoxTreeCell.class, "onMouseDragReleasedProperty", new Class<?>[] {}, com.jxparallel.fx.beans.property.ObjectProperty.class);
+        }
+        return (com.jxparallel.fx.beans.property.ObjectProperty) com.jxparallel.fx.Fx.jx(((javafx.scene.control.cell.ComboBoxTreeCell) fxPeer()).onMouseDragReleasedProperty());
+    }
+
+    public com.jxparallel.fx.beans.property.ObjectProperty<com.jxparallel.fx.event.EventHandler<? super com.jxparallel.fx.scene.input.MouseEvent>> onDragDetectedProperty() {
+        if (com.jxparallel.fx.Fx.NATIVE) {
+            return (com.jxparallel.fx.beans.property.ObjectProperty) com.jxparallel.fx.nativeimpl.Native.call(this, com.jxparallel.fx.scene.control.cell.ComboBoxTreeCell.class, "onDragDetectedProperty", new Class<?>[] {}, com.jxparallel.fx.beans.property.ObjectProperty.class);
+        }
+        return (com.jxparallel.fx.beans.property.ObjectProperty) com.jxparallel.fx.Fx.jx(((javafx.scene.control.cell.ComboBoxTreeCell) fxPeer()).onDragDetectedProperty());
+    }
+
+    public com.jxparallel.fx.beans.property.ObjectProperty<com.jxparallel.fx.event.EventHandler<? super com.jxparallel.fx.scene.input.MouseEvent>> onMouseClickedProperty() {
+        if (com.jxparallel.fx.Fx.NATIVE) {
+            return (com.jxparallel.fx.beans.property.ObjectProperty) com.jxparallel.fx.nativeimpl.Native.call(this, com.jxparallel.fx.scene.control.cell.ComboBoxTreeCell.class, "onMouseClickedProperty", new Class<?>[] {}, com.jxparallel.fx.beans.property.ObjectProperty.class);
+        }
+        return (com.jxparallel.fx.beans.property.ObjectProperty) com.jxparallel.fx.Fx.jx(((javafx.scene.control.cell.ComboBoxTreeCell) fxPeer()).onMouseClickedProperty());
+    }
+
+    public com.jxparallel.fx.beans.property.ObjectProperty<com.jxparallel.fx.event.EventHandler<? super com.jxparallel.fx.scene.input.MouseEvent>> onMouseDraggedProperty() {
+        if (com.jxparallel.fx.Fx.NATIVE) {
+            return (com.jxparallel.fx.beans.property.ObjectProperty) com.jxparallel.fx.nativeimpl.Native.call(this, com.jxparallel.fx.scene.control.cell.ComboBoxTreeCell.class, "onMouseDraggedProperty", new Class<?>[] {}, com.jxparallel.fx.beans.property.ObjectProperty.class);
+        }
+        return (com.jxparallel.fx.beans.property.ObjectProperty) com.jxparallel.fx.Fx.jx(((javafx.scene.control.cell.ComboBoxTreeCell) fxPeer()).onMouseDraggedProperty());
+    }
+
+    public com.jxparallel.fx.beans.property.ObjectProperty<com.jxparallel.fx.event.EventHandler<? super com.jxparallel.fx.scene.input.MouseEvent>> onMouseEnteredProperty() {
+        if (com.jxparallel.fx.Fx.NATIVE) {
+            return (com.jxparallel.fx.beans.property.ObjectProperty) com.jxparallel.fx.nativeimpl.Native.call(this, com.jxparallel.fx.scene.control.cell.ComboBoxTreeCell.class, "onMouseEnteredProperty", new Class<?>[] {}, com.jxparallel.fx.beans.property.ObjectProperty.class);
+        }
+        return (com.jxparallel.fx.beans.property.ObjectProperty) com.jxparallel.fx.Fx.jx(((javafx.scene.control.cell.ComboBoxTreeCell) fxPeer()).onMouseEnteredProperty());
+    }
+
+    public com.jxparallel.fx.beans.property.ObjectProperty<com.jxparallel.fx.event.EventHandler<? super com.jxparallel.fx.scene.input.MouseEvent>> onMouseExitedProperty() {
+        if (com.jxparallel.fx.Fx.NATIVE) {
+            return (com.jxparallel.fx.beans.property.ObjectProperty) com.jxparallel.fx.nativeimpl.Native.call(this, com.jxparallel.fx.scene.control.cell.ComboBoxTreeCell.class, "onMouseExitedProperty", new Class<?>[] {}, com.jxparallel.fx.beans.property.ObjectProperty.class);
+        }
+        return (com.jxparallel.fx.beans.property.ObjectProperty) com.jxparallel.fx.Fx.jx(((javafx.scene.control.cell.ComboBoxTreeCell) fxPeer()).onMouseExitedProperty());
+    }
+
+    public com.jxparallel.fx.beans.property.ObjectProperty<com.jxparallel.fx.event.EventHandler<? super com.jxparallel.fx.scene.input.MouseEvent>> onMouseMovedProperty() {
+        if (com.jxparallel.fx.Fx.NATIVE) {
+            return (com.jxparallel.fx.beans.property.ObjectProperty) com.jxparallel.fx.nativeimpl.Native.call(this, com.jxparallel.fx.scene.control.cell.ComboBoxTreeCell.class, "onMouseMovedProperty", new Class<?>[] {}, com.jxparallel.fx.beans.property.ObjectProperty.class);
+        }
+        return (com.jxparallel.fx.beans.property.ObjectProperty) com.jxparallel.fx.Fx.jx(((javafx.scene.control.cell.ComboBoxTreeCell) fxPeer()).onMouseMovedProperty());
+    }
+
+    public com.jxparallel.fx.beans.property.ObjectProperty<com.jxparallel.fx.event.EventHandler<? super com.jxparallel.fx.scene.input.MouseEvent>> onMousePressedProperty() {
+        if (com.jxparallel.fx.Fx.NATIVE) {
+            return (com.jxparallel.fx.beans.property.ObjectProperty) com.jxparallel.fx.nativeimpl.Native.call(this, com.jxparallel.fx.scene.control.cell.ComboBoxTreeCell.class, "onMousePressedProperty", new Class<?>[] {}, com.jxparallel.fx.beans.property.ObjectProperty.class);
+        }
+        return (com.jxparallel.fx.beans.property.ObjectProperty) com.jxparallel.fx.Fx.jx(((javafx.scene.control.cell.ComboBoxTreeCell) fxPeer()).onMousePressedProperty());
+    }
+
+    public com.jxparallel.fx.beans.property.ObjectProperty<com.jxparallel.fx.event.EventHandler<? super com.jxparallel.fx.scene.input.MouseEvent>> onMouseReleasedProperty() {
+        if (com.jxparallel.fx.Fx.NATIVE) {
+            return (com.jxparallel.fx.beans.property.ObjectProperty) com.jxparallel.fx.nativeimpl.Native.call(this, com.jxparallel.fx.scene.control.cell.ComboBoxTreeCell.class, "onMouseReleasedProperty", new Class<?>[] {}, com.jxparallel.fx.beans.property.ObjectProperty.class);
+        }
+        return (com.jxparallel.fx.beans.property.ObjectProperty) com.jxparallel.fx.Fx.jx(((javafx.scene.control.cell.ComboBoxTreeCell) fxPeer()).onMouseReleasedProperty());
+    }
+
+    public com.jxparallel.fx.beans.property.ObjectProperty<com.jxparallel.fx.event.EventHandler<? super com.jxparallel.fx.scene.input.RotateEvent>> onRotateProperty() {
+        if (com.jxparallel.fx.Fx.NATIVE) {
+            return (com.jxparallel.fx.beans.property.ObjectProperty) com.jxparallel.fx.nativeimpl.Native.call(this, com.jxparallel.fx.scene.control.cell.ComboBoxTreeCell.class, "onRotateProperty", new Class<?>[] {}, com.jxparallel.fx.beans.property.ObjectProperty.class);
+        }
+        return (com.jxparallel.fx.beans.property.ObjectProperty) com.jxparallel.fx.Fx.jx(((javafx.scene.control.cell.ComboBoxTreeCell) fxPeer()).onRotateProperty());
+    }
+
+    public com.jxparallel.fx.beans.property.ObjectProperty<com.jxparallel.fx.event.EventHandler<? super com.jxparallel.fx.scene.input.RotateEvent>> onRotationFinishedProperty() {
+        if (com.jxparallel.fx.Fx.NATIVE) {
+            return (com.jxparallel.fx.beans.property.ObjectProperty) com.jxparallel.fx.nativeimpl.Native.call(this, com.jxparallel.fx.scene.control.cell.ComboBoxTreeCell.class, "onRotationFinishedProperty", new Class<?>[] {}, com.jxparallel.fx.beans.property.ObjectProperty.class);
+        }
+        return (com.jxparallel.fx.beans.property.ObjectProperty) com.jxparallel.fx.Fx.jx(((javafx.scene.control.cell.ComboBoxTreeCell) fxPeer()).onRotationFinishedProperty());
+    }
+
+    public com.jxparallel.fx.beans.property.ObjectProperty<com.jxparallel.fx.event.EventHandler<? super com.jxparallel.fx.scene.input.RotateEvent>> onRotationStartedProperty() {
+        if (com.jxparallel.fx.Fx.NATIVE) {
+            return (com.jxparallel.fx.beans.property.ObjectProperty) com.jxparallel.fx.nativeimpl.Native.call(this, com.jxparallel.fx.scene.control.cell.ComboBoxTreeCell.class, "onRotationStartedProperty", new Class<?>[] {}, com.jxparallel.fx.beans.property.ObjectProperty.class);
+        }
+        return (com.jxparallel.fx.beans.property.ObjectProperty) com.jxparallel.fx.Fx.jx(((javafx.scene.control.cell.ComboBoxTreeCell) fxPeer()).onRotationStartedProperty());
+    }
+
+    public com.jxparallel.fx.beans.property.ObjectProperty<com.jxparallel.fx.event.EventHandler<? super com.jxparallel.fx.scene.input.ScrollEvent>> onScrollFinishedProperty() {
+        if (com.jxparallel.fx.Fx.NATIVE) {
+            return (com.jxparallel.fx.beans.property.ObjectProperty) com.jxparallel.fx.nativeimpl.Native.call(this, com.jxparallel.fx.scene.control.cell.ComboBoxTreeCell.class, "onScrollFinishedProperty", new Class<?>[] {}, com.jxparallel.fx.beans.property.ObjectProperty.class);
+        }
+        return (com.jxparallel.fx.beans.property.ObjectProperty) com.jxparallel.fx.Fx.jx(((javafx.scene.control.cell.ComboBoxTreeCell) fxPeer()).onScrollFinishedProperty());
+    }
+
+    public com.jxparallel.fx.beans.property.ObjectProperty<com.jxparallel.fx.event.EventHandler<? super com.jxparallel.fx.scene.input.ScrollEvent>> onScrollProperty() {
+        if (com.jxparallel.fx.Fx.NATIVE) {
+            return (com.jxparallel.fx.beans.property.ObjectProperty) com.jxparallel.fx.nativeimpl.Native.call(this, com.jxparallel.fx.scene.control.cell.ComboBoxTreeCell.class, "onScrollProperty", new Class<?>[] {}, com.jxparallel.fx.beans.property.ObjectProperty.class);
+        }
+        return (com.jxparallel.fx.beans.property.ObjectProperty) com.jxparallel.fx.Fx.jx(((javafx.scene.control.cell.ComboBoxTreeCell) fxPeer()).onScrollProperty());
+    }
+
+    public com.jxparallel.fx.beans.property.ObjectProperty<com.jxparallel.fx.event.EventHandler<? super com.jxparallel.fx.scene.input.ScrollEvent>> onScrollStartedProperty() {
+        if (com.jxparallel.fx.Fx.NATIVE) {
+            return (com.jxparallel.fx.beans.property.ObjectProperty) com.jxparallel.fx.nativeimpl.Native.call(this, com.jxparallel.fx.scene.control.cell.ComboBoxTreeCell.class, "onScrollStartedProperty", new Class<?>[] {}, com.jxparallel.fx.beans.property.ObjectProperty.class);
+        }
+        return (com.jxparallel.fx.beans.property.ObjectProperty) com.jxparallel.fx.Fx.jx(((javafx.scene.control.cell.ComboBoxTreeCell) fxPeer()).onScrollStartedProperty());
+    }
+
+    public com.jxparallel.fx.beans.property.ObjectProperty<com.jxparallel.fx.event.EventHandler<? super com.jxparallel.fx.scene.input.SwipeEvent>> onSwipeDownProperty() {
+        if (com.jxparallel.fx.Fx.NATIVE) {
+            return (com.jxparallel.fx.beans.property.ObjectProperty) com.jxparallel.fx.nativeimpl.Native.call(this, com.jxparallel.fx.scene.control.cell.ComboBoxTreeCell.class, "onSwipeDownProperty", new Class<?>[] {}, com.jxparallel.fx.beans.property.ObjectProperty.class);
+        }
+        return (com.jxparallel.fx.beans.property.ObjectProperty) com.jxparallel.fx.Fx.jx(((javafx.scene.control.cell.ComboBoxTreeCell) fxPeer()).onSwipeDownProperty());
+    }
+
+    public com.jxparallel.fx.beans.property.ObjectProperty<com.jxparallel.fx.event.EventHandler<? super com.jxparallel.fx.scene.input.SwipeEvent>> onSwipeLeftProperty() {
+        if (com.jxparallel.fx.Fx.NATIVE) {
+            return (com.jxparallel.fx.beans.property.ObjectProperty) com.jxparallel.fx.nativeimpl.Native.call(this, com.jxparallel.fx.scene.control.cell.ComboBoxTreeCell.class, "onSwipeLeftProperty", new Class<?>[] {}, com.jxparallel.fx.beans.property.ObjectProperty.class);
+        }
+        return (com.jxparallel.fx.beans.property.ObjectProperty) com.jxparallel.fx.Fx.jx(((javafx.scene.control.cell.ComboBoxTreeCell) fxPeer()).onSwipeLeftProperty());
+    }
+
+    public com.jxparallel.fx.beans.property.ObjectProperty<com.jxparallel.fx.event.EventHandler<? super com.jxparallel.fx.scene.input.SwipeEvent>> onSwipeRightProperty() {
+        if (com.jxparallel.fx.Fx.NATIVE) {
+            return (com.jxparallel.fx.beans.property.ObjectProperty) com.jxparallel.fx.nativeimpl.Native.call(this, com.jxparallel.fx.scene.control.cell.ComboBoxTreeCell.class, "onSwipeRightProperty", new Class<?>[] {}, com.jxparallel.fx.beans.property.ObjectProperty.class);
+        }
+        return (com.jxparallel.fx.beans.property.ObjectProperty) com.jxparallel.fx.Fx.jx(((javafx.scene.control.cell.ComboBoxTreeCell) fxPeer()).onSwipeRightProperty());
+    }
+
+    public com.jxparallel.fx.beans.property.ObjectProperty<com.jxparallel.fx.event.EventHandler<? super com.jxparallel.fx.scene.input.SwipeEvent>> onSwipeUpProperty() {
+        if (com.jxparallel.fx.Fx.NATIVE) {
+            return (com.jxparallel.fx.beans.property.ObjectProperty) com.jxparallel.fx.nativeimpl.Native.call(this, com.jxparallel.fx.scene.control.cell.ComboBoxTreeCell.class, "onSwipeUpProperty", new Class<?>[] {}, com.jxparallel.fx.beans.property.ObjectProperty.class);
+        }
+        return (com.jxparallel.fx.beans.property.ObjectProperty) com.jxparallel.fx.Fx.jx(((javafx.scene.control.cell.ComboBoxTreeCell) fxPeer()).onSwipeUpProperty());
+    }
+
+    public com.jxparallel.fx.beans.property.ObjectProperty<com.jxparallel.fx.event.EventHandler<? super com.jxparallel.fx.scene.input.TouchEvent>> onTouchMovedProperty() {
+        if (com.jxparallel.fx.Fx.NATIVE) {
+            return (com.jxparallel.fx.beans.property.ObjectProperty) com.jxparallel.fx.nativeimpl.Native.call(this, com.jxparallel.fx.scene.control.cell.ComboBoxTreeCell.class, "onTouchMovedProperty", new Class<?>[] {}, com.jxparallel.fx.beans.property.ObjectProperty.class);
+        }
+        return (com.jxparallel.fx.beans.property.ObjectProperty) com.jxparallel.fx.Fx.jx(((javafx.scene.control.cell.ComboBoxTreeCell) fxPeer()).onTouchMovedProperty());
+    }
+
+    public com.jxparallel.fx.beans.property.ObjectProperty<com.jxparallel.fx.event.EventHandler<? super com.jxparallel.fx.scene.input.TouchEvent>> onTouchPressedProperty() {
+        if (com.jxparallel.fx.Fx.NATIVE) {
+            return (com.jxparallel.fx.beans.property.ObjectProperty) com.jxparallel.fx.nativeimpl.Native.call(this, com.jxparallel.fx.scene.control.cell.ComboBoxTreeCell.class, "onTouchPressedProperty", new Class<?>[] {}, com.jxparallel.fx.beans.property.ObjectProperty.class);
+        }
+        return (com.jxparallel.fx.beans.property.ObjectProperty) com.jxparallel.fx.Fx.jx(((javafx.scene.control.cell.ComboBoxTreeCell) fxPeer()).onTouchPressedProperty());
+    }
+
+    public com.jxparallel.fx.beans.property.ObjectProperty<com.jxparallel.fx.event.EventHandler<? super com.jxparallel.fx.scene.input.TouchEvent>> onTouchReleasedProperty() {
+        if (com.jxparallel.fx.Fx.NATIVE) {
+            return (com.jxparallel.fx.beans.property.ObjectProperty) com.jxparallel.fx.nativeimpl.Native.call(this, com.jxparallel.fx.scene.control.cell.ComboBoxTreeCell.class, "onTouchReleasedProperty", new Class<?>[] {}, com.jxparallel.fx.beans.property.ObjectProperty.class);
+        }
+        return (com.jxparallel.fx.beans.property.ObjectProperty) com.jxparallel.fx.Fx.jx(((javafx.scene.control.cell.ComboBoxTreeCell) fxPeer()).onTouchReleasedProperty());
+    }
+
+    public com.jxparallel.fx.beans.property.ObjectProperty<com.jxparallel.fx.event.EventHandler<? super com.jxparallel.fx.scene.input.TouchEvent>> onTouchStationaryProperty() {
+        if (com.jxparallel.fx.Fx.NATIVE) {
+            return (com.jxparallel.fx.beans.property.ObjectProperty) com.jxparallel.fx.nativeimpl.Native.call(this, com.jxparallel.fx.scene.control.cell.ComboBoxTreeCell.class, "onTouchStationaryProperty", new Class<?>[] {}, com.jxparallel.fx.beans.property.ObjectProperty.class);
+        }
+        return (com.jxparallel.fx.beans.property.ObjectProperty) com.jxparallel.fx.Fx.jx(((javafx.scene.control.cell.ComboBoxTreeCell) fxPeer()).onTouchStationaryProperty());
+    }
+
+    public com.jxparallel.fx.beans.property.ObjectProperty<com.jxparallel.fx.event.EventHandler<? super com.jxparallel.fx.scene.input.ZoomEvent>> onZoomFinishedProperty() {
+        if (com.jxparallel.fx.Fx.NATIVE) {
+            return (com.jxparallel.fx.beans.property.ObjectProperty) com.jxparallel.fx.nativeimpl.Native.call(this, com.jxparallel.fx.scene.control.cell.ComboBoxTreeCell.class, "onZoomFinishedProperty", new Class<?>[] {}, com.jxparallel.fx.beans.property.ObjectProperty.class);
+        }
+        return (com.jxparallel.fx.beans.property.ObjectProperty) com.jxparallel.fx.Fx.jx(((javafx.scene.control.cell.ComboBoxTreeCell) fxPeer()).onZoomFinishedProperty());
+    }
+
+    public com.jxparallel.fx.beans.property.ObjectProperty<com.jxparallel.fx.event.EventHandler<? super com.jxparallel.fx.scene.input.ZoomEvent>> onZoomProperty() {
+        if (com.jxparallel.fx.Fx.NATIVE) {
+            return (com.jxparallel.fx.beans.property.ObjectProperty) com.jxparallel.fx.nativeimpl.Native.call(this, com.jxparallel.fx.scene.control.cell.ComboBoxTreeCell.class, "onZoomProperty", new Class<?>[] {}, com.jxparallel.fx.beans.property.ObjectProperty.class);
+        }
+        return (com.jxparallel.fx.beans.property.ObjectProperty) com.jxparallel.fx.Fx.jx(((javafx.scene.control.cell.ComboBoxTreeCell) fxPeer()).onZoomProperty());
+    }
+
+    public com.jxparallel.fx.beans.property.ObjectProperty<com.jxparallel.fx.event.EventHandler<? super com.jxparallel.fx.scene.input.ZoomEvent>> onZoomStartedProperty() {
+        if (com.jxparallel.fx.Fx.NATIVE) {
+            return (com.jxparallel.fx.beans.property.ObjectProperty) com.jxparallel.fx.nativeimpl.Native.call(this, com.jxparallel.fx.scene.control.cell.ComboBoxTreeCell.class, "onZoomStartedProperty", new Class<?>[] {}, com.jxparallel.fx.beans.property.ObjectProperty.class);
+        }
+        return (com.jxparallel.fx.beans.property.ObjectProperty) com.jxparallel.fx.Fx.jx(((javafx.scene.control.cell.ComboBoxTreeCell) fxPeer()).onZoomStartedProperty());
+    }
+
+    public com.jxparallel.fx.beans.property.ObjectProperty<com.jxparallel.fx.geometry.NodeOrientation> nodeOrientationProperty() {
+        if (com.jxparallel.fx.Fx.NATIVE) {
+            return (com.jxparallel.fx.beans.property.ObjectProperty) com.jxparallel.fx.nativeimpl.Native.call(this, com.jxparallel.fx.scene.control.cell.ComboBoxTreeCell.class, "nodeOrientationProperty", new Class<?>[] {}, com.jxparallel.fx.beans.property.ObjectProperty.class);
+        }
+        return (com.jxparallel.fx.beans.property.ObjectProperty) com.jxparallel.fx.Fx.jx(((javafx.scene.control.cell.ComboBoxTreeCell) fxPeer()).nodeOrientationProperty());
+    }
+
+    public com.jxparallel.fx.beans.property.ObjectProperty<com.jxparallel.fx.geometry.Point3D> rotationAxisProperty() {
+        if (com.jxparallel.fx.Fx.NATIVE) {
+            return (com.jxparallel.fx.beans.property.ObjectProperty) com.jxparallel.fx.nativeimpl.Native.call(this, com.jxparallel.fx.scene.control.cell.ComboBoxTreeCell.class, "rotationAxisProperty", new Class<?>[] {}, com.jxparallel.fx.beans.property.ObjectProperty.class);
+        }
+        return (com.jxparallel.fx.beans.property.ObjectProperty) com.jxparallel.fx.Fx.jx(((javafx.scene.control.cell.ComboBoxTreeCell) fxPeer()).rotationAxisProperty());
+    }
+
+    public com.jxparallel.fx.beans.property.ObjectProperty<com.jxparallel.fx.scene.AccessibleRole> accessibleRoleProperty() {
+        if (com.jxparallel.fx.Fx.NATIVE) {
+            return (com.jxparallel.fx.beans.property.ObjectProperty) com.jxparallel.fx.nativeimpl.Native.call(this, com.jxparallel.fx.scene.control.cell.ComboBoxTreeCell.class, "accessibleRoleProperty", new Class<?>[] {}, com.jxparallel.fx.beans.property.ObjectProperty.class);
+        }
+        return (com.jxparallel.fx.beans.property.ObjectProperty) com.jxparallel.fx.Fx.jx(((javafx.scene.control.cell.ComboBoxTreeCell) fxPeer()).accessibleRoleProperty());
+    }
+
+    public com.jxparallel.fx.beans.property.ObjectProperty<com.jxparallel.fx.scene.CacheHint> cacheHintProperty() {
+        if (com.jxparallel.fx.Fx.NATIVE) {
+            return (com.jxparallel.fx.beans.property.ObjectProperty) com.jxparallel.fx.nativeimpl.Native.call(this, com.jxparallel.fx.scene.control.cell.ComboBoxTreeCell.class, "cacheHintProperty", new Class<?>[] {}, com.jxparallel.fx.beans.property.ObjectProperty.class);
+        }
+        return (com.jxparallel.fx.beans.property.ObjectProperty) com.jxparallel.fx.Fx.jx(((javafx.scene.control.cell.ComboBoxTreeCell) fxPeer()).cacheHintProperty());
+    }
+
+    public com.jxparallel.fx.beans.property.ObjectProperty<com.jxparallel.fx.scene.Cursor> cursorProperty() {
+        if (com.jxparallel.fx.Fx.NATIVE) {
+            return (com.jxparallel.fx.beans.property.ObjectProperty) com.jxparallel.fx.nativeimpl.Native.call(this, com.jxparallel.fx.scene.control.cell.ComboBoxTreeCell.class, "cursorProperty", new Class<?>[] {}, com.jxparallel.fx.beans.property.ObjectProperty.class);
+        }
+        return (com.jxparallel.fx.beans.property.ObjectProperty) com.jxparallel.fx.Fx.jx(((javafx.scene.control.cell.ComboBoxTreeCell) fxPeer()).cursorProperty());
+    }
+
+    public com.jxparallel.fx.beans.property.ObjectProperty<com.jxparallel.fx.scene.DepthTest> depthTestProperty() {
+        if (com.jxparallel.fx.Fx.NATIVE) {
+            return (com.jxparallel.fx.beans.property.ObjectProperty) com.jxparallel.fx.nativeimpl.Native.call(this, com.jxparallel.fx.scene.control.cell.ComboBoxTreeCell.class, "depthTestProperty", new Class<?>[] {}, com.jxparallel.fx.beans.property.ObjectProperty.class);
+        }
+        return (com.jxparallel.fx.beans.property.ObjectProperty) com.jxparallel.fx.Fx.jx(((javafx.scene.control.cell.ComboBoxTreeCell) fxPeer()).depthTestProperty());
+    }
+
+    public com.jxparallel.fx.beans.property.ObjectProperty<com.jxparallel.fx.scene.Node> clipProperty() {
+        if (com.jxparallel.fx.Fx.NATIVE) {
+            return (com.jxparallel.fx.beans.property.ObjectProperty) com.jxparallel.fx.nativeimpl.Native.call(this, com.jxparallel.fx.scene.control.cell.ComboBoxTreeCell.class, "clipProperty", new Class<?>[] {}, com.jxparallel.fx.beans.property.ObjectProperty.class);
+        }
+        return (com.jxparallel.fx.beans.property.ObjectProperty) com.jxparallel.fx.Fx.jx(((javafx.scene.control.cell.ComboBoxTreeCell) fxPeer()).clipProperty());
+    }
+
+    public javafx.beans.property.ObjectProperty<javafx.scene.effect.BlendMode> blendModeProperty() {
+        if (com.jxparallel.fx.Fx.NATIVE) {
+            return (javafx.beans.property.ObjectProperty) com.jxparallel.fx.nativeimpl.Native.call(this, com.jxparallel.fx.scene.control.cell.ComboBoxTreeCell.class, "blendModeProperty", new Class<?>[] {}, com.jxparallel.fx.beans.property.ObjectProperty.class);
+        }
+        return ((javafx.scene.control.cell.ComboBoxTreeCell) fxPeer()).blendModeProperty();
+    }
+
+    public com.jxparallel.fx.beans.property.ObjectProperty<com.jxparallel.fx.scene.effect.Effect> effectProperty() {
+        if (com.jxparallel.fx.Fx.NATIVE) {
+            return (com.jxparallel.fx.beans.property.ObjectProperty) com.jxparallel.fx.nativeimpl.Native.call(this, com.jxparallel.fx.scene.control.cell.ComboBoxTreeCell.class, "effectProperty", new Class<?>[] {}, com.jxparallel.fx.beans.property.ObjectProperty.class);
+        }
+        return (com.jxparallel.fx.beans.property.ObjectProperty) com.jxparallel.fx.Fx.jx(((javafx.scene.control.cell.ComboBoxTreeCell) fxPeer()).effectProperty());
+    }
+
+    public com.jxparallel.fx.beans.property.ObjectProperty<com.jxparallel.fx.scene.input.InputMethodRequests> inputMethodRequestsProperty() {
+        if (com.jxparallel.fx.Fx.NATIVE) {
+            return (com.jxparallel.fx.beans.property.ObjectProperty) com.jxparallel.fx.nativeimpl.Native.call(this, com.jxparallel.fx.scene.control.cell.ComboBoxTreeCell.class, "inputMethodRequestsProperty", new Class<?>[] {}, com.jxparallel.fx.beans.property.ObjectProperty.class);
+        }
+        return (com.jxparallel.fx.beans.property.ObjectProperty) com.jxparallel.fx.Fx.jx(((javafx.scene.control.cell.ComboBoxTreeCell) fxPeer()).inputMethodRequestsProperty());
     }
 
     public com.jxparallel.fx.beans.property.ReadOnlyBooleanProperty disabledProperty() {
@@ -2378,25 +2225,452 @@ public class ComboBoxTreeCell<T> implements com.jxparallel.fx.scene.control.Skin
         return (com.jxparallel.fx.beans.property.ReadOnlyBooleanProperty) com.jxparallel.fx.Fx.jx(((javafx.scene.control.cell.ComboBoxTreeCell) fxPeer()).focusedProperty());
     }
 
-    public double getLayoutY() {
+    public com.jxparallel.fx.beans.property.ReadOnlyBooleanProperty hoverProperty() {
         if (com.jxparallel.fx.Fx.NATIVE) {
-            return (Double) com.jxparallel.fx.nativeimpl.Native.call(this, com.jxparallel.fx.scene.control.cell.ComboBoxTreeCell.class, "getLayoutY", new Class<?>[] {}, double.class);
+            return (com.jxparallel.fx.beans.property.ReadOnlyBooleanProperty) com.jxparallel.fx.nativeimpl.Native.call(this, com.jxparallel.fx.scene.control.cell.ComboBoxTreeCell.class, "hoverProperty", new Class<?>[] {}, com.jxparallel.fx.beans.property.ReadOnlyBooleanProperty.class);
         }
-        return ((javafx.scene.control.cell.ComboBoxTreeCell) fxPeer()).getLayoutY();
+        return (com.jxparallel.fx.beans.property.ReadOnlyBooleanProperty) com.jxparallel.fx.Fx.jx(((javafx.scene.control.cell.ComboBoxTreeCell) fxPeer()).hoverProperty());
     }
 
-    public com.jxparallel.fx.beans.property.BooleanProperty disableProperty() {
+    public com.jxparallel.fx.beans.property.ReadOnlyBooleanProperty pressedProperty() {
         if (com.jxparallel.fx.Fx.NATIVE) {
-            return (com.jxparallel.fx.beans.property.BooleanProperty) com.jxparallel.fx.nativeimpl.Native.call(this, com.jxparallel.fx.scene.control.cell.ComboBoxTreeCell.class, "disableProperty", new Class<?>[] {}, com.jxparallel.fx.beans.property.BooleanProperty.class);
+            return (com.jxparallel.fx.beans.property.ReadOnlyBooleanProperty) com.jxparallel.fx.nativeimpl.Native.call(this, com.jxparallel.fx.scene.control.cell.ComboBoxTreeCell.class, "pressedProperty", new Class<?>[] {}, com.jxparallel.fx.beans.property.ReadOnlyBooleanProperty.class);
         }
-        return (com.jxparallel.fx.beans.property.BooleanProperty) com.jxparallel.fx.Fx.jx(((javafx.scene.control.cell.ComboBoxTreeCell) fxPeer()).disableProperty());
+        return (com.jxparallel.fx.beans.property.ReadOnlyBooleanProperty) com.jxparallel.fx.Fx.jx(((javafx.scene.control.cell.ComboBoxTreeCell) fxPeer()).pressedProperty());
     }
 
-    public com.jxparallel.fx.beans.property.ObjectProperty<com.jxparallel.fx.scene.effect.Effect> effectProperty() {
+    public com.jxparallel.fx.beans.property.ReadOnlyObjectProperty<com.jxparallel.fx.geometry.Bounds> boundsInLocalProperty() {
         if (com.jxparallel.fx.Fx.NATIVE) {
-            return (com.jxparallel.fx.beans.property.ObjectProperty) com.jxparallel.fx.nativeimpl.Native.call(this, com.jxparallel.fx.scene.control.cell.ComboBoxTreeCell.class, "effectProperty", new Class<?>[] {}, com.jxparallel.fx.beans.property.ObjectProperty.class);
+            return (com.jxparallel.fx.beans.property.ReadOnlyObjectProperty) com.jxparallel.fx.nativeimpl.Native.call(this, com.jxparallel.fx.scene.control.cell.ComboBoxTreeCell.class, "boundsInLocalProperty", new Class<?>[] {}, com.jxparallel.fx.beans.property.ReadOnlyObjectProperty.class);
         }
-        return (com.jxparallel.fx.beans.property.ObjectProperty) com.jxparallel.fx.Fx.jx(((javafx.scene.control.cell.ComboBoxTreeCell) fxPeer()).effectProperty());
+        return (com.jxparallel.fx.beans.property.ReadOnlyObjectProperty) com.jxparallel.fx.Fx.jx(((javafx.scene.control.cell.ComboBoxTreeCell) fxPeer()).boundsInLocalProperty());
+    }
+
+    public com.jxparallel.fx.beans.property.ReadOnlyObjectProperty<com.jxparallel.fx.geometry.Bounds> boundsInParentProperty() {
+        if (com.jxparallel.fx.Fx.NATIVE) {
+            return (com.jxparallel.fx.beans.property.ReadOnlyObjectProperty) com.jxparallel.fx.nativeimpl.Native.call(this, com.jxparallel.fx.scene.control.cell.ComboBoxTreeCell.class, "boundsInParentProperty", new Class<?>[] {}, com.jxparallel.fx.beans.property.ReadOnlyObjectProperty.class);
+        }
+        return (com.jxparallel.fx.beans.property.ReadOnlyObjectProperty) com.jxparallel.fx.Fx.jx(((javafx.scene.control.cell.ComboBoxTreeCell) fxPeer()).boundsInParentProperty());
+    }
+
+    public com.jxparallel.fx.beans.property.ReadOnlyObjectProperty<com.jxparallel.fx.geometry.Bounds> layoutBoundsProperty() {
+        if (com.jxparallel.fx.Fx.NATIVE) {
+            return (com.jxparallel.fx.beans.property.ReadOnlyObjectProperty) com.jxparallel.fx.nativeimpl.Native.call(this, com.jxparallel.fx.scene.control.cell.ComboBoxTreeCell.class, "layoutBoundsProperty", new Class<?>[] {}, com.jxparallel.fx.beans.property.ReadOnlyObjectProperty.class);
+        }
+        return (com.jxparallel.fx.beans.property.ReadOnlyObjectProperty) com.jxparallel.fx.Fx.jx(((javafx.scene.control.cell.ComboBoxTreeCell) fxPeer()).layoutBoundsProperty());
+    }
+
+    public com.jxparallel.fx.beans.property.ReadOnlyObjectProperty<com.jxparallel.fx.geometry.NodeOrientation> effectiveNodeOrientationProperty() {
+        if (com.jxparallel.fx.Fx.NATIVE) {
+            return (com.jxparallel.fx.beans.property.ReadOnlyObjectProperty) com.jxparallel.fx.nativeimpl.Native.call(this, com.jxparallel.fx.scene.control.cell.ComboBoxTreeCell.class, "effectiveNodeOrientationProperty", new Class<?>[] {}, com.jxparallel.fx.beans.property.ReadOnlyObjectProperty.class);
+        }
+        return (com.jxparallel.fx.beans.property.ReadOnlyObjectProperty) com.jxparallel.fx.Fx.jx(((javafx.scene.control.cell.ComboBoxTreeCell) fxPeer()).effectiveNodeOrientationProperty());
+    }
+
+    public com.jxparallel.fx.beans.property.ReadOnlyObjectProperty<com.jxparallel.fx.scene.Parent> parentProperty() {
+        if (com.jxparallel.fx.Fx.NATIVE) {
+            return (com.jxparallel.fx.beans.property.ReadOnlyObjectProperty) com.jxparallel.fx.nativeimpl.Native.call(this, com.jxparallel.fx.scene.control.cell.ComboBoxTreeCell.class, "parentProperty", new Class<?>[] {}, com.jxparallel.fx.beans.property.ReadOnlyObjectProperty.class);
+        }
+        return (com.jxparallel.fx.beans.property.ReadOnlyObjectProperty) com.jxparallel.fx.Fx.jx(((javafx.scene.control.cell.ComboBoxTreeCell) fxPeer()).parentProperty());
+    }
+
+    public com.jxparallel.fx.beans.property.ReadOnlyObjectProperty<com.jxparallel.fx.scene.Scene> sceneProperty() {
+        if (com.jxparallel.fx.Fx.NATIVE) {
+            return (com.jxparallel.fx.beans.property.ReadOnlyObjectProperty) com.jxparallel.fx.nativeimpl.Native.call(this, com.jxparallel.fx.scene.control.cell.ComboBoxTreeCell.class, "sceneProperty", new Class<?>[] {}, com.jxparallel.fx.beans.property.ReadOnlyObjectProperty.class);
+        }
+        return (com.jxparallel.fx.beans.property.ReadOnlyObjectProperty) com.jxparallel.fx.Fx.jx(((javafx.scene.control.cell.ComboBoxTreeCell) fxPeer()).sceneProperty());
+    }
+
+    public javafx.beans.property.ReadOnlyObjectProperty<javafx.scene.transform.Transform> localToParentTransformProperty() {
+        if (com.jxparallel.fx.Fx.NATIVE) {
+            return (javafx.beans.property.ReadOnlyObjectProperty) com.jxparallel.fx.nativeimpl.Native.call(this, com.jxparallel.fx.scene.control.cell.ComboBoxTreeCell.class, "localToParentTransformProperty", new Class<?>[] {}, com.jxparallel.fx.beans.property.ReadOnlyObjectProperty.class);
+        }
+        return ((javafx.scene.control.cell.ComboBoxTreeCell) fxPeer()).localToParentTransformProperty();
+    }
+
+    public javafx.beans.property.ReadOnlyObjectProperty<javafx.scene.transform.Transform> localToSceneTransformProperty() {
+        if (com.jxparallel.fx.Fx.NATIVE) {
+            return (javafx.beans.property.ReadOnlyObjectProperty) com.jxparallel.fx.nativeimpl.Native.call(this, com.jxparallel.fx.scene.control.cell.ComboBoxTreeCell.class, "localToSceneTransformProperty", new Class<?>[] {}, com.jxparallel.fx.beans.property.ReadOnlyObjectProperty.class);
+        }
+        return ((javafx.scene.control.cell.ComboBoxTreeCell) fxPeer()).localToSceneTransformProperty();
+    }
+
+    public com.jxparallel.fx.beans.property.StringProperty idProperty() {
+        if (com.jxparallel.fx.Fx.NATIVE) {
+            return (com.jxparallel.fx.beans.property.StringProperty) com.jxparallel.fx.nativeimpl.Native.call(this, com.jxparallel.fx.scene.control.cell.ComboBoxTreeCell.class, "idProperty", new Class<?>[] {}, com.jxparallel.fx.beans.property.StringProperty.class);
+        }
+        return (com.jxparallel.fx.beans.property.StringProperty) com.jxparallel.fx.Fx.jx(((javafx.scene.control.cell.ComboBoxTreeCell) fxPeer()).idProperty());
+    }
+
+    public com.jxparallel.fx.beans.property.StringProperty styleProperty() {
+        if (com.jxparallel.fx.Fx.NATIVE) {
+            return (com.jxparallel.fx.beans.property.StringProperty) com.jxparallel.fx.nativeimpl.Native.call(this, com.jxparallel.fx.scene.control.cell.ComboBoxTreeCell.class, "styleProperty", new Class<?>[] {}, com.jxparallel.fx.beans.property.StringProperty.class);
+        }
+        return (com.jxparallel.fx.beans.property.StringProperty) com.jxparallel.fx.Fx.jx(((javafx.scene.control.cell.ComboBoxTreeCell) fxPeer()).styleProperty());
+    }
+
+    public com.jxparallel.fx.collections.ObservableList<java.lang.String> getStyleClass() {
+        if (com.jxparallel.fx.Fx.NATIVE) {
+            return (com.jxparallel.fx.collections.ObservableList) com.jxparallel.fx.nativeimpl.Native.call(this, com.jxparallel.fx.scene.control.cell.ComboBoxTreeCell.class, "getStyleClass", new Class<?>[] {}, com.jxparallel.fx.collections.ObservableList.class);
+        }
+        return (com.jxparallel.fx.collections.ObservableList) com.jxparallel.fx.Fx.jx(((javafx.scene.control.cell.ComboBoxTreeCell) fxPeer()).getStyleClass());
+    }
+
+    public javafx.collections.ObservableList<javafx.scene.transform.Transform> getTransforms() {
+        if (com.jxparallel.fx.Fx.NATIVE) {
+            return (javafx.collections.ObservableList) com.jxparallel.fx.nativeimpl.Native.call(this, com.jxparallel.fx.scene.control.cell.ComboBoxTreeCell.class, "getTransforms", new Class<?>[] {}, com.jxparallel.fx.collections.ObservableList.class);
+        }
+        return ((javafx.scene.control.cell.ComboBoxTreeCell) fxPeer()).getTransforms();
+    }
+
+    public javafx.collections.ObservableMap<java.lang.Object, java.lang.Object> getProperties() {
+        if (com.jxparallel.fx.Fx.NATIVE) {
+            return (javafx.collections.ObservableMap) com.jxparallel.fx.nativeimpl.Native.call(this, com.jxparallel.fx.scene.control.cell.ComboBoxTreeCell.class, "getProperties", new Class<?>[] {}, javafx.collections.ObservableMap.class);
+        }
+        return ((javafx.scene.control.cell.ComboBoxTreeCell) fxPeer()).getProperties();
+    }
+
+    public javafx.collections.ObservableMap<javafx.css.StyleableProperty<?>, java.util.List<com.sun.javafx.css.Style>> impl_getStyleMap() {
+        if (com.jxparallel.fx.Fx.NATIVE) {
+            return (javafx.collections.ObservableMap) com.jxparallel.fx.nativeimpl.Native.call(this, com.jxparallel.fx.scene.control.cell.ComboBoxTreeCell.class, "impl_getStyleMap", new Class<?>[] {}, javafx.collections.ObservableMap.class);
+        }
+        return ((javafx.scene.control.cell.ComboBoxTreeCell) fxPeer()).impl_getStyleMap();
+    }
+
+    public javafx.collections.ObservableSet<javafx.css.PseudoClass> getPseudoClassStates() {
+        if (com.jxparallel.fx.Fx.NATIVE) {
+            return (javafx.collections.ObservableSet) com.jxparallel.fx.nativeimpl.Native.call(this, com.jxparallel.fx.scene.control.cell.ComboBoxTreeCell.class, "getPseudoClassStates", new Class<?>[] {}, javafx.collections.ObservableSet.class);
+        }
+        return ((javafx.scene.control.cell.ComboBoxTreeCell) fxPeer()).getPseudoClassStates();
+    }
+
+    public com.jxparallel.fx.event.EventDispatcher getEventDispatcher() {
+        if (com.jxparallel.fx.Fx.NATIVE) {
+            return (com.jxparallel.fx.event.EventDispatcher) com.jxparallel.fx.nativeimpl.Native.call(this, com.jxparallel.fx.scene.control.cell.ComboBoxTreeCell.class, "getEventDispatcher", new Class<?>[] {}, com.jxparallel.fx.event.EventDispatcher.class);
+        }
+        return (com.jxparallel.fx.event.EventDispatcher) com.jxparallel.fx.Fx.jx(((javafx.scene.control.cell.ComboBoxTreeCell) fxPeer()).getEventDispatcher());
+    }
+
+    public com.jxparallel.fx.event.EventHandler<? super com.jxparallel.fx.scene.input.ContextMenuEvent> getOnContextMenuRequested() {
+        if (com.jxparallel.fx.Fx.NATIVE) {
+            return (com.jxparallel.fx.event.EventHandler) com.jxparallel.fx.nativeimpl.Native.call(this, com.jxparallel.fx.scene.control.cell.ComboBoxTreeCell.class, "getOnContextMenuRequested", new Class<?>[] {}, com.jxparallel.fx.event.EventHandler.class);
+        }
+        return (com.jxparallel.fx.event.EventHandler) com.jxparallel.fx.Fx.jx(((javafx.scene.control.cell.ComboBoxTreeCell) fxPeer()).getOnContextMenuRequested());
+    }
+
+    public com.jxparallel.fx.event.EventHandler<? super com.jxparallel.fx.scene.input.DragEvent> getOnDragDone() {
+        if (com.jxparallel.fx.Fx.NATIVE) {
+            return (com.jxparallel.fx.event.EventHandler) com.jxparallel.fx.nativeimpl.Native.call(this, com.jxparallel.fx.scene.control.cell.ComboBoxTreeCell.class, "getOnDragDone", new Class<?>[] {}, com.jxparallel.fx.event.EventHandler.class);
+        }
+        return (com.jxparallel.fx.event.EventHandler) com.jxparallel.fx.Fx.jx(((javafx.scene.control.cell.ComboBoxTreeCell) fxPeer()).getOnDragDone());
+    }
+
+    public com.jxparallel.fx.event.EventHandler<? super com.jxparallel.fx.scene.input.DragEvent> getOnDragDropped() {
+        if (com.jxparallel.fx.Fx.NATIVE) {
+            return (com.jxparallel.fx.event.EventHandler) com.jxparallel.fx.nativeimpl.Native.call(this, com.jxparallel.fx.scene.control.cell.ComboBoxTreeCell.class, "getOnDragDropped", new Class<?>[] {}, com.jxparallel.fx.event.EventHandler.class);
+        }
+        return (com.jxparallel.fx.event.EventHandler) com.jxparallel.fx.Fx.jx(((javafx.scene.control.cell.ComboBoxTreeCell) fxPeer()).getOnDragDropped());
+    }
+
+    public com.jxparallel.fx.event.EventHandler<? super com.jxparallel.fx.scene.input.DragEvent> getOnDragEntered() {
+        if (com.jxparallel.fx.Fx.NATIVE) {
+            return (com.jxparallel.fx.event.EventHandler) com.jxparallel.fx.nativeimpl.Native.call(this, com.jxparallel.fx.scene.control.cell.ComboBoxTreeCell.class, "getOnDragEntered", new Class<?>[] {}, com.jxparallel.fx.event.EventHandler.class);
+        }
+        return (com.jxparallel.fx.event.EventHandler) com.jxparallel.fx.Fx.jx(((javafx.scene.control.cell.ComboBoxTreeCell) fxPeer()).getOnDragEntered());
+    }
+
+    public com.jxparallel.fx.event.EventHandler<? super com.jxparallel.fx.scene.input.DragEvent> getOnDragExited() {
+        if (com.jxparallel.fx.Fx.NATIVE) {
+            return (com.jxparallel.fx.event.EventHandler) com.jxparallel.fx.nativeimpl.Native.call(this, com.jxparallel.fx.scene.control.cell.ComboBoxTreeCell.class, "getOnDragExited", new Class<?>[] {}, com.jxparallel.fx.event.EventHandler.class);
+        }
+        return (com.jxparallel.fx.event.EventHandler) com.jxparallel.fx.Fx.jx(((javafx.scene.control.cell.ComboBoxTreeCell) fxPeer()).getOnDragExited());
+    }
+
+    public com.jxparallel.fx.event.EventHandler<? super com.jxparallel.fx.scene.input.DragEvent> getOnDragOver() {
+        if (com.jxparallel.fx.Fx.NATIVE) {
+            return (com.jxparallel.fx.event.EventHandler) com.jxparallel.fx.nativeimpl.Native.call(this, com.jxparallel.fx.scene.control.cell.ComboBoxTreeCell.class, "getOnDragOver", new Class<?>[] {}, com.jxparallel.fx.event.EventHandler.class);
+        }
+        return (com.jxparallel.fx.event.EventHandler) com.jxparallel.fx.Fx.jx(((javafx.scene.control.cell.ComboBoxTreeCell) fxPeer()).getOnDragOver());
+    }
+
+    public com.jxparallel.fx.event.EventHandler<? super com.jxparallel.fx.scene.input.InputMethodEvent> getOnInputMethodTextChanged() {
+        if (com.jxparallel.fx.Fx.NATIVE) {
+            return (com.jxparallel.fx.event.EventHandler) com.jxparallel.fx.nativeimpl.Native.call(this, com.jxparallel.fx.scene.control.cell.ComboBoxTreeCell.class, "getOnInputMethodTextChanged", new Class<?>[] {}, com.jxparallel.fx.event.EventHandler.class);
+        }
+        return (com.jxparallel.fx.event.EventHandler) com.jxparallel.fx.Fx.jx(((javafx.scene.control.cell.ComboBoxTreeCell) fxPeer()).getOnInputMethodTextChanged());
+    }
+
+    public com.jxparallel.fx.event.EventHandler<? super com.jxparallel.fx.scene.input.KeyEvent> getOnKeyPressed() {
+        if (com.jxparallel.fx.Fx.NATIVE) {
+            return (com.jxparallel.fx.event.EventHandler) com.jxparallel.fx.nativeimpl.Native.call(this, com.jxparallel.fx.scene.control.cell.ComboBoxTreeCell.class, "getOnKeyPressed", new Class<?>[] {}, com.jxparallel.fx.event.EventHandler.class);
+        }
+        return (com.jxparallel.fx.event.EventHandler) com.jxparallel.fx.Fx.jx(((javafx.scene.control.cell.ComboBoxTreeCell) fxPeer()).getOnKeyPressed());
+    }
+
+    public com.jxparallel.fx.event.EventHandler<? super com.jxparallel.fx.scene.input.KeyEvent> getOnKeyReleased() {
+        if (com.jxparallel.fx.Fx.NATIVE) {
+            return (com.jxparallel.fx.event.EventHandler) com.jxparallel.fx.nativeimpl.Native.call(this, com.jxparallel.fx.scene.control.cell.ComboBoxTreeCell.class, "getOnKeyReleased", new Class<?>[] {}, com.jxparallel.fx.event.EventHandler.class);
+        }
+        return (com.jxparallel.fx.event.EventHandler) com.jxparallel.fx.Fx.jx(((javafx.scene.control.cell.ComboBoxTreeCell) fxPeer()).getOnKeyReleased());
+    }
+
+    public com.jxparallel.fx.event.EventHandler<? super com.jxparallel.fx.scene.input.KeyEvent> getOnKeyTyped() {
+        if (com.jxparallel.fx.Fx.NATIVE) {
+            return (com.jxparallel.fx.event.EventHandler) com.jxparallel.fx.nativeimpl.Native.call(this, com.jxparallel.fx.scene.control.cell.ComboBoxTreeCell.class, "getOnKeyTyped", new Class<?>[] {}, com.jxparallel.fx.event.EventHandler.class);
+        }
+        return (com.jxparallel.fx.event.EventHandler) com.jxparallel.fx.Fx.jx(((javafx.scene.control.cell.ComboBoxTreeCell) fxPeer()).getOnKeyTyped());
+    }
+
+    public com.jxparallel.fx.event.EventHandler<? super com.jxparallel.fx.scene.input.MouseDragEvent> getOnMouseDragEntered() {
+        if (com.jxparallel.fx.Fx.NATIVE) {
+            return (com.jxparallel.fx.event.EventHandler) com.jxparallel.fx.nativeimpl.Native.call(this, com.jxparallel.fx.scene.control.cell.ComboBoxTreeCell.class, "getOnMouseDragEntered", new Class<?>[] {}, com.jxparallel.fx.event.EventHandler.class);
+        }
+        return (com.jxparallel.fx.event.EventHandler) com.jxparallel.fx.Fx.jx(((javafx.scene.control.cell.ComboBoxTreeCell) fxPeer()).getOnMouseDragEntered());
+    }
+
+    public com.jxparallel.fx.event.EventHandler<? super com.jxparallel.fx.scene.input.MouseDragEvent> getOnMouseDragExited() {
+        if (com.jxparallel.fx.Fx.NATIVE) {
+            return (com.jxparallel.fx.event.EventHandler) com.jxparallel.fx.nativeimpl.Native.call(this, com.jxparallel.fx.scene.control.cell.ComboBoxTreeCell.class, "getOnMouseDragExited", new Class<?>[] {}, com.jxparallel.fx.event.EventHandler.class);
+        }
+        return (com.jxparallel.fx.event.EventHandler) com.jxparallel.fx.Fx.jx(((javafx.scene.control.cell.ComboBoxTreeCell) fxPeer()).getOnMouseDragExited());
+    }
+
+    public com.jxparallel.fx.event.EventHandler<? super com.jxparallel.fx.scene.input.MouseDragEvent> getOnMouseDragOver() {
+        if (com.jxparallel.fx.Fx.NATIVE) {
+            return (com.jxparallel.fx.event.EventHandler) com.jxparallel.fx.nativeimpl.Native.call(this, com.jxparallel.fx.scene.control.cell.ComboBoxTreeCell.class, "getOnMouseDragOver", new Class<?>[] {}, com.jxparallel.fx.event.EventHandler.class);
+        }
+        return (com.jxparallel.fx.event.EventHandler) com.jxparallel.fx.Fx.jx(((javafx.scene.control.cell.ComboBoxTreeCell) fxPeer()).getOnMouseDragOver());
+    }
+
+    public com.jxparallel.fx.event.EventHandler<? super com.jxparallel.fx.scene.input.MouseDragEvent> getOnMouseDragReleased() {
+        if (com.jxparallel.fx.Fx.NATIVE) {
+            return (com.jxparallel.fx.event.EventHandler) com.jxparallel.fx.nativeimpl.Native.call(this, com.jxparallel.fx.scene.control.cell.ComboBoxTreeCell.class, "getOnMouseDragReleased", new Class<?>[] {}, com.jxparallel.fx.event.EventHandler.class);
+        }
+        return (com.jxparallel.fx.event.EventHandler) com.jxparallel.fx.Fx.jx(((javafx.scene.control.cell.ComboBoxTreeCell) fxPeer()).getOnMouseDragReleased());
+    }
+
+    public com.jxparallel.fx.event.EventHandler<? super com.jxparallel.fx.scene.input.MouseEvent> getOnDragDetected() {
+        if (com.jxparallel.fx.Fx.NATIVE) {
+            return (com.jxparallel.fx.event.EventHandler) com.jxparallel.fx.nativeimpl.Native.call(this, com.jxparallel.fx.scene.control.cell.ComboBoxTreeCell.class, "getOnDragDetected", new Class<?>[] {}, com.jxparallel.fx.event.EventHandler.class);
+        }
+        return (com.jxparallel.fx.event.EventHandler) com.jxparallel.fx.Fx.jx(((javafx.scene.control.cell.ComboBoxTreeCell) fxPeer()).getOnDragDetected());
+    }
+
+    public com.jxparallel.fx.event.EventHandler<? super com.jxparallel.fx.scene.input.MouseEvent> getOnMouseClicked() {
+        if (com.jxparallel.fx.Fx.NATIVE) {
+            return (com.jxparallel.fx.event.EventHandler) com.jxparallel.fx.nativeimpl.Native.call(this, com.jxparallel.fx.scene.control.cell.ComboBoxTreeCell.class, "getOnMouseClicked", new Class<?>[] {}, com.jxparallel.fx.event.EventHandler.class);
+        }
+        return (com.jxparallel.fx.event.EventHandler) com.jxparallel.fx.Fx.jx(((javafx.scene.control.cell.ComboBoxTreeCell) fxPeer()).getOnMouseClicked());
+    }
+
+    public com.jxparallel.fx.event.EventHandler<? super com.jxparallel.fx.scene.input.MouseEvent> getOnMouseDragged() {
+        if (com.jxparallel.fx.Fx.NATIVE) {
+            return (com.jxparallel.fx.event.EventHandler) com.jxparallel.fx.nativeimpl.Native.call(this, com.jxparallel.fx.scene.control.cell.ComboBoxTreeCell.class, "getOnMouseDragged", new Class<?>[] {}, com.jxparallel.fx.event.EventHandler.class);
+        }
+        return (com.jxparallel.fx.event.EventHandler) com.jxparallel.fx.Fx.jx(((javafx.scene.control.cell.ComboBoxTreeCell) fxPeer()).getOnMouseDragged());
+    }
+
+    public com.jxparallel.fx.event.EventHandler<? super com.jxparallel.fx.scene.input.MouseEvent> getOnMouseEntered() {
+        if (com.jxparallel.fx.Fx.NATIVE) {
+            return (com.jxparallel.fx.event.EventHandler) com.jxparallel.fx.nativeimpl.Native.call(this, com.jxparallel.fx.scene.control.cell.ComboBoxTreeCell.class, "getOnMouseEntered", new Class<?>[] {}, com.jxparallel.fx.event.EventHandler.class);
+        }
+        return (com.jxparallel.fx.event.EventHandler) com.jxparallel.fx.Fx.jx(((javafx.scene.control.cell.ComboBoxTreeCell) fxPeer()).getOnMouseEntered());
+    }
+
+    public com.jxparallel.fx.event.EventHandler<? super com.jxparallel.fx.scene.input.MouseEvent> getOnMouseExited() {
+        if (com.jxparallel.fx.Fx.NATIVE) {
+            return (com.jxparallel.fx.event.EventHandler) com.jxparallel.fx.nativeimpl.Native.call(this, com.jxparallel.fx.scene.control.cell.ComboBoxTreeCell.class, "getOnMouseExited", new Class<?>[] {}, com.jxparallel.fx.event.EventHandler.class);
+        }
+        return (com.jxparallel.fx.event.EventHandler) com.jxparallel.fx.Fx.jx(((javafx.scene.control.cell.ComboBoxTreeCell) fxPeer()).getOnMouseExited());
+    }
+
+    public com.jxparallel.fx.event.EventHandler<? super com.jxparallel.fx.scene.input.MouseEvent> getOnMouseMoved() {
+        if (com.jxparallel.fx.Fx.NATIVE) {
+            return (com.jxparallel.fx.event.EventHandler) com.jxparallel.fx.nativeimpl.Native.call(this, com.jxparallel.fx.scene.control.cell.ComboBoxTreeCell.class, "getOnMouseMoved", new Class<?>[] {}, com.jxparallel.fx.event.EventHandler.class);
+        }
+        return (com.jxparallel.fx.event.EventHandler) com.jxparallel.fx.Fx.jx(((javafx.scene.control.cell.ComboBoxTreeCell) fxPeer()).getOnMouseMoved());
+    }
+
+    public com.jxparallel.fx.event.EventHandler<? super com.jxparallel.fx.scene.input.MouseEvent> getOnMousePressed() {
+        if (com.jxparallel.fx.Fx.NATIVE) {
+            return (com.jxparallel.fx.event.EventHandler) com.jxparallel.fx.nativeimpl.Native.call(this, com.jxparallel.fx.scene.control.cell.ComboBoxTreeCell.class, "getOnMousePressed", new Class<?>[] {}, com.jxparallel.fx.event.EventHandler.class);
+        }
+        return (com.jxparallel.fx.event.EventHandler) com.jxparallel.fx.Fx.jx(((javafx.scene.control.cell.ComboBoxTreeCell) fxPeer()).getOnMousePressed());
+    }
+
+    public com.jxparallel.fx.event.EventHandler<? super com.jxparallel.fx.scene.input.MouseEvent> getOnMouseReleased() {
+        if (com.jxparallel.fx.Fx.NATIVE) {
+            return (com.jxparallel.fx.event.EventHandler) com.jxparallel.fx.nativeimpl.Native.call(this, com.jxparallel.fx.scene.control.cell.ComboBoxTreeCell.class, "getOnMouseReleased", new Class<?>[] {}, com.jxparallel.fx.event.EventHandler.class);
+        }
+        return (com.jxparallel.fx.event.EventHandler) com.jxparallel.fx.Fx.jx(((javafx.scene.control.cell.ComboBoxTreeCell) fxPeer()).getOnMouseReleased());
+    }
+
+    public com.jxparallel.fx.event.EventHandler<? super com.jxparallel.fx.scene.input.RotateEvent> getOnRotate() {
+        if (com.jxparallel.fx.Fx.NATIVE) {
+            return (com.jxparallel.fx.event.EventHandler) com.jxparallel.fx.nativeimpl.Native.call(this, com.jxparallel.fx.scene.control.cell.ComboBoxTreeCell.class, "getOnRotate", new Class<?>[] {}, com.jxparallel.fx.event.EventHandler.class);
+        }
+        return (com.jxparallel.fx.event.EventHandler) com.jxparallel.fx.Fx.jx(((javafx.scene.control.cell.ComboBoxTreeCell) fxPeer()).getOnRotate());
+    }
+
+    public com.jxparallel.fx.event.EventHandler<? super com.jxparallel.fx.scene.input.RotateEvent> getOnRotationFinished() {
+        if (com.jxparallel.fx.Fx.NATIVE) {
+            return (com.jxparallel.fx.event.EventHandler) com.jxparallel.fx.nativeimpl.Native.call(this, com.jxparallel.fx.scene.control.cell.ComboBoxTreeCell.class, "getOnRotationFinished", new Class<?>[] {}, com.jxparallel.fx.event.EventHandler.class);
+        }
+        return (com.jxparallel.fx.event.EventHandler) com.jxparallel.fx.Fx.jx(((javafx.scene.control.cell.ComboBoxTreeCell) fxPeer()).getOnRotationFinished());
+    }
+
+    public com.jxparallel.fx.event.EventHandler<? super com.jxparallel.fx.scene.input.RotateEvent> getOnRotationStarted() {
+        if (com.jxparallel.fx.Fx.NATIVE) {
+            return (com.jxparallel.fx.event.EventHandler) com.jxparallel.fx.nativeimpl.Native.call(this, com.jxparallel.fx.scene.control.cell.ComboBoxTreeCell.class, "getOnRotationStarted", new Class<?>[] {}, com.jxparallel.fx.event.EventHandler.class);
+        }
+        return (com.jxparallel.fx.event.EventHandler) com.jxparallel.fx.Fx.jx(((javafx.scene.control.cell.ComboBoxTreeCell) fxPeer()).getOnRotationStarted());
+    }
+
+    public com.jxparallel.fx.event.EventHandler<? super com.jxparallel.fx.scene.input.ScrollEvent> getOnScroll() {
+        if (com.jxparallel.fx.Fx.NATIVE) {
+            return (com.jxparallel.fx.event.EventHandler) com.jxparallel.fx.nativeimpl.Native.call(this, com.jxparallel.fx.scene.control.cell.ComboBoxTreeCell.class, "getOnScroll", new Class<?>[] {}, com.jxparallel.fx.event.EventHandler.class);
+        }
+        return (com.jxparallel.fx.event.EventHandler) com.jxparallel.fx.Fx.jx(((javafx.scene.control.cell.ComboBoxTreeCell) fxPeer()).getOnScroll());
+    }
+
+    public com.jxparallel.fx.event.EventHandler<? super com.jxparallel.fx.scene.input.ScrollEvent> getOnScrollFinished() {
+        if (com.jxparallel.fx.Fx.NATIVE) {
+            return (com.jxparallel.fx.event.EventHandler) com.jxparallel.fx.nativeimpl.Native.call(this, com.jxparallel.fx.scene.control.cell.ComboBoxTreeCell.class, "getOnScrollFinished", new Class<?>[] {}, com.jxparallel.fx.event.EventHandler.class);
+        }
+        return (com.jxparallel.fx.event.EventHandler) com.jxparallel.fx.Fx.jx(((javafx.scene.control.cell.ComboBoxTreeCell) fxPeer()).getOnScrollFinished());
+    }
+
+    public com.jxparallel.fx.event.EventHandler<? super com.jxparallel.fx.scene.input.ScrollEvent> getOnScrollStarted() {
+        if (com.jxparallel.fx.Fx.NATIVE) {
+            return (com.jxparallel.fx.event.EventHandler) com.jxparallel.fx.nativeimpl.Native.call(this, com.jxparallel.fx.scene.control.cell.ComboBoxTreeCell.class, "getOnScrollStarted", new Class<?>[] {}, com.jxparallel.fx.event.EventHandler.class);
+        }
+        return (com.jxparallel.fx.event.EventHandler) com.jxparallel.fx.Fx.jx(((javafx.scene.control.cell.ComboBoxTreeCell) fxPeer()).getOnScrollStarted());
+    }
+
+    public com.jxparallel.fx.event.EventHandler<? super com.jxparallel.fx.scene.input.SwipeEvent> getOnSwipeDown() {
+        if (com.jxparallel.fx.Fx.NATIVE) {
+            return (com.jxparallel.fx.event.EventHandler) com.jxparallel.fx.nativeimpl.Native.call(this, com.jxparallel.fx.scene.control.cell.ComboBoxTreeCell.class, "getOnSwipeDown", new Class<?>[] {}, com.jxparallel.fx.event.EventHandler.class);
+        }
+        return (com.jxparallel.fx.event.EventHandler) com.jxparallel.fx.Fx.jx(((javafx.scene.control.cell.ComboBoxTreeCell) fxPeer()).getOnSwipeDown());
+    }
+
+    public com.jxparallel.fx.event.EventHandler<? super com.jxparallel.fx.scene.input.SwipeEvent> getOnSwipeLeft() {
+        if (com.jxparallel.fx.Fx.NATIVE) {
+            return (com.jxparallel.fx.event.EventHandler) com.jxparallel.fx.nativeimpl.Native.call(this, com.jxparallel.fx.scene.control.cell.ComboBoxTreeCell.class, "getOnSwipeLeft", new Class<?>[] {}, com.jxparallel.fx.event.EventHandler.class);
+        }
+        return (com.jxparallel.fx.event.EventHandler) com.jxparallel.fx.Fx.jx(((javafx.scene.control.cell.ComboBoxTreeCell) fxPeer()).getOnSwipeLeft());
+    }
+
+    public com.jxparallel.fx.event.EventHandler<? super com.jxparallel.fx.scene.input.SwipeEvent> getOnSwipeRight() {
+        if (com.jxparallel.fx.Fx.NATIVE) {
+            return (com.jxparallel.fx.event.EventHandler) com.jxparallel.fx.nativeimpl.Native.call(this, com.jxparallel.fx.scene.control.cell.ComboBoxTreeCell.class, "getOnSwipeRight", new Class<?>[] {}, com.jxparallel.fx.event.EventHandler.class);
+        }
+        return (com.jxparallel.fx.event.EventHandler) com.jxparallel.fx.Fx.jx(((javafx.scene.control.cell.ComboBoxTreeCell) fxPeer()).getOnSwipeRight());
+    }
+
+    public com.jxparallel.fx.event.EventHandler<? super com.jxparallel.fx.scene.input.SwipeEvent> getOnSwipeUp() {
+        if (com.jxparallel.fx.Fx.NATIVE) {
+            return (com.jxparallel.fx.event.EventHandler) com.jxparallel.fx.nativeimpl.Native.call(this, com.jxparallel.fx.scene.control.cell.ComboBoxTreeCell.class, "getOnSwipeUp", new Class<?>[] {}, com.jxparallel.fx.event.EventHandler.class);
+        }
+        return (com.jxparallel.fx.event.EventHandler) com.jxparallel.fx.Fx.jx(((javafx.scene.control.cell.ComboBoxTreeCell) fxPeer()).getOnSwipeUp());
+    }
+
+    public com.jxparallel.fx.event.EventHandler<? super com.jxparallel.fx.scene.input.TouchEvent> getOnTouchMoved() {
+        if (com.jxparallel.fx.Fx.NATIVE) {
+            return (com.jxparallel.fx.event.EventHandler) com.jxparallel.fx.nativeimpl.Native.call(this, com.jxparallel.fx.scene.control.cell.ComboBoxTreeCell.class, "getOnTouchMoved", new Class<?>[] {}, com.jxparallel.fx.event.EventHandler.class);
+        }
+        return (com.jxparallel.fx.event.EventHandler) com.jxparallel.fx.Fx.jx(((javafx.scene.control.cell.ComboBoxTreeCell) fxPeer()).getOnTouchMoved());
+    }
+
+    public com.jxparallel.fx.event.EventHandler<? super com.jxparallel.fx.scene.input.TouchEvent> getOnTouchPressed() {
+        if (com.jxparallel.fx.Fx.NATIVE) {
+            return (com.jxparallel.fx.event.EventHandler) com.jxparallel.fx.nativeimpl.Native.call(this, com.jxparallel.fx.scene.control.cell.ComboBoxTreeCell.class, "getOnTouchPressed", new Class<?>[] {}, com.jxparallel.fx.event.EventHandler.class);
+        }
+        return (com.jxparallel.fx.event.EventHandler) com.jxparallel.fx.Fx.jx(((javafx.scene.control.cell.ComboBoxTreeCell) fxPeer()).getOnTouchPressed());
+    }
+
+    public com.jxparallel.fx.event.EventHandler<? super com.jxparallel.fx.scene.input.TouchEvent> getOnTouchReleased() {
+        if (com.jxparallel.fx.Fx.NATIVE) {
+            return (com.jxparallel.fx.event.EventHandler) com.jxparallel.fx.nativeimpl.Native.call(this, com.jxparallel.fx.scene.control.cell.ComboBoxTreeCell.class, "getOnTouchReleased", new Class<?>[] {}, com.jxparallel.fx.event.EventHandler.class);
+        }
+        return (com.jxparallel.fx.event.EventHandler) com.jxparallel.fx.Fx.jx(((javafx.scene.control.cell.ComboBoxTreeCell) fxPeer()).getOnTouchReleased());
+    }
+
+    public com.jxparallel.fx.event.EventHandler<? super com.jxparallel.fx.scene.input.TouchEvent> getOnTouchStationary() {
+        if (com.jxparallel.fx.Fx.NATIVE) {
+            return (com.jxparallel.fx.event.EventHandler) com.jxparallel.fx.nativeimpl.Native.call(this, com.jxparallel.fx.scene.control.cell.ComboBoxTreeCell.class, "getOnTouchStationary", new Class<?>[] {}, com.jxparallel.fx.event.EventHandler.class);
+        }
+        return (com.jxparallel.fx.event.EventHandler) com.jxparallel.fx.Fx.jx(((javafx.scene.control.cell.ComboBoxTreeCell) fxPeer()).getOnTouchStationary());
+    }
+
+    public com.jxparallel.fx.event.EventHandler<? super com.jxparallel.fx.scene.input.ZoomEvent> getOnZoom() {
+        if (com.jxparallel.fx.Fx.NATIVE) {
+            return (com.jxparallel.fx.event.EventHandler) com.jxparallel.fx.nativeimpl.Native.call(this, com.jxparallel.fx.scene.control.cell.ComboBoxTreeCell.class, "getOnZoom", new Class<?>[] {}, com.jxparallel.fx.event.EventHandler.class);
+        }
+        return (com.jxparallel.fx.event.EventHandler) com.jxparallel.fx.Fx.jx(((javafx.scene.control.cell.ComboBoxTreeCell) fxPeer()).getOnZoom());
+    }
+
+    public com.jxparallel.fx.event.EventHandler<? super com.jxparallel.fx.scene.input.ZoomEvent> getOnZoomFinished() {
+        if (com.jxparallel.fx.Fx.NATIVE) {
+            return (com.jxparallel.fx.event.EventHandler) com.jxparallel.fx.nativeimpl.Native.call(this, com.jxparallel.fx.scene.control.cell.ComboBoxTreeCell.class, "getOnZoomFinished", new Class<?>[] {}, com.jxparallel.fx.event.EventHandler.class);
+        }
+        return (com.jxparallel.fx.event.EventHandler) com.jxparallel.fx.Fx.jx(((javafx.scene.control.cell.ComboBoxTreeCell) fxPeer()).getOnZoomFinished());
+    }
+
+    public com.jxparallel.fx.event.EventHandler<? super com.jxparallel.fx.scene.input.ZoomEvent> getOnZoomStarted() {
+        if (com.jxparallel.fx.Fx.NATIVE) {
+            return (com.jxparallel.fx.event.EventHandler) com.jxparallel.fx.nativeimpl.Native.call(this, com.jxparallel.fx.scene.control.cell.ComboBoxTreeCell.class, "getOnZoomStarted", new Class<?>[] {}, com.jxparallel.fx.event.EventHandler.class);
+        }
+        return (com.jxparallel.fx.event.EventHandler) com.jxparallel.fx.Fx.jx(((javafx.scene.control.cell.ComboBoxTreeCell) fxPeer()).getOnZoomStarted());
+    }
+
+    public com.jxparallel.fx.geometry.Bounds getBoundsInLocal() {
+        if (com.jxparallel.fx.Fx.NATIVE) {
+            return (com.jxparallel.fx.geometry.Bounds) com.jxparallel.fx.nativeimpl.Native.call(this, com.jxparallel.fx.scene.control.cell.ComboBoxTreeCell.class, "getBoundsInLocal", new Class<?>[] {}, com.jxparallel.fx.geometry.Bounds.class);
+        }
+        return (com.jxparallel.fx.geometry.Bounds) com.jxparallel.fx.Fx.jx(((javafx.scene.control.cell.ComboBoxTreeCell) fxPeer()).getBoundsInLocal());
+    }
+
+    public com.jxparallel.fx.geometry.Bounds getBoundsInParent() {
+        if (com.jxparallel.fx.Fx.NATIVE) {
+            return (com.jxparallel.fx.geometry.Bounds) com.jxparallel.fx.nativeimpl.Native.call(this, com.jxparallel.fx.scene.control.cell.ComboBoxTreeCell.class, "getBoundsInParent", new Class<?>[] {}, com.jxparallel.fx.geometry.Bounds.class);
+        }
+        return (com.jxparallel.fx.geometry.Bounds) com.jxparallel.fx.Fx.jx(((javafx.scene.control.cell.ComboBoxTreeCell) fxPeer()).getBoundsInParent());
+    }
+
+    public com.jxparallel.fx.geometry.Bounds getLayoutBounds() {
+        if (com.jxparallel.fx.Fx.NATIVE) {
+            return (com.jxparallel.fx.geometry.Bounds) com.jxparallel.fx.nativeimpl.Native.call(this, com.jxparallel.fx.scene.control.cell.ComboBoxTreeCell.class, "getLayoutBounds", new Class<?>[] {}, com.jxparallel.fx.geometry.Bounds.class);
+        }
+        return (com.jxparallel.fx.geometry.Bounds) com.jxparallel.fx.Fx.jx(((javafx.scene.control.cell.ComboBoxTreeCell) fxPeer()).getLayoutBounds());
+    }
+
+    public com.jxparallel.fx.geometry.NodeOrientation getEffectiveNodeOrientation() {
+        if (com.jxparallel.fx.Fx.NATIVE) {
+            return (com.jxparallel.fx.geometry.NodeOrientation) com.jxparallel.fx.nativeimpl.Native.call(this, com.jxparallel.fx.scene.control.cell.ComboBoxTreeCell.class, "getEffectiveNodeOrientation", new Class<?>[] {}, com.jxparallel.fx.geometry.NodeOrientation.class);
+        }
+        return (com.jxparallel.fx.geometry.NodeOrientation) com.jxparallel.fx.Fx.jx(((javafx.scene.control.cell.ComboBoxTreeCell) fxPeer()).getEffectiveNodeOrientation());
+    }
+
+    public com.jxparallel.fx.geometry.NodeOrientation getNodeOrientation() {
+        if (com.jxparallel.fx.Fx.NATIVE) {
+            return (com.jxparallel.fx.geometry.NodeOrientation) com.jxparallel.fx.nativeimpl.Native.call(this, com.jxparallel.fx.scene.control.cell.ComboBoxTreeCell.class, "getNodeOrientation", new Class<?>[] {}, com.jxparallel.fx.geometry.NodeOrientation.class);
+        }
+        return (com.jxparallel.fx.geometry.NodeOrientation) com.jxparallel.fx.Fx.jx(((javafx.scene.control.cell.ComboBoxTreeCell) fxPeer()).getNodeOrientation());
+    }
+
+    public com.jxparallel.fx.geometry.Point3D getRotationAxis() {
+        if (com.jxparallel.fx.Fx.NATIVE) {
+            return (com.jxparallel.fx.geometry.Point3D) com.jxparallel.fx.nativeimpl.Native.call(this, com.jxparallel.fx.scene.control.cell.ComboBoxTreeCell.class, "getRotationAxis", new Class<?>[] {}, com.jxparallel.fx.geometry.Point3D.class);
+        }
+        return (com.jxparallel.fx.geometry.Point3D) com.jxparallel.fx.Fx.jx(((javafx.scene.control.cell.ComboBoxTreeCell) fxPeer()).getRotationAxis());
+    }
+
+    public com.jxparallel.fx.scene.AccessibleRole getAccessibleRole() {
+        if (com.jxparallel.fx.Fx.NATIVE) {
+            return (com.jxparallel.fx.scene.AccessibleRole) com.jxparallel.fx.nativeimpl.Native.call(this, com.jxparallel.fx.scene.control.cell.ComboBoxTreeCell.class, "getAccessibleRole", new Class<?>[] {}, com.jxparallel.fx.scene.AccessibleRole.class);
+        }
+        return (com.jxparallel.fx.scene.AccessibleRole) com.jxparallel.fx.Fx.jx(((javafx.scene.control.cell.ComboBoxTreeCell) fxPeer()).getAccessibleRole());
     }
 
     public com.jxparallel.fx.scene.CacheHint getCacheHint() {
@@ -2404,6 +2678,41 @@ public class ComboBoxTreeCell<T> implements com.jxparallel.fx.scene.control.Skin
             return (com.jxparallel.fx.scene.CacheHint) com.jxparallel.fx.nativeimpl.Native.call(this, com.jxparallel.fx.scene.control.cell.ComboBoxTreeCell.class, "getCacheHint", new Class<?>[] {}, com.jxparallel.fx.scene.CacheHint.class);
         }
         return (com.jxparallel.fx.scene.CacheHint) com.jxparallel.fx.Fx.jx(((javafx.scene.control.cell.ComboBoxTreeCell) fxPeer()).getCacheHint());
+    }
+
+    public com.jxparallel.fx.scene.Cursor getCursor() {
+        if (com.jxparallel.fx.Fx.NATIVE) {
+            return (com.jxparallel.fx.scene.Cursor) com.jxparallel.fx.nativeimpl.Native.call(this, com.jxparallel.fx.scene.control.cell.ComboBoxTreeCell.class, "getCursor", new Class<?>[] {}, com.jxparallel.fx.scene.Cursor.class);
+        }
+        return (com.jxparallel.fx.scene.Cursor) com.jxparallel.fx.Fx.jx(((javafx.scene.control.cell.ComboBoxTreeCell) fxPeer()).getCursor());
+    }
+
+    public com.jxparallel.fx.scene.DepthTest getDepthTest() {
+        if (com.jxparallel.fx.Fx.NATIVE) {
+            return (com.jxparallel.fx.scene.DepthTest) com.jxparallel.fx.nativeimpl.Native.call(this, com.jxparallel.fx.scene.control.cell.ComboBoxTreeCell.class, "getDepthTest", new Class<?>[] {}, com.jxparallel.fx.scene.DepthTest.class);
+        }
+        return (com.jxparallel.fx.scene.DepthTest) com.jxparallel.fx.Fx.jx(((javafx.scene.control.cell.ComboBoxTreeCell) fxPeer()).getDepthTest());
+    }
+
+    public com.jxparallel.fx.scene.Node getClip() {
+        if (com.jxparallel.fx.Fx.NATIVE) {
+            return (com.jxparallel.fx.scene.Node) com.jxparallel.fx.nativeimpl.Native.call(this, com.jxparallel.fx.scene.control.cell.ComboBoxTreeCell.class, "getClip", new Class<?>[] {}, com.jxparallel.fx.scene.Node.class);
+        }
+        return (com.jxparallel.fx.scene.Node) com.jxparallel.fx.Fx.jx(((javafx.scene.control.cell.ComboBoxTreeCell) fxPeer()).getClip());
+    }
+
+    public com.jxparallel.fx.scene.Parent getParent() {
+        if (com.jxparallel.fx.Fx.NATIVE) {
+            return (com.jxparallel.fx.scene.Parent) com.jxparallel.fx.nativeimpl.Native.call(this, com.jxparallel.fx.scene.control.cell.ComboBoxTreeCell.class, "getParent", new Class<?>[] {}, com.jxparallel.fx.scene.Parent.class);
+        }
+        return (com.jxparallel.fx.scene.Parent) com.jxparallel.fx.Fx.jx(((javafx.scene.control.cell.ComboBoxTreeCell) fxPeer()).getParent());
+    }
+
+    public com.jxparallel.fx.scene.Scene getScene() {
+        if (com.jxparallel.fx.Fx.NATIVE) {
+            return (com.jxparallel.fx.scene.Scene) com.jxparallel.fx.nativeimpl.Native.call(this, com.jxparallel.fx.scene.control.cell.ComboBoxTreeCell.class, "getScene", new Class<?>[] {}, com.jxparallel.fx.scene.Scene.class);
+        }
+        return (com.jxparallel.fx.scene.Scene) com.jxparallel.fx.Fx.jx(((javafx.scene.control.cell.ComboBoxTreeCell) fxPeer()).getScene());
     }
 
     public javafx.scene.effect.BlendMode getBlendMode() {
@@ -2420,251 +2729,49 @@ public class ComboBoxTreeCell<T> implements com.jxparallel.fx.scene.control.Skin
         return (com.jxparallel.fx.scene.effect.Effect) com.jxparallel.fx.Fx.jx(((javafx.scene.control.cell.ComboBoxTreeCell) fxPeer()).getEffect());
     }
 
-    public com.jxparallel.fx.scene.DepthTest getDepthTest() {
+    public com.jxparallel.fx.scene.input.InputMethodRequests getInputMethodRequests() {
         if (com.jxparallel.fx.Fx.NATIVE) {
-            return (com.jxparallel.fx.scene.DepthTest) com.jxparallel.fx.nativeimpl.Native.call(this, com.jxparallel.fx.scene.control.cell.ComboBoxTreeCell.class, "getDepthTest", new Class<?>[] {}, com.jxparallel.fx.scene.DepthTest.class);
+            return (com.jxparallel.fx.scene.input.InputMethodRequests) com.jxparallel.fx.nativeimpl.Native.call(this, com.jxparallel.fx.scene.control.cell.ComboBoxTreeCell.class, "getInputMethodRequests", new Class<?>[] {}, com.jxparallel.fx.scene.input.InputMethodRequests.class);
         }
-        return (com.jxparallel.fx.scene.DepthTest) com.jxparallel.fx.Fx.jx(((javafx.scene.control.cell.ComboBoxTreeCell) fxPeer()).getDepthTest());
+        return (com.jxparallel.fx.scene.input.InputMethodRequests) com.jxparallel.fx.Fx.jx(((javafx.scene.control.cell.ComboBoxTreeCell) fxPeer()).getInputMethodRequests());
     }
 
-    public com.jxparallel.fx.scene.Cursor getCursor() {
+    public javafx.scene.transform.Transform getLocalToParentTransform() {
         if (com.jxparallel.fx.Fx.NATIVE) {
-            return (com.jxparallel.fx.scene.Cursor) com.jxparallel.fx.nativeimpl.Native.call(this, com.jxparallel.fx.scene.control.cell.ComboBoxTreeCell.class, "getCursor", new Class<?>[] {}, com.jxparallel.fx.scene.Cursor.class);
+            return (javafx.scene.transform.Transform) com.jxparallel.fx.nativeimpl.Native.call(this, com.jxparallel.fx.scene.control.cell.ComboBoxTreeCell.class, "getLocalToParentTransform", new Class<?>[] {}, javafx.scene.transform.Transform.class);
         }
-        return (com.jxparallel.fx.scene.Cursor) com.jxparallel.fx.Fx.jx(((javafx.scene.control.cell.ComboBoxTreeCell) fxPeer()).getCursor());
+        return ((javafx.scene.control.cell.ComboBoxTreeCell) fxPeer()).getLocalToParentTransform();
     }
 
-    public com.jxparallel.fx.geometry.Bounds getBoundsInLocal() {
+    public javafx.scene.transform.Transform getLocalToSceneTransform() {
         if (com.jxparallel.fx.Fx.NATIVE) {
-            return (com.jxparallel.fx.geometry.Bounds) com.jxparallel.fx.nativeimpl.Native.call(this, com.jxparallel.fx.scene.control.cell.ComboBoxTreeCell.class, "getBoundsInLocal", new Class<?>[] {}, com.jxparallel.fx.geometry.Bounds.class);
+            return (javafx.scene.transform.Transform) com.jxparallel.fx.nativeimpl.Native.call(this, com.jxparallel.fx.scene.control.cell.ComboBoxTreeCell.class, "getLocalToSceneTransform", new Class<?>[] {}, javafx.scene.transform.Transform.class);
         }
-        return (com.jxparallel.fx.geometry.Bounds) com.jxparallel.fx.Fx.jx(((javafx.scene.control.cell.ComboBoxTreeCell) fxPeer()).getBoundsInLocal());
+        return ((javafx.scene.control.cell.ComboBoxTreeCell) fxPeer()).getLocalToSceneTransform();
     }
 
-    public com.jxparallel.fx.event.EventHandler<? super com.jxparallel.fx.scene.input.DragEvent> getOnDragOver() {
+    public void applyCss() {
         if (com.jxparallel.fx.Fx.NATIVE) {
-            return (com.jxparallel.fx.event.EventHandler) com.jxparallel.fx.nativeimpl.Native.call(this, com.jxparallel.fx.scene.control.cell.ComboBoxTreeCell.class, "getOnDragOver", new Class<?>[] {}, com.jxparallel.fx.event.EventHandler.class);
-        }
-        return (com.jxparallel.fx.event.EventHandler) com.jxparallel.fx.Fx.jx(((javafx.scene.control.cell.ComboBoxTreeCell) fxPeer()).getOnDragOver());
-    }
-
-    public com.jxparallel.fx.event.EventHandler<? super com.jxparallel.fx.scene.input.KeyEvent> getOnKeyReleased() {
-        if (com.jxparallel.fx.Fx.NATIVE) {
-            return (com.jxparallel.fx.event.EventHandler) com.jxparallel.fx.nativeimpl.Native.call(this, com.jxparallel.fx.scene.control.cell.ComboBoxTreeCell.class, "getOnKeyReleased", new Class<?>[] {}, com.jxparallel.fx.event.EventHandler.class);
-        }
-        return (com.jxparallel.fx.event.EventHandler) com.jxparallel.fx.Fx.jx(((javafx.scene.control.cell.ComboBoxTreeCell) fxPeer()).getOnKeyReleased());
-    }
-
-    public com.jxparallel.fx.event.EventHandler<? super com.jxparallel.fx.scene.input.MouseEvent> getOnMouseMoved() {
-        if (com.jxparallel.fx.Fx.NATIVE) {
-            return (com.jxparallel.fx.event.EventHandler) com.jxparallel.fx.nativeimpl.Native.call(this, com.jxparallel.fx.scene.control.cell.ComboBoxTreeCell.class, "getOnMouseMoved", new Class<?>[] {}, com.jxparallel.fx.event.EventHandler.class);
-        }
-        return (com.jxparallel.fx.event.EventHandler) com.jxparallel.fx.Fx.jx(((javafx.scene.control.cell.ComboBoxTreeCell) fxPeer()).getOnMouseMoved());
-    }
-
-    public com.jxparallel.fx.event.EventHandler<? super com.jxparallel.fx.scene.input.ZoomEvent> getOnZoomStarted() {
-        if (com.jxparallel.fx.Fx.NATIVE) {
-            return (com.jxparallel.fx.event.EventHandler) com.jxparallel.fx.nativeimpl.Native.call(this, com.jxparallel.fx.scene.control.cell.ComboBoxTreeCell.class, "getOnZoomStarted", new Class<?>[] {}, com.jxparallel.fx.event.EventHandler.class);
-        }
-        return (com.jxparallel.fx.event.EventHandler) com.jxparallel.fx.Fx.jx(((javafx.scene.control.cell.ComboBoxTreeCell) fxPeer()).getOnZoomStarted());
-    }
-
-    public com.jxparallel.fx.event.EventHandler<? super com.jxparallel.fx.scene.input.SwipeEvent> getOnSwipeUp() {
-        if (com.jxparallel.fx.Fx.NATIVE) {
-            return (com.jxparallel.fx.event.EventHandler) com.jxparallel.fx.nativeimpl.Native.call(this, com.jxparallel.fx.scene.control.cell.ComboBoxTreeCell.class, "getOnSwipeUp", new Class<?>[] {}, com.jxparallel.fx.event.EventHandler.class);
-        }
-        return (com.jxparallel.fx.event.EventHandler) com.jxparallel.fx.Fx.jx(((javafx.scene.control.cell.ComboBoxTreeCell) fxPeer()).getOnSwipeUp());
-    }
-
-    public com.jxparallel.fx.event.EventHandler<? super com.jxparallel.fx.scene.input.SwipeEvent> getOnSwipeLeft() {
-        if (com.jxparallel.fx.Fx.NATIVE) {
-            return (com.jxparallel.fx.event.EventHandler) com.jxparallel.fx.nativeimpl.Native.call(this, com.jxparallel.fx.scene.control.cell.ComboBoxTreeCell.class, "getOnSwipeLeft", new Class<?>[] {}, com.jxparallel.fx.event.EventHandler.class);
-        }
-        return (com.jxparallel.fx.event.EventHandler) com.jxparallel.fx.Fx.jx(((javafx.scene.control.cell.ComboBoxTreeCell) fxPeer()).getOnSwipeLeft());
-    }
-
-    public com.jxparallel.fx.geometry.Point3D getRotationAxis() {
-        if (com.jxparallel.fx.Fx.NATIVE) {
-            return (com.jxparallel.fx.geometry.Point3D) com.jxparallel.fx.nativeimpl.Native.call(this, com.jxparallel.fx.scene.control.cell.ComboBoxTreeCell.class, "getRotationAxis", new Class<?>[] {}, com.jxparallel.fx.geometry.Point3D.class);
-        }
-        return (com.jxparallel.fx.geometry.Point3D) com.jxparallel.fx.Fx.jx(((javafx.scene.control.cell.ComboBoxTreeCell) fxPeer()).getRotationAxis());
-    }
-
-    public javafx.collections.ObservableList<javafx.scene.transform.Transform> getTransforms() {
-        if (com.jxparallel.fx.Fx.NATIVE) {
-            return (javafx.collections.ObservableList) com.jxparallel.fx.nativeimpl.Native.call(this, com.jxparallel.fx.scene.control.cell.ComboBoxTreeCell.class, "getTransforms", new Class<?>[] {}, com.jxparallel.fx.collections.ObservableList.class);
-        }
-        return ((javafx.scene.control.cell.ComboBoxTreeCell) fxPeer()).getTransforms();
-    }
-
-    public com.jxparallel.fx.event.EventHandler<? super com.jxparallel.fx.scene.input.SwipeEvent> getOnSwipeRight() {
-        if (com.jxparallel.fx.Fx.NATIVE) {
-            return (com.jxparallel.fx.event.EventHandler) com.jxparallel.fx.nativeimpl.Native.call(this, com.jxparallel.fx.scene.control.cell.ComboBoxTreeCell.class, "getOnSwipeRight", new Class<?>[] {}, com.jxparallel.fx.event.EventHandler.class);
-        }
-        return (com.jxparallel.fx.event.EventHandler) com.jxparallel.fx.Fx.jx(((javafx.scene.control.cell.ComboBoxTreeCell) fxPeer()).getOnSwipeRight());
-    }
-
-    public com.jxparallel.fx.event.EventHandler<? super com.jxparallel.fx.scene.input.KeyEvent> getOnKeyPressed() {
-        if (com.jxparallel.fx.Fx.NATIVE) {
-            return (com.jxparallel.fx.event.EventHandler) com.jxparallel.fx.nativeimpl.Native.call(this, com.jxparallel.fx.scene.control.cell.ComboBoxTreeCell.class, "getOnKeyPressed", new Class<?>[] {}, com.jxparallel.fx.event.EventHandler.class);
-        }
-        return (com.jxparallel.fx.event.EventHandler) com.jxparallel.fx.Fx.jx(((javafx.scene.control.cell.ComboBoxTreeCell) fxPeer()).getOnKeyPressed());
-    }
-
-    public com.jxparallel.fx.event.EventHandler<? super com.jxparallel.fx.scene.input.RotateEvent> getOnRotate() {
-        if (com.jxparallel.fx.Fx.NATIVE) {
-            return (com.jxparallel.fx.event.EventHandler) com.jxparallel.fx.nativeimpl.Native.call(this, com.jxparallel.fx.scene.control.cell.ComboBoxTreeCell.class, "getOnRotate", new Class<?>[] {}, com.jxparallel.fx.event.EventHandler.class);
-        }
-        return (com.jxparallel.fx.event.EventHandler) com.jxparallel.fx.Fx.jx(((javafx.scene.control.cell.ComboBoxTreeCell) fxPeer()).getOnRotate());
-    }
-
-    public com.jxparallel.fx.event.EventHandler<? super com.jxparallel.fx.scene.input.DragEvent> getOnDragDropped() {
-        if (com.jxparallel.fx.Fx.NATIVE) {
-            return (com.jxparallel.fx.event.EventHandler) com.jxparallel.fx.nativeimpl.Native.call(this, com.jxparallel.fx.scene.control.cell.ComboBoxTreeCell.class, "getOnDragDropped", new Class<?>[] {}, com.jxparallel.fx.event.EventHandler.class);
-        }
-        return (com.jxparallel.fx.event.EventHandler) com.jxparallel.fx.Fx.jx(((javafx.scene.control.cell.ComboBoxTreeCell) fxPeer()).getOnDragDropped());
-    }
-
-    public java.lang.Object getUserData() {
-        if (com.jxparallel.fx.Fx.NATIVE) {
-            return (java.lang.Object) com.jxparallel.fx.nativeimpl.Native.call(this, com.jxparallel.fx.scene.control.cell.ComboBoxTreeCell.class, "getUserData", new Class<?>[] {}, java.lang.Object.class);
-        }
-        return (java.lang.Object) com.jxparallel.fx.Fx.jx(((javafx.scene.control.cell.ComboBoxTreeCell) fxPeer()).getUserData());
-    }
-
-    public java.lang.String getTypeSelector() {
-        if (com.jxparallel.fx.Fx.NATIVE) {
-            return (java.lang.String) com.jxparallel.fx.nativeimpl.Native.call(this, com.jxparallel.fx.scene.control.cell.ComboBoxTreeCell.class, "getTypeSelector", new Class<?>[] {}, java.lang.String.class);
-        }
-        return ((javafx.scene.control.cell.ComboBoxTreeCell) fxPeer()).getTypeSelector();
-    }
-
-    public com.jxparallel.fx.event.EventHandler<? super com.jxparallel.fx.scene.input.ScrollEvent> getOnScroll() {
-        if (com.jxparallel.fx.Fx.NATIVE) {
-            return (com.jxparallel.fx.event.EventHandler) com.jxparallel.fx.nativeimpl.Native.call(this, com.jxparallel.fx.scene.control.cell.ComboBoxTreeCell.class, "getOnScroll", new Class<?>[] {}, com.jxparallel.fx.event.EventHandler.class);
-        }
-        return (com.jxparallel.fx.event.EventHandler) com.jxparallel.fx.Fx.jx(((javafx.scene.control.cell.ComboBoxTreeCell) fxPeer()).getOnScroll());
-    }
-
-    public com.jxparallel.fx.event.EventHandler<? super com.jxparallel.fx.scene.input.KeyEvent> getOnKeyTyped() {
-        if (com.jxparallel.fx.Fx.NATIVE) {
-            return (com.jxparallel.fx.event.EventHandler) com.jxparallel.fx.nativeimpl.Native.call(this, com.jxparallel.fx.scene.control.cell.ComboBoxTreeCell.class, "getOnKeyTyped", new Class<?>[] {}, com.jxparallel.fx.event.EventHandler.class);
-        }
-        return (com.jxparallel.fx.event.EventHandler) com.jxparallel.fx.Fx.jx(((javafx.scene.control.cell.ComboBoxTreeCell) fxPeer()).getOnKeyTyped());
-    }
-
-    public com.jxparallel.fx.event.EventHandler<? super com.jxparallel.fx.scene.input.DragEvent> getOnDragDone() {
-        if (com.jxparallel.fx.Fx.NATIVE) {
-            return (com.jxparallel.fx.event.EventHandler) com.jxparallel.fx.nativeimpl.Native.call(this, com.jxparallel.fx.scene.control.cell.ComboBoxTreeCell.class, "getOnDragDone", new Class<?>[] {}, com.jxparallel.fx.event.EventHandler.class);
-        }
-        return (com.jxparallel.fx.event.EventHandler) com.jxparallel.fx.Fx.jx(((javafx.scene.control.cell.ComboBoxTreeCell) fxPeer()).getOnDragDone());
-    }
-
-    public com.jxparallel.fx.event.EventHandler<? super com.jxparallel.fx.scene.input.DragEvent> getOnDragExited() {
-        if (com.jxparallel.fx.Fx.NATIVE) {
-            return (com.jxparallel.fx.event.EventHandler) com.jxparallel.fx.nativeimpl.Native.call(this, com.jxparallel.fx.scene.control.cell.ComboBoxTreeCell.class, "getOnDragExited", new Class<?>[] {}, com.jxparallel.fx.event.EventHandler.class);
-        }
-        return (com.jxparallel.fx.event.EventHandler) com.jxparallel.fx.Fx.jx(((javafx.scene.control.cell.ComboBoxTreeCell) fxPeer()).getOnDragExited());
-    }
-
-    public com.jxparallel.fx.event.EventHandler<? super com.jxparallel.fx.scene.input.TouchEvent> getOnTouchMoved() {
-        if (com.jxparallel.fx.Fx.NATIVE) {
-            return (com.jxparallel.fx.event.EventHandler) com.jxparallel.fx.nativeimpl.Native.call(this, com.jxparallel.fx.scene.control.cell.ComboBoxTreeCell.class, "getOnTouchMoved", new Class<?>[] {}, com.jxparallel.fx.event.EventHandler.class);
-        }
-        return (com.jxparallel.fx.event.EventHandler) com.jxparallel.fx.Fx.jx(((javafx.scene.control.cell.ComboBoxTreeCell) fxPeer()).getOnTouchMoved());
-    }
-
-    public com.jxparallel.fx.event.EventHandler<? super com.jxparallel.fx.scene.input.ZoomEvent> getOnZoom() {
-        if (com.jxparallel.fx.Fx.NATIVE) {
-            return (com.jxparallel.fx.event.EventHandler) com.jxparallel.fx.nativeimpl.Native.call(this, com.jxparallel.fx.scene.control.cell.ComboBoxTreeCell.class, "getOnZoom", new Class<?>[] {}, com.jxparallel.fx.event.EventHandler.class);
-        }
-        return (com.jxparallel.fx.event.EventHandler) com.jxparallel.fx.Fx.jx(((javafx.scene.control.cell.ComboBoxTreeCell) fxPeer()).getOnZoom());
-    }
-
-    public com.jxparallel.fx.collections.ObservableList<java.lang.String> getStyleClass() {
-        if (com.jxparallel.fx.Fx.NATIVE) {
-            return (com.jxparallel.fx.collections.ObservableList) com.jxparallel.fx.nativeimpl.Native.call(this, com.jxparallel.fx.scene.control.cell.ComboBoxTreeCell.class, "getStyleClass", new Class<?>[] {}, com.jxparallel.fx.collections.ObservableList.class);
-        }
-        return (com.jxparallel.fx.collections.ObservableList) com.jxparallel.fx.Fx.jx(((javafx.scene.control.cell.ComboBoxTreeCell) fxPeer()).getStyleClass());
-    }
-
-    public com.jxparallel.fx.event.EventHandler<? super com.jxparallel.fx.scene.input.DragEvent> getOnDragEntered() {
-        if (com.jxparallel.fx.Fx.NATIVE) {
-            return (com.jxparallel.fx.event.EventHandler) com.jxparallel.fx.nativeimpl.Native.call(this, com.jxparallel.fx.scene.control.cell.ComboBoxTreeCell.class, "getOnDragEntered", new Class<?>[] {}, com.jxparallel.fx.event.EventHandler.class);
-        }
-        return (com.jxparallel.fx.event.EventHandler) com.jxparallel.fx.Fx.jx(((javafx.scene.control.cell.ComboBoxTreeCell) fxPeer()).getOnDragEntered());
-    }
-
-    public com.jxparallel.fx.event.EventHandler<? super com.jxparallel.fx.scene.input.SwipeEvent> getOnSwipeDown() {
-        if (com.jxparallel.fx.Fx.NATIVE) {
-            return (com.jxparallel.fx.event.EventHandler) com.jxparallel.fx.nativeimpl.Native.call(this, com.jxparallel.fx.scene.control.cell.ComboBoxTreeCell.class, "getOnSwipeDown", new Class<?>[] {}, com.jxparallel.fx.event.EventHandler.class);
-        }
-        return (com.jxparallel.fx.event.EventHandler) com.jxparallel.fx.Fx.jx(((javafx.scene.control.cell.ComboBoxTreeCell) fxPeer()).getOnSwipeDown());
-    }
-
-    public com.jxparallel.fx.event.EventHandler<? super com.jxparallel.fx.scene.input.MouseEvent> getOnMouseExited() {
-        if (com.jxparallel.fx.Fx.NATIVE) {
-            return (com.jxparallel.fx.event.EventHandler) com.jxparallel.fx.nativeimpl.Native.call(this, com.jxparallel.fx.scene.control.cell.ComboBoxTreeCell.class, "getOnMouseExited", new Class<?>[] {}, com.jxparallel.fx.event.EventHandler.class);
-        }
-        return (com.jxparallel.fx.event.EventHandler) com.jxparallel.fx.Fx.jx(((javafx.scene.control.cell.ComboBoxTreeCell) fxPeer()).getOnMouseExited());
-    }
-
-    public boolean impl_traverse(com.sun.javafx.scene.traversal.Direction arg0) {
-        if (com.jxparallel.fx.Fx.NATIVE) {
-            return (Boolean) com.jxparallel.fx.nativeimpl.Native.call(this, com.jxparallel.fx.scene.control.cell.ComboBoxTreeCell.class, "impl_traverse", new Class<?>[] {com.sun.javafx.scene.traversal.Direction.class}, boolean.class, arg0);
-        }
-        return ((javafx.scene.control.cell.ComboBoxTreeCell) fxPeer()).impl_traverse(arg0);
-    }
-
-    public boolean isDisabled() {
-        if (com.jxparallel.fx.Fx.NATIVE) {
-            return (Boolean) com.jxparallel.fx.nativeimpl.Native.call(this, com.jxparallel.fx.scene.control.cell.ComboBoxTreeCell.class, "isDisabled", new Class<?>[] {}, boolean.class);
-        }
-        return ((javafx.scene.control.cell.ComboBoxTreeCell) fxPeer()).isDisabled();
-    }
-
-    public void impl_syncPeer() {
-        if (com.jxparallel.fx.Fx.NATIVE) {
-            com.jxparallel.fx.nativeimpl.Native.call(this, com.jxparallel.fx.scene.control.cell.ComboBoxTreeCell.class, "impl_syncPeer", new Class<?>[] {}, void.class);
+            com.jxparallel.fx.nativeimpl.Native.call(this, com.jxparallel.fx.scene.control.cell.ComboBoxTreeCell.class, "applyCss", new Class<?>[] {}, void.class);
             return;
         }
-        ((javafx.scene.control.cell.ComboBoxTreeCell) fxPeer()).impl_syncPeer();
+        ((javafx.scene.control.cell.ComboBoxTreeCell) fxPeer()).applyCss();
     }
 
-    public void impl_setStyleMap(javafx.collections.ObservableMap<javafx.css.StyleableProperty<?>, java.util.List<com.sun.javafx.css.Style>> arg0) {
+    public void autosize() {
         if (com.jxparallel.fx.Fx.NATIVE) {
-            com.jxparallel.fx.nativeimpl.Native.call(this, com.jxparallel.fx.scene.control.cell.ComboBoxTreeCell.class, "impl_setStyleMap", new Class<?>[] {javafx.collections.ObservableMap.class}, void.class, arg0);
+            com.jxparallel.fx.nativeimpl.Native.call(this, com.jxparallel.fx.scene.control.cell.ComboBoxTreeCell.class, "autosize", new Class<?>[] {}, void.class);
             return;
         }
-        ((javafx.scene.control.cell.ComboBoxTreeCell) fxPeer()).impl_setStyleMap(arg0);
+        ((javafx.scene.control.cell.ComboBoxTreeCell) fxPeer()).autosize();
     }
 
-    public com.jxparallel.fx.beans.property.StringProperty idProperty() {
+    public void fireEvent(com.jxparallel.fx.event.Event arg0) {
         if (com.jxparallel.fx.Fx.NATIVE) {
-            return (com.jxparallel.fx.beans.property.StringProperty) com.jxparallel.fx.nativeimpl.Native.call(this, com.jxparallel.fx.scene.control.cell.ComboBoxTreeCell.class, "idProperty", new Class<?>[] {}, com.jxparallel.fx.beans.property.StringProperty.class);
+            com.jxparallel.fx.nativeimpl.Native.call(this, com.jxparallel.fx.scene.control.cell.ComboBoxTreeCell.class, "fireEvent", new Class<?>[] {com.jxparallel.fx.event.Event.class}, void.class, arg0);
+            return;
         }
-        return (com.jxparallel.fx.beans.property.StringProperty) com.jxparallel.fx.Fx.jx(((javafx.scene.control.cell.ComboBoxTreeCell) fxPeer()).idProperty());
-    }
-
-    public boolean isFocused() {
-        if (com.jxparallel.fx.Fx.NATIVE) {
-            return (Boolean) com.jxparallel.fx.nativeimpl.Native.call(this, com.jxparallel.fx.scene.control.cell.ComboBoxTreeCell.class, "isFocused", new Class<?>[] {}, boolean.class);
-        }
-        return ((javafx.scene.control.cell.ComboBoxTreeCell) fxPeer()).isFocused();
-    }
-
-    public boolean isPickOnBounds() {
-        if (com.jxparallel.fx.Fx.NATIVE) {
-            return (Boolean) com.jxparallel.fx.nativeimpl.Native.call(this, com.jxparallel.fx.scene.control.cell.ComboBoxTreeCell.class, "isPickOnBounds", new Class<?>[] {}, boolean.class);
-        }
-        return ((javafx.scene.control.cell.ComboBoxTreeCell) fxPeer()).isPickOnBounds();
-    }
-
-    public java.util.Map<javafx.css.StyleableProperty<?>, java.util.List<com.sun.javafx.css.Style>> impl_findStyles(java.util.Map<javafx.css.StyleableProperty<?>, java.util.List<com.sun.javafx.css.Style>> arg0) {
-        if (com.jxparallel.fx.Fx.NATIVE) {
-            return (java.util.Map) com.jxparallel.fx.nativeimpl.Native.call(this, com.jxparallel.fx.scene.control.cell.ComboBoxTreeCell.class, "impl_findStyles", new Class<?>[] {java.util.Map.class}, java.util.Map.class, arg0);
-        }
-        return ((javafx.scene.control.cell.ComboBoxTreeCell) fxPeer()).impl_findStyles(arg0);
+        ((javafx.scene.control.cell.ComboBoxTreeCell) fxPeer()).fireEvent((javafx.event.Event) com.jxparallel.fx.Fx.fx(arg0));
     }
 
     public void impl_pickNode(com.sun.javafx.geom.PickRay arg0, com.sun.javafx.scene.input.PickResultChooser arg1) {
@@ -2673,20 +2780,6 @@ public class ComboBoxTreeCell<T> implements com.jxparallel.fx.scene.control.Skin
             return;
         }
         ((javafx.scene.control.cell.ComboBoxTreeCell) fxPeer()).impl_pickNode(arg0, arg1);
-    }
-
-    public double impl_getPivotZ() {
-        if (com.jxparallel.fx.Fx.NATIVE) {
-            return (Double) com.jxparallel.fx.nativeimpl.Native.call(this, com.jxparallel.fx.scene.control.cell.ComboBoxTreeCell.class, "impl_getPivotZ", new Class<?>[] {}, double.class);
-        }
-        return ((javafx.scene.control.cell.ComboBoxTreeCell) fxPeer()).impl_getPivotZ();
-    }
-
-    public boolean isDisable() {
-        if (com.jxparallel.fx.Fx.NATIVE) {
-            return (Boolean) com.jxparallel.fx.nativeimpl.Native.call(this, com.jxparallel.fx.scene.control.cell.ComboBoxTreeCell.class, "isDisable", new Class<?>[] {}, boolean.class);
-        }
-        return ((javafx.scene.control.cell.ComboBoxTreeCell) fxPeer()).isDisable();
     }
 
     public void impl_processCSS(boolean arg0) {
@@ -2705,412 +2798,76 @@ public class ComboBoxTreeCell<T> implements com.jxparallel.fx.scene.control.Skin
         ((javafx.scene.control.cell.ComboBoxTreeCell) fxPeer()).impl_reapplyCSS();
     }
 
-    public boolean hasProperties() {
+    public void impl_setShowMnemonics(boolean arg0) {
         if (com.jxparallel.fx.Fx.NATIVE) {
-            return (Boolean) com.jxparallel.fx.nativeimpl.Native.call(this, com.jxparallel.fx.scene.control.cell.ComboBoxTreeCell.class, "hasProperties", new Class<?>[] {}, boolean.class);
-        }
-        return ((javafx.scene.control.cell.ComboBoxTreeCell) fxPeer()).hasProperties();
-    }
-
-    public javafx.collections.ObservableMap<javafx.css.StyleableProperty<?>, java.util.List<com.sun.javafx.css.Style>> impl_getStyleMap() {
-        if (com.jxparallel.fx.Fx.NATIVE) {
-            return (javafx.collections.ObservableMap) com.jxparallel.fx.nativeimpl.Native.call(this, com.jxparallel.fx.scene.control.cell.ComboBoxTreeCell.class, "impl_getStyleMap", new Class<?>[] {}, javafx.collections.ObservableMap.class);
-        }
-        return ((javafx.scene.control.cell.ComboBoxTreeCell) fxPeer()).impl_getStyleMap();
-    }
-
-    public boolean isManaged() {
-        if (com.jxparallel.fx.Fx.NATIVE) {
-            return (Boolean) com.jxparallel.fx.nativeimpl.Native.call(this, com.jxparallel.fx.scene.control.cell.ComboBoxTreeCell.class, "isManaged", new Class<?>[] {}, boolean.class);
-        }
-        return ((javafx.scene.control.cell.ComboBoxTreeCell) fxPeer()).isManaged();
-    }
-
-    public com.jxparallel.fx.beans.property.ReadOnlyBooleanProperty hoverProperty() {
-        if (com.jxparallel.fx.Fx.NATIVE) {
-            return (com.jxparallel.fx.beans.property.ReadOnlyBooleanProperty) com.jxparallel.fx.nativeimpl.Native.call(this, com.jxparallel.fx.scene.control.cell.ComboBoxTreeCell.class, "hoverProperty", new Class<?>[] {}, com.jxparallel.fx.beans.property.ReadOnlyBooleanProperty.class);
-        }
-        return (com.jxparallel.fx.beans.property.ReadOnlyBooleanProperty) com.jxparallel.fx.Fx.jx(((javafx.scene.control.cell.ComboBoxTreeCell) fxPeer()).hoverProperty());
-    }
-
-    public com.jxparallel.fx.beans.property.ObjectProperty<com.jxparallel.fx.event.EventHandler<? super com.jxparallel.fx.scene.input.ScrollEvent>> onScrollProperty() {
-        if (com.jxparallel.fx.Fx.NATIVE) {
-            return (com.jxparallel.fx.beans.property.ObjectProperty) com.jxparallel.fx.nativeimpl.Native.call(this, com.jxparallel.fx.scene.control.cell.ComboBoxTreeCell.class, "onScrollProperty", new Class<?>[] {}, com.jxparallel.fx.beans.property.ObjectProperty.class);
-        }
-        return (com.jxparallel.fx.beans.property.ObjectProperty) com.jxparallel.fx.Fx.jx(((javafx.scene.control.cell.ComboBoxTreeCell) fxPeer()).onScrollProperty());
-    }
-
-    public com.jxparallel.fx.geometry.Point2D localToScene(com.jxparallel.fx.geometry.Point2D arg0) {
-        if (com.jxparallel.fx.Fx.NATIVE) {
-            return (com.jxparallel.fx.geometry.Point2D) com.jxparallel.fx.nativeimpl.Native.call(this, com.jxparallel.fx.scene.control.cell.ComboBoxTreeCell.class, "localToScene", new Class<?>[] {com.jxparallel.fx.geometry.Point2D.class}, com.jxparallel.fx.geometry.Point2D.class, arg0);
-        }
-        return (com.jxparallel.fx.geometry.Point2D) com.jxparallel.fx.Fx.jx(((javafx.scene.control.cell.ComboBoxTreeCell) fxPeer()).localToScene((javafx.geometry.Point2D) com.jxparallel.fx.Fx.fx(arg0)));
-    }
-
-    public com.jxparallel.fx.geometry.Point3D localToScene(com.jxparallel.fx.geometry.Point3D arg0) {
-        if (com.jxparallel.fx.Fx.NATIVE) {
-            return (com.jxparallel.fx.geometry.Point3D) com.jxparallel.fx.nativeimpl.Native.call(this, com.jxparallel.fx.scene.control.cell.ComboBoxTreeCell.class, "localToScene", new Class<?>[] {com.jxparallel.fx.geometry.Point3D.class}, com.jxparallel.fx.geometry.Point3D.class, arg0);
-        }
-        return (com.jxparallel.fx.geometry.Point3D) com.jxparallel.fx.Fx.jx(((javafx.scene.control.cell.ComboBoxTreeCell) fxPeer()).localToScene((javafx.geometry.Point3D) com.jxparallel.fx.Fx.fx(arg0)));
-    }
-
-    public com.jxparallel.fx.geometry.Bounds localToScene(com.jxparallel.fx.geometry.Bounds arg0, boolean arg1) {
-        if (com.jxparallel.fx.Fx.NATIVE) {
-            return (com.jxparallel.fx.geometry.Bounds) com.jxparallel.fx.nativeimpl.Native.call(this, com.jxparallel.fx.scene.control.cell.ComboBoxTreeCell.class, "localToScene", new Class<?>[] {com.jxparallel.fx.geometry.Bounds.class, boolean.class}, com.jxparallel.fx.geometry.Bounds.class, arg0, arg1);
-        }
-        return (com.jxparallel.fx.geometry.Bounds) com.jxparallel.fx.Fx.jx(((javafx.scene.control.cell.ComboBoxTreeCell) fxPeer()).localToScene((javafx.geometry.Bounds) com.jxparallel.fx.Fx.fx(arg0), arg1));
-    }
-
-    public com.jxparallel.fx.geometry.Bounds localToScene(com.jxparallel.fx.geometry.Bounds arg0) {
-        if (com.jxparallel.fx.Fx.NATIVE) {
-            return (com.jxparallel.fx.geometry.Bounds) com.jxparallel.fx.nativeimpl.Native.call(this, com.jxparallel.fx.scene.control.cell.ComboBoxTreeCell.class, "localToScene", new Class<?>[] {com.jxparallel.fx.geometry.Bounds.class}, com.jxparallel.fx.geometry.Bounds.class, arg0);
-        }
-        return (com.jxparallel.fx.geometry.Bounds) com.jxparallel.fx.Fx.jx(((javafx.scene.control.cell.ComboBoxTreeCell) fxPeer()).localToScene((javafx.geometry.Bounds) com.jxparallel.fx.Fx.fx(arg0)));
-    }
-
-    public com.jxparallel.fx.geometry.Point2D localToScene(double arg0, double arg1) {
-        if (com.jxparallel.fx.Fx.NATIVE) {
-            return (com.jxparallel.fx.geometry.Point2D) com.jxparallel.fx.nativeimpl.Native.call(this, com.jxparallel.fx.scene.control.cell.ComboBoxTreeCell.class, "localToScene", new Class<?>[] {double.class, double.class}, com.jxparallel.fx.geometry.Point2D.class, arg0, arg1);
-        }
-        return (com.jxparallel.fx.geometry.Point2D) com.jxparallel.fx.Fx.jx(((javafx.scene.control.cell.ComboBoxTreeCell) fxPeer()).localToScene(arg0, arg1));
-    }
-
-    public com.jxparallel.fx.geometry.Point3D localToScene(double arg0, double arg1, double arg2, boolean arg3) {
-        if (com.jxparallel.fx.Fx.NATIVE) {
-            return (com.jxparallel.fx.geometry.Point3D) com.jxparallel.fx.nativeimpl.Native.call(this, com.jxparallel.fx.scene.control.cell.ComboBoxTreeCell.class, "localToScene", new Class<?>[] {double.class, double.class, double.class, boolean.class}, com.jxparallel.fx.geometry.Point3D.class, arg0, arg1, arg2, arg3);
-        }
-        return (com.jxparallel.fx.geometry.Point3D) com.jxparallel.fx.Fx.jx(((javafx.scene.control.cell.ComboBoxTreeCell) fxPeer()).localToScene(arg0, arg1, arg2, arg3));
-    }
-
-    public com.jxparallel.fx.geometry.Point2D localToScene(com.jxparallel.fx.geometry.Point2D arg0, boolean arg1) {
-        if (com.jxparallel.fx.Fx.NATIVE) {
-            return (com.jxparallel.fx.geometry.Point2D) com.jxparallel.fx.nativeimpl.Native.call(this, com.jxparallel.fx.scene.control.cell.ComboBoxTreeCell.class, "localToScene", new Class<?>[] {com.jxparallel.fx.geometry.Point2D.class, boolean.class}, com.jxparallel.fx.geometry.Point2D.class, arg0, arg1);
-        }
-        return (com.jxparallel.fx.geometry.Point2D) com.jxparallel.fx.Fx.jx(((javafx.scene.control.cell.ComboBoxTreeCell) fxPeer()).localToScene((javafx.geometry.Point2D) com.jxparallel.fx.Fx.fx(arg0), arg1));
-    }
-
-    public com.jxparallel.fx.geometry.Point2D localToScene(double arg0, double arg1, boolean arg2) {
-        if (com.jxparallel.fx.Fx.NATIVE) {
-            return (com.jxparallel.fx.geometry.Point2D) com.jxparallel.fx.nativeimpl.Native.call(this, com.jxparallel.fx.scene.control.cell.ComboBoxTreeCell.class, "localToScene", new Class<?>[] {double.class, double.class, boolean.class}, com.jxparallel.fx.geometry.Point2D.class, arg0, arg1, arg2);
-        }
-        return (com.jxparallel.fx.geometry.Point2D) com.jxparallel.fx.Fx.jx(((javafx.scene.control.cell.ComboBoxTreeCell) fxPeer()).localToScene(arg0, arg1, arg2));
-    }
-
-    public com.jxparallel.fx.geometry.Point3D localToScene(com.jxparallel.fx.geometry.Point3D arg0, boolean arg1) {
-        if (com.jxparallel.fx.Fx.NATIVE) {
-            return (com.jxparallel.fx.geometry.Point3D) com.jxparallel.fx.nativeimpl.Native.call(this, com.jxparallel.fx.scene.control.cell.ComboBoxTreeCell.class, "localToScene", new Class<?>[] {com.jxparallel.fx.geometry.Point3D.class, boolean.class}, com.jxparallel.fx.geometry.Point3D.class, arg0, arg1);
-        }
-        return (com.jxparallel.fx.geometry.Point3D) com.jxparallel.fx.Fx.jx(((javafx.scene.control.cell.ComboBoxTreeCell) fxPeer()).localToScene((javafx.geometry.Point3D) com.jxparallel.fx.Fx.fx(arg0), arg1));
-    }
-
-    public com.jxparallel.fx.geometry.Point3D localToScene(double arg0, double arg1, double arg2) {
-        if (com.jxparallel.fx.Fx.NATIVE) {
-            return (com.jxparallel.fx.geometry.Point3D) com.jxparallel.fx.nativeimpl.Native.call(this, com.jxparallel.fx.scene.control.cell.ComboBoxTreeCell.class, "localToScene", new Class<?>[] {double.class, double.class, double.class}, com.jxparallel.fx.geometry.Point3D.class, arg0, arg1, arg2);
-        }
-        return (com.jxparallel.fx.geometry.Point3D) com.jxparallel.fx.Fx.jx(((javafx.scene.control.cell.ComboBoxTreeCell) fxPeer()).localToScene(arg0, arg1, arg2));
-    }
-
-    public com.jxparallel.fx.beans.property.DoubleProperty opacityProperty() {
-        if (com.jxparallel.fx.Fx.NATIVE) {
-            return (com.jxparallel.fx.beans.property.DoubleProperty) com.jxparallel.fx.nativeimpl.Native.call(this, com.jxparallel.fx.scene.control.cell.ComboBoxTreeCell.class, "opacityProperty", new Class<?>[] {}, com.jxparallel.fx.beans.property.DoubleProperty.class);
-        }
-        return (com.jxparallel.fx.beans.property.DoubleProperty) com.jxparallel.fx.Fx.jx(((javafx.scene.control.cell.ComboBoxTreeCell) fxPeer()).opacityProperty());
-    }
-
-    public com.jxparallel.fx.geometry.Point2D localToParent(double arg0, double arg1) {
-        if (com.jxparallel.fx.Fx.NATIVE) {
-            return (com.jxparallel.fx.geometry.Point2D) com.jxparallel.fx.nativeimpl.Native.call(this, com.jxparallel.fx.scene.control.cell.ComboBoxTreeCell.class, "localToParent", new Class<?>[] {double.class, double.class}, com.jxparallel.fx.geometry.Point2D.class, arg0, arg1);
-        }
-        return (com.jxparallel.fx.geometry.Point2D) com.jxparallel.fx.Fx.jx(((javafx.scene.control.cell.ComboBoxTreeCell) fxPeer()).localToParent(arg0, arg1));
-    }
-
-    public com.jxparallel.fx.geometry.Point3D localToParent(double arg0, double arg1, double arg2) {
-        if (com.jxparallel.fx.Fx.NATIVE) {
-            return (com.jxparallel.fx.geometry.Point3D) com.jxparallel.fx.nativeimpl.Native.call(this, com.jxparallel.fx.scene.control.cell.ComboBoxTreeCell.class, "localToParent", new Class<?>[] {double.class, double.class, double.class}, com.jxparallel.fx.geometry.Point3D.class, arg0, arg1, arg2);
-        }
-        return (com.jxparallel.fx.geometry.Point3D) com.jxparallel.fx.Fx.jx(((javafx.scene.control.cell.ComboBoxTreeCell) fxPeer()).localToParent(arg0, arg1, arg2));
-    }
-
-    public com.jxparallel.fx.geometry.Point3D localToParent(com.jxparallel.fx.geometry.Point3D arg0) {
-        if (com.jxparallel.fx.Fx.NATIVE) {
-            return (com.jxparallel.fx.geometry.Point3D) com.jxparallel.fx.nativeimpl.Native.call(this, com.jxparallel.fx.scene.control.cell.ComboBoxTreeCell.class, "localToParent", new Class<?>[] {com.jxparallel.fx.geometry.Point3D.class}, com.jxparallel.fx.geometry.Point3D.class, arg0);
-        }
-        return (com.jxparallel.fx.geometry.Point3D) com.jxparallel.fx.Fx.jx(((javafx.scene.control.cell.ComboBoxTreeCell) fxPeer()).localToParent((javafx.geometry.Point3D) com.jxparallel.fx.Fx.fx(arg0)));
-    }
-
-    public com.jxparallel.fx.geometry.Point2D localToParent(com.jxparallel.fx.geometry.Point2D arg0) {
-        if (com.jxparallel.fx.Fx.NATIVE) {
-            return (com.jxparallel.fx.geometry.Point2D) com.jxparallel.fx.nativeimpl.Native.call(this, com.jxparallel.fx.scene.control.cell.ComboBoxTreeCell.class, "localToParent", new Class<?>[] {com.jxparallel.fx.geometry.Point2D.class}, com.jxparallel.fx.geometry.Point2D.class, arg0);
-        }
-        return (com.jxparallel.fx.geometry.Point2D) com.jxparallel.fx.Fx.jx(((javafx.scene.control.cell.ComboBoxTreeCell) fxPeer()).localToParent((javafx.geometry.Point2D) com.jxparallel.fx.Fx.fx(arg0)));
-    }
-
-    public com.jxparallel.fx.geometry.Bounds localToParent(com.jxparallel.fx.geometry.Bounds arg0) {
-        if (com.jxparallel.fx.Fx.NATIVE) {
-            return (com.jxparallel.fx.geometry.Bounds) com.jxparallel.fx.nativeimpl.Native.call(this, com.jxparallel.fx.scene.control.cell.ComboBoxTreeCell.class, "localToParent", new Class<?>[] {com.jxparallel.fx.geometry.Bounds.class}, com.jxparallel.fx.geometry.Bounds.class, arg0);
-        }
-        return (com.jxparallel.fx.geometry.Bounds) com.jxparallel.fx.Fx.jx(((javafx.scene.control.cell.ComboBoxTreeCell) fxPeer()).localToParent((javafx.geometry.Bounds) com.jxparallel.fx.Fx.fx(arg0)));
-    }
-
-    public com.jxparallel.fx.beans.property.ReadOnlyObjectProperty<com.jxparallel.fx.scene.Parent> parentProperty() {
-        if (com.jxparallel.fx.Fx.NATIVE) {
-            return (com.jxparallel.fx.beans.property.ReadOnlyObjectProperty) com.jxparallel.fx.nativeimpl.Native.call(this, com.jxparallel.fx.scene.control.cell.ComboBoxTreeCell.class, "parentProperty", new Class<?>[] {}, com.jxparallel.fx.beans.property.ReadOnlyObjectProperty.class);
-        }
-        return (com.jxparallel.fx.beans.property.ReadOnlyObjectProperty) com.jxparallel.fx.Fx.jx(((javafx.scene.control.cell.ComboBoxTreeCell) fxPeer()).parentProperty());
-    }
-
-    public com.jxparallel.fx.beans.property.BooleanProperty managedProperty() {
-        if (com.jxparallel.fx.Fx.NATIVE) {
-            return (com.jxparallel.fx.beans.property.BooleanProperty) com.jxparallel.fx.nativeimpl.Native.call(this, com.jxparallel.fx.scene.control.cell.ComboBoxTreeCell.class, "managedProperty", new Class<?>[] {}, com.jxparallel.fx.beans.property.BooleanProperty.class);
-        }
-        return (com.jxparallel.fx.beans.property.BooleanProperty) com.jxparallel.fx.Fx.jx(((javafx.scene.control.cell.ComboBoxTreeCell) fxPeer()).managedProperty());
-    }
-
-    public com.jxparallel.fx.beans.property.ObjectProperty<com.jxparallel.fx.event.EventHandler<? super com.jxparallel.fx.scene.input.ZoomEvent>> onZoomProperty() {
-        if (com.jxparallel.fx.Fx.NATIVE) {
-            return (com.jxparallel.fx.beans.property.ObjectProperty) com.jxparallel.fx.nativeimpl.Native.call(this, com.jxparallel.fx.scene.control.cell.ComboBoxTreeCell.class, "onZoomProperty", new Class<?>[] {}, com.jxparallel.fx.beans.property.ObjectProperty.class);
-        }
-        return (com.jxparallel.fx.beans.property.ObjectProperty) com.jxparallel.fx.Fx.jx(((javafx.scene.control.cell.ComboBoxTreeCell) fxPeer()).onZoomProperty());
-    }
-
-    public boolean isVisible() {
-        if (com.jxparallel.fx.Fx.NATIVE) {
-            return (Boolean) com.jxparallel.fx.nativeimpl.Native.call(this, com.jxparallel.fx.scene.control.cell.ComboBoxTreeCell.class, "isVisible", new Class<?>[] {}, boolean.class);
-        }
-        return ((javafx.scene.control.cell.ComboBoxTreeCell) fxPeer()).isVisible();
-    }
-
-    public com.jxparallel.fx.geometry.Point2D localToScreen(com.jxparallel.fx.geometry.Point3D arg0) {
-        if (com.jxparallel.fx.Fx.NATIVE) {
-            return (com.jxparallel.fx.geometry.Point2D) com.jxparallel.fx.nativeimpl.Native.call(this, com.jxparallel.fx.scene.control.cell.ComboBoxTreeCell.class, "localToScreen", new Class<?>[] {com.jxparallel.fx.geometry.Point3D.class}, com.jxparallel.fx.geometry.Point2D.class, arg0);
-        }
-        return (com.jxparallel.fx.geometry.Point2D) com.jxparallel.fx.Fx.jx(((javafx.scene.control.cell.ComboBoxTreeCell) fxPeer()).localToScreen((javafx.geometry.Point3D) com.jxparallel.fx.Fx.fx(arg0)));
-    }
-
-    public com.jxparallel.fx.geometry.Point2D localToScreen(com.jxparallel.fx.geometry.Point2D arg0) {
-        if (com.jxparallel.fx.Fx.NATIVE) {
-            return (com.jxparallel.fx.geometry.Point2D) com.jxparallel.fx.nativeimpl.Native.call(this, com.jxparallel.fx.scene.control.cell.ComboBoxTreeCell.class, "localToScreen", new Class<?>[] {com.jxparallel.fx.geometry.Point2D.class}, com.jxparallel.fx.geometry.Point2D.class, arg0);
-        }
-        return (com.jxparallel.fx.geometry.Point2D) com.jxparallel.fx.Fx.jx(((javafx.scene.control.cell.ComboBoxTreeCell) fxPeer()).localToScreen((javafx.geometry.Point2D) com.jxparallel.fx.Fx.fx(arg0)));
-    }
-
-    public com.jxparallel.fx.geometry.Bounds localToScreen(com.jxparallel.fx.geometry.Bounds arg0) {
-        if (com.jxparallel.fx.Fx.NATIVE) {
-            return (com.jxparallel.fx.geometry.Bounds) com.jxparallel.fx.nativeimpl.Native.call(this, com.jxparallel.fx.scene.control.cell.ComboBoxTreeCell.class, "localToScreen", new Class<?>[] {com.jxparallel.fx.geometry.Bounds.class}, com.jxparallel.fx.geometry.Bounds.class, arg0);
-        }
-        return (com.jxparallel.fx.geometry.Bounds) com.jxparallel.fx.Fx.jx(((javafx.scene.control.cell.ComboBoxTreeCell) fxPeer()).localToScreen((javafx.geometry.Bounds) com.jxparallel.fx.Fx.fx(arg0)));
-    }
-
-    public com.jxparallel.fx.geometry.Point2D localToScreen(double arg0, double arg1) {
-        if (com.jxparallel.fx.Fx.NATIVE) {
-            return (com.jxparallel.fx.geometry.Point2D) com.jxparallel.fx.nativeimpl.Native.call(this, com.jxparallel.fx.scene.control.cell.ComboBoxTreeCell.class, "localToScreen", new Class<?>[] {double.class, double.class}, com.jxparallel.fx.geometry.Point2D.class, arg0, arg1);
-        }
-        return (com.jxparallel.fx.geometry.Point2D) com.jxparallel.fx.Fx.jx(((javafx.scene.control.cell.ComboBoxTreeCell) fxPeer()).localToScreen(arg0, arg1));
-    }
-
-    public com.jxparallel.fx.geometry.Point2D localToScreen(double arg0, double arg1, double arg2) {
-        if (com.jxparallel.fx.Fx.NATIVE) {
-            return (com.jxparallel.fx.geometry.Point2D) com.jxparallel.fx.nativeimpl.Native.call(this, com.jxparallel.fx.scene.control.cell.ComboBoxTreeCell.class, "localToScreen", new Class<?>[] {double.class, double.class, double.class}, com.jxparallel.fx.geometry.Point2D.class, arg0, arg1, arg2);
-        }
-        return (com.jxparallel.fx.geometry.Point2D) com.jxparallel.fx.Fx.jx(((javafx.scene.control.cell.ComboBoxTreeCell) fxPeer()).localToScreen(arg0, arg1, arg2));
-    }
-
-    public java.util.Set<com.jxparallel.fx.scene.Node> lookupAll(java.lang.String arg0) {
-        if (com.jxparallel.fx.Fx.NATIVE) {
-            return (java.util.Set) com.jxparallel.fx.nativeimpl.Native.call(this, com.jxparallel.fx.scene.control.cell.ComboBoxTreeCell.class, "lookupAll", new Class<?>[] {java.lang.String.class}, java.util.Set.class, arg0);
-        }
-        return (java.util.Set) com.jxparallel.fx.Fx.jxCollection((java.util.Collection) ((javafx.scene.control.cell.ComboBoxTreeCell) fxPeer()).lookupAll(arg0));
-    }
-
-    public com.jxparallel.fx.geometry.Point3D parentToLocal(double arg0, double arg1, double arg2) {
-        if (com.jxparallel.fx.Fx.NATIVE) {
-            return (com.jxparallel.fx.geometry.Point3D) com.jxparallel.fx.nativeimpl.Native.call(this, com.jxparallel.fx.scene.control.cell.ComboBoxTreeCell.class, "parentToLocal", new Class<?>[] {double.class, double.class, double.class}, com.jxparallel.fx.geometry.Point3D.class, arg0, arg1, arg2);
-        }
-        return (com.jxparallel.fx.geometry.Point3D) com.jxparallel.fx.Fx.jx(((javafx.scene.control.cell.ComboBoxTreeCell) fxPeer()).parentToLocal(arg0, arg1, arg2));
-    }
-
-    public com.jxparallel.fx.geometry.Point2D parentToLocal(double arg0, double arg1) {
-        if (com.jxparallel.fx.Fx.NATIVE) {
-            return (com.jxparallel.fx.geometry.Point2D) com.jxparallel.fx.nativeimpl.Native.call(this, com.jxparallel.fx.scene.control.cell.ComboBoxTreeCell.class, "parentToLocal", new Class<?>[] {double.class, double.class}, com.jxparallel.fx.geometry.Point2D.class, arg0, arg1);
-        }
-        return (com.jxparallel.fx.geometry.Point2D) com.jxparallel.fx.Fx.jx(((javafx.scene.control.cell.ComboBoxTreeCell) fxPeer()).parentToLocal(arg0, arg1));
-    }
-
-    public com.jxparallel.fx.geometry.Point3D parentToLocal(com.jxparallel.fx.geometry.Point3D arg0) {
-        if (com.jxparallel.fx.Fx.NATIVE) {
-            return (com.jxparallel.fx.geometry.Point3D) com.jxparallel.fx.nativeimpl.Native.call(this, com.jxparallel.fx.scene.control.cell.ComboBoxTreeCell.class, "parentToLocal", new Class<?>[] {com.jxparallel.fx.geometry.Point3D.class}, com.jxparallel.fx.geometry.Point3D.class, arg0);
-        }
-        return (com.jxparallel.fx.geometry.Point3D) com.jxparallel.fx.Fx.jx(((javafx.scene.control.cell.ComboBoxTreeCell) fxPeer()).parentToLocal((javafx.geometry.Point3D) com.jxparallel.fx.Fx.fx(arg0)));
-    }
-
-    public com.jxparallel.fx.geometry.Bounds parentToLocal(com.jxparallel.fx.geometry.Bounds arg0) {
-        if (com.jxparallel.fx.Fx.NATIVE) {
-            return (com.jxparallel.fx.geometry.Bounds) com.jxparallel.fx.nativeimpl.Native.call(this, com.jxparallel.fx.scene.control.cell.ComboBoxTreeCell.class, "parentToLocal", new Class<?>[] {com.jxparallel.fx.geometry.Bounds.class}, com.jxparallel.fx.geometry.Bounds.class, arg0);
-        }
-        return (com.jxparallel.fx.geometry.Bounds) com.jxparallel.fx.Fx.jx(((javafx.scene.control.cell.ComboBoxTreeCell) fxPeer()).parentToLocal((javafx.geometry.Bounds) com.jxparallel.fx.Fx.fx(arg0)));
-    }
-
-    public com.jxparallel.fx.geometry.Point2D parentToLocal(com.jxparallel.fx.geometry.Point2D arg0) {
-        if (com.jxparallel.fx.Fx.NATIVE) {
-            return (com.jxparallel.fx.geometry.Point2D) com.jxparallel.fx.nativeimpl.Native.call(this, com.jxparallel.fx.scene.control.cell.ComboBoxTreeCell.class, "parentToLocal", new Class<?>[] {com.jxparallel.fx.geometry.Point2D.class}, com.jxparallel.fx.geometry.Point2D.class, arg0);
-        }
-        return (com.jxparallel.fx.geometry.Point2D) com.jxparallel.fx.Fx.jx(((javafx.scene.control.cell.ComboBoxTreeCell) fxPeer()).parentToLocal((javafx.geometry.Point2D) com.jxparallel.fx.Fx.fx(arg0)));
-    }
-
-    public com.jxparallel.fx.beans.property.DoubleProperty layoutXProperty() {
-        if (com.jxparallel.fx.Fx.NATIVE) {
-            return (com.jxparallel.fx.beans.property.DoubleProperty) com.jxparallel.fx.nativeimpl.Native.call(this, com.jxparallel.fx.scene.control.cell.ComboBoxTreeCell.class, "layoutXProperty", new Class<?>[] {}, com.jxparallel.fx.beans.property.DoubleProperty.class);
-        }
-        return (com.jxparallel.fx.beans.property.DoubleProperty) com.jxparallel.fx.Fx.jx(((javafx.scene.control.cell.ComboBoxTreeCell) fxPeer()).layoutXProperty());
-    }
-
-    public com.jxparallel.fx.beans.property.DoubleProperty layoutYProperty() {
-        if (com.jxparallel.fx.Fx.NATIVE) {
-            return (com.jxparallel.fx.beans.property.DoubleProperty) com.jxparallel.fx.nativeimpl.Native.call(this, com.jxparallel.fx.scene.control.cell.ComboBoxTreeCell.class, "layoutYProperty", new Class<?>[] {}, com.jxparallel.fx.beans.property.DoubleProperty.class);
-        }
-        return (com.jxparallel.fx.beans.property.DoubleProperty) com.jxparallel.fx.Fx.jx(((javafx.scene.control.cell.ComboBoxTreeCell) fxPeer()).layoutYProperty());
-    }
-
-    public boolean isPressed() {
-        if (com.jxparallel.fx.Fx.NATIVE) {
-            return (Boolean) com.jxparallel.fx.nativeimpl.Native.call(this, com.jxparallel.fx.scene.control.cell.ComboBoxTreeCell.class, "isPressed", new Class<?>[] {}, boolean.class);
-        }
-        return ((javafx.scene.control.cell.ComboBoxTreeCell) fxPeer()).isPressed();
-    }
-
-    public com.jxparallel.fx.beans.property.ObjectProperty<com.jxparallel.fx.event.EventHandler<? super com.jxparallel.fx.scene.input.RotateEvent>> onRotateProperty() {
-        if (com.jxparallel.fx.Fx.NATIVE) {
-            return (com.jxparallel.fx.beans.property.ObjectProperty) com.jxparallel.fx.nativeimpl.Native.call(this, com.jxparallel.fx.scene.control.cell.ComboBoxTreeCell.class, "onRotateProperty", new Class<?>[] {}, com.jxparallel.fx.beans.property.ObjectProperty.class);
-        }
-        return (com.jxparallel.fx.beans.property.ObjectProperty) com.jxparallel.fx.Fx.jx(((javafx.scene.control.cell.ComboBoxTreeCell) fxPeer()).onRotateProperty());
-    }
-
-    public void resizeRelocate(double arg0, double arg1, double arg2, double arg3) {
-        if (com.jxparallel.fx.Fx.NATIVE) {
-            com.jxparallel.fx.nativeimpl.Native.call(this, com.jxparallel.fx.scene.control.cell.ComboBoxTreeCell.class, "resizeRelocate", new Class<?>[] {double.class, double.class, double.class, double.class}, void.class, arg0, arg1, arg2, arg3);
+            com.jxparallel.fx.nativeimpl.Native.call(this, com.jxparallel.fx.scene.control.cell.ComboBoxTreeCell.class, "impl_setShowMnemonics", new Class<?>[] {boolean.class}, void.class, arg0);
             return;
         }
-        ((javafx.scene.control.cell.ComboBoxTreeCell) fxPeer()).resizeRelocate(arg0, arg1, arg2, arg3);
+        ((javafx.scene.control.cell.ComboBoxTreeCell) fxPeer()).impl_setShowMnemonics(arg0);
     }
 
-    public void requestFocus() {
+    public void impl_setStyleMap(javafx.collections.ObservableMap<javafx.css.StyleableProperty<?>, java.util.List<com.sun.javafx.css.Style>> arg0) {
         if (com.jxparallel.fx.Fx.NATIVE) {
-            com.jxparallel.fx.nativeimpl.Native.call(this, com.jxparallel.fx.scene.control.cell.ComboBoxTreeCell.class, "requestFocus", new Class<?>[] {}, void.class);
+            com.jxparallel.fx.nativeimpl.Native.call(this, com.jxparallel.fx.scene.control.cell.ComboBoxTreeCell.class, "impl_setStyleMap", new Class<?>[] {javafx.collections.ObservableMap.class}, void.class, arg0);
             return;
         }
-        ((javafx.scene.control.cell.ComboBoxTreeCell) fxPeer()).requestFocus();
+        ((javafx.scene.control.cell.ComboBoxTreeCell) fxPeer()).impl_setStyleMap(arg0);
     }
 
-    public com.jxparallel.fx.beans.property.DoubleProperty scaleXProperty() {
+    public void impl_syncPeer() {
         if (com.jxparallel.fx.Fx.NATIVE) {
-            return (com.jxparallel.fx.beans.property.DoubleProperty) com.jxparallel.fx.nativeimpl.Native.call(this, com.jxparallel.fx.scene.control.cell.ComboBoxTreeCell.class, "scaleXProperty", new Class<?>[] {}, com.jxparallel.fx.beans.property.DoubleProperty.class);
+            com.jxparallel.fx.nativeimpl.Native.call(this, com.jxparallel.fx.scene.control.cell.ComboBoxTreeCell.class, "impl_syncPeer", new Class<?>[] {}, void.class);
+            return;
         }
-        return (com.jxparallel.fx.beans.property.DoubleProperty) com.jxparallel.fx.Fx.jx(((javafx.scene.control.cell.ComboBoxTreeCell) fxPeer()).scaleXProperty());
+        ((javafx.scene.control.cell.ComboBoxTreeCell) fxPeer()).impl_syncPeer();
     }
 
-    public com.jxparallel.fx.beans.property.DoubleProperty scaleZProperty() {
+    public void notifyAccessibleAttributeChanged(com.jxparallel.fx.scene.AccessibleAttribute arg0) {
         if (com.jxparallel.fx.Fx.NATIVE) {
-            return (com.jxparallel.fx.beans.property.DoubleProperty) com.jxparallel.fx.nativeimpl.Native.call(this, com.jxparallel.fx.scene.control.cell.ComboBoxTreeCell.class, "scaleZProperty", new Class<?>[] {}, com.jxparallel.fx.beans.property.DoubleProperty.class);
+            com.jxparallel.fx.nativeimpl.Native.call(this, com.jxparallel.fx.scene.control.cell.ComboBoxTreeCell.class, "notifyAccessibleAttributeChanged", new Class<?>[] {com.jxparallel.fx.scene.AccessibleAttribute.class}, void.class, arg0);
+            return;
         }
-        return (com.jxparallel.fx.beans.property.DoubleProperty) com.jxparallel.fx.Fx.jx(((javafx.scene.control.cell.ComboBoxTreeCell) fxPeer()).scaleZProperty());
+        ((javafx.scene.control.cell.ComboBoxTreeCell) fxPeer()).notifyAccessibleAttributeChanged((javafx.scene.AccessibleAttribute) com.jxparallel.fx.Fx.fx(arg0));
     }
 
-    public com.jxparallel.fx.beans.property.DoubleProperty rotateProperty() {
+    public void pseudoClassStateChanged(javafx.css.PseudoClass arg0, boolean arg1) {
         if (com.jxparallel.fx.Fx.NATIVE) {
-            return (com.jxparallel.fx.beans.property.DoubleProperty) com.jxparallel.fx.nativeimpl.Native.call(this, com.jxparallel.fx.scene.control.cell.ComboBoxTreeCell.class, "rotateProperty", new Class<?>[] {}, com.jxparallel.fx.beans.property.DoubleProperty.class);
+            com.jxparallel.fx.nativeimpl.Native.call(this, com.jxparallel.fx.scene.control.cell.ComboBoxTreeCell.class, "pseudoClassStateChanged", new Class<?>[] {javafx.css.PseudoClass.class, boolean.class}, void.class, arg0, arg1);
+            return;
         }
-        return (com.jxparallel.fx.beans.property.DoubleProperty) com.jxparallel.fx.Fx.jx(((javafx.scene.control.cell.ComboBoxTreeCell) fxPeer()).rotateProperty());
+        ((javafx.scene.control.cell.ComboBoxTreeCell) fxPeer()).pseudoClassStateChanged(arg0, arg1);
     }
 
-    public com.jxparallel.fx.geometry.Point2D screenToLocal(double arg0, double arg1) {
+    public void setAccessibleHelp(java.lang.String arg0) {
         if (com.jxparallel.fx.Fx.NATIVE) {
-            return (com.jxparallel.fx.geometry.Point2D) com.jxparallel.fx.nativeimpl.Native.call(this, com.jxparallel.fx.scene.control.cell.ComboBoxTreeCell.class, "screenToLocal", new Class<?>[] {double.class, double.class}, com.jxparallel.fx.geometry.Point2D.class, arg0, arg1);
+            com.jxparallel.fx.nativeimpl.Native.call(this, com.jxparallel.fx.scene.control.cell.ComboBoxTreeCell.class, "setAccessibleHelp", new Class<?>[] {java.lang.String.class}, void.class, arg0);
+            return;
         }
-        return (com.jxparallel.fx.geometry.Point2D) com.jxparallel.fx.Fx.jx(((javafx.scene.control.cell.ComboBoxTreeCell) fxPeer()).screenToLocal(arg0, arg1));
+        ((javafx.scene.control.cell.ComboBoxTreeCell) fxPeer()).setAccessibleHelp(arg0);
     }
 
-    public com.jxparallel.fx.geometry.Point2D screenToLocal(com.jxparallel.fx.geometry.Point2D arg0) {
+    public void setAccessibleRole(com.jxparallel.fx.scene.AccessibleRole arg0) {
         if (com.jxparallel.fx.Fx.NATIVE) {
-            return (com.jxparallel.fx.geometry.Point2D) com.jxparallel.fx.nativeimpl.Native.call(this, com.jxparallel.fx.scene.control.cell.ComboBoxTreeCell.class, "screenToLocal", new Class<?>[] {com.jxparallel.fx.geometry.Point2D.class}, com.jxparallel.fx.geometry.Point2D.class, arg0);
+            com.jxparallel.fx.nativeimpl.Native.call(this, com.jxparallel.fx.scene.control.cell.ComboBoxTreeCell.class, "setAccessibleRole", new Class<?>[] {com.jxparallel.fx.scene.AccessibleRole.class}, void.class, arg0);
+            return;
         }
-        return (com.jxparallel.fx.geometry.Point2D) com.jxparallel.fx.Fx.jx(((javafx.scene.control.cell.ComboBoxTreeCell) fxPeer()).screenToLocal((javafx.geometry.Point2D) com.jxparallel.fx.Fx.fx(arg0)));
+        ((javafx.scene.control.cell.ComboBoxTreeCell) fxPeer()).setAccessibleRole((javafx.scene.AccessibleRole) com.jxparallel.fx.Fx.fx(arg0));
     }
 
-    public com.jxparallel.fx.geometry.Bounds screenToLocal(com.jxparallel.fx.geometry.Bounds arg0) {
+    public void setAccessibleRoleDescription(java.lang.String arg0) {
         if (com.jxparallel.fx.Fx.NATIVE) {
-            return (com.jxparallel.fx.geometry.Bounds) com.jxparallel.fx.nativeimpl.Native.call(this, com.jxparallel.fx.scene.control.cell.ComboBoxTreeCell.class, "screenToLocal", new Class<?>[] {com.jxparallel.fx.geometry.Bounds.class}, com.jxparallel.fx.geometry.Bounds.class, arg0);
+            com.jxparallel.fx.nativeimpl.Native.call(this, com.jxparallel.fx.scene.control.cell.ComboBoxTreeCell.class, "setAccessibleRoleDescription", new Class<?>[] {java.lang.String.class}, void.class, arg0);
+            return;
         }
-        return (com.jxparallel.fx.geometry.Bounds) com.jxparallel.fx.Fx.jx(((javafx.scene.control.cell.ComboBoxTreeCell) fxPeer()).screenToLocal((javafx.geometry.Bounds) com.jxparallel.fx.Fx.fx(arg0)));
+        ((javafx.scene.control.cell.ComboBoxTreeCell) fxPeer()).setAccessibleRoleDescription(arg0);
     }
 
-    public com.jxparallel.fx.geometry.Point2D sceneToLocal(double arg0, double arg1) {
+    public void setAccessibleText(java.lang.String arg0) {
         if (com.jxparallel.fx.Fx.NATIVE) {
-            return (com.jxparallel.fx.geometry.Point2D) com.jxparallel.fx.nativeimpl.Native.call(this, com.jxparallel.fx.scene.control.cell.ComboBoxTreeCell.class, "sceneToLocal", new Class<?>[] {double.class, double.class}, com.jxparallel.fx.geometry.Point2D.class, arg0, arg1);
+            com.jxparallel.fx.nativeimpl.Native.call(this, com.jxparallel.fx.scene.control.cell.ComboBoxTreeCell.class, "setAccessibleText", new Class<?>[] {java.lang.String.class}, void.class, arg0);
+            return;
         }
-        return (com.jxparallel.fx.geometry.Point2D) com.jxparallel.fx.Fx.jx(((javafx.scene.control.cell.ComboBoxTreeCell) fxPeer()).sceneToLocal(arg0, arg1));
-    }
-
-    public com.jxparallel.fx.geometry.Point3D sceneToLocal(com.jxparallel.fx.geometry.Point3D arg0) {
-        if (com.jxparallel.fx.Fx.NATIVE) {
-            return (com.jxparallel.fx.geometry.Point3D) com.jxparallel.fx.nativeimpl.Native.call(this, com.jxparallel.fx.scene.control.cell.ComboBoxTreeCell.class, "sceneToLocal", new Class<?>[] {com.jxparallel.fx.geometry.Point3D.class}, com.jxparallel.fx.geometry.Point3D.class, arg0);
-        }
-        return (com.jxparallel.fx.geometry.Point3D) com.jxparallel.fx.Fx.jx(((javafx.scene.control.cell.ComboBoxTreeCell) fxPeer()).sceneToLocal((javafx.geometry.Point3D) com.jxparallel.fx.Fx.fx(arg0)));
-    }
-
-    public com.jxparallel.fx.geometry.Point3D sceneToLocal(double arg0, double arg1, double arg2) {
-        if (com.jxparallel.fx.Fx.NATIVE) {
-            return (com.jxparallel.fx.geometry.Point3D) com.jxparallel.fx.nativeimpl.Native.call(this, com.jxparallel.fx.scene.control.cell.ComboBoxTreeCell.class, "sceneToLocal", new Class<?>[] {double.class, double.class, double.class}, com.jxparallel.fx.geometry.Point3D.class, arg0, arg1, arg2);
-        }
-        return (com.jxparallel.fx.geometry.Point3D) com.jxparallel.fx.Fx.jx(((javafx.scene.control.cell.ComboBoxTreeCell) fxPeer()).sceneToLocal(arg0, arg1, arg2));
-    }
-
-    public com.jxparallel.fx.geometry.Point2D sceneToLocal(com.jxparallel.fx.geometry.Point2D arg0, boolean arg1) {
-        if (com.jxparallel.fx.Fx.NATIVE) {
-            return (com.jxparallel.fx.geometry.Point2D) com.jxparallel.fx.nativeimpl.Native.call(this, com.jxparallel.fx.scene.control.cell.ComboBoxTreeCell.class, "sceneToLocal", new Class<?>[] {com.jxparallel.fx.geometry.Point2D.class, boolean.class}, com.jxparallel.fx.geometry.Point2D.class, arg0, arg1);
-        }
-        return (com.jxparallel.fx.geometry.Point2D) com.jxparallel.fx.Fx.jx(((javafx.scene.control.cell.ComboBoxTreeCell) fxPeer()).sceneToLocal((javafx.geometry.Point2D) com.jxparallel.fx.Fx.fx(arg0), arg1));
-    }
-
-    public com.jxparallel.fx.geometry.Bounds sceneToLocal(com.jxparallel.fx.geometry.Bounds arg0) {
-        if (com.jxparallel.fx.Fx.NATIVE) {
-            return (com.jxparallel.fx.geometry.Bounds) com.jxparallel.fx.nativeimpl.Native.call(this, com.jxparallel.fx.scene.control.cell.ComboBoxTreeCell.class, "sceneToLocal", new Class<?>[] {com.jxparallel.fx.geometry.Bounds.class}, com.jxparallel.fx.geometry.Bounds.class, arg0);
-        }
-        return (com.jxparallel.fx.geometry.Bounds) com.jxparallel.fx.Fx.jx(((javafx.scene.control.cell.ComboBoxTreeCell) fxPeer()).sceneToLocal((javafx.geometry.Bounds) com.jxparallel.fx.Fx.fx(arg0)));
-    }
-
-    public com.jxparallel.fx.geometry.Bounds sceneToLocal(com.jxparallel.fx.geometry.Bounds arg0, boolean arg1) {
-        if (com.jxparallel.fx.Fx.NATIVE) {
-            return (com.jxparallel.fx.geometry.Bounds) com.jxparallel.fx.nativeimpl.Native.call(this, com.jxparallel.fx.scene.control.cell.ComboBoxTreeCell.class, "sceneToLocal", new Class<?>[] {com.jxparallel.fx.geometry.Bounds.class, boolean.class}, com.jxparallel.fx.geometry.Bounds.class, arg0, arg1);
-        }
-        return (com.jxparallel.fx.geometry.Bounds) com.jxparallel.fx.Fx.jx(((javafx.scene.control.cell.ComboBoxTreeCell) fxPeer()).sceneToLocal((javafx.geometry.Bounds) com.jxparallel.fx.Fx.fx(arg0), arg1));
-    }
-
-    public com.jxparallel.fx.geometry.Point2D sceneToLocal(com.jxparallel.fx.geometry.Point2D arg0) {
-        if (com.jxparallel.fx.Fx.NATIVE) {
-            return (com.jxparallel.fx.geometry.Point2D) com.jxparallel.fx.nativeimpl.Native.call(this, com.jxparallel.fx.scene.control.cell.ComboBoxTreeCell.class, "sceneToLocal", new Class<?>[] {com.jxparallel.fx.geometry.Point2D.class}, com.jxparallel.fx.geometry.Point2D.class, arg0);
-        }
-        return (com.jxparallel.fx.geometry.Point2D) com.jxparallel.fx.Fx.jx(((javafx.scene.control.cell.ComboBoxTreeCell) fxPeer()).sceneToLocal((javafx.geometry.Point2D) com.jxparallel.fx.Fx.fx(arg0)));
-    }
-
-    public com.jxparallel.fx.geometry.Point2D sceneToLocal(double arg0, double arg1, boolean arg2) {
-        if (com.jxparallel.fx.Fx.NATIVE) {
-            return (com.jxparallel.fx.geometry.Point2D) com.jxparallel.fx.nativeimpl.Native.call(this, com.jxparallel.fx.scene.control.cell.ComboBoxTreeCell.class, "sceneToLocal", new Class<?>[] {double.class, double.class, boolean.class}, com.jxparallel.fx.geometry.Point2D.class, arg0, arg1, arg2);
-        }
-        return (com.jxparallel.fx.geometry.Point2D) com.jxparallel.fx.Fx.jx(((javafx.scene.control.cell.ComboBoxTreeCell) fxPeer()).sceneToLocal(arg0, arg1, arg2));
-    }
-
-    public com.jxparallel.fx.beans.property.ReadOnlyBooleanProperty pressedProperty() {
-        if (com.jxparallel.fx.Fx.NATIVE) {
-            return (com.jxparallel.fx.beans.property.ReadOnlyBooleanProperty) com.jxparallel.fx.nativeimpl.Native.call(this, com.jxparallel.fx.scene.control.cell.ComboBoxTreeCell.class, "pressedProperty", new Class<?>[] {}, com.jxparallel.fx.beans.property.ReadOnlyBooleanProperty.class);
-        }
-        return (com.jxparallel.fx.beans.property.ReadOnlyBooleanProperty) com.jxparallel.fx.Fx.jx(((javafx.scene.control.cell.ComboBoxTreeCell) fxPeer()).pressedProperty());
-    }
-
-    public com.jxparallel.fx.beans.property.ReadOnlyObjectProperty<com.jxparallel.fx.scene.Scene> sceneProperty() {
-        if (com.jxparallel.fx.Fx.NATIVE) {
-            return (com.jxparallel.fx.beans.property.ReadOnlyObjectProperty) com.jxparallel.fx.nativeimpl.Native.call(this, com.jxparallel.fx.scene.control.cell.ComboBoxTreeCell.class, "sceneProperty", new Class<?>[] {}, com.jxparallel.fx.beans.property.ReadOnlyObjectProperty.class);
-        }
-        return (com.jxparallel.fx.beans.property.ReadOnlyObjectProperty) com.jxparallel.fx.Fx.jx(((javafx.scene.control.cell.ComboBoxTreeCell) fxPeer()).sceneProperty());
+        ((javafx.scene.control.cell.ComboBoxTreeCell) fxPeer()).setAccessibleText(arg0);
     }
 
     public void setBlendMode(javafx.scene.effect.BlendMode arg0) {
@@ -3121,6 +2878,14 @@ public class ComboBoxTreeCell<T> implements com.jxparallel.fx.scene.control.Skin
         ((javafx.scene.control.cell.ComboBoxTreeCell) fxPeer()).setBlendMode(arg0);
     }
 
+    public void setCache(boolean arg0) {
+        if (com.jxparallel.fx.Fx.NATIVE) {
+            com.jxparallel.fx.nativeimpl.Native.call(this, com.jxparallel.fx.scene.control.cell.ComboBoxTreeCell.class, "setCache", new Class<?>[] {boolean.class}, void.class, arg0);
+            return;
+        }
+        ((javafx.scene.control.cell.ComboBoxTreeCell) fxPeer()).setCache(arg0);
+    }
+
     public void setCacheHint(com.jxparallel.fx.scene.CacheHint arg0) {
         if (com.jxparallel.fx.Fx.NATIVE) {
             com.jxparallel.fx.nativeimpl.Native.call(this, com.jxparallel.fx.scene.control.cell.ComboBoxTreeCell.class, "setCacheHint", new Class<?>[] {com.jxparallel.fx.scene.CacheHint.class}, void.class, arg0);
@@ -3129,11 +2894,12 @@ public class ComboBoxTreeCell<T> implements com.jxparallel.fx.scene.control.Skin
         ((javafx.scene.control.cell.ComboBoxTreeCell) fxPeer()).setCacheHint((javafx.scene.CacheHint) com.jxparallel.fx.Fx.fx(arg0));
     }
 
-    public com.jxparallel.fx.beans.property.DoubleProperty scaleYProperty() {
+    public void setClip(com.jxparallel.fx.scene.Node arg0) {
         if (com.jxparallel.fx.Fx.NATIVE) {
-            return (com.jxparallel.fx.beans.property.DoubleProperty) com.jxparallel.fx.nativeimpl.Native.call(this, com.jxparallel.fx.scene.control.cell.ComboBoxTreeCell.class, "scaleYProperty", new Class<?>[] {}, com.jxparallel.fx.beans.property.DoubleProperty.class);
+            com.jxparallel.fx.nativeimpl.Native.call(this, com.jxparallel.fx.scene.control.cell.ComboBoxTreeCell.class, "setClip", new Class<?>[] {com.jxparallel.fx.scene.Node.class}, void.class, arg0);
+            return;
         }
-        return (com.jxparallel.fx.beans.property.DoubleProperty) com.jxparallel.fx.Fx.jx(((javafx.scene.control.cell.ComboBoxTreeCell) fxPeer()).scaleYProperty());
+        ((javafx.scene.control.cell.ComboBoxTreeCell) fxPeer()).setClip((javafx.scene.Node) com.jxparallel.fx.Fx.fx(arg0));
     }
 
     public void setCursor(com.jxparallel.fx.scene.Cursor arg0) {
@@ -3144,12 +2910,60 @@ public class ComboBoxTreeCell<T> implements com.jxparallel.fx.scene.control.Skin
         ((javafx.scene.control.cell.ComboBoxTreeCell) fxPeer()).setCursor((javafx.scene.Cursor) com.jxparallel.fx.Fx.fx(arg0));
     }
 
-    public void setOnDragEntered(com.jxparallel.fx.event.EventHandler<? super com.jxparallel.fx.scene.input.DragEvent> arg0) {
+    public void setDepthTest(com.jxparallel.fx.scene.DepthTest arg0) {
         if (com.jxparallel.fx.Fx.NATIVE) {
-            com.jxparallel.fx.nativeimpl.Native.call(this, com.jxparallel.fx.scene.control.cell.ComboBoxTreeCell.class, "setOnDragEntered", new Class<?>[] {com.jxparallel.fx.event.EventHandler.class}, void.class, arg0);
+            com.jxparallel.fx.nativeimpl.Native.call(this, com.jxparallel.fx.scene.control.cell.ComboBoxTreeCell.class, "setDepthTest", new Class<?>[] {com.jxparallel.fx.scene.DepthTest.class}, void.class, arg0);
             return;
         }
-        ((javafx.scene.control.cell.ComboBoxTreeCell) fxPeer()).setOnDragEntered((javafx.event.EventHandler) com.jxparallel.fx.Fx.fx(arg0));
+        ((javafx.scene.control.cell.ComboBoxTreeCell) fxPeer()).setDepthTest((javafx.scene.DepthTest) com.jxparallel.fx.Fx.fx(arg0));
+    }
+
+    public void setDisable(boolean arg0) {
+        if (com.jxparallel.fx.Fx.NATIVE) {
+            com.jxparallel.fx.nativeimpl.Native.call(this, com.jxparallel.fx.scene.control.cell.ComboBoxTreeCell.class, "setDisable", new Class<?>[] {boolean.class}, void.class, arg0);
+            return;
+        }
+        ((javafx.scene.control.cell.ComboBoxTreeCell) fxPeer()).setDisable(arg0);
+    }
+
+    public void setEffect(com.jxparallel.fx.scene.effect.Effect arg0) {
+        if (com.jxparallel.fx.Fx.NATIVE) {
+            com.jxparallel.fx.nativeimpl.Native.call(this, com.jxparallel.fx.scene.control.cell.ComboBoxTreeCell.class, "setEffect", new Class<?>[] {com.jxparallel.fx.scene.effect.Effect.class}, void.class, arg0);
+            return;
+        }
+        ((javafx.scene.control.cell.ComboBoxTreeCell) fxPeer()).setEffect((javafx.scene.effect.Effect) com.jxparallel.fx.Fx.fx(arg0));
+    }
+
+    public void setEventDispatcher(com.jxparallel.fx.event.EventDispatcher arg0) {
+        if (com.jxparallel.fx.Fx.NATIVE) {
+            com.jxparallel.fx.nativeimpl.Native.call(this, com.jxparallel.fx.scene.control.cell.ComboBoxTreeCell.class, "setEventDispatcher", new Class<?>[] {com.jxparallel.fx.event.EventDispatcher.class}, void.class, arg0);
+            return;
+        }
+        ((javafx.scene.control.cell.ComboBoxTreeCell) fxPeer()).setEventDispatcher((javafx.event.EventDispatcher) com.jxparallel.fx.Fx.fx(arg0));
+    }
+
+    public void setFocusTraversable(boolean arg0) {
+        if (com.jxparallel.fx.Fx.NATIVE) {
+            com.jxparallel.fx.nativeimpl.Native.call(this, com.jxparallel.fx.scene.control.cell.ComboBoxTreeCell.class, "setFocusTraversable", new Class<?>[] {boolean.class}, void.class, arg0);
+            return;
+        }
+        ((javafx.scene.control.cell.ComboBoxTreeCell) fxPeer()).setFocusTraversable(arg0);
+    }
+
+    public void setId(java.lang.String arg0) {
+        if (com.jxparallel.fx.Fx.NATIVE) {
+            com.jxparallel.fx.nativeimpl.Native.call(this, com.jxparallel.fx.scene.control.cell.ComboBoxTreeCell.class, "setId", new Class<?>[] {java.lang.String.class}, void.class, arg0);
+            return;
+        }
+        ((javafx.scene.control.cell.ComboBoxTreeCell) fxPeer()).setId(arg0);
+    }
+
+    public void setInputMethodRequests(com.jxparallel.fx.scene.input.InputMethodRequests arg0) {
+        if (com.jxparallel.fx.Fx.NATIVE) {
+            com.jxparallel.fx.nativeimpl.Native.call(this, com.jxparallel.fx.scene.control.cell.ComboBoxTreeCell.class, "setInputMethodRequests", new Class<?>[] {com.jxparallel.fx.scene.input.InputMethodRequests.class}, void.class, arg0);
+            return;
+        }
+        ((javafx.scene.control.cell.ComboBoxTreeCell) fxPeer()).setInputMethodRequests((javafx.scene.input.InputMethodRequests) com.jxparallel.fx.Fx.fx(arg0));
     }
 
     public void setLayoutX(double arg0) {
@@ -3160,12 +2974,84 @@ public class ComboBoxTreeCell<T> implements com.jxparallel.fx.scene.control.Skin
         ((javafx.scene.control.cell.ComboBoxTreeCell) fxPeer()).setLayoutX(arg0);
     }
 
+    public void setLayoutY(double arg0) {
+        if (com.jxparallel.fx.Fx.NATIVE) {
+            com.jxparallel.fx.nativeimpl.Native.call(this, com.jxparallel.fx.scene.control.cell.ComboBoxTreeCell.class, "setLayoutY", new Class<?>[] {double.class}, void.class, arg0);
+            return;
+        }
+        ((javafx.scene.control.cell.ComboBoxTreeCell) fxPeer()).setLayoutY(arg0);
+    }
+
+    public void setManaged(boolean arg0) {
+        if (com.jxparallel.fx.Fx.NATIVE) {
+            com.jxparallel.fx.nativeimpl.Native.call(this, com.jxparallel.fx.scene.control.cell.ComboBoxTreeCell.class, "setManaged", new Class<?>[] {boolean.class}, void.class, arg0);
+            return;
+        }
+        ((javafx.scene.control.cell.ComboBoxTreeCell) fxPeer()).setManaged(arg0);
+    }
+
+    public void setMouseTransparent(boolean arg0) {
+        if (com.jxparallel.fx.Fx.NATIVE) {
+            com.jxparallel.fx.nativeimpl.Native.call(this, com.jxparallel.fx.scene.control.cell.ComboBoxTreeCell.class, "setMouseTransparent", new Class<?>[] {boolean.class}, void.class, arg0);
+            return;
+        }
+        ((javafx.scene.control.cell.ComboBoxTreeCell) fxPeer()).setMouseTransparent(arg0);
+    }
+
+    public void setNodeOrientation(com.jxparallel.fx.geometry.NodeOrientation arg0) {
+        if (com.jxparallel.fx.Fx.NATIVE) {
+            com.jxparallel.fx.nativeimpl.Native.call(this, com.jxparallel.fx.scene.control.cell.ComboBoxTreeCell.class, "setNodeOrientation", new Class<?>[] {com.jxparallel.fx.geometry.NodeOrientation.class}, void.class, arg0);
+            return;
+        }
+        ((javafx.scene.control.cell.ComboBoxTreeCell) fxPeer()).setNodeOrientation((javafx.geometry.NodeOrientation) com.jxparallel.fx.Fx.fx(arg0));
+    }
+
+    public void setOnContextMenuRequested(com.jxparallel.fx.event.EventHandler<? super com.jxparallel.fx.scene.input.ContextMenuEvent> arg0) {
+        if (com.jxparallel.fx.Fx.NATIVE) {
+            com.jxparallel.fx.nativeimpl.Native.call(this, com.jxparallel.fx.scene.control.cell.ComboBoxTreeCell.class, "setOnContextMenuRequested", new Class<?>[] {com.jxparallel.fx.event.EventHandler.class}, void.class, arg0);
+            return;
+        }
+        ((javafx.scene.control.cell.ComboBoxTreeCell) fxPeer()).setOnContextMenuRequested((javafx.event.EventHandler) com.jxparallel.fx.Fx.fx(arg0));
+    }
+
+    public void setOnDragDetected(com.jxparallel.fx.event.EventHandler<? super com.jxparallel.fx.scene.input.MouseEvent> arg0) {
+        if (com.jxparallel.fx.Fx.NATIVE) {
+            com.jxparallel.fx.nativeimpl.Native.call(this, com.jxparallel.fx.scene.control.cell.ComboBoxTreeCell.class, "setOnDragDetected", new Class<?>[] {com.jxparallel.fx.event.EventHandler.class}, void.class, arg0);
+            return;
+        }
+        ((javafx.scene.control.cell.ComboBoxTreeCell) fxPeer()).setOnDragDetected((javafx.event.EventHandler) com.jxparallel.fx.Fx.fx(arg0));
+    }
+
+    public void setOnDragDone(com.jxparallel.fx.event.EventHandler<? super com.jxparallel.fx.scene.input.DragEvent> arg0) {
+        if (com.jxparallel.fx.Fx.NATIVE) {
+            com.jxparallel.fx.nativeimpl.Native.call(this, com.jxparallel.fx.scene.control.cell.ComboBoxTreeCell.class, "setOnDragDone", new Class<?>[] {com.jxparallel.fx.event.EventHandler.class}, void.class, arg0);
+            return;
+        }
+        ((javafx.scene.control.cell.ComboBoxTreeCell) fxPeer()).setOnDragDone((javafx.event.EventHandler) com.jxparallel.fx.Fx.fx(arg0));
+    }
+
     public void setOnDragDropped(com.jxparallel.fx.event.EventHandler<? super com.jxparallel.fx.scene.input.DragEvent> arg0) {
         if (com.jxparallel.fx.Fx.NATIVE) {
             com.jxparallel.fx.nativeimpl.Native.call(this, com.jxparallel.fx.scene.control.cell.ComboBoxTreeCell.class, "setOnDragDropped", new Class<?>[] {com.jxparallel.fx.event.EventHandler.class}, void.class, arg0);
             return;
         }
         ((javafx.scene.control.cell.ComboBoxTreeCell) fxPeer()).setOnDragDropped((javafx.event.EventHandler) com.jxparallel.fx.Fx.fx(arg0));
+    }
+
+    public void setOnDragEntered(com.jxparallel.fx.event.EventHandler<? super com.jxparallel.fx.scene.input.DragEvent> arg0) {
+        if (com.jxparallel.fx.Fx.NATIVE) {
+            com.jxparallel.fx.nativeimpl.Native.call(this, com.jxparallel.fx.scene.control.cell.ComboBoxTreeCell.class, "setOnDragEntered", new Class<?>[] {com.jxparallel.fx.event.EventHandler.class}, void.class, arg0);
+            return;
+        }
+        ((javafx.scene.control.cell.ComboBoxTreeCell) fxPeer()).setOnDragEntered((javafx.event.EventHandler) com.jxparallel.fx.Fx.fx(arg0));
+    }
+
+    public void setOnDragExited(com.jxparallel.fx.event.EventHandler<? super com.jxparallel.fx.scene.input.DragEvent> arg0) {
+        if (com.jxparallel.fx.Fx.NATIVE) {
+            com.jxparallel.fx.nativeimpl.Native.call(this, com.jxparallel.fx.scene.control.cell.ComboBoxTreeCell.class, "setOnDragExited", new Class<?>[] {com.jxparallel.fx.event.EventHandler.class}, void.class, arg0);
+            return;
+        }
+        ((javafx.scene.control.cell.ComboBoxTreeCell) fxPeer()).setOnDragExited((javafx.event.EventHandler) com.jxparallel.fx.Fx.fx(arg0));
     }
 
     public void setOnDragOver(com.jxparallel.fx.event.EventHandler<? super com.jxparallel.fx.scene.input.DragEvent> arg0) {
@@ -3176,12 +3062,12 @@ public class ComboBoxTreeCell<T> implements com.jxparallel.fx.scene.control.Skin
         ((javafx.scene.control.cell.ComboBoxTreeCell) fxPeer()).setOnDragOver((javafx.event.EventHandler) com.jxparallel.fx.Fx.fx(arg0));
     }
 
-    public void setEffect(com.jxparallel.fx.scene.effect.Effect arg0) {
+    public void setOnInputMethodTextChanged(com.jxparallel.fx.event.EventHandler<? super com.jxparallel.fx.scene.input.InputMethodEvent> arg0) {
         if (com.jxparallel.fx.Fx.NATIVE) {
-            com.jxparallel.fx.nativeimpl.Native.call(this, com.jxparallel.fx.scene.control.cell.ComboBoxTreeCell.class, "setEffect", new Class<?>[] {com.jxparallel.fx.scene.effect.Effect.class}, void.class, arg0);
+            com.jxparallel.fx.nativeimpl.Native.call(this, com.jxparallel.fx.scene.control.cell.ComboBoxTreeCell.class, "setOnInputMethodTextChanged", new Class<?>[] {com.jxparallel.fx.event.EventHandler.class}, void.class, arg0);
             return;
         }
-        ((javafx.scene.control.cell.ComboBoxTreeCell) fxPeer()).setEffect((javafx.scene.effect.Effect) com.jxparallel.fx.Fx.fx(arg0));
+        ((javafx.scene.control.cell.ComboBoxTreeCell) fxPeer()).setOnInputMethodTextChanged((javafx.event.EventHandler) com.jxparallel.fx.Fx.fx(arg0));
     }
 
     public void setOnKeyPressed(com.jxparallel.fx.event.EventHandler<? super com.jxparallel.fx.scene.input.KeyEvent> arg0) {
@@ -3208,12 +3094,60 @@ public class ComboBoxTreeCell<T> implements com.jxparallel.fx.scene.control.Skin
         ((javafx.scene.control.cell.ComboBoxTreeCell) fxPeer()).setOnKeyTyped((javafx.event.EventHandler) com.jxparallel.fx.Fx.fx(arg0));
     }
 
-    public void setManaged(boolean arg0) {
+    public void setOnMouseClicked(com.jxparallel.fx.event.EventHandler<? super com.jxparallel.fx.scene.input.MouseEvent> arg0) {
         if (com.jxparallel.fx.Fx.NATIVE) {
-            com.jxparallel.fx.nativeimpl.Native.call(this, com.jxparallel.fx.scene.control.cell.ComboBoxTreeCell.class, "setManaged", new Class<?>[] {boolean.class}, void.class, arg0);
+            com.jxparallel.fx.nativeimpl.Native.call(this, com.jxparallel.fx.scene.control.cell.ComboBoxTreeCell.class, "setOnMouseClicked", new Class<?>[] {com.jxparallel.fx.event.EventHandler.class}, void.class, arg0);
             return;
         }
-        ((javafx.scene.control.cell.ComboBoxTreeCell) fxPeer()).setManaged(arg0);
+        ((javafx.scene.control.cell.ComboBoxTreeCell) fxPeer()).setOnMouseClicked((javafx.event.EventHandler) com.jxparallel.fx.Fx.fx(arg0));
+    }
+
+    public void setOnMouseDragEntered(com.jxparallel.fx.event.EventHandler<? super com.jxparallel.fx.scene.input.MouseDragEvent> arg0) {
+        if (com.jxparallel.fx.Fx.NATIVE) {
+            com.jxparallel.fx.nativeimpl.Native.call(this, com.jxparallel.fx.scene.control.cell.ComboBoxTreeCell.class, "setOnMouseDragEntered", new Class<?>[] {com.jxparallel.fx.event.EventHandler.class}, void.class, arg0);
+            return;
+        }
+        ((javafx.scene.control.cell.ComboBoxTreeCell) fxPeer()).setOnMouseDragEntered((javafx.event.EventHandler) com.jxparallel.fx.Fx.fx(arg0));
+    }
+
+    public void setOnMouseDragExited(com.jxparallel.fx.event.EventHandler<? super com.jxparallel.fx.scene.input.MouseDragEvent> arg0) {
+        if (com.jxparallel.fx.Fx.NATIVE) {
+            com.jxparallel.fx.nativeimpl.Native.call(this, com.jxparallel.fx.scene.control.cell.ComboBoxTreeCell.class, "setOnMouseDragExited", new Class<?>[] {com.jxparallel.fx.event.EventHandler.class}, void.class, arg0);
+            return;
+        }
+        ((javafx.scene.control.cell.ComboBoxTreeCell) fxPeer()).setOnMouseDragExited((javafx.event.EventHandler) com.jxparallel.fx.Fx.fx(arg0));
+    }
+
+    public void setOnMouseDragOver(com.jxparallel.fx.event.EventHandler<? super com.jxparallel.fx.scene.input.MouseDragEvent> arg0) {
+        if (com.jxparallel.fx.Fx.NATIVE) {
+            com.jxparallel.fx.nativeimpl.Native.call(this, com.jxparallel.fx.scene.control.cell.ComboBoxTreeCell.class, "setOnMouseDragOver", new Class<?>[] {com.jxparallel.fx.event.EventHandler.class}, void.class, arg0);
+            return;
+        }
+        ((javafx.scene.control.cell.ComboBoxTreeCell) fxPeer()).setOnMouseDragOver((javafx.event.EventHandler) com.jxparallel.fx.Fx.fx(arg0));
+    }
+
+    public void setOnMouseDragReleased(com.jxparallel.fx.event.EventHandler<? super com.jxparallel.fx.scene.input.MouseDragEvent> arg0) {
+        if (com.jxparallel.fx.Fx.NATIVE) {
+            com.jxparallel.fx.nativeimpl.Native.call(this, com.jxparallel.fx.scene.control.cell.ComboBoxTreeCell.class, "setOnMouseDragReleased", new Class<?>[] {com.jxparallel.fx.event.EventHandler.class}, void.class, arg0);
+            return;
+        }
+        ((javafx.scene.control.cell.ComboBoxTreeCell) fxPeer()).setOnMouseDragReleased((javafx.event.EventHandler) com.jxparallel.fx.Fx.fx(arg0));
+    }
+
+    public void setOnMouseDragged(com.jxparallel.fx.event.EventHandler<? super com.jxparallel.fx.scene.input.MouseEvent> arg0) {
+        if (com.jxparallel.fx.Fx.NATIVE) {
+            com.jxparallel.fx.nativeimpl.Native.call(this, com.jxparallel.fx.scene.control.cell.ComboBoxTreeCell.class, "setOnMouseDragged", new Class<?>[] {com.jxparallel.fx.event.EventHandler.class}, void.class, arg0);
+            return;
+        }
+        ((javafx.scene.control.cell.ComboBoxTreeCell) fxPeer()).setOnMouseDragged((javafx.event.EventHandler) com.jxparallel.fx.Fx.fx(arg0));
+    }
+
+    public void setOnMouseEntered(com.jxparallel.fx.event.EventHandler<? super com.jxparallel.fx.scene.input.MouseEvent> arg0) {
+        if (com.jxparallel.fx.Fx.NATIVE) {
+            com.jxparallel.fx.nativeimpl.Native.call(this, com.jxparallel.fx.scene.control.cell.ComboBoxTreeCell.class, "setOnMouseEntered", new Class<?>[] {com.jxparallel.fx.event.EventHandler.class}, void.class, arg0);
+            return;
+        }
+        ((javafx.scene.control.cell.ComboBoxTreeCell) fxPeer()).setOnMouseEntered((javafx.event.EventHandler) com.jxparallel.fx.Fx.fx(arg0));
     }
 
     public void setOnMouseExited(com.jxparallel.fx.event.EventHandler<? super com.jxparallel.fx.scene.input.MouseEvent> arg0) {
@@ -3232,543 +3166,12 @@ public class ComboBoxTreeCell<T> implements com.jxparallel.fx.scene.control.Skin
         ((javafx.scene.control.cell.ComboBoxTreeCell) fxPeer()).setOnMouseMoved((javafx.event.EventHandler) com.jxparallel.fx.Fx.fx(arg0));
     }
 
-    public void setLayoutY(double arg0) {
-        if (com.jxparallel.fx.Fx.NATIVE) {
-            com.jxparallel.fx.nativeimpl.Native.call(this, com.jxparallel.fx.scene.control.cell.ComboBoxTreeCell.class, "setLayoutY", new Class<?>[] {double.class}, void.class, arg0);
-            return;
-        }
-        ((javafx.scene.control.cell.ComboBoxTreeCell) fxPeer()).setLayoutY(arg0);
-    }
-
-    public void setDisable(boolean arg0) {
-        if (com.jxparallel.fx.Fx.NATIVE) {
-            com.jxparallel.fx.nativeimpl.Native.call(this, com.jxparallel.fx.scene.control.cell.ComboBoxTreeCell.class, "setDisable", new Class<?>[] {boolean.class}, void.class, arg0);
-            return;
-        }
-        ((javafx.scene.control.cell.ComboBoxTreeCell) fxPeer()).setDisable(arg0);
-    }
-
-    public void setOnScroll(com.jxparallel.fx.event.EventHandler<? super com.jxparallel.fx.scene.input.ScrollEvent> arg0) {
-        if (com.jxparallel.fx.Fx.NATIVE) {
-            com.jxparallel.fx.nativeimpl.Native.call(this, com.jxparallel.fx.scene.control.cell.ComboBoxTreeCell.class, "setOnScroll", new Class<?>[] {com.jxparallel.fx.event.EventHandler.class}, void.class, arg0);
-            return;
-        }
-        ((javafx.scene.control.cell.ComboBoxTreeCell) fxPeer()).setOnScroll((javafx.event.EventHandler) com.jxparallel.fx.Fx.fx(arg0));
-    }
-
-    public void setOnSwipeLeft(com.jxparallel.fx.event.EventHandler<? super com.jxparallel.fx.scene.input.SwipeEvent> arg0) {
-        if (com.jxparallel.fx.Fx.NATIVE) {
-            com.jxparallel.fx.nativeimpl.Native.call(this, com.jxparallel.fx.scene.control.cell.ComboBoxTreeCell.class, "setOnSwipeLeft", new Class<?>[] {com.jxparallel.fx.event.EventHandler.class}, void.class, arg0);
-            return;
-        }
-        ((javafx.scene.control.cell.ComboBoxTreeCell) fxPeer()).setOnSwipeLeft((javafx.event.EventHandler) com.jxparallel.fx.Fx.fx(arg0));
-    }
-
-    public void setOnDragDone(com.jxparallel.fx.event.EventHandler<? super com.jxparallel.fx.scene.input.DragEvent> arg0) {
-        if (com.jxparallel.fx.Fx.NATIVE) {
-            com.jxparallel.fx.nativeimpl.Native.call(this, com.jxparallel.fx.scene.control.cell.ComboBoxTreeCell.class, "setOnDragDone", new Class<?>[] {com.jxparallel.fx.event.EventHandler.class}, void.class, arg0);
-            return;
-        }
-        ((javafx.scene.control.cell.ComboBoxTreeCell) fxPeer()).setOnDragDone((javafx.event.EventHandler) com.jxparallel.fx.Fx.fx(arg0));
-    }
-
-    public void setOnSwipeRight(com.jxparallel.fx.event.EventHandler<? super com.jxparallel.fx.scene.input.SwipeEvent> arg0) {
-        if (com.jxparallel.fx.Fx.NATIVE) {
-            com.jxparallel.fx.nativeimpl.Native.call(this, com.jxparallel.fx.scene.control.cell.ComboBoxTreeCell.class, "setOnSwipeRight", new Class<?>[] {com.jxparallel.fx.event.EventHandler.class}, void.class, arg0);
-            return;
-        }
-        ((javafx.scene.control.cell.ComboBoxTreeCell) fxPeer()).setOnSwipeRight((javafx.event.EventHandler) com.jxparallel.fx.Fx.fx(arg0));
-    }
-
-    public void setDepthTest(com.jxparallel.fx.scene.DepthTest arg0) {
-        if (com.jxparallel.fx.Fx.NATIVE) {
-            com.jxparallel.fx.nativeimpl.Native.call(this, com.jxparallel.fx.scene.control.cell.ComboBoxTreeCell.class, "setDepthTest", new Class<?>[] {com.jxparallel.fx.scene.DepthTest.class}, void.class, arg0);
-            return;
-        }
-        ((javafx.scene.control.cell.ComboBoxTreeCell) fxPeer()).setDepthTest((javafx.scene.DepthTest) com.jxparallel.fx.Fx.fx(arg0));
-    }
-
-    public void setOnDragExited(com.jxparallel.fx.event.EventHandler<? super com.jxparallel.fx.scene.input.DragEvent> arg0) {
-        if (com.jxparallel.fx.Fx.NATIVE) {
-            com.jxparallel.fx.nativeimpl.Native.call(this, com.jxparallel.fx.scene.control.cell.ComboBoxTreeCell.class, "setOnDragExited", new Class<?>[] {com.jxparallel.fx.event.EventHandler.class}, void.class, arg0);
-            return;
-        }
-        ((javafx.scene.control.cell.ComboBoxTreeCell) fxPeer()).setOnDragExited((javafx.event.EventHandler) com.jxparallel.fx.Fx.fx(arg0));
-    }
-
-    public void setOnSwipeDown(com.jxparallel.fx.event.EventHandler<? super com.jxparallel.fx.scene.input.SwipeEvent> arg0) {
-        if (com.jxparallel.fx.Fx.NATIVE) {
-            com.jxparallel.fx.nativeimpl.Native.call(this, com.jxparallel.fx.scene.control.cell.ComboBoxTreeCell.class, "setOnSwipeDown", new Class<?>[] {com.jxparallel.fx.event.EventHandler.class}, void.class, arg0);
-            return;
-        }
-        ((javafx.scene.control.cell.ComboBoxTreeCell) fxPeer()).setOnSwipeDown((javafx.event.EventHandler) com.jxparallel.fx.Fx.fx(arg0));
-    }
-
-    public void setOnRotate(com.jxparallel.fx.event.EventHandler<? super com.jxparallel.fx.scene.input.RotateEvent> arg0) {
-        if (com.jxparallel.fx.Fx.NATIVE) {
-            com.jxparallel.fx.nativeimpl.Native.call(this, com.jxparallel.fx.scene.control.cell.ComboBoxTreeCell.class, "setOnRotate", new Class<?>[] {com.jxparallel.fx.event.EventHandler.class}, void.class, arg0);
-            return;
-        }
-        ((javafx.scene.control.cell.ComboBoxTreeCell) fxPeer()).setOnRotate((javafx.event.EventHandler) com.jxparallel.fx.Fx.fx(arg0));
-    }
-
-    public boolean isFocusTraversable() {
-        if (com.jxparallel.fx.Fx.NATIVE) {
-            return (Boolean) com.jxparallel.fx.nativeimpl.Native.call(this, com.jxparallel.fx.scene.control.cell.ComboBoxTreeCell.class, "isFocusTraversable", new Class<?>[] {}, boolean.class);
-        }
-        return ((javafx.scene.control.cell.ComboBoxTreeCell) fxPeer()).isFocusTraversable();
-    }
-
-    public boolean isMouseTransparent() {
-        if (com.jxparallel.fx.Fx.NATIVE) {
-            return (Boolean) com.jxparallel.fx.nativeimpl.Native.call(this, com.jxparallel.fx.scene.control.cell.ComboBoxTreeCell.class, "isMouseTransparent", new Class<?>[] {}, boolean.class);
-        }
-        return ((javafx.scene.control.cell.ComboBoxTreeCell) fxPeer()).isMouseTransparent();
-    }
-
-    public com.jxparallel.fx.beans.property.ObjectProperty<com.jxparallel.fx.event.EventHandler<? super com.jxparallel.fx.scene.input.MouseEvent>> onMouseExitedProperty() {
-        if (com.jxparallel.fx.Fx.NATIVE) {
-            return (com.jxparallel.fx.beans.property.ObjectProperty) com.jxparallel.fx.nativeimpl.Native.call(this, com.jxparallel.fx.scene.control.cell.ComboBoxTreeCell.class, "onMouseExitedProperty", new Class<?>[] {}, com.jxparallel.fx.beans.property.ObjectProperty.class);
-        }
-        return (com.jxparallel.fx.beans.property.ObjectProperty) com.jxparallel.fx.Fx.jx(((javafx.scene.control.cell.ComboBoxTreeCell) fxPeer()).onMouseExitedProperty());
-    }
-
-    public com.jxparallel.fx.beans.property.ObjectProperty<com.jxparallel.fx.event.EventHandler<? super com.jxparallel.fx.scene.input.DragEvent>> onDragDoneProperty() {
-        if (com.jxparallel.fx.Fx.NATIVE) {
-            return (com.jxparallel.fx.beans.property.ObjectProperty) com.jxparallel.fx.nativeimpl.Native.call(this, com.jxparallel.fx.scene.control.cell.ComboBoxTreeCell.class, "onDragDoneProperty", new Class<?>[] {}, com.jxparallel.fx.beans.property.ObjectProperty.class);
-        }
-        return (com.jxparallel.fx.beans.property.ObjectProperty) com.jxparallel.fx.Fx.jx(((javafx.scene.control.cell.ComboBoxTreeCell) fxPeer()).onDragDoneProperty());
-    }
-
-    public com.jxparallel.fx.beans.property.ObjectProperty<com.jxparallel.fx.event.EventHandler<? super com.jxparallel.fx.scene.input.MouseEvent>> onMouseMovedProperty() {
-        if (com.jxparallel.fx.Fx.NATIVE) {
-            return (com.jxparallel.fx.beans.property.ObjectProperty) com.jxparallel.fx.nativeimpl.Native.call(this, com.jxparallel.fx.scene.control.cell.ComboBoxTreeCell.class, "onMouseMovedProperty", new Class<?>[] {}, com.jxparallel.fx.beans.property.ObjectProperty.class);
-        }
-        return (com.jxparallel.fx.beans.property.ObjectProperty) com.jxparallel.fx.Fx.jx(((javafx.scene.control.cell.ComboBoxTreeCell) fxPeer()).onMouseMovedProperty());
-    }
-
-    public com.jxparallel.fx.beans.property.ObjectProperty<com.jxparallel.fx.event.EventHandler<? super com.jxparallel.fx.scene.input.MouseEvent>> onMousePressedProperty() {
-        if (com.jxparallel.fx.Fx.NATIVE) {
-            return (com.jxparallel.fx.beans.property.ObjectProperty) com.jxparallel.fx.nativeimpl.Native.call(this, com.jxparallel.fx.scene.control.cell.ComboBoxTreeCell.class, "onMousePressedProperty", new Class<?>[] {}, com.jxparallel.fx.beans.property.ObjectProperty.class);
-        }
-        return (com.jxparallel.fx.beans.property.ObjectProperty) com.jxparallel.fx.Fx.jx(((javafx.scene.control.cell.ComboBoxTreeCell) fxPeer()).onMousePressedProperty());
-    }
-
-    public com.jxparallel.fx.beans.property.ObjectProperty<com.jxparallel.fx.event.EventHandler<? super com.jxparallel.fx.scene.input.MouseEvent>> onMouseReleasedProperty() {
-        if (com.jxparallel.fx.Fx.NATIVE) {
-            return (com.jxparallel.fx.beans.property.ObjectProperty) com.jxparallel.fx.nativeimpl.Native.call(this, com.jxparallel.fx.scene.control.cell.ComboBoxTreeCell.class, "onMouseReleasedProperty", new Class<?>[] {}, com.jxparallel.fx.beans.property.ObjectProperty.class);
-        }
-        return (com.jxparallel.fx.beans.property.ObjectProperty) com.jxparallel.fx.Fx.jx(((javafx.scene.control.cell.ComboBoxTreeCell) fxPeer()).onMouseReleasedProperty());
-    }
-
-    public com.jxparallel.fx.beans.property.ObjectProperty<com.jxparallel.fx.event.EventHandler<? super com.jxparallel.fx.scene.input.DragEvent>> onDragDroppedProperty() {
-        if (com.jxparallel.fx.Fx.NATIVE) {
-            return (com.jxparallel.fx.beans.property.ObjectProperty) com.jxparallel.fx.nativeimpl.Native.call(this, com.jxparallel.fx.scene.control.cell.ComboBoxTreeCell.class, "onDragDroppedProperty", new Class<?>[] {}, com.jxparallel.fx.beans.property.ObjectProperty.class);
-        }
-        return (com.jxparallel.fx.beans.property.ObjectProperty) com.jxparallel.fx.Fx.jx(((javafx.scene.control.cell.ComboBoxTreeCell) fxPeer()).onDragDroppedProperty());
-    }
-
-    public com.jxparallel.fx.beans.property.BooleanProperty mouseTransparentProperty() {
-        if (com.jxparallel.fx.Fx.NATIVE) {
-            return (com.jxparallel.fx.beans.property.BooleanProperty) com.jxparallel.fx.nativeimpl.Native.call(this, com.jxparallel.fx.scene.control.cell.ComboBoxTreeCell.class, "mouseTransparentProperty", new Class<?>[] {}, com.jxparallel.fx.beans.property.BooleanProperty.class);
-        }
-        return (com.jxparallel.fx.beans.property.BooleanProperty) com.jxparallel.fx.Fx.jx(((javafx.scene.control.cell.ComboBoxTreeCell) fxPeer()).mouseTransparentProperty());
-    }
-
-    public com.jxparallel.fx.beans.property.ObjectProperty<com.jxparallel.fx.event.EventHandler<? super com.jxparallel.fx.scene.input.MouseEvent>> onDragDetectedProperty() {
-        if (com.jxparallel.fx.Fx.NATIVE) {
-            return (com.jxparallel.fx.beans.property.ObjectProperty) com.jxparallel.fx.nativeimpl.Native.call(this, com.jxparallel.fx.scene.control.cell.ComboBoxTreeCell.class, "onDragDetectedProperty", new Class<?>[] {}, com.jxparallel.fx.beans.property.ObjectProperty.class);
-        }
-        return (com.jxparallel.fx.beans.property.ObjectProperty) com.jxparallel.fx.Fx.jx(((javafx.scene.control.cell.ComboBoxTreeCell) fxPeer()).onDragDetectedProperty());
-    }
-
-    public com.jxparallel.fx.beans.property.ObjectProperty<com.jxparallel.fx.event.EventHandler<? super com.jxparallel.fx.scene.input.DragEvent>> onDragEnteredProperty() {
-        if (com.jxparallel.fx.Fx.NATIVE) {
-            return (com.jxparallel.fx.beans.property.ObjectProperty) com.jxparallel.fx.nativeimpl.Native.call(this, com.jxparallel.fx.scene.control.cell.ComboBoxTreeCell.class, "onDragEnteredProperty", new Class<?>[] {}, com.jxparallel.fx.beans.property.ObjectProperty.class);
-        }
-        return (com.jxparallel.fx.beans.property.ObjectProperty) com.jxparallel.fx.Fx.jx(((javafx.scene.control.cell.ComboBoxTreeCell) fxPeer()).onDragEnteredProperty());
-    }
-
-    public com.jxparallel.fx.beans.property.ObjectProperty<com.jxparallel.fx.event.EventHandler<? super com.jxparallel.fx.scene.input.MouseEvent>> onMouseClickedProperty() {
-        if (com.jxparallel.fx.Fx.NATIVE) {
-            return (com.jxparallel.fx.beans.property.ObjectProperty) com.jxparallel.fx.nativeimpl.Native.call(this, com.jxparallel.fx.scene.control.cell.ComboBoxTreeCell.class, "onMouseClickedProperty", new Class<?>[] {}, com.jxparallel.fx.beans.property.ObjectProperty.class);
-        }
-        return (com.jxparallel.fx.beans.property.ObjectProperty) com.jxparallel.fx.Fx.jx(((javafx.scene.control.cell.ComboBoxTreeCell) fxPeer()).onMouseClickedProperty());
-    }
-
-    public com.jxparallel.fx.beans.property.ObjectProperty<com.jxparallel.fx.event.EventHandler<? super com.jxparallel.fx.scene.input.MouseEvent>> onMouseEnteredProperty() {
-        if (com.jxparallel.fx.Fx.NATIVE) {
-            return (com.jxparallel.fx.beans.property.ObjectProperty) com.jxparallel.fx.nativeimpl.Native.call(this, com.jxparallel.fx.scene.control.cell.ComboBoxTreeCell.class, "onMouseEnteredProperty", new Class<?>[] {}, com.jxparallel.fx.beans.property.ObjectProperty.class);
-        }
-        return (com.jxparallel.fx.beans.property.ObjectProperty) com.jxparallel.fx.Fx.jx(((javafx.scene.control.cell.ComboBoxTreeCell) fxPeer()).onMouseEnteredProperty());
-    }
-
-    public com.jxparallel.fx.beans.property.ObjectProperty<com.jxparallel.fx.event.EventHandler<? super com.jxparallel.fx.scene.input.ScrollEvent>> onScrollFinishedProperty() {
-        if (com.jxparallel.fx.Fx.NATIVE) {
-            return (com.jxparallel.fx.beans.property.ObjectProperty) com.jxparallel.fx.nativeimpl.Native.call(this, com.jxparallel.fx.scene.control.cell.ComboBoxTreeCell.class, "onScrollFinishedProperty", new Class<?>[] {}, com.jxparallel.fx.beans.property.ObjectProperty.class);
-        }
-        return (com.jxparallel.fx.beans.property.ObjectProperty) com.jxparallel.fx.Fx.jx(((javafx.scene.control.cell.ComboBoxTreeCell) fxPeer()).onScrollFinishedProperty());
-    }
-
-    public com.jxparallel.fx.beans.property.ObjectProperty<com.jxparallel.fx.event.EventHandler<? super com.jxparallel.fx.scene.input.KeyEvent>> onKeyTypedProperty() {
-        if (com.jxparallel.fx.Fx.NATIVE) {
-            return (com.jxparallel.fx.beans.property.ObjectProperty) com.jxparallel.fx.nativeimpl.Native.call(this, com.jxparallel.fx.scene.control.cell.ComboBoxTreeCell.class, "onKeyTypedProperty", new Class<?>[] {}, com.jxparallel.fx.beans.property.ObjectProperty.class);
-        }
-        return (com.jxparallel.fx.beans.property.ObjectProperty) com.jxparallel.fx.Fx.jx(((javafx.scene.control.cell.ComboBoxTreeCell) fxPeer()).onKeyTypedProperty());
-    }
-
-    public com.jxparallel.fx.beans.property.ObjectProperty<com.jxparallel.fx.event.EventHandler<? super com.jxparallel.fx.scene.input.DragEvent>> onDragExitedProperty() {
-        if (com.jxparallel.fx.Fx.NATIVE) {
-            return (com.jxparallel.fx.beans.property.ObjectProperty) com.jxparallel.fx.nativeimpl.Native.call(this, com.jxparallel.fx.scene.control.cell.ComboBoxTreeCell.class, "onDragExitedProperty", new Class<?>[] {}, com.jxparallel.fx.beans.property.ObjectProperty.class);
-        }
-        return (com.jxparallel.fx.beans.property.ObjectProperty) com.jxparallel.fx.Fx.jx(((javafx.scene.control.cell.ComboBoxTreeCell) fxPeer()).onDragExitedProperty());
-    }
-
-    public com.jxparallel.fx.beans.property.ObjectProperty<com.jxparallel.fx.event.EventHandler<? super com.jxparallel.fx.scene.input.KeyEvent>> onKeyReleasedProperty() {
-        if (com.jxparallel.fx.Fx.NATIVE) {
-            return (com.jxparallel.fx.beans.property.ObjectProperty) com.jxparallel.fx.nativeimpl.Native.call(this, com.jxparallel.fx.scene.control.cell.ComboBoxTreeCell.class, "onKeyReleasedProperty", new Class<?>[] {}, com.jxparallel.fx.beans.property.ObjectProperty.class);
-        }
-        return (com.jxparallel.fx.beans.property.ObjectProperty) com.jxparallel.fx.Fx.jx(((javafx.scene.control.cell.ComboBoxTreeCell) fxPeer()).onKeyReleasedProperty());
-    }
-
-    public com.jxparallel.fx.beans.property.ObjectProperty<com.jxparallel.fx.event.EventHandler<? super com.jxparallel.fx.scene.input.DragEvent>> onDragOverProperty() {
-        if (com.jxparallel.fx.Fx.NATIVE) {
-            return (com.jxparallel.fx.beans.property.ObjectProperty) com.jxparallel.fx.nativeimpl.Native.call(this, com.jxparallel.fx.scene.control.cell.ComboBoxTreeCell.class, "onDragOverProperty", new Class<?>[] {}, com.jxparallel.fx.beans.property.ObjectProperty.class);
-        }
-        return (com.jxparallel.fx.beans.property.ObjectProperty) com.jxparallel.fx.Fx.jx(((javafx.scene.control.cell.ComboBoxTreeCell) fxPeer()).onDragOverProperty());
-    }
-
-    public com.jxparallel.fx.beans.property.ObjectProperty<com.jxparallel.fx.geometry.NodeOrientation> nodeOrientationProperty() {
-        if (com.jxparallel.fx.Fx.NATIVE) {
-            return (com.jxparallel.fx.beans.property.ObjectProperty) com.jxparallel.fx.nativeimpl.Native.call(this, com.jxparallel.fx.scene.control.cell.ComboBoxTreeCell.class, "nodeOrientationProperty", new Class<?>[] {}, com.jxparallel.fx.beans.property.ObjectProperty.class);
-        }
-        return (com.jxparallel.fx.beans.property.ObjectProperty) com.jxparallel.fx.Fx.jx(((javafx.scene.control.cell.ComboBoxTreeCell) fxPeer()).nodeOrientationProperty());
-    }
-
-    public com.jxparallel.fx.beans.property.ObjectProperty<com.jxparallel.fx.event.EventHandler<? super com.jxparallel.fx.scene.input.KeyEvent>> onKeyPressedProperty() {
-        if (com.jxparallel.fx.Fx.NATIVE) {
-            return (com.jxparallel.fx.beans.property.ObjectProperty) com.jxparallel.fx.nativeimpl.Native.call(this, com.jxparallel.fx.scene.control.cell.ComboBoxTreeCell.class, "onKeyPressedProperty", new Class<?>[] {}, com.jxparallel.fx.beans.property.ObjectProperty.class);
-        }
-        return (com.jxparallel.fx.beans.property.ObjectProperty) com.jxparallel.fx.Fx.jx(((javafx.scene.control.cell.ComboBoxTreeCell) fxPeer()).onKeyPressedProperty());
-    }
-
-    public com.jxparallel.fx.beans.property.ObjectProperty<com.jxparallel.fx.event.EventHandler<? super com.jxparallel.fx.scene.input.MouseDragEvent>> onMouseDragOverProperty() {
-        if (com.jxparallel.fx.Fx.NATIVE) {
-            return (com.jxparallel.fx.beans.property.ObjectProperty) com.jxparallel.fx.nativeimpl.Native.call(this, com.jxparallel.fx.scene.control.cell.ComboBoxTreeCell.class, "onMouseDragOverProperty", new Class<?>[] {}, com.jxparallel.fx.beans.property.ObjectProperty.class);
-        }
-        return (com.jxparallel.fx.beans.property.ObjectProperty) com.jxparallel.fx.Fx.jx(((javafx.scene.control.cell.ComboBoxTreeCell) fxPeer()).onMouseDragOverProperty());
-    }
-
-    public com.jxparallel.fx.beans.property.ReadOnlyObjectProperty<com.jxparallel.fx.geometry.Bounds> layoutBoundsProperty() {
-        if (com.jxparallel.fx.Fx.NATIVE) {
-            return (com.jxparallel.fx.beans.property.ReadOnlyObjectProperty) com.jxparallel.fx.nativeimpl.Native.call(this, com.jxparallel.fx.scene.control.cell.ComboBoxTreeCell.class, "layoutBoundsProperty", new Class<?>[] {}, com.jxparallel.fx.beans.property.ReadOnlyObjectProperty.class);
-        }
-        return (com.jxparallel.fx.beans.property.ReadOnlyObjectProperty) com.jxparallel.fx.Fx.jx(((javafx.scene.control.cell.ComboBoxTreeCell) fxPeer()).layoutBoundsProperty());
-    }
-
-    public com.jxparallel.fx.beans.property.ObjectProperty<com.jxparallel.fx.event.EventHandler<? super com.jxparallel.fx.scene.input.MouseEvent>> onMouseDraggedProperty() {
-        if (com.jxparallel.fx.Fx.NATIVE) {
-            return (com.jxparallel.fx.beans.property.ObjectProperty) com.jxparallel.fx.nativeimpl.Native.call(this, com.jxparallel.fx.scene.control.cell.ComboBoxTreeCell.class, "onMouseDraggedProperty", new Class<?>[] {}, com.jxparallel.fx.beans.property.ObjectProperty.class);
-        }
-        return (com.jxparallel.fx.beans.property.ObjectProperty) com.jxparallel.fx.Fx.jx(((javafx.scene.control.cell.ComboBoxTreeCell) fxPeer()).onMouseDraggedProperty());
-    }
-
-    public com.jxparallel.fx.beans.property.ObjectProperty<com.jxparallel.fx.geometry.Point3D> rotationAxisProperty() {
-        if (com.jxparallel.fx.Fx.NATIVE) {
-            return (com.jxparallel.fx.beans.property.ObjectProperty) com.jxparallel.fx.nativeimpl.Native.call(this, com.jxparallel.fx.scene.control.cell.ComboBoxTreeCell.class, "rotationAxisProperty", new Class<?>[] {}, com.jxparallel.fx.beans.property.ObjectProperty.class);
-        }
-        return (com.jxparallel.fx.beans.property.ObjectProperty) com.jxparallel.fx.Fx.jx(((javafx.scene.control.cell.ComboBoxTreeCell) fxPeer()).rotationAxisProperty());
-    }
-
-    public void setAccessibleText(java.lang.String arg0) {
-        if (com.jxparallel.fx.Fx.NATIVE) {
-            com.jxparallel.fx.nativeimpl.Native.call(this, com.jxparallel.fx.scene.control.cell.ComboBoxTreeCell.class, "setAccessibleText", new Class<?>[] {java.lang.String.class}, void.class, arg0);
-            return;
-        }
-        ((javafx.scene.control.cell.ComboBoxTreeCell) fxPeer()).setAccessibleText(arg0);
-    }
-
-    public com.jxparallel.fx.beans.property.ObjectProperty<com.jxparallel.fx.event.EventHandler<? super com.jxparallel.fx.scene.input.TouchEvent>> onTouchPressedProperty() {
-        if (com.jxparallel.fx.Fx.NATIVE) {
-            return (com.jxparallel.fx.beans.property.ObjectProperty) com.jxparallel.fx.nativeimpl.Native.call(this, com.jxparallel.fx.scene.control.cell.ComboBoxTreeCell.class, "onTouchPressedProperty", new Class<?>[] {}, com.jxparallel.fx.beans.property.ObjectProperty.class);
-        }
-        return (com.jxparallel.fx.beans.property.ObjectProperty) com.jxparallel.fx.Fx.jx(((javafx.scene.control.cell.ComboBoxTreeCell) fxPeer()).onTouchPressedProperty());
-    }
-
-    public void setEventDispatcher(com.jxparallel.fx.event.EventDispatcher arg0) {
-        if (com.jxparallel.fx.Fx.NATIVE) {
-            com.jxparallel.fx.nativeimpl.Native.call(this, com.jxparallel.fx.scene.control.cell.ComboBoxTreeCell.class, "setEventDispatcher", new Class<?>[] {com.jxparallel.fx.event.EventDispatcher.class}, void.class, arg0);
-            return;
-        }
-        ((javafx.scene.control.cell.ComboBoxTreeCell) fxPeer()).setEventDispatcher((javafx.event.EventDispatcher) com.jxparallel.fx.Fx.fx(arg0));
-    }
-
-    public void setInputMethodRequests(com.jxparallel.fx.scene.input.InputMethodRequests arg0) {
-        if (com.jxparallel.fx.Fx.NATIVE) {
-            com.jxparallel.fx.nativeimpl.Native.call(this, com.jxparallel.fx.scene.control.cell.ComboBoxTreeCell.class, "setInputMethodRequests", new Class<?>[] {com.jxparallel.fx.scene.input.InputMethodRequests.class}, void.class, arg0);
-            return;
-        }
-        ((javafx.scene.control.cell.ComboBoxTreeCell) fxPeer()).setInputMethodRequests((javafx.scene.input.InputMethodRequests) com.jxparallel.fx.Fx.fx(arg0));
-    }
-
-    public com.jxparallel.fx.beans.property.ObjectProperty<com.jxparallel.fx.event.EventHandler<? super com.jxparallel.fx.scene.input.ScrollEvent>> onScrollStartedProperty() {
-        if (com.jxparallel.fx.Fx.NATIVE) {
-            return (com.jxparallel.fx.beans.property.ObjectProperty) com.jxparallel.fx.nativeimpl.Native.call(this, com.jxparallel.fx.scene.control.cell.ComboBoxTreeCell.class, "onScrollStartedProperty", new Class<?>[] {}, com.jxparallel.fx.beans.property.ObjectProperty.class);
-        }
-        return (com.jxparallel.fx.beans.property.ObjectProperty) com.jxparallel.fx.Fx.jx(((javafx.scene.control.cell.ComboBoxTreeCell) fxPeer()).onScrollStartedProperty());
-    }
-
-    public void setFocusTraversable(boolean arg0) {
-        if (com.jxparallel.fx.Fx.NATIVE) {
-            com.jxparallel.fx.nativeimpl.Native.call(this, com.jxparallel.fx.scene.control.cell.ComboBoxTreeCell.class, "setFocusTraversable", new Class<?>[] {boolean.class}, void.class, arg0);
-            return;
-        }
-        ((javafx.scene.control.cell.ComboBoxTreeCell) fxPeer()).setFocusTraversable(arg0);
-    }
-
-    public void setMouseTransparent(boolean arg0) {
-        if (com.jxparallel.fx.Fx.NATIVE) {
-            com.jxparallel.fx.nativeimpl.Native.call(this, com.jxparallel.fx.scene.control.cell.ComboBoxTreeCell.class, "setMouseTransparent", new Class<?>[] {boolean.class}, void.class, arg0);
-            return;
-        }
-        ((javafx.scene.control.cell.ComboBoxTreeCell) fxPeer()).setMouseTransparent(arg0);
-    }
-
-    public void setNodeOrientation(com.jxparallel.fx.geometry.NodeOrientation arg0) {
-        if (com.jxparallel.fx.Fx.NATIVE) {
-            com.jxparallel.fx.nativeimpl.Native.call(this, com.jxparallel.fx.scene.control.cell.ComboBoxTreeCell.class, "setNodeOrientation", new Class<?>[] {com.jxparallel.fx.geometry.NodeOrientation.class}, void.class, arg0);
-            return;
-        }
-        ((javafx.scene.control.cell.ComboBoxTreeCell) fxPeer()).setNodeOrientation((javafx.geometry.NodeOrientation) com.jxparallel.fx.Fx.fx(arg0));
-    }
-
-    public com.jxparallel.fx.beans.property.ObjectProperty<com.jxparallel.fx.event.EventHandler<? super com.jxparallel.fx.scene.input.SwipeEvent>> onSwipeDownProperty() {
-        if (com.jxparallel.fx.Fx.NATIVE) {
-            return (com.jxparallel.fx.beans.property.ObjectProperty) com.jxparallel.fx.nativeimpl.Native.call(this, com.jxparallel.fx.scene.control.cell.ComboBoxTreeCell.class, "onSwipeDownProperty", new Class<?>[] {}, com.jxparallel.fx.beans.property.ObjectProperty.class);
-        }
-        return (com.jxparallel.fx.beans.property.ObjectProperty) com.jxparallel.fx.Fx.jx(((javafx.scene.control.cell.ComboBoxTreeCell) fxPeer()).onSwipeDownProperty());
-    }
-
-    public com.jxparallel.fx.beans.property.ObjectProperty<com.jxparallel.fx.event.EventHandler<? super com.jxparallel.fx.scene.input.SwipeEvent>> onSwipeRightProperty() {
-        if (com.jxparallel.fx.Fx.NATIVE) {
-            return (com.jxparallel.fx.beans.property.ObjectProperty) com.jxparallel.fx.nativeimpl.Native.call(this, com.jxparallel.fx.scene.control.cell.ComboBoxTreeCell.class, "onSwipeRightProperty", new Class<?>[] {}, com.jxparallel.fx.beans.property.ObjectProperty.class);
-        }
-        return (com.jxparallel.fx.beans.property.ObjectProperty) com.jxparallel.fx.Fx.jx(((javafx.scene.control.cell.ComboBoxTreeCell) fxPeer()).onSwipeRightProperty());
-    }
-
-    public com.jxparallel.fx.beans.property.ObjectProperty<com.jxparallel.fx.event.EventHandler<? super com.jxparallel.fx.scene.input.SwipeEvent>> onSwipeUpProperty() {
-        if (com.jxparallel.fx.Fx.NATIVE) {
-            return (com.jxparallel.fx.beans.property.ObjectProperty) com.jxparallel.fx.nativeimpl.Native.call(this, com.jxparallel.fx.scene.control.cell.ComboBoxTreeCell.class, "onSwipeUpProperty", new Class<?>[] {}, com.jxparallel.fx.beans.property.ObjectProperty.class);
-        }
-        return (com.jxparallel.fx.beans.property.ObjectProperty) com.jxparallel.fx.Fx.jx(((javafx.scene.control.cell.ComboBoxTreeCell) fxPeer()).onSwipeUpProperty());
-    }
-
-    public com.jxparallel.fx.beans.property.ObjectProperty<com.jxparallel.fx.event.EventHandler<? super com.jxparallel.fx.scene.input.TouchEvent>> onTouchMovedProperty() {
-        if (com.jxparallel.fx.Fx.NATIVE) {
-            return (com.jxparallel.fx.beans.property.ObjectProperty) com.jxparallel.fx.nativeimpl.Native.call(this, com.jxparallel.fx.scene.control.cell.ComboBoxTreeCell.class, "onTouchMovedProperty", new Class<?>[] {}, com.jxparallel.fx.beans.property.ObjectProperty.class);
-        }
-        return (com.jxparallel.fx.beans.property.ObjectProperty) com.jxparallel.fx.Fx.jx(((javafx.scene.control.cell.ComboBoxTreeCell) fxPeer()).onTouchMovedProperty());
-    }
-
-    public com.jxparallel.fx.beans.property.ObjectProperty<com.jxparallel.fx.event.EventHandler<? super com.jxparallel.fx.scene.input.ZoomEvent>> onZoomStartedProperty() {
-        if (com.jxparallel.fx.Fx.NATIVE) {
-            return (com.jxparallel.fx.beans.property.ObjectProperty) com.jxparallel.fx.nativeimpl.Native.call(this, com.jxparallel.fx.scene.control.cell.ComboBoxTreeCell.class, "onZoomStartedProperty", new Class<?>[] {}, com.jxparallel.fx.beans.property.ObjectProperty.class);
-        }
-        return (com.jxparallel.fx.beans.property.ObjectProperty) com.jxparallel.fx.Fx.jx(((javafx.scene.control.cell.ComboBoxTreeCell) fxPeer()).onZoomStartedProperty());
-    }
-
-    public com.jxparallel.fx.beans.property.ObjectProperty<com.jxparallel.fx.event.EventHandler<? super com.jxparallel.fx.scene.input.ZoomEvent>> onZoomFinishedProperty() {
-        if (com.jxparallel.fx.Fx.NATIVE) {
-            return (com.jxparallel.fx.beans.property.ObjectProperty) com.jxparallel.fx.nativeimpl.Native.call(this, com.jxparallel.fx.scene.control.cell.ComboBoxTreeCell.class, "onZoomFinishedProperty", new Class<?>[] {}, com.jxparallel.fx.beans.property.ObjectProperty.class);
-        }
-        return (com.jxparallel.fx.beans.property.ObjectProperty) com.jxparallel.fx.Fx.jx(((javafx.scene.control.cell.ComboBoxTreeCell) fxPeer()).onZoomFinishedProperty());
-    }
-
-    public com.jxparallel.fx.beans.property.ObjectProperty<com.jxparallel.fx.event.EventHandler<? super com.jxparallel.fx.scene.input.TouchEvent>> onTouchReleasedProperty() {
-        if (com.jxparallel.fx.Fx.NATIVE) {
-            return (com.jxparallel.fx.beans.property.ObjectProperty) com.jxparallel.fx.nativeimpl.Native.call(this, com.jxparallel.fx.scene.control.cell.ComboBoxTreeCell.class, "onTouchReleasedProperty", new Class<?>[] {}, com.jxparallel.fx.beans.property.ObjectProperty.class);
-        }
-        return (com.jxparallel.fx.beans.property.ObjectProperty) com.jxparallel.fx.Fx.jx(((javafx.scene.control.cell.ComboBoxTreeCell) fxPeer()).onTouchReleasedProperty());
-    }
-
-    public void setAccessibleHelp(java.lang.String arg0) {
-        if (com.jxparallel.fx.Fx.NATIVE) {
-            com.jxparallel.fx.nativeimpl.Native.call(this, com.jxparallel.fx.scene.control.cell.ComboBoxTreeCell.class, "setAccessibleHelp", new Class<?>[] {java.lang.String.class}, void.class, arg0);
-            return;
-        }
-        ((javafx.scene.control.cell.ComboBoxTreeCell) fxPeer()).setAccessibleHelp(arg0);
-    }
-
-    public void setAccessibleRole(com.jxparallel.fx.scene.AccessibleRole arg0) {
-        if (com.jxparallel.fx.Fx.NATIVE) {
-            com.jxparallel.fx.nativeimpl.Native.call(this, com.jxparallel.fx.scene.control.cell.ComboBoxTreeCell.class, "setAccessibleRole", new Class<?>[] {com.jxparallel.fx.scene.AccessibleRole.class}, void.class, arg0);
-            return;
-        }
-        ((javafx.scene.control.cell.ComboBoxTreeCell) fxPeer()).setAccessibleRole((javafx.scene.AccessibleRole) com.jxparallel.fx.Fx.fx(arg0));
-    }
-
-    public com.jxparallel.fx.beans.property.ObjectProperty<com.jxparallel.fx.event.EventHandler<? super com.jxparallel.fx.scene.input.SwipeEvent>> onSwipeLeftProperty() {
-        if (com.jxparallel.fx.Fx.NATIVE) {
-            return (com.jxparallel.fx.beans.property.ObjectProperty) com.jxparallel.fx.nativeimpl.Native.call(this, com.jxparallel.fx.scene.control.cell.ComboBoxTreeCell.class, "onSwipeLeftProperty", new Class<?>[] {}, com.jxparallel.fx.beans.property.ObjectProperty.class);
-        }
-        return (com.jxparallel.fx.beans.property.ObjectProperty) com.jxparallel.fx.Fx.jx(((javafx.scene.control.cell.ComboBoxTreeCell) fxPeer()).onSwipeLeftProperty());
-    }
-
-    public com.jxparallel.fx.beans.property.BooleanProperty pickOnBoundsProperty() {
-        if (com.jxparallel.fx.Fx.NATIVE) {
-            return (com.jxparallel.fx.beans.property.BooleanProperty) com.jxparallel.fx.nativeimpl.Native.call(this, com.jxparallel.fx.scene.control.cell.ComboBoxTreeCell.class, "pickOnBoundsProperty", new Class<?>[] {}, com.jxparallel.fx.beans.property.BooleanProperty.class);
-        }
-        return (com.jxparallel.fx.beans.property.BooleanProperty) com.jxparallel.fx.Fx.jx(((javafx.scene.control.cell.ComboBoxTreeCell) fxPeer()).pickOnBoundsProperty());
-    }
-
-    public void pseudoClassStateChanged(javafx.css.PseudoClass arg0, boolean arg1) {
-        if (com.jxparallel.fx.Fx.NATIVE) {
-            com.jxparallel.fx.nativeimpl.Native.call(this, com.jxparallel.fx.scene.control.cell.ComboBoxTreeCell.class, "pseudoClassStateChanged", new Class<?>[] {javafx.css.PseudoClass.class, boolean.class}, void.class, arg0, arg1);
-            return;
-        }
-        ((javafx.scene.control.cell.ComboBoxTreeCell) fxPeer()).pseudoClassStateChanged(arg0, arg1);
-    }
-
-    public void setOnMouseDragExited(com.jxparallel.fx.event.EventHandler<? super com.jxparallel.fx.scene.input.MouseDragEvent> arg0) {
-        if (com.jxparallel.fx.Fx.NATIVE) {
-            com.jxparallel.fx.nativeimpl.Native.call(this, com.jxparallel.fx.scene.control.cell.ComboBoxTreeCell.class, "setOnMouseDragExited", new Class<?>[] {com.jxparallel.fx.event.EventHandler.class}, void.class, arg0);
-            return;
-        }
-        ((javafx.scene.control.cell.ComboBoxTreeCell) fxPeer()).setOnMouseDragExited((javafx.event.EventHandler) com.jxparallel.fx.Fx.fx(arg0));
-    }
-
-    public void setOnMouseDragEntered(com.jxparallel.fx.event.EventHandler<? super com.jxparallel.fx.scene.input.MouseDragEvent> arg0) {
-        if (com.jxparallel.fx.Fx.NATIVE) {
-            com.jxparallel.fx.nativeimpl.Native.call(this, com.jxparallel.fx.scene.control.cell.ComboBoxTreeCell.class, "setOnMouseDragEntered", new Class<?>[] {com.jxparallel.fx.event.EventHandler.class}, void.class, arg0);
-            return;
-        }
-        ((javafx.scene.control.cell.ComboBoxTreeCell) fxPeer()).setOnMouseDragEntered((javafx.event.EventHandler) com.jxparallel.fx.Fx.fx(arg0));
-    }
-
-    public void setOnMouseDragReleased(com.jxparallel.fx.event.EventHandler<? super com.jxparallel.fx.scene.input.MouseDragEvent> arg0) {
-        if (com.jxparallel.fx.Fx.NATIVE) {
-            com.jxparallel.fx.nativeimpl.Native.call(this, com.jxparallel.fx.scene.control.cell.ComboBoxTreeCell.class, "setOnMouseDragReleased", new Class<?>[] {com.jxparallel.fx.event.EventHandler.class}, void.class, arg0);
-            return;
-        }
-        ((javafx.scene.control.cell.ComboBoxTreeCell) fxPeer()).setOnMouseDragReleased((javafx.event.EventHandler) com.jxparallel.fx.Fx.fx(arg0));
-    }
-
     public void setOnMousePressed(com.jxparallel.fx.event.EventHandler<? super com.jxparallel.fx.scene.input.MouseEvent> arg0) {
         if (com.jxparallel.fx.Fx.NATIVE) {
             com.jxparallel.fx.nativeimpl.Native.call(this, com.jxparallel.fx.scene.control.cell.ComboBoxTreeCell.class, "setOnMousePressed", new Class<?>[] {com.jxparallel.fx.event.EventHandler.class}, void.class, arg0);
             return;
         }
         ((javafx.scene.control.cell.ComboBoxTreeCell) fxPeer()).setOnMousePressed((javafx.event.EventHandler) com.jxparallel.fx.Fx.fx(arg0));
-    }
-
-    public void setOnMouseDragOver(com.jxparallel.fx.event.EventHandler<? super com.jxparallel.fx.scene.input.MouseDragEvent> arg0) {
-        if (com.jxparallel.fx.Fx.NATIVE) {
-            com.jxparallel.fx.nativeimpl.Native.call(this, com.jxparallel.fx.scene.control.cell.ComboBoxTreeCell.class, "setOnMouseDragOver", new Class<?>[] {com.jxparallel.fx.event.EventHandler.class}, void.class, arg0);
-            return;
-        }
-        ((javafx.scene.control.cell.ComboBoxTreeCell) fxPeer()).setOnMouseDragOver((javafx.event.EventHandler) com.jxparallel.fx.Fx.fx(arg0));
-    }
-
-    public void setOnRotationFinished(com.jxparallel.fx.event.EventHandler<? super com.jxparallel.fx.scene.input.RotateEvent> arg0) {
-        if (com.jxparallel.fx.Fx.NATIVE) {
-            com.jxparallel.fx.nativeimpl.Native.call(this, com.jxparallel.fx.scene.control.cell.ComboBoxTreeCell.class, "setOnRotationFinished", new Class<?>[] {com.jxparallel.fx.event.EventHandler.class}, void.class, arg0);
-            return;
-        }
-        ((javafx.scene.control.cell.ComboBoxTreeCell) fxPeer()).setOnRotationFinished((javafx.event.EventHandler) com.jxparallel.fx.Fx.fx(arg0));
-    }
-
-    public void setOnScrollStarted(com.jxparallel.fx.event.EventHandler<? super com.jxparallel.fx.scene.input.ScrollEvent> arg0) {
-        if (com.jxparallel.fx.Fx.NATIVE) {
-            com.jxparallel.fx.nativeimpl.Native.call(this, com.jxparallel.fx.scene.control.cell.ComboBoxTreeCell.class, "setOnScrollStarted", new Class<?>[] {com.jxparallel.fx.event.EventHandler.class}, void.class, arg0);
-            return;
-        }
-        ((javafx.scene.control.cell.ComboBoxTreeCell) fxPeer()).setOnScrollStarted((javafx.event.EventHandler) com.jxparallel.fx.Fx.fx(arg0));
-    }
-
-    public void setOnTouchPressed(com.jxparallel.fx.event.EventHandler<? super com.jxparallel.fx.scene.input.TouchEvent> arg0) {
-        if (com.jxparallel.fx.Fx.NATIVE) {
-            com.jxparallel.fx.nativeimpl.Native.call(this, com.jxparallel.fx.scene.control.cell.ComboBoxTreeCell.class, "setOnTouchPressed", new Class<?>[] {com.jxparallel.fx.event.EventHandler.class}, void.class, arg0);
-            return;
-        }
-        ((javafx.scene.control.cell.ComboBoxTreeCell) fxPeer()).setOnTouchPressed((javafx.event.EventHandler) com.jxparallel.fx.Fx.fx(arg0));
-    }
-
-    public com.jxparallel.fx.beans.property.DoubleProperty translateYProperty() {
-        if (com.jxparallel.fx.Fx.NATIVE) {
-            return (com.jxparallel.fx.beans.property.DoubleProperty) com.jxparallel.fx.nativeimpl.Native.call(this, com.jxparallel.fx.scene.control.cell.ComboBoxTreeCell.class, "translateYProperty", new Class<?>[] {}, com.jxparallel.fx.beans.property.DoubleProperty.class);
-        }
-        return (com.jxparallel.fx.beans.property.DoubleProperty) com.jxparallel.fx.Fx.jx(((javafx.scene.control.cell.ComboBoxTreeCell) fxPeer()).translateYProperty());
-    }
-
-    public void setOnTouchStationary(com.jxparallel.fx.event.EventHandler<? super com.jxparallel.fx.scene.input.TouchEvent> arg0) {
-        if (com.jxparallel.fx.Fx.NATIVE) {
-            com.jxparallel.fx.nativeimpl.Native.call(this, com.jxparallel.fx.scene.control.cell.ComboBoxTreeCell.class, "setOnTouchStationary", new Class<?>[] {com.jxparallel.fx.event.EventHandler.class}, void.class, arg0);
-            return;
-        }
-        ((javafx.scene.control.cell.ComboBoxTreeCell) fxPeer()).setOnTouchStationary((javafx.event.EventHandler) com.jxparallel.fx.Fx.fx(arg0));
-    }
-
-    public com.jxparallel.fx.beans.property.DoubleProperty translateZProperty() {
-        if (com.jxparallel.fx.Fx.NATIVE) {
-            return (com.jxparallel.fx.beans.property.DoubleProperty) com.jxparallel.fx.nativeimpl.Native.call(this, com.jxparallel.fx.scene.control.cell.ComboBoxTreeCell.class, "translateZProperty", new Class<?>[] {}, com.jxparallel.fx.beans.property.DoubleProperty.class);
-        }
-        return (com.jxparallel.fx.beans.property.DoubleProperty) com.jxparallel.fx.Fx.jx(((javafx.scene.control.cell.ComboBoxTreeCell) fxPeer()).translateZProperty());
-    }
-
-    public void setOnMouseEntered(com.jxparallel.fx.event.EventHandler<? super com.jxparallel.fx.scene.input.MouseEvent> arg0) {
-        if (com.jxparallel.fx.Fx.NATIVE) {
-            com.jxparallel.fx.nativeimpl.Native.call(this, com.jxparallel.fx.scene.control.cell.ComboBoxTreeCell.class, "setOnMouseEntered", new Class<?>[] {com.jxparallel.fx.event.EventHandler.class}, void.class, arg0);
-            return;
-        }
-        ((javafx.scene.control.cell.ComboBoxTreeCell) fxPeer()).setOnMouseEntered((javafx.event.EventHandler) com.jxparallel.fx.Fx.fx(arg0));
-    }
-
-    public void setOnDragDetected(com.jxparallel.fx.event.EventHandler<? super com.jxparallel.fx.scene.input.MouseEvent> arg0) {
-        if (com.jxparallel.fx.Fx.NATIVE) {
-            com.jxparallel.fx.nativeimpl.Native.call(this, com.jxparallel.fx.scene.control.cell.ComboBoxTreeCell.class, "setOnDragDetected", new Class<?>[] {com.jxparallel.fx.event.EventHandler.class}, void.class, arg0);
-            return;
-        }
-        ((javafx.scene.control.cell.ComboBoxTreeCell) fxPeer()).setOnDragDetected((javafx.event.EventHandler) com.jxparallel.fx.Fx.fx(arg0));
-    }
-
-    public void setOnMouseClicked(com.jxparallel.fx.event.EventHandler<? super com.jxparallel.fx.scene.input.MouseEvent> arg0) {
-        if (com.jxparallel.fx.Fx.NATIVE) {
-            com.jxparallel.fx.nativeimpl.Native.call(this, com.jxparallel.fx.scene.control.cell.ComboBoxTreeCell.class, "setOnMouseClicked", new Class<?>[] {com.jxparallel.fx.event.EventHandler.class}, void.class, arg0);
-            return;
-        }
-        ((javafx.scene.control.cell.ComboBoxTreeCell) fxPeer()).setOnMouseClicked((javafx.event.EventHandler) com.jxparallel.fx.Fx.fx(arg0));
-    }
-
-    public void setOnScrollFinished(com.jxparallel.fx.event.EventHandler<? super com.jxparallel.fx.scene.input.ScrollEvent> arg0) {
-        if (com.jxparallel.fx.Fx.NATIVE) {
-            com.jxparallel.fx.nativeimpl.Native.call(this, com.jxparallel.fx.scene.control.cell.ComboBoxTreeCell.class, "setOnScrollFinished", new Class<?>[] {com.jxparallel.fx.event.EventHandler.class}, void.class, arg0);
-            return;
-        }
-        ((javafx.scene.control.cell.ComboBoxTreeCell) fxPeer()).setOnScrollFinished((javafx.event.EventHandler) com.jxparallel.fx.Fx.fx(arg0));
-    }
-
-    public void setOnRotationStarted(com.jxparallel.fx.event.EventHandler<? super com.jxparallel.fx.scene.input.RotateEvent> arg0) {
-        if (com.jxparallel.fx.Fx.NATIVE) {
-            com.jxparallel.fx.nativeimpl.Native.call(this, com.jxparallel.fx.scene.control.cell.ComboBoxTreeCell.class, "setOnRotationStarted", new Class<?>[] {com.jxparallel.fx.event.EventHandler.class}, void.class, arg0);
-            return;
-        }
-        ((javafx.scene.control.cell.ComboBoxTreeCell) fxPeer()).setOnRotationStarted((javafx.event.EventHandler) com.jxparallel.fx.Fx.fx(arg0));
-    }
-
-    public void setOnMouseDragged(com.jxparallel.fx.event.EventHandler<? super com.jxparallel.fx.scene.input.MouseEvent> arg0) {
-        if (com.jxparallel.fx.Fx.NATIVE) {
-            com.jxparallel.fx.nativeimpl.Native.call(this, com.jxparallel.fx.scene.control.cell.ComboBoxTreeCell.class, "setOnMouseDragged", new Class<?>[] {com.jxparallel.fx.event.EventHandler.class}, void.class, arg0);
-            return;
-        }
-        ((javafx.scene.control.cell.ComboBoxTreeCell) fxPeer()).setOnMouseDragged((javafx.event.EventHandler) com.jxparallel.fx.Fx.fx(arg0));
-    }
-
-    public void setOnZoomFinished(com.jxparallel.fx.event.EventHandler<? super com.jxparallel.fx.scene.input.ZoomEvent> arg0) {
-        if (com.jxparallel.fx.Fx.NATIVE) {
-            com.jxparallel.fx.nativeimpl.Native.call(this, com.jxparallel.fx.scene.control.cell.ComboBoxTreeCell.class, "setOnZoomFinished", new Class<?>[] {com.jxparallel.fx.event.EventHandler.class}, void.class, arg0);
-            return;
-        }
-        ((javafx.scene.control.cell.ComboBoxTreeCell) fxPeer()).setOnZoomFinished((javafx.event.EventHandler) com.jxparallel.fx.Fx.fx(arg0));
     }
 
     public void setOnMouseReleased(com.jxparallel.fx.event.EventHandler<? super com.jxparallel.fx.scene.input.MouseEvent> arg0) {
@@ -3779,6 +3182,102 @@ public class ComboBoxTreeCell<T> implements com.jxparallel.fx.scene.control.Skin
         ((javafx.scene.control.cell.ComboBoxTreeCell) fxPeer()).setOnMouseReleased((javafx.event.EventHandler) com.jxparallel.fx.Fx.fx(arg0));
     }
 
+    public void setOnRotate(com.jxparallel.fx.event.EventHandler<? super com.jxparallel.fx.scene.input.RotateEvent> arg0) {
+        if (com.jxparallel.fx.Fx.NATIVE) {
+            com.jxparallel.fx.nativeimpl.Native.call(this, com.jxparallel.fx.scene.control.cell.ComboBoxTreeCell.class, "setOnRotate", new Class<?>[] {com.jxparallel.fx.event.EventHandler.class}, void.class, arg0);
+            return;
+        }
+        ((javafx.scene.control.cell.ComboBoxTreeCell) fxPeer()).setOnRotate((javafx.event.EventHandler) com.jxparallel.fx.Fx.fx(arg0));
+    }
+
+    public void setOnRotationFinished(com.jxparallel.fx.event.EventHandler<? super com.jxparallel.fx.scene.input.RotateEvent> arg0) {
+        if (com.jxparallel.fx.Fx.NATIVE) {
+            com.jxparallel.fx.nativeimpl.Native.call(this, com.jxparallel.fx.scene.control.cell.ComboBoxTreeCell.class, "setOnRotationFinished", new Class<?>[] {com.jxparallel.fx.event.EventHandler.class}, void.class, arg0);
+            return;
+        }
+        ((javafx.scene.control.cell.ComboBoxTreeCell) fxPeer()).setOnRotationFinished((javafx.event.EventHandler) com.jxparallel.fx.Fx.fx(arg0));
+    }
+
+    public void setOnRotationStarted(com.jxparallel.fx.event.EventHandler<? super com.jxparallel.fx.scene.input.RotateEvent> arg0) {
+        if (com.jxparallel.fx.Fx.NATIVE) {
+            com.jxparallel.fx.nativeimpl.Native.call(this, com.jxparallel.fx.scene.control.cell.ComboBoxTreeCell.class, "setOnRotationStarted", new Class<?>[] {com.jxparallel.fx.event.EventHandler.class}, void.class, arg0);
+            return;
+        }
+        ((javafx.scene.control.cell.ComboBoxTreeCell) fxPeer()).setOnRotationStarted((javafx.event.EventHandler) com.jxparallel.fx.Fx.fx(arg0));
+    }
+
+    public void setOnScroll(com.jxparallel.fx.event.EventHandler<? super com.jxparallel.fx.scene.input.ScrollEvent> arg0) {
+        if (com.jxparallel.fx.Fx.NATIVE) {
+            com.jxparallel.fx.nativeimpl.Native.call(this, com.jxparallel.fx.scene.control.cell.ComboBoxTreeCell.class, "setOnScroll", new Class<?>[] {com.jxparallel.fx.event.EventHandler.class}, void.class, arg0);
+            return;
+        }
+        ((javafx.scene.control.cell.ComboBoxTreeCell) fxPeer()).setOnScroll((javafx.event.EventHandler) com.jxparallel.fx.Fx.fx(arg0));
+    }
+
+    public void setOnScrollFinished(com.jxparallel.fx.event.EventHandler<? super com.jxparallel.fx.scene.input.ScrollEvent> arg0) {
+        if (com.jxparallel.fx.Fx.NATIVE) {
+            com.jxparallel.fx.nativeimpl.Native.call(this, com.jxparallel.fx.scene.control.cell.ComboBoxTreeCell.class, "setOnScrollFinished", new Class<?>[] {com.jxparallel.fx.event.EventHandler.class}, void.class, arg0);
+            return;
+        }
+        ((javafx.scene.control.cell.ComboBoxTreeCell) fxPeer()).setOnScrollFinished((javafx.event.EventHandler) com.jxparallel.fx.Fx.fx(arg0));
+    }
+
+    public void setOnScrollStarted(com.jxparallel.fx.event.EventHandler<? super com.jxparallel.fx.scene.input.ScrollEvent> arg0) {
+        if (com.jxparallel.fx.Fx.NATIVE) {
+            com.jxparallel.fx.nativeimpl.Native.call(this, com.jxparallel.fx.scene.control.cell.ComboBoxTreeCell.class, "setOnScrollStarted", new Class<?>[] {com.jxparallel.fx.event.EventHandler.class}, void.class, arg0);
+            return;
+        }
+        ((javafx.scene.control.cell.ComboBoxTreeCell) fxPeer()).setOnScrollStarted((javafx.event.EventHandler) com.jxparallel.fx.Fx.fx(arg0));
+    }
+
+    public void setOnSwipeDown(com.jxparallel.fx.event.EventHandler<? super com.jxparallel.fx.scene.input.SwipeEvent> arg0) {
+        if (com.jxparallel.fx.Fx.NATIVE) {
+            com.jxparallel.fx.nativeimpl.Native.call(this, com.jxparallel.fx.scene.control.cell.ComboBoxTreeCell.class, "setOnSwipeDown", new Class<?>[] {com.jxparallel.fx.event.EventHandler.class}, void.class, arg0);
+            return;
+        }
+        ((javafx.scene.control.cell.ComboBoxTreeCell) fxPeer()).setOnSwipeDown((javafx.event.EventHandler) com.jxparallel.fx.Fx.fx(arg0));
+    }
+
+    public void setOnSwipeLeft(com.jxparallel.fx.event.EventHandler<? super com.jxparallel.fx.scene.input.SwipeEvent> arg0) {
+        if (com.jxparallel.fx.Fx.NATIVE) {
+            com.jxparallel.fx.nativeimpl.Native.call(this, com.jxparallel.fx.scene.control.cell.ComboBoxTreeCell.class, "setOnSwipeLeft", new Class<?>[] {com.jxparallel.fx.event.EventHandler.class}, void.class, arg0);
+            return;
+        }
+        ((javafx.scene.control.cell.ComboBoxTreeCell) fxPeer()).setOnSwipeLeft((javafx.event.EventHandler) com.jxparallel.fx.Fx.fx(arg0));
+    }
+
+    public void setOnSwipeRight(com.jxparallel.fx.event.EventHandler<? super com.jxparallel.fx.scene.input.SwipeEvent> arg0) {
+        if (com.jxparallel.fx.Fx.NATIVE) {
+            com.jxparallel.fx.nativeimpl.Native.call(this, com.jxparallel.fx.scene.control.cell.ComboBoxTreeCell.class, "setOnSwipeRight", new Class<?>[] {com.jxparallel.fx.event.EventHandler.class}, void.class, arg0);
+            return;
+        }
+        ((javafx.scene.control.cell.ComboBoxTreeCell) fxPeer()).setOnSwipeRight((javafx.event.EventHandler) com.jxparallel.fx.Fx.fx(arg0));
+    }
+
+    public void setOnSwipeUp(com.jxparallel.fx.event.EventHandler<? super com.jxparallel.fx.scene.input.SwipeEvent> arg0) {
+        if (com.jxparallel.fx.Fx.NATIVE) {
+            com.jxparallel.fx.nativeimpl.Native.call(this, com.jxparallel.fx.scene.control.cell.ComboBoxTreeCell.class, "setOnSwipeUp", new Class<?>[] {com.jxparallel.fx.event.EventHandler.class}, void.class, arg0);
+            return;
+        }
+        ((javafx.scene.control.cell.ComboBoxTreeCell) fxPeer()).setOnSwipeUp((javafx.event.EventHandler) com.jxparallel.fx.Fx.fx(arg0));
+    }
+
+    public void setOnTouchMoved(com.jxparallel.fx.event.EventHandler<? super com.jxparallel.fx.scene.input.TouchEvent> arg0) {
+        if (com.jxparallel.fx.Fx.NATIVE) {
+            com.jxparallel.fx.nativeimpl.Native.call(this, com.jxparallel.fx.scene.control.cell.ComboBoxTreeCell.class, "setOnTouchMoved", new Class<?>[] {com.jxparallel.fx.event.EventHandler.class}, void.class, arg0);
+            return;
+        }
+        ((javafx.scene.control.cell.ComboBoxTreeCell) fxPeer()).setOnTouchMoved((javafx.event.EventHandler) com.jxparallel.fx.Fx.fx(arg0));
+    }
+
+    public void setOnTouchPressed(com.jxparallel.fx.event.EventHandler<? super com.jxparallel.fx.scene.input.TouchEvent> arg0) {
+        if (com.jxparallel.fx.Fx.NATIVE) {
+            com.jxparallel.fx.nativeimpl.Native.call(this, com.jxparallel.fx.scene.control.cell.ComboBoxTreeCell.class, "setOnTouchPressed", new Class<?>[] {com.jxparallel.fx.event.EventHandler.class}, void.class, arg0);
+            return;
+        }
+        ((javafx.scene.control.cell.ComboBoxTreeCell) fxPeer()).setOnTouchPressed((javafx.event.EventHandler) com.jxparallel.fx.Fx.fx(arg0));
+    }
+
     public void setOnTouchReleased(com.jxparallel.fx.event.EventHandler<? super com.jxparallel.fx.scene.input.TouchEvent> arg0) {
         if (com.jxparallel.fx.Fx.NATIVE) {
             com.jxparallel.fx.nativeimpl.Native.call(this, com.jxparallel.fx.scene.control.cell.ComboBoxTreeCell.class, "setOnTouchReleased", new Class<?>[] {com.jxparallel.fx.event.EventHandler.class}, void.class, arg0);
@@ -3787,11 +3286,512 @@ public class ComboBoxTreeCell<T> implements com.jxparallel.fx.scene.control.Skin
         ((javafx.scene.control.cell.ComboBoxTreeCell) fxPeer()).setOnTouchReleased((javafx.event.EventHandler) com.jxparallel.fx.Fx.fx(arg0));
     }
 
-    public com.jxparallel.fx.beans.property.DoubleProperty translateXProperty() {
+    public void setOnTouchStationary(com.jxparallel.fx.event.EventHandler<? super com.jxparallel.fx.scene.input.TouchEvent> arg0) {
         if (com.jxparallel.fx.Fx.NATIVE) {
-            return (com.jxparallel.fx.beans.property.DoubleProperty) com.jxparallel.fx.nativeimpl.Native.call(this, com.jxparallel.fx.scene.control.cell.ComboBoxTreeCell.class, "translateXProperty", new Class<?>[] {}, com.jxparallel.fx.beans.property.DoubleProperty.class);
+            com.jxparallel.fx.nativeimpl.Native.call(this, com.jxparallel.fx.scene.control.cell.ComboBoxTreeCell.class, "setOnTouchStationary", new Class<?>[] {com.jxparallel.fx.event.EventHandler.class}, void.class, arg0);
+            return;
         }
-        return (com.jxparallel.fx.beans.property.DoubleProperty) com.jxparallel.fx.Fx.jx(((javafx.scene.control.cell.ComboBoxTreeCell) fxPeer()).translateXProperty());
+        ((javafx.scene.control.cell.ComboBoxTreeCell) fxPeer()).setOnTouchStationary((javafx.event.EventHandler) com.jxparallel.fx.Fx.fx(arg0));
+    }
+
+    public void setOnZoom(com.jxparallel.fx.event.EventHandler<? super com.jxparallel.fx.scene.input.ZoomEvent> arg0) {
+        if (com.jxparallel.fx.Fx.NATIVE) {
+            com.jxparallel.fx.nativeimpl.Native.call(this, com.jxparallel.fx.scene.control.cell.ComboBoxTreeCell.class, "setOnZoom", new Class<?>[] {com.jxparallel.fx.event.EventHandler.class}, void.class, arg0);
+            return;
+        }
+        ((javafx.scene.control.cell.ComboBoxTreeCell) fxPeer()).setOnZoom((javafx.event.EventHandler) com.jxparallel.fx.Fx.fx(arg0));
+    }
+
+    public void setOnZoomFinished(com.jxparallel.fx.event.EventHandler<? super com.jxparallel.fx.scene.input.ZoomEvent> arg0) {
+        if (com.jxparallel.fx.Fx.NATIVE) {
+            com.jxparallel.fx.nativeimpl.Native.call(this, com.jxparallel.fx.scene.control.cell.ComboBoxTreeCell.class, "setOnZoomFinished", new Class<?>[] {com.jxparallel.fx.event.EventHandler.class}, void.class, arg0);
+            return;
+        }
+        ((javafx.scene.control.cell.ComboBoxTreeCell) fxPeer()).setOnZoomFinished((javafx.event.EventHandler) com.jxparallel.fx.Fx.fx(arg0));
+    }
+
+    public void setOnZoomStarted(com.jxparallel.fx.event.EventHandler<? super com.jxparallel.fx.scene.input.ZoomEvent> arg0) {
+        if (com.jxparallel.fx.Fx.NATIVE) {
+            com.jxparallel.fx.nativeimpl.Native.call(this, com.jxparallel.fx.scene.control.cell.ComboBoxTreeCell.class, "setOnZoomStarted", new Class<?>[] {com.jxparallel.fx.event.EventHandler.class}, void.class, arg0);
+            return;
+        }
+        ((javafx.scene.control.cell.ComboBoxTreeCell) fxPeer()).setOnZoomStarted((javafx.event.EventHandler) com.jxparallel.fx.Fx.fx(arg0));
+    }
+
+    public void setOpacity(double arg0) {
+        if (com.jxparallel.fx.Fx.NATIVE) {
+            com.jxparallel.fx.nativeimpl.Native.call(this, com.jxparallel.fx.scene.control.cell.ComboBoxTreeCell.class, "setOpacity", new Class<?>[] {double.class}, void.class, arg0);
+            return;
+        }
+        ((javafx.scene.control.cell.ComboBoxTreeCell) fxPeer()).setOpacity(arg0);
+    }
+
+    public void setPickOnBounds(boolean arg0) {
+        if (com.jxparallel.fx.Fx.NATIVE) {
+            com.jxparallel.fx.nativeimpl.Native.call(this, com.jxparallel.fx.scene.control.cell.ComboBoxTreeCell.class, "setPickOnBounds", new Class<?>[] {boolean.class}, void.class, arg0);
+            return;
+        }
+        ((javafx.scene.control.cell.ComboBoxTreeCell) fxPeer()).setPickOnBounds(arg0);
+    }
+
+    public void setRotate(double arg0) {
+        if (com.jxparallel.fx.Fx.NATIVE) {
+            com.jxparallel.fx.nativeimpl.Native.call(this, com.jxparallel.fx.scene.control.cell.ComboBoxTreeCell.class, "setRotate", new Class<?>[] {double.class}, void.class, arg0);
+            return;
+        }
+        ((javafx.scene.control.cell.ComboBoxTreeCell) fxPeer()).setRotate(arg0);
+    }
+
+    public void setRotationAxis(com.jxparallel.fx.geometry.Point3D arg0) {
+        if (com.jxparallel.fx.Fx.NATIVE) {
+            com.jxparallel.fx.nativeimpl.Native.call(this, com.jxparallel.fx.scene.control.cell.ComboBoxTreeCell.class, "setRotationAxis", new Class<?>[] {com.jxparallel.fx.geometry.Point3D.class}, void.class, arg0);
+            return;
+        }
+        ((javafx.scene.control.cell.ComboBoxTreeCell) fxPeer()).setRotationAxis((javafx.geometry.Point3D) com.jxparallel.fx.Fx.fx(arg0));
+    }
+
+    public void setScaleX(double arg0) {
+        if (com.jxparallel.fx.Fx.NATIVE) {
+            com.jxparallel.fx.nativeimpl.Native.call(this, com.jxparallel.fx.scene.control.cell.ComboBoxTreeCell.class, "setScaleX", new Class<?>[] {double.class}, void.class, arg0);
+            return;
+        }
+        ((javafx.scene.control.cell.ComboBoxTreeCell) fxPeer()).setScaleX(arg0);
+    }
+
+    public void setScaleY(double arg0) {
+        if (com.jxparallel.fx.Fx.NATIVE) {
+            com.jxparallel.fx.nativeimpl.Native.call(this, com.jxparallel.fx.scene.control.cell.ComboBoxTreeCell.class, "setScaleY", new Class<?>[] {double.class}, void.class, arg0);
+            return;
+        }
+        ((javafx.scene.control.cell.ComboBoxTreeCell) fxPeer()).setScaleY(arg0);
+    }
+
+    public void setScaleZ(double arg0) {
+        if (com.jxparallel.fx.Fx.NATIVE) {
+            com.jxparallel.fx.nativeimpl.Native.call(this, com.jxparallel.fx.scene.control.cell.ComboBoxTreeCell.class, "setScaleZ", new Class<?>[] {double.class}, void.class, arg0);
+            return;
+        }
+        ((javafx.scene.control.cell.ComboBoxTreeCell) fxPeer()).setScaleZ(arg0);
+    }
+
+    public void setStyle(java.lang.String arg0) {
+        if (com.jxparallel.fx.Fx.NATIVE) {
+            com.jxparallel.fx.nativeimpl.Native.call(this, com.jxparallel.fx.scene.control.cell.ComboBoxTreeCell.class, "setStyle", new Class<?>[] {java.lang.String.class}, void.class, arg0);
+            return;
+        }
+        ((javafx.scene.control.cell.ComboBoxTreeCell) fxPeer()).setStyle(arg0);
+    }
+
+    public void setTranslateX(double arg0) {
+        if (com.jxparallel.fx.Fx.NATIVE) {
+            com.jxparallel.fx.nativeimpl.Native.call(this, com.jxparallel.fx.scene.control.cell.ComboBoxTreeCell.class, "setTranslateX", new Class<?>[] {double.class}, void.class, arg0);
+            return;
+        }
+        ((javafx.scene.control.cell.ComboBoxTreeCell) fxPeer()).setTranslateX(arg0);
+    }
+
+    public void setTranslateY(double arg0) {
+        if (com.jxparallel.fx.Fx.NATIVE) {
+            com.jxparallel.fx.nativeimpl.Native.call(this, com.jxparallel.fx.scene.control.cell.ComboBoxTreeCell.class, "setTranslateY", new Class<?>[] {double.class}, void.class, arg0);
+            return;
+        }
+        ((javafx.scene.control.cell.ComboBoxTreeCell) fxPeer()).setTranslateY(arg0);
+    }
+
+    public void setTranslateZ(double arg0) {
+        if (com.jxparallel.fx.Fx.NATIVE) {
+            com.jxparallel.fx.nativeimpl.Native.call(this, com.jxparallel.fx.scene.control.cell.ComboBoxTreeCell.class, "setTranslateZ", new Class<?>[] {double.class}, void.class, arg0);
+            return;
+        }
+        ((javafx.scene.control.cell.ComboBoxTreeCell) fxPeer()).setTranslateZ(arg0);
+    }
+
+    public void setVisible(boolean arg0) {
+        if (com.jxparallel.fx.Fx.NATIVE) {
+            com.jxparallel.fx.nativeimpl.Native.call(this, com.jxparallel.fx.scene.control.cell.ComboBoxTreeCell.class, "setVisible", new Class<?>[] {boolean.class}, void.class, arg0);
+            return;
+        }
+        ((javafx.scene.control.cell.ComboBoxTreeCell) fxPeer()).setVisible(arg0);
+    }
+
+    public java.lang.Object getUserData() {
+        if (com.jxparallel.fx.Fx.NATIVE) {
+            return (java.lang.Object) com.jxparallel.fx.nativeimpl.Native.call(this, com.jxparallel.fx.scene.control.cell.ComboBoxTreeCell.class, "getUserData", new Class<?>[] {}, java.lang.Object.class);
+        }
+        return (java.lang.Object) com.jxparallel.fx.Fx.jx(((javafx.scene.control.cell.ComboBoxTreeCell) fxPeer()).getUserData());
+    }
+
+    public java.lang.String getTypeSelector() {
+        if (com.jxparallel.fx.Fx.NATIVE) {
+            return (java.lang.String) com.jxparallel.fx.nativeimpl.Native.call(this, com.jxparallel.fx.scene.control.cell.ComboBoxTreeCell.class, "getTypeSelector", new Class<?>[] {}, java.lang.String.class);
+        }
+        return ((javafx.scene.control.cell.ComboBoxTreeCell) fxPeer()).getTypeSelector();
+    }
+
+    public java.util.Map<javafx.css.StyleableProperty<?>, java.util.List<com.sun.javafx.css.Style>> impl_findStyles(java.util.Map<javafx.css.StyleableProperty<?>, java.util.List<com.sun.javafx.css.Style>> arg0) {
+        if (com.jxparallel.fx.Fx.NATIVE) {
+            return (java.util.Map) com.jxparallel.fx.nativeimpl.Native.call(this, com.jxparallel.fx.scene.control.cell.ComboBoxTreeCell.class, "impl_findStyles", new Class<?>[] {java.util.Map.class}, java.util.Map.class, arg0);
+        }
+        return ((javafx.scene.control.cell.ComboBoxTreeCell) fxPeer()).impl_findStyles(arg0);
+    }
+
+    public java.util.Set<com.jxparallel.fx.scene.Node> lookupAll(java.lang.String arg0) {
+        if (com.jxparallel.fx.Fx.NATIVE) {
+            return (java.util.Set) com.jxparallel.fx.nativeimpl.Native.call(this, com.jxparallel.fx.scene.control.cell.ComboBoxTreeCell.class, "lookupAll", new Class<?>[] {java.lang.String.class}, java.util.Set.class, arg0);
+        }
+        return (java.util.Set) com.jxparallel.fx.Fx.jxCollection((java.util.Collection) ((javafx.scene.control.cell.ComboBoxTreeCell) fxPeer()).lookupAll(arg0));
+    }
+
+    public com.jxparallel.fx.css.Styleable getStyleableParent() {
+        if (com.jxparallel.fx.Fx.NATIVE) {
+            return (com.jxparallel.fx.css.Styleable) com.jxparallel.fx.nativeimpl.Native.call(this, com.jxparallel.fx.scene.control.cell.ComboBoxTreeCell.class, "getStyleableParent", new Class<?>[] {}, com.jxparallel.fx.css.Styleable.class);
+        }
+        return (com.jxparallel.fx.css.Styleable) com.jxparallel.fx.Fx.jx(((javafx.scene.control.cell.ComboBoxTreeCell) fxPeer()).getStyleableParent());
+    }
+
+    public com.jxparallel.fx.event.EventDispatchChain buildEventDispatchChain(com.jxparallel.fx.event.EventDispatchChain arg0) {
+        if (com.jxparallel.fx.Fx.NATIVE) {
+            return (com.jxparallel.fx.event.EventDispatchChain) com.jxparallel.fx.nativeimpl.Native.call(this, com.jxparallel.fx.scene.control.cell.ComboBoxTreeCell.class, "buildEventDispatchChain", new Class<?>[] {com.jxparallel.fx.event.EventDispatchChain.class}, com.jxparallel.fx.event.EventDispatchChain.class, arg0);
+        }
+        return (com.jxparallel.fx.event.EventDispatchChain) com.jxparallel.fx.Fx.jx(((javafx.scene.control.cell.ComboBoxTreeCell) fxPeer()).buildEventDispatchChain((javafx.event.EventDispatchChain) com.jxparallel.fx.Fx.fx(arg0)));
+    }
+
+    public com.jxparallel.fx.geometry.Bounds localToParent(com.jxparallel.fx.geometry.Bounds arg0) {
+        if (com.jxparallel.fx.Fx.NATIVE) {
+            return (com.jxparallel.fx.geometry.Bounds) com.jxparallel.fx.nativeimpl.Native.call(this, com.jxparallel.fx.scene.control.cell.ComboBoxTreeCell.class, "localToParent", new Class<?>[] {com.jxparallel.fx.geometry.Bounds.class}, com.jxparallel.fx.geometry.Bounds.class, arg0);
+        }
+        return (com.jxparallel.fx.geometry.Bounds) com.jxparallel.fx.Fx.jx(((javafx.scene.control.cell.ComboBoxTreeCell) fxPeer()).localToParent((javafx.geometry.Bounds) com.jxparallel.fx.Fx.fx(arg0)));
+    }
+
+    public com.jxparallel.fx.geometry.Bounds localToScene(com.jxparallel.fx.geometry.Bounds arg0) {
+        if (com.jxparallel.fx.Fx.NATIVE) {
+            return (com.jxparallel.fx.geometry.Bounds) com.jxparallel.fx.nativeimpl.Native.call(this, com.jxparallel.fx.scene.control.cell.ComboBoxTreeCell.class, "localToScene", new Class<?>[] {com.jxparallel.fx.geometry.Bounds.class}, com.jxparallel.fx.geometry.Bounds.class, arg0);
+        }
+        return (com.jxparallel.fx.geometry.Bounds) com.jxparallel.fx.Fx.jx(((javafx.scene.control.cell.ComboBoxTreeCell) fxPeer()).localToScene((javafx.geometry.Bounds) com.jxparallel.fx.Fx.fx(arg0)));
+    }
+
+    public com.jxparallel.fx.geometry.Bounds localToScene(com.jxparallel.fx.geometry.Bounds arg0, boolean arg1) {
+        if (com.jxparallel.fx.Fx.NATIVE) {
+            return (com.jxparallel.fx.geometry.Bounds) com.jxparallel.fx.nativeimpl.Native.call(this, com.jxparallel.fx.scene.control.cell.ComboBoxTreeCell.class, "localToScene", new Class<?>[] {com.jxparallel.fx.geometry.Bounds.class, boolean.class}, com.jxparallel.fx.geometry.Bounds.class, arg0, arg1);
+        }
+        return (com.jxparallel.fx.geometry.Bounds) com.jxparallel.fx.Fx.jx(((javafx.scene.control.cell.ComboBoxTreeCell) fxPeer()).localToScene((javafx.geometry.Bounds) com.jxparallel.fx.Fx.fx(arg0), arg1));
+    }
+
+    public com.jxparallel.fx.geometry.Bounds localToScreen(com.jxparallel.fx.geometry.Bounds arg0) {
+        if (com.jxparallel.fx.Fx.NATIVE) {
+            return (com.jxparallel.fx.geometry.Bounds) com.jxparallel.fx.nativeimpl.Native.call(this, com.jxparallel.fx.scene.control.cell.ComboBoxTreeCell.class, "localToScreen", new Class<?>[] {com.jxparallel.fx.geometry.Bounds.class}, com.jxparallel.fx.geometry.Bounds.class, arg0);
+        }
+        return (com.jxparallel.fx.geometry.Bounds) com.jxparallel.fx.Fx.jx(((javafx.scene.control.cell.ComboBoxTreeCell) fxPeer()).localToScreen((javafx.geometry.Bounds) com.jxparallel.fx.Fx.fx(arg0)));
+    }
+
+    public com.jxparallel.fx.geometry.Bounds parentToLocal(com.jxparallel.fx.geometry.Bounds arg0) {
+        if (com.jxparallel.fx.Fx.NATIVE) {
+            return (com.jxparallel.fx.geometry.Bounds) com.jxparallel.fx.nativeimpl.Native.call(this, com.jxparallel.fx.scene.control.cell.ComboBoxTreeCell.class, "parentToLocal", new Class<?>[] {com.jxparallel.fx.geometry.Bounds.class}, com.jxparallel.fx.geometry.Bounds.class, arg0);
+        }
+        return (com.jxparallel.fx.geometry.Bounds) com.jxparallel.fx.Fx.jx(((javafx.scene.control.cell.ComboBoxTreeCell) fxPeer()).parentToLocal((javafx.geometry.Bounds) com.jxparallel.fx.Fx.fx(arg0)));
+    }
+
+    public com.jxparallel.fx.geometry.Bounds sceneToLocal(com.jxparallel.fx.geometry.Bounds arg0) {
+        if (com.jxparallel.fx.Fx.NATIVE) {
+            return (com.jxparallel.fx.geometry.Bounds) com.jxparallel.fx.nativeimpl.Native.call(this, com.jxparallel.fx.scene.control.cell.ComboBoxTreeCell.class, "sceneToLocal", new Class<?>[] {com.jxparallel.fx.geometry.Bounds.class}, com.jxparallel.fx.geometry.Bounds.class, arg0);
+        }
+        return (com.jxparallel.fx.geometry.Bounds) com.jxparallel.fx.Fx.jx(((javafx.scene.control.cell.ComboBoxTreeCell) fxPeer()).sceneToLocal((javafx.geometry.Bounds) com.jxparallel.fx.Fx.fx(arg0)));
+    }
+
+    public com.jxparallel.fx.geometry.Bounds sceneToLocal(com.jxparallel.fx.geometry.Bounds arg0, boolean arg1) {
+        if (com.jxparallel.fx.Fx.NATIVE) {
+            return (com.jxparallel.fx.geometry.Bounds) com.jxparallel.fx.nativeimpl.Native.call(this, com.jxparallel.fx.scene.control.cell.ComboBoxTreeCell.class, "sceneToLocal", new Class<?>[] {com.jxparallel.fx.geometry.Bounds.class, boolean.class}, com.jxparallel.fx.geometry.Bounds.class, arg0, arg1);
+        }
+        return (com.jxparallel.fx.geometry.Bounds) com.jxparallel.fx.Fx.jx(((javafx.scene.control.cell.ComboBoxTreeCell) fxPeer()).sceneToLocal((javafx.geometry.Bounds) com.jxparallel.fx.Fx.fx(arg0), arg1));
+    }
+
+    public com.jxparallel.fx.geometry.Bounds screenToLocal(com.jxparallel.fx.geometry.Bounds arg0) {
+        if (com.jxparallel.fx.Fx.NATIVE) {
+            return (com.jxparallel.fx.geometry.Bounds) com.jxparallel.fx.nativeimpl.Native.call(this, com.jxparallel.fx.scene.control.cell.ComboBoxTreeCell.class, "screenToLocal", new Class<?>[] {com.jxparallel.fx.geometry.Bounds.class}, com.jxparallel.fx.geometry.Bounds.class, arg0);
+        }
+        return (com.jxparallel.fx.geometry.Bounds) com.jxparallel.fx.Fx.jx(((javafx.scene.control.cell.ComboBoxTreeCell) fxPeer()).screenToLocal((javafx.geometry.Bounds) com.jxparallel.fx.Fx.fx(arg0)));
+    }
+
+    public com.jxparallel.fx.geometry.Point2D localToParent(double arg0, double arg1) {
+        if (com.jxparallel.fx.Fx.NATIVE) {
+            return (com.jxparallel.fx.geometry.Point2D) com.jxparallel.fx.nativeimpl.Native.call(this, com.jxparallel.fx.scene.control.cell.ComboBoxTreeCell.class, "localToParent", new Class<?>[] {double.class, double.class}, com.jxparallel.fx.geometry.Point2D.class, arg0, arg1);
+        }
+        return (com.jxparallel.fx.geometry.Point2D) com.jxparallel.fx.Fx.jx(((javafx.scene.control.cell.ComboBoxTreeCell) fxPeer()).localToParent(arg0, arg1));
+    }
+
+    public com.jxparallel.fx.geometry.Point2D localToParent(com.jxparallel.fx.geometry.Point2D arg0) {
+        if (com.jxparallel.fx.Fx.NATIVE) {
+            return (com.jxparallel.fx.geometry.Point2D) com.jxparallel.fx.nativeimpl.Native.call(this, com.jxparallel.fx.scene.control.cell.ComboBoxTreeCell.class, "localToParent", new Class<?>[] {com.jxparallel.fx.geometry.Point2D.class}, com.jxparallel.fx.geometry.Point2D.class, arg0);
+        }
+        return (com.jxparallel.fx.geometry.Point2D) com.jxparallel.fx.Fx.jx(((javafx.scene.control.cell.ComboBoxTreeCell) fxPeer()).localToParent((javafx.geometry.Point2D) com.jxparallel.fx.Fx.fx(arg0)));
+    }
+
+    public com.jxparallel.fx.geometry.Point2D localToScene(double arg0, double arg1) {
+        if (com.jxparallel.fx.Fx.NATIVE) {
+            return (com.jxparallel.fx.geometry.Point2D) com.jxparallel.fx.nativeimpl.Native.call(this, com.jxparallel.fx.scene.control.cell.ComboBoxTreeCell.class, "localToScene", new Class<?>[] {double.class, double.class}, com.jxparallel.fx.geometry.Point2D.class, arg0, arg1);
+        }
+        return (com.jxparallel.fx.geometry.Point2D) com.jxparallel.fx.Fx.jx(((javafx.scene.control.cell.ComboBoxTreeCell) fxPeer()).localToScene(arg0, arg1));
+    }
+
+    public com.jxparallel.fx.geometry.Point2D localToScene(double arg0, double arg1, boolean arg2) {
+        if (com.jxparallel.fx.Fx.NATIVE) {
+            return (com.jxparallel.fx.geometry.Point2D) com.jxparallel.fx.nativeimpl.Native.call(this, com.jxparallel.fx.scene.control.cell.ComboBoxTreeCell.class, "localToScene", new Class<?>[] {double.class, double.class, boolean.class}, com.jxparallel.fx.geometry.Point2D.class, arg0, arg1, arg2);
+        }
+        return (com.jxparallel.fx.geometry.Point2D) com.jxparallel.fx.Fx.jx(((javafx.scene.control.cell.ComboBoxTreeCell) fxPeer()).localToScene(arg0, arg1, arg2));
+    }
+
+    public com.jxparallel.fx.geometry.Point2D localToScene(com.jxparallel.fx.geometry.Point2D arg0) {
+        if (com.jxparallel.fx.Fx.NATIVE) {
+            return (com.jxparallel.fx.geometry.Point2D) com.jxparallel.fx.nativeimpl.Native.call(this, com.jxparallel.fx.scene.control.cell.ComboBoxTreeCell.class, "localToScene", new Class<?>[] {com.jxparallel.fx.geometry.Point2D.class}, com.jxparallel.fx.geometry.Point2D.class, arg0);
+        }
+        return (com.jxparallel.fx.geometry.Point2D) com.jxparallel.fx.Fx.jx(((javafx.scene.control.cell.ComboBoxTreeCell) fxPeer()).localToScene((javafx.geometry.Point2D) com.jxparallel.fx.Fx.fx(arg0)));
+    }
+
+    public com.jxparallel.fx.geometry.Point2D localToScene(com.jxparallel.fx.geometry.Point2D arg0, boolean arg1) {
+        if (com.jxparallel.fx.Fx.NATIVE) {
+            return (com.jxparallel.fx.geometry.Point2D) com.jxparallel.fx.nativeimpl.Native.call(this, com.jxparallel.fx.scene.control.cell.ComboBoxTreeCell.class, "localToScene", new Class<?>[] {com.jxparallel.fx.geometry.Point2D.class, boolean.class}, com.jxparallel.fx.geometry.Point2D.class, arg0, arg1);
+        }
+        return (com.jxparallel.fx.geometry.Point2D) com.jxparallel.fx.Fx.jx(((javafx.scene.control.cell.ComboBoxTreeCell) fxPeer()).localToScene((javafx.geometry.Point2D) com.jxparallel.fx.Fx.fx(arg0), arg1));
+    }
+
+    public com.jxparallel.fx.geometry.Point2D localToScreen(double arg0, double arg1) {
+        if (com.jxparallel.fx.Fx.NATIVE) {
+            return (com.jxparallel.fx.geometry.Point2D) com.jxparallel.fx.nativeimpl.Native.call(this, com.jxparallel.fx.scene.control.cell.ComboBoxTreeCell.class, "localToScreen", new Class<?>[] {double.class, double.class}, com.jxparallel.fx.geometry.Point2D.class, arg0, arg1);
+        }
+        return (com.jxparallel.fx.geometry.Point2D) com.jxparallel.fx.Fx.jx(((javafx.scene.control.cell.ComboBoxTreeCell) fxPeer()).localToScreen(arg0, arg1));
+    }
+
+    public com.jxparallel.fx.geometry.Point2D localToScreen(double arg0, double arg1, double arg2) {
+        if (com.jxparallel.fx.Fx.NATIVE) {
+            return (com.jxparallel.fx.geometry.Point2D) com.jxparallel.fx.nativeimpl.Native.call(this, com.jxparallel.fx.scene.control.cell.ComboBoxTreeCell.class, "localToScreen", new Class<?>[] {double.class, double.class, double.class}, com.jxparallel.fx.geometry.Point2D.class, arg0, arg1, arg2);
+        }
+        return (com.jxparallel.fx.geometry.Point2D) com.jxparallel.fx.Fx.jx(((javafx.scene.control.cell.ComboBoxTreeCell) fxPeer()).localToScreen(arg0, arg1, arg2));
+    }
+
+    public com.jxparallel.fx.geometry.Point2D localToScreen(com.jxparallel.fx.geometry.Point2D arg0) {
+        if (com.jxparallel.fx.Fx.NATIVE) {
+            return (com.jxparallel.fx.geometry.Point2D) com.jxparallel.fx.nativeimpl.Native.call(this, com.jxparallel.fx.scene.control.cell.ComboBoxTreeCell.class, "localToScreen", new Class<?>[] {com.jxparallel.fx.geometry.Point2D.class}, com.jxparallel.fx.geometry.Point2D.class, arg0);
+        }
+        return (com.jxparallel.fx.geometry.Point2D) com.jxparallel.fx.Fx.jx(((javafx.scene.control.cell.ComboBoxTreeCell) fxPeer()).localToScreen((javafx.geometry.Point2D) com.jxparallel.fx.Fx.fx(arg0)));
+    }
+
+    public com.jxparallel.fx.geometry.Point2D localToScreen(com.jxparallel.fx.geometry.Point3D arg0) {
+        if (com.jxparallel.fx.Fx.NATIVE) {
+            return (com.jxparallel.fx.geometry.Point2D) com.jxparallel.fx.nativeimpl.Native.call(this, com.jxparallel.fx.scene.control.cell.ComboBoxTreeCell.class, "localToScreen", new Class<?>[] {com.jxparallel.fx.geometry.Point3D.class}, com.jxparallel.fx.geometry.Point2D.class, arg0);
+        }
+        return (com.jxparallel.fx.geometry.Point2D) com.jxparallel.fx.Fx.jx(((javafx.scene.control.cell.ComboBoxTreeCell) fxPeer()).localToScreen((javafx.geometry.Point3D) com.jxparallel.fx.Fx.fx(arg0)));
+    }
+
+    public com.jxparallel.fx.geometry.Point2D parentToLocal(double arg0, double arg1) {
+        if (com.jxparallel.fx.Fx.NATIVE) {
+            return (com.jxparallel.fx.geometry.Point2D) com.jxparallel.fx.nativeimpl.Native.call(this, com.jxparallel.fx.scene.control.cell.ComboBoxTreeCell.class, "parentToLocal", new Class<?>[] {double.class, double.class}, com.jxparallel.fx.geometry.Point2D.class, arg0, arg1);
+        }
+        return (com.jxparallel.fx.geometry.Point2D) com.jxparallel.fx.Fx.jx(((javafx.scene.control.cell.ComboBoxTreeCell) fxPeer()).parentToLocal(arg0, arg1));
+    }
+
+    public com.jxparallel.fx.geometry.Point2D parentToLocal(com.jxparallel.fx.geometry.Point2D arg0) {
+        if (com.jxparallel.fx.Fx.NATIVE) {
+            return (com.jxparallel.fx.geometry.Point2D) com.jxparallel.fx.nativeimpl.Native.call(this, com.jxparallel.fx.scene.control.cell.ComboBoxTreeCell.class, "parentToLocal", new Class<?>[] {com.jxparallel.fx.geometry.Point2D.class}, com.jxparallel.fx.geometry.Point2D.class, arg0);
+        }
+        return (com.jxparallel.fx.geometry.Point2D) com.jxparallel.fx.Fx.jx(((javafx.scene.control.cell.ComboBoxTreeCell) fxPeer()).parentToLocal((javafx.geometry.Point2D) com.jxparallel.fx.Fx.fx(arg0)));
+    }
+
+    public com.jxparallel.fx.geometry.Point2D sceneToLocal(double arg0, double arg1) {
+        if (com.jxparallel.fx.Fx.NATIVE) {
+            return (com.jxparallel.fx.geometry.Point2D) com.jxparallel.fx.nativeimpl.Native.call(this, com.jxparallel.fx.scene.control.cell.ComboBoxTreeCell.class, "sceneToLocal", new Class<?>[] {double.class, double.class}, com.jxparallel.fx.geometry.Point2D.class, arg0, arg1);
+        }
+        return (com.jxparallel.fx.geometry.Point2D) com.jxparallel.fx.Fx.jx(((javafx.scene.control.cell.ComboBoxTreeCell) fxPeer()).sceneToLocal(arg0, arg1));
+    }
+
+    public com.jxparallel.fx.geometry.Point2D sceneToLocal(double arg0, double arg1, boolean arg2) {
+        if (com.jxparallel.fx.Fx.NATIVE) {
+            return (com.jxparallel.fx.geometry.Point2D) com.jxparallel.fx.nativeimpl.Native.call(this, com.jxparallel.fx.scene.control.cell.ComboBoxTreeCell.class, "sceneToLocal", new Class<?>[] {double.class, double.class, boolean.class}, com.jxparallel.fx.geometry.Point2D.class, arg0, arg1, arg2);
+        }
+        return (com.jxparallel.fx.geometry.Point2D) com.jxparallel.fx.Fx.jx(((javafx.scene.control.cell.ComboBoxTreeCell) fxPeer()).sceneToLocal(arg0, arg1, arg2));
+    }
+
+    public com.jxparallel.fx.geometry.Point2D sceneToLocal(com.jxparallel.fx.geometry.Point2D arg0) {
+        if (com.jxparallel.fx.Fx.NATIVE) {
+            return (com.jxparallel.fx.geometry.Point2D) com.jxparallel.fx.nativeimpl.Native.call(this, com.jxparallel.fx.scene.control.cell.ComboBoxTreeCell.class, "sceneToLocal", new Class<?>[] {com.jxparallel.fx.geometry.Point2D.class}, com.jxparallel.fx.geometry.Point2D.class, arg0);
+        }
+        return (com.jxparallel.fx.geometry.Point2D) com.jxparallel.fx.Fx.jx(((javafx.scene.control.cell.ComboBoxTreeCell) fxPeer()).sceneToLocal((javafx.geometry.Point2D) com.jxparallel.fx.Fx.fx(arg0)));
+    }
+
+    public com.jxparallel.fx.geometry.Point2D sceneToLocal(com.jxparallel.fx.geometry.Point2D arg0, boolean arg1) {
+        if (com.jxparallel.fx.Fx.NATIVE) {
+            return (com.jxparallel.fx.geometry.Point2D) com.jxparallel.fx.nativeimpl.Native.call(this, com.jxparallel.fx.scene.control.cell.ComboBoxTreeCell.class, "sceneToLocal", new Class<?>[] {com.jxparallel.fx.geometry.Point2D.class, boolean.class}, com.jxparallel.fx.geometry.Point2D.class, arg0, arg1);
+        }
+        return (com.jxparallel.fx.geometry.Point2D) com.jxparallel.fx.Fx.jx(((javafx.scene.control.cell.ComboBoxTreeCell) fxPeer()).sceneToLocal((javafx.geometry.Point2D) com.jxparallel.fx.Fx.fx(arg0), arg1));
+    }
+
+    public com.jxparallel.fx.geometry.Point2D screenToLocal(double arg0, double arg1) {
+        if (com.jxparallel.fx.Fx.NATIVE) {
+            return (com.jxparallel.fx.geometry.Point2D) com.jxparallel.fx.nativeimpl.Native.call(this, com.jxparallel.fx.scene.control.cell.ComboBoxTreeCell.class, "screenToLocal", new Class<?>[] {double.class, double.class}, com.jxparallel.fx.geometry.Point2D.class, arg0, arg1);
+        }
+        return (com.jxparallel.fx.geometry.Point2D) com.jxparallel.fx.Fx.jx(((javafx.scene.control.cell.ComboBoxTreeCell) fxPeer()).screenToLocal(arg0, arg1));
+    }
+
+    public com.jxparallel.fx.geometry.Point2D screenToLocal(com.jxparallel.fx.geometry.Point2D arg0) {
+        if (com.jxparallel.fx.Fx.NATIVE) {
+            return (com.jxparallel.fx.geometry.Point2D) com.jxparallel.fx.nativeimpl.Native.call(this, com.jxparallel.fx.scene.control.cell.ComboBoxTreeCell.class, "screenToLocal", new Class<?>[] {com.jxparallel.fx.geometry.Point2D.class}, com.jxparallel.fx.geometry.Point2D.class, arg0);
+        }
+        return (com.jxparallel.fx.geometry.Point2D) com.jxparallel.fx.Fx.jx(((javafx.scene.control.cell.ComboBoxTreeCell) fxPeer()).screenToLocal((javafx.geometry.Point2D) com.jxparallel.fx.Fx.fx(arg0)));
+    }
+
+    public com.jxparallel.fx.geometry.Point3D localToParent(double arg0, double arg1, double arg2) {
+        if (com.jxparallel.fx.Fx.NATIVE) {
+            return (com.jxparallel.fx.geometry.Point3D) com.jxparallel.fx.nativeimpl.Native.call(this, com.jxparallel.fx.scene.control.cell.ComboBoxTreeCell.class, "localToParent", new Class<?>[] {double.class, double.class, double.class}, com.jxparallel.fx.geometry.Point3D.class, arg0, arg1, arg2);
+        }
+        return (com.jxparallel.fx.geometry.Point3D) com.jxparallel.fx.Fx.jx(((javafx.scene.control.cell.ComboBoxTreeCell) fxPeer()).localToParent(arg0, arg1, arg2));
+    }
+
+    public com.jxparallel.fx.geometry.Point3D localToParent(com.jxparallel.fx.geometry.Point3D arg0) {
+        if (com.jxparallel.fx.Fx.NATIVE) {
+            return (com.jxparallel.fx.geometry.Point3D) com.jxparallel.fx.nativeimpl.Native.call(this, com.jxparallel.fx.scene.control.cell.ComboBoxTreeCell.class, "localToParent", new Class<?>[] {com.jxparallel.fx.geometry.Point3D.class}, com.jxparallel.fx.geometry.Point3D.class, arg0);
+        }
+        return (com.jxparallel.fx.geometry.Point3D) com.jxparallel.fx.Fx.jx(((javafx.scene.control.cell.ComboBoxTreeCell) fxPeer()).localToParent((javafx.geometry.Point3D) com.jxparallel.fx.Fx.fx(arg0)));
+    }
+
+    public com.jxparallel.fx.geometry.Point3D localToScene(double arg0, double arg1, double arg2) {
+        if (com.jxparallel.fx.Fx.NATIVE) {
+            return (com.jxparallel.fx.geometry.Point3D) com.jxparallel.fx.nativeimpl.Native.call(this, com.jxparallel.fx.scene.control.cell.ComboBoxTreeCell.class, "localToScene", new Class<?>[] {double.class, double.class, double.class}, com.jxparallel.fx.geometry.Point3D.class, arg0, arg1, arg2);
+        }
+        return (com.jxparallel.fx.geometry.Point3D) com.jxparallel.fx.Fx.jx(((javafx.scene.control.cell.ComboBoxTreeCell) fxPeer()).localToScene(arg0, arg1, arg2));
+    }
+
+    public com.jxparallel.fx.geometry.Point3D localToScene(double arg0, double arg1, double arg2, boolean arg3) {
+        if (com.jxparallel.fx.Fx.NATIVE) {
+            return (com.jxparallel.fx.geometry.Point3D) com.jxparallel.fx.nativeimpl.Native.call(this, com.jxparallel.fx.scene.control.cell.ComboBoxTreeCell.class, "localToScene", new Class<?>[] {double.class, double.class, double.class, boolean.class}, com.jxparallel.fx.geometry.Point3D.class, arg0, arg1, arg2, arg3);
+        }
+        return (com.jxparallel.fx.geometry.Point3D) com.jxparallel.fx.Fx.jx(((javafx.scene.control.cell.ComboBoxTreeCell) fxPeer()).localToScene(arg0, arg1, arg2, arg3));
+    }
+
+    public com.jxparallel.fx.geometry.Point3D localToScene(com.jxparallel.fx.geometry.Point3D arg0) {
+        if (com.jxparallel.fx.Fx.NATIVE) {
+            return (com.jxparallel.fx.geometry.Point3D) com.jxparallel.fx.nativeimpl.Native.call(this, com.jxparallel.fx.scene.control.cell.ComboBoxTreeCell.class, "localToScene", new Class<?>[] {com.jxparallel.fx.geometry.Point3D.class}, com.jxparallel.fx.geometry.Point3D.class, arg0);
+        }
+        return (com.jxparallel.fx.geometry.Point3D) com.jxparallel.fx.Fx.jx(((javafx.scene.control.cell.ComboBoxTreeCell) fxPeer()).localToScene((javafx.geometry.Point3D) com.jxparallel.fx.Fx.fx(arg0)));
+    }
+
+    public com.jxparallel.fx.geometry.Point3D localToScene(com.jxparallel.fx.geometry.Point3D arg0, boolean arg1) {
+        if (com.jxparallel.fx.Fx.NATIVE) {
+            return (com.jxparallel.fx.geometry.Point3D) com.jxparallel.fx.nativeimpl.Native.call(this, com.jxparallel.fx.scene.control.cell.ComboBoxTreeCell.class, "localToScene", new Class<?>[] {com.jxparallel.fx.geometry.Point3D.class, boolean.class}, com.jxparallel.fx.geometry.Point3D.class, arg0, arg1);
+        }
+        return (com.jxparallel.fx.geometry.Point3D) com.jxparallel.fx.Fx.jx(((javafx.scene.control.cell.ComboBoxTreeCell) fxPeer()).localToScene((javafx.geometry.Point3D) com.jxparallel.fx.Fx.fx(arg0), arg1));
+    }
+
+    public com.jxparallel.fx.geometry.Point3D parentToLocal(double arg0, double arg1, double arg2) {
+        if (com.jxparallel.fx.Fx.NATIVE) {
+            return (com.jxparallel.fx.geometry.Point3D) com.jxparallel.fx.nativeimpl.Native.call(this, com.jxparallel.fx.scene.control.cell.ComboBoxTreeCell.class, "parentToLocal", new Class<?>[] {double.class, double.class, double.class}, com.jxparallel.fx.geometry.Point3D.class, arg0, arg1, arg2);
+        }
+        return (com.jxparallel.fx.geometry.Point3D) com.jxparallel.fx.Fx.jx(((javafx.scene.control.cell.ComboBoxTreeCell) fxPeer()).parentToLocal(arg0, arg1, arg2));
+    }
+
+    public com.jxparallel.fx.geometry.Point3D parentToLocal(com.jxparallel.fx.geometry.Point3D arg0) {
+        if (com.jxparallel.fx.Fx.NATIVE) {
+            return (com.jxparallel.fx.geometry.Point3D) com.jxparallel.fx.nativeimpl.Native.call(this, com.jxparallel.fx.scene.control.cell.ComboBoxTreeCell.class, "parentToLocal", new Class<?>[] {com.jxparallel.fx.geometry.Point3D.class}, com.jxparallel.fx.geometry.Point3D.class, arg0);
+        }
+        return (com.jxparallel.fx.geometry.Point3D) com.jxparallel.fx.Fx.jx(((javafx.scene.control.cell.ComboBoxTreeCell) fxPeer()).parentToLocal((javafx.geometry.Point3D) com.jxparallel.fx.Fx.fx(arg0)));
+    }
+
+    public com.jxparallel.fx.geometry.Point3D sceneToLocal(double arg0, double arg1, double arg2) {
+        if (com.jxparallel.fx.Fx.NATIVE) {
+            return (com.jxparallel.fx.geometry.Point3D) com.jxparallel.fx.nativeimpl.Native.call(this, com.jxparallel.fx.scene.control.cell.ComboBoxTreeCell.class, "sceneToLocal", new Class<?>[] {double.class, double.class, double.class}, com.jxparallel.fx.geometry.Point3D.class, arg0, arg1, arg2);
+        }
+        return (com.jxparallel.fx.geometry.Point3D) com.jxparallel.fx.Fx.jx(((javafx.scene.control.cell.ComboBoxTreeCell) fxPeer()).sceneToLocal(arg0, arg1, arg2));
+    }
+
+    public com.jxparallel.fx.geometry.Point3D sceneToLocal(com.jxparallel.fx.geometry.Point3D arg0) {
+        if (com.jxparallel.fx.Fx.NATIVE) {
+            return (com.jxparallel.fx.geometry.Point3D) com.jxparallel.fx.nativeimpl.Native.call(this, com.jxparallel.fx.scene.control.cell.ComboBoxTreeCell.class, "sceneToLocal", new Class<?>[] {com.jxparallel.fx.geometry.Point3D.class}, com.jxparallel.fx.geometry.Point3D.class, arg0);
+        }
+        return (com.jxparallel.fx.geometry.Point3D) com.jxparallel.fx.Fx.jx(((javafx.scene.control.cell.ComboBoxTreeCell) fxPeer()).sceneToLocal((javafx.geometry.Point3D) com.jxparallel.fx.Fx.fx(arg0)));
+    }
+
+    public com.jxparallel.fx.scene.image.WritableImage snapshot(com.jxparallel.fx.scene.SnapshotParameters arg0, com.jxparallel.fx.scene.image.WritableImage arg1) {
+        if (com.jxparallel.fx.Fx.NATIVE) {
+            return (com.jxparallel.fx.scene.image.WritableImage) com.jxparallel.fx.nativeimpl.Native.call(this, com.jxparallel.fx.scene.control.cell.ComboBoxTreeCell.class, "snapshot", new Class<?>[] {com.jxparallel.fx.scene.SnapshotParameters.class, com.jxparallel.fx.scene.image.WritableImage.class}, com.jxparallel.fx.scene.image.WritableImage.class, arg0, arg1);
+        }
+        return (com.jxparallel.fx.scene.image.WritableImage) com.jxparallel.fx.Fx.jx(((javafx.scene.control.cell.ComboBoxTreeCell) fxPeer()).snapshot((javafx.scene.SnapshotParameters) com.jxparallel.fx.Fx.fx(arg0), (javafx.scene.image.WritableImage) com.jxparallel.fx.Fx.fx(arg1)));
+    }
+
+    public com.jxparallel.fx.scene.input.Dragboard startDragAndDrop(com.jxparallel.fx.scene.input.TransferMode... arg0) {
+        if (com.jxparallel.fx.Fx.NATIVE) {
+            return (com.jxparallel.fx.scene.input.Dragboard) com.jxparallel.fx.nativeimpl.Native.call(this, com.jxparallel.fx.scene.control.cell.ComboBoxTreeCell.class, "startDragAndDrop", new Class<?>[] {com.jxparallel.fx.scene.input.TransferMode[].class}, com.jxparallel.fx.scene.input.Dragboard.class, arg0);
+        }
+        return (com.jxparallel.fx.scene.input.Dragboard) com.jxparallel.fx.Fx.jx(((javafx.scene.control.cell.ComboBoxTreeCell) fxPeer()).startDragAndDrop((javafx.scene.input.TransferMode[]) com.jxparallel.fx.Fx.fxArray(arg0, javafx.scene.input.TransferMode.class)));
+    }
+
+    public void impl_transformsChanged() {
+        if (com.jxparallel.fx.Fx.NATIVE) {
+            com.jxparallel.fx.nativeimpl.Native.call(this, com.jxparallel.fx.scene.control.cell.ComboBoxTreeCell.class, "impl_transformsChanged", new Class<?>[] {}, void.class);
+            return;
+        }
+        ((javafx.scene.control.cell.ComboBoxTreeCell) fxPeer()).impl_transformsChanged();
+    }
+
+    public void relocate(double arg0, double arg1) {
+        if (com.jxparallel.fx.Fx.NATIVE) {
+            com.jxparallel.fx.nativeimpl.Native.call(this, com.jxparallel.fx.scene.control.cell.ComboBoxTreeCell.class, "relocate", new Class<?>[] {double.class, double.class}, void.class, arg0, arg1);
+            return;
+        }
+        ((javafx.scene.control.cell.ComboBoxTreeCell) fxPeer()).relocate(arg0, arg1);
+    }
+
+    public void requestFocus() {
+        if (com.jxparallel.fx.Fx.NATIVE) {
+            com.jxparallel.fx.nativeimpl.Native.call(this, com.jxparallel.fx.scene.control.cell.ComboBoxTreeCell.class, "requestFocus", new Class<?>[] {}, void.class);
+            return;
+        }
+        ((javafx.scene.control.cell.ComboBoxTreeCell) fxPeer()).requestFocus();
+    }
+
+    public void resizeRelocate(double arg0, double arg1, double arg2, double arg3) {
+        if (com.jxparallel.fx.Fx.NATIVE) {
+            com.jxparallel.fx.nativeimpl.Native.call(this, com.jxparallel.fx.scene.control.cell.ComboBoxTreeCell.class, "resizeRelocate", new Class<?>[] {double.class, double.class, double.class, double.class}, void.class, arg0, arg1, arg2, arg3);
+            return;
+        }
+        ((javafx.scene.control.cell.ComboBoxTreeCell) fxPeer()).resizeRelocate(arg0, arg1, arg2, arg3);
+    }
+
+    public void setUserData(java.lang.Object arg0) {
+        if (com.jxparallel.fx.Fx.NATIVE) {
+            com.jxparallel.fx.nativeimpl.Native.call(this, com.jxparallel.fx.scene.control.cell.ComboBoxTreeCell.class, "setUserData", new Class<?>[] {java.lang.Object.class}, void.class, arg0);
+            return;
+        }
+        ((javafx.scene.control.cell.ComboBoxTreeCell) fxPeer()).setUserData((java.lang.Object) com.jxparallel.fx.Fx.fx(arg0));
+    }
+
+    public void snapshot(com.jxparallel.fx.util.Callback<com.jxparallel.fx.scene.SnapshotResult, java.lang.Void> arg0, com.jxparallel.fx.scene.SnapshotParameters arg1, com.jxparallel.fx.scene.image.WritableImage arg2) {
+        if (com.jxparallel.fx.Fx.NATIVE) {
+            com.jxparallel.fx.nativeimpl.Native.call(this, com.jxparallel.fx.scene.control.cell.ComboBoxTreeCell.class, "snapshot", new Class<?>[] {com.jxparallel.fx.util.Callback.class, com.jxparallel.fx.scene.SnapshotParameters.class, com.jxparallel.fx.scene.image.WritableImage.class}, void.class, arg0, arg1, arg2);
+            return;
+        }
+        ((javafx.scene.control.cell.ComboBoxTreeCell) fxPeer()).snapshot((javafx.util.Callback) com.jxparallel.fx.Fx.fx(arg0), (javafx.scene.SnapshotParameters) com.jxparallel.fx.Fx.fx(arg1), (javafx.scene.image.WritableImage) com.jxparallel.fx.Fx.fx(arg2));
+    }
+
+    public void startFullDrag() {
+        if (com.jxparallel.fx.Fx.NATIVE) {
+            com.jxparallel.fx.nativeimpl.Native.call(this, com.jxparallel.fx.scene.control.cell.ComboBoxTreeCell.class, "startFullDrag", new Class<?>[] {}, void.class);
+            return;
+        }
+        ((javafx.scene.control.cell.ComboBoxTreeCell) fxPeer()).startFullDrag();
+    }
+
+    public void toBack() {
+        if (com.jxparallel.fx.Fx.NATIVE) {
+            com.jxparallel.fx.nativeimpl.Native.call(this, com.jxparallel.fx.scene.control.cell.ComboBoxTreeCell.class, "toBack", new Class<?>[] {}, void.class);
+            return;
+        }
+        ((javafx.scene.control.cell.ComboBoxTreeCell) fxPeer()).toBack();
+    }
+
+    public void toFront() {
+        if (com.jxparallel.fx.Fx.NATIVE) {
+            com.jxparallel.fx.nativeimpl.Native.call(this, com.jxparallel.fx.scene.control.cell.ComboBoxTreeCell.class, "toFront", new Class<?>[] {}, void.class);
+            return;
+        }
+        ((javafx.scene.control.cell.ComboBoxTreeCell) fxPeer()).toFront();
     }
 
     /** Called by the peer: runs the JX (possibly overridden) method. */
@@ -3799,14 +3799,14 @@ public class ComboBoxTreeCell<T> implements com.jxparallel.fx.scene.control.Skin
         ComboBoxTreeCell jx = (ComboBoxTreeCell) self;
         try {
         switch (method) {
-            case "updateItem(Object,boolean)":
-                jx.updateItem((java.lang.Object) a[0], (Boolean) a[1]);
-                return null;
             case "cancelEdit()":
                 jx.cancelEdit();
                 return null;
             case "startEdit()":
                 jx.startEdit();
+                return null;
+            case "updateItem(Object,boolean)":
+                jx.updateItem((java.lang.Object) a[0], (Boolean) a[1]);
                 return null;
             case "commitEdit(Object)":
                 jx.commitEdit((java.lang.Object) a[0]);

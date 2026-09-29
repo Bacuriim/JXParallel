@@ -7,8 +7,8 @@ public class PhongMaterial extends com.jxparallel.fx.scene.paint.Material {
         super(wrap, peer);
     }
 
-    public PhongMaterial(com.jxparallel.fx.scene.paint.Color arg0, com.jxparallel.fx.scene.image.Image arg1, com.jxparallel.fx.scene.image.Image arg2, com.jxparallel.fx.scene.image.Image arg3, com.jxparallel.fx.scene.image.Image arg4) {
-        this(com.jxparallel.fx.Fx.WRAP, new com.jxparallel.fx.peer.scene.paint.PhongMaterial((javafx.scene.paint.Color) com.jxparallel.fx.Fx.fx(arg0), (javafx.scene.image.Image) com.jxparallel.fx.Fx.fx(arg1), (javafx.scene.image.Image) com.jxparallel.fx.Fx.fx(arg2), (javafx.scene.image.Image) com.jxparallel.fx.Fx.fx(arg3), (javafx.scene.image.Image) com.jxparallel.fx.Fx.fx(arg4)));
+    public PhongMaterial() {
+        this(com.jxparallel.fx.Fx.WRAP, new com.jxparallel.fx.peer.scene.paint.PhongMaterial());
         com.jxparallel.fx.Fx.own(fxPeer(), this);
     }
 
@@ -17,8 +17,8 @@ public class PhongMaterial extends com.jxparallel.fx.scene.paint.Material {
         com.jxparallel.fx.Fx.own(fxPeer(), this);
     }
 
-    public PhongMaterial() {
-        this(com.jxparallel.fx.Fx.WRAP, new com.jxparallel.fx.peer.scene.paint.PhongMaterial());
+    public PhongMaterial(com.jxparallel.fx.scene.paint.Color arg0, com.jxparallel.fx.scene.image.Image arg1, com.jxparallel.fx.scene.image.Image arg2, com.jxparallel.fx.scene.image.Image arg3, com.jxparallel.fx.scene.image.Image arg4) {
+        this(com.jxparallel.fx.Fx.WRAP, new com.jxparallel.fx.peer.scene.paint.PhongMaterial((javafx.scene.paint.Color) com.jxparallel.fx.Fx.fx(arg0), (javafx.scene.image.Image) com.jxparallel.fx.Fx.fx(arg1), (javafx.scene.image.Image) com.jxparallel.fx.Fx.fx(arg2), (javafx.scene.image.Image) com.jxparallel.fx.Fx.fx(arg3), (javafx.scene.image.Image) com.jxparallel.fx.Fx.fx(arg4)));
         com.jxparallel.fx.Fx.own(fxPeer(), this);
     }
 

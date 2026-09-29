@@ -23,7 +23,8 @@ public final class JXAccessibilityTree {
         }
         if ("checkbox".equals(type)) return JXAccessibilityRole.CHECK_BOX;
         if ("#text".equals(type)) return JXAccessibilityRole.TEXT;
-        if ("row".equals(type) || "column".equals(type) || "stack".equals(type)) {
+        if ("row".equals(type) || "column".equals(type) || "stack".equals(type)
+                || "titled".equals(type) || "accordion".equals(type)) {
             return JXAccessibilityRole.GROUP;
         }
         return JXAccessibilityRole.UNKNOWN;

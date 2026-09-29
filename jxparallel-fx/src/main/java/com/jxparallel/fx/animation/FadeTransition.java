@@ -12,13 +12,13 @@ public final class FadeTransition extends com.jxparallel.fx.animation.Transition
         com.jxparallel.fx.Fx.own(fxPeer(), this);
     }
 
-    public FadeTransition(com.jxparallel.fx.util.Duration arg0, com.jxparallel.fx.scene.Node arg1) {
-        this(com.jxparallel.fx.Fx.WRAP, com.jxparallel.fx.Fx.NATIVE ? com.jxparallel.fx.nativeimpl.Native.create(javafx.animation.FadeTransition.class, new String[] {null, null}, new Object[] {arg0, arg1}) : new javafx.animation.FadeTransition((javafx.util.Duration) com.jxparallel.fx.Fx.fx(arg0), (javafx.scene.Node) com.jxparallel.fx.Fx.fx(arg1)));
+    public FadeTransition(com.jxparallel.fx.util.Duration arg0) {
+        this(com.jxparallel.fx.Fx.WRAP, com.jxparallel.fx.Fx.NATIVE ? com.jxparallel.fx.nativeimpl.Native.create(javafx.animation.FadeTransition.class, new String[] {null}, new Object[] {arg0}) : new javafx.animation.FadeTransition((javafx.util.Duration) com.jxparallel.fx.Fx.fx(arg0)));
         com.jxparallel.fx.Fx.own(fxPeer(), this);
     }
 
-    public FadeTransition(com.jxparallel.fx.util.Duration arg0) {
-        this(com.jxparallel.fx.Fx.WRAP, com.jxparallel.fx.Fx.NATIVE ? com.jxparallel.fx.nativeimpl.Native.create(javafx.animation.FadeTransition.class, new String[] {null}, new Object[] {arg0}) : new javafx.animation.FadeTransition((javafx.util.Duration) com.jxparallel.fx.Fx.fx(arg0)));
+    public FadeTransition(com.jxparallel.fx.util.Duration arg0, com.jxparallel.fx.scene.Node arg1) {
+        this(com.jxparallel.fx.Fx.WRAP, com.jxparallel.fx.Fx.NATIVE ? com.jxparallel.fx.nativeimpl.Native.create(javafx.animation.FadeTransition.class, new String[] {null, null}, new Object[] {arg0, arg1}) : new javafx.animation.FadeTransition((javafx.util.Duration) com.jxparallel.fx.Fx.fx(arg0), (javafx.scene.Node) com.jxparallel.fx.Fx.fx(arg1)));
         com.jxparallel.fx.Fx.own(fxPeer(), this);
     }
 

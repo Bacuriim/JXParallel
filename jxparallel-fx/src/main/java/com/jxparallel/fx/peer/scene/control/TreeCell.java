@@ -20,21 +20,21 @@ public class TreeCell<T> extends javafx.scene.control.TreeCell<T> implements com
     }
 
     @Override
-    public void commitEdit(T arg0) {
-        if (jxOwner == null) {
-            super.commitEdit(arg0);
-            return;
-        }
-        com.jxparallel.fx.scene.control.TreeCell.$hook(jxOwner, "commitEdit(Object)", new Object[] {com.jxparallel.fx.Fx.jx(arg0)});
-    }
-
-    @Override
     public void cancelEdit() {
         if (jxOwner == null) {
             super.cancelEdit();
             return;
         }
         com.jxparallel.fx.scene.control.TreeCell.$hook(jxOwner, "cancelEdit()", new Object[] {});
+    }
+
+    @Override
+    public void commitEdit(T arg0) {
+        if (jxOwner == null) {
+            super.commitEdit(arg0);
+            return;
+        }
+        com.jxparallel.fx.scene.control.TreeCell.$hook(jxOwner, "commitEdit(Object)", new Object[] {com.jxparallel.fx.Fx.jx(arg0)});
     }
 
     @Override
@@ -77,11 +77,11 @@ public class TreeCell<T> extends javafx.scene.control.TreeCell<T> implements com
     public Object callSuper(String method, Object[] a) {
         try {
         switch (method) {
-            case "commitEdit(Object)":
-                super.commitEdit((T) a[0]);
-                return null;
             case "cancelEdit()":
                 super.cancelEdit();
+                return null;
+            case "commitEdit(Object)":
+                super.commitEdit((T) a[0]);
                 return null;
             case "startEdit()":
                 super.startEdit();

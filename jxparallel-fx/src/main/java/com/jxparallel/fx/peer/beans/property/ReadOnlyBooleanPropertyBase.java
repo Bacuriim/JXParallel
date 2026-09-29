@@ -28,19 +28,19 @@ public class ReadOnlyBooleanPropertyBase extends javafx.beans.property.ReadOnlyB
     }
 
     @Override
-    public java.lang.String getName() {
-        if (jxOwner == null) {
-            throw new IllegalStateException("getName before the JX object exists");
-        }
-        return (java.lang.String) com.jxparallel.fx.Fx.fx(com.jxparallel.fx.beans.property.ReadOnlyBooleanPropertyBase.$hook(jxOwner, "getName()", new Object[] {}));
-    }
-
-    @Override
     public java.lang.Object getBean() {
         if (jxOwner == null) {
             throw new IllegalStateException("getBean before the JX object exists");
         }
         return (java.lang.Object) com.jxparallel.fx.Fx.fx(com.jxparallel.fx.beans.property.ReadOnlyBooleanPropertyBase.$hook(jxOwner, "getBean()", new Object[] {}));
+    }
+
+    @Override
+    public java.lang.String getName() {
+        if (jxOwner == null) {
+            throw new IllegalStateException("getName before the JX object exists");
+        }
+        return (java.lang.String) com.jxparallel.fx.Fx.fx(com.jxparallel.fx.beans.property.ReadOnlyBooleanPropertyBase.$hook(jxOwner, "getName()", new Object[] {}));
     }
 
     @Override

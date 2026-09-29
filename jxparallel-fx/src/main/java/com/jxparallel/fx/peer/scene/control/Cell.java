@@ -20,15 +20,6 @@ public class Cell<T> extends javafx.scene.control.Cell<T> implements com.jxparal
     }
 
     @Override
-    public void commitEdit(T arg0) {
-        if (jxOwner == null) {
-            super.commitEdit(arg0);
-            return;
-        }
-        com.jxparallel.fx.scene.control.Cell.$hook(jxOwner, "commitEdit(Object)", new Object[] {com.jxparallel.fx.Fx.jx(arg0)});
-    }
-
-    @Override
     protected void updateItem(T arg0, boolean arg1) {
         if (jxOwner == null) {
             super.updateItem(arg0, arg1);
@@ -44,6 +35,15 @@ public class Cell<T> extends javafx.scene.control.Cell<T> implements com.jxparal
             return;
         }
         com.jxparallel.fx.scene.control.Cell.$hook(jxOwner, "cancelEdit()", new Object[] {});
+    }
+
+    @Override
+    public void commitEdit(T arg0) {
+        if (jxOwner == null) {
+            super.commitEdit(arg0);
+            return;
+        }
+        com.jxparallel.fx.scene.control.Cell.$hook(jxOwner, "commitEdit(Object)", new Object[] {com.jxparallel.fx.Fx.jx(arg0)});
     }
 
     @Override
@@ -68,14 +68,14 @@ public class Cell<T> extends javafx.scene.control.Cell<T> implements com.jxparal
     public Object callSuper(String method, Object[] a) {
         try {
         switch (method) {
-            case "commitEdit(Object)":
-                super.commitEdit((T) a[0]);
-                return null;
             case "updateItem(Object,boolean)":
                 super.updateItem((T) a[0], (Boolean) a[1]);
                 return null;
             case "cancelEdit()":
                 super.cancelEdit();
+                return null;
+            case "commitEdit(Object)":
+                super.commitEdit((T) a[0]);
                 return null;
             case "startEdit()":
                 super.startEdit();

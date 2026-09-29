@@ -142,11 +142,11 @@ public class TreeCell<T> extends com.jxparallel.fx.scene.control.IndexedCell<T> 
         TreeCell jx = (TreeCell) self;
         try {
         switch (method) {
-            case "commitEdit(Object)":
-                jx.commitEdit((java.lang.Object) a[0]);
-                return null;
             case "cancelEdit()":
                 jx.cancelEdit();
+                return null;
+            case "commitEdit(Object)":
+                jx.commitEdit((java.lang.Object) a[0]);
                 return null;
             case "startEdit()":
                 jx.startEdit();

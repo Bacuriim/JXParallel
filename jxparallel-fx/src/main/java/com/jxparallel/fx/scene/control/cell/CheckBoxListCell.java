@@ -8,13 +8,13 @@ public class CheckBoxListCell<T> extends com.jxparallel.fx.scene.control.ListCel
         super(wrap, peer);
     }
 
-    public CheckBoxListCell(com.jxparallel.fx.util.Callback<T, com.jxparallel.fx.beans.value.ObservableValue<java.lang.Boolean>> arg0) {
-        this(com.jxparallel.fx.Fx.WRAP, com.jxparallel.fx.Fx.NATIVE ? com.jxparallel.fx.nativeimpl.Native.create(javafx.scene.control.cell.CheckBoxListCell.class, new String[] {null}, new Object[] {arg0}) : new com.jxparallel.fx.peer.scene.control.cell.CheckBoxListCell((javafx.util.Callback) com.jxparallel.fx.Fx.fx(arg0)));
+    public CheckBoxListCell() {
+        this(com.jxparallel.fx.Fx.WRAP, com.jxparallel.fx.Fx.NATIVE ? com.jxparallel.fx.nativeimpl.Native.create(javafx.scene.control.cell.CheckBoxListCell.class, new String[] {}, new Object[] {}) : new com.jxparallel.fx.peer.scene.control.cell.CheckBoxListCell());
         com.jxparallel.fx.Fx.own(fxPeer(), this);
     }
 
-    public CheckBoxListCell() {
-        this(com.jxparallel.fx.Fx.WRAP, com.jxparallel.fx.Fx.NATIVE ? com.jxparallel.fx.nativeimpl.Native.create(javafx.scene.control.cell.CheckBoxListCell.class, new String[] {}, new Object[] {}) : new com.jxparallel.fx.peer.scene.control.cell.CheckBoxListCell());
+    public CheckBoxListCell(com.jxparallel.fx.util.Callback<T, com.jxparallel.fx.beans.value.ObservableValue<java.lang.Boolean>> arg0) {
+        this(com.jxparallel.fx.Fx.WRAP, com.jxparallel.fx.Fx.NATIVE ? com.jxparallel.fx.nativeimpl.Native.create(javafx.scene.control.cell.CheckBoxListCell.class, new String[] {null}, new Object[] {arg0}) : new com.jxparallel.fx.peer.scene.control.cell.CheckBoxListCell((javafx.util.Callback) com.jxparallel.fx.Fx.fx(arg0)));
         com.jxparallel.fx.Fx.own(fxPeer(), this);
     }
 
@@ -101,11 +101,11 @@ public class CheckBoxListCell<T> extends com.jxparallel.fx.scene.control.ListCel
             case "updateItem(Object,boolean)":
                 jx.updateItem((java.lang.Object) a[0], (Boolean) a[1]);
                 return null;
-            case "commitEdit(Object)":
-                jx.commitEdit((java.lang.Object) a[0]);
-                return null;
             case "cancelEdit()":
                 jx.cancelEdit();
+                return null;
+            case "commitEdit(Object)":
+                jx.commitEdit((java.lang.Object) a[0]);
                 return null;
             case "startEdit()":
                 jx.startEdit();

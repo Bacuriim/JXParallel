@@ -5,12 +5,12 @@ package com.jxparallel.fx.peer.scene.input;
 public class InputEvent extends javafx.scene.input.InputEvent implements com.jxparallel.fx.Fx.Owned {
     private Object jxOwner;
 
-    public InputEvent(@javafx.beans.NamedArg(value = "eventType") javafx.event.EventType<? extends javafx.scene.input.InputEvent> arg0) {
-        super(arg0);
-    }
-
     public InputEvent(@javafx.beans.NamedArg(value = "source") java.lang.Object arg0, @javafx.beans.NamedArg(value = "target") javafx.event.EventTarget arg1, @javafx.beans.NamedArg(value = "eventType") javafx.event.EventType<? extends javafx.scene.input.InputEvent> arg2) {
         super(arg0, arg1, arg2);
+    }
+
+    public InputEvent(@javafx.beans.NamedArg(value = "eventType") javafx.event.EventType<? extends javafx.scene.input.InputEvent> arg0) {
+        super(arg0);
     }
 
     @Override

@@ -20,15 +20,6 @@ public class ScheduledService<V> extends javafx.concurrent.ScheduledService<V> i
     }
 
     @Override
-    protected void succeeded() {
-        if (jxOwner == null) {
-            super.succeeded();
-            return;
-        }
-        com.jxparallel.fx.concurrent.ScheduledService.$hook(jxOwner, "succeeded()", new Object[] {});
-    }
-
-    @Override
     protected void failed() {
         if (jxOwner == null) {
             super.failed();
@@ -38,12 +29,20 @@ public class ScheduledService<V> extends javafx.concurrent.ScheduledService<V> i
     }
 
     @Override
-    protected void running() {
+    protected void succeeded() {
         if (jxOwner == null) {
-            super.running();
+            super.succeeded();
             return;
         }
-        com.jxparallel.fx.concurrent.ScheduledService.$hook(jxOwner, "running()", new Object[] {});
+        com.jxparallel.fx.concurrent.ScheduledService.$hook(jxOwner, "succeeded()", new Object[] {});
+    }
+
+    @Override
+    protected javafx.concurrent.Task<V> createTask() {
+        if (jxOwner == null) {
+            throw new IllegalStateException("createTask before the JX object exists");
+        }
+        return (javafx.concurrent.Task<V>) com.jxparallel.fx.Fx.fx(com.jxparallel.fx.concurrent.ScheduledService.$hook(jxOwner, "createTask()", new Object[] {}));
     }
 
     @Override
@@ -56,6 +55,15 @@ public class ScheduledService<V> extends javafx.concurrent.ScheduledService<V> i
     }
 
     @Override
+    protected void running() {
+        if (jxOwner == null) {
+            super.running();
+            return;
+        }
+        com.jxparallel.fx.concurrent.ScheduledService.$hook(jxOwner, "running()", new Object[] {});
+    }
+
+    @Override
     protected void scheduled() {
         if (jxOwner == null) {
             super.scheduled();
@@ -65,28 +73,20 @@ public class ScheduledService<V> extends javafx.concurrent.ScheduledService<V> i
     }
 
     @Override
-    protected javafx.concurrent.Task<V> createTask() {
-        if (jxOwner == null) {
-            throw new IllegalStateException("createTask before the JX object exists");
-        }
-        return (javafx.concurrent.Task<V>) com.jxparallel.fx.Fx.fx(com.jxparallel.fx.concurrent.ScheduledService.$hook(jxOwner, "createTask()", new Object[] {}));
-    }
-
-    @Override
     public Object callSuper(String method, Object[] a) {
         try {
         switch (method) {
-            case "succeeded()":
-                super.succeeded();
-                return null;
             case "failed()":
                 super.failed();
                 return null;
-            case "running()":
-                super.running();
+            case "succeeded()":
+                super.succeeded();
                 return null;
             case "cancelled()":
                 super.cancelled();
+                return null;
+            case "running()":
+                super.running();
                 return null;
             case "scheduled()":
                 super.scheduled();

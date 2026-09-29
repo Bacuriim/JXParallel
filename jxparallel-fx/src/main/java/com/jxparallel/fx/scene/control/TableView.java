@@ -462,21 +462,15 @@ public class TableView<S> extends com.jxparallel.fx.scene.control.Control {
         }
 
         public ResizeFeatures(com.jxparallel.fx.scene.control.TableView<S> arg0, com.jxparallel.fx.scene.control.TableColumn<S, ?> arg1, java.lang.Double arg2) {
-            this(com.jxparallel.fx.Fx.WRAP, com.jxparallel.fx.Fx.NATIVE ? com.jxparallel.fx.nativeimpl.Native.create(javafx.scene.control.TableView.ResizeFeatures.class, new String[] {null, null, null}, new Object[] {arg0, arg1, arg2}) : new com.jxparallel.fx.peer.scene.control.TableView_ResizeFeatures((javafx.scene.control.TableView) com.jxparallel.fx.Fx.fx(arg0), (javafx.scene.control.TableColumn) com.jxparallel.fx.Fx.fx(arg1), arg2));
+            this(com.jxparallel.fx.Fx.WRAP, new com.jxparallel.fx.peer.scene.control.TableView_ResizeFeatures((javafx.scene.control.TableView) com.jxparallel.fx.Fx.fxAs(arg0, javafx.scene.control.TableView.class), (javafx.scene.control.TableColumn) com.jxparallel.fx.Fx.fxAs(arg1, javafx.scene.control.TableColumn.class), arg2));
             com.jxparallel.fx.Fx.own(fxPeer(), this);
         }
 
         public com.jxparallel.fx.scene.control.TableColumn<S, ?> getColumn() {
-            if (com.jxparallel.fx.Fx.NATIVE) {
-                return (com.jxparallel.fx.scene.control.TableColumn) com.jxparallel.fx.nativeimpl.Native.call(this, com.jxparallel.fx.scene.control.TableView.ResizeFeatures.class, "getColumn", new Class<?>[] {}, com.jxparallel.fx.scene.control.TableColumn.class);
-            }
             return (com.jxparallel.fx.scene.control.TableColumn) com.jxparallel.fx.Fx.jx(((javafx.scene.control.TableView.ResizeFeatures) fxPeer()).getColumn());
         }
 
         public com.jxparallel.fx.scene.control.TableView<S> getTable() {
-            if (com.jxparallel.fx.Fx.NATIVE) {
-                return (com.jxparallel.fx.scene.control.TableView) com.jxparallel.fx.nativeimpl.Native.call(this, com.jxparallel.fx.scene.control.TableView.ResizeFeatures.class, "getTable", new Class<?>[] {}, com.jxparallel.fx.scene.control.TableView.class);
-            }
             return (com.jxparallel.fx.scene.control.TableView) com.jxparallel.fx.Fx.jx(((javafx.scene.control.TableView.ResizeFeatures) fxPeer()).getTable());
         }
     }
@@ -487,115 +481,64 @@ public class TableView<S> extends com.jxparallel.fx.scene.control.Control {
         }
 
         public TableViewFocusModel(com.jxparallel.fx.scene.control.TableView<S> arg0) {
-            this(com.jxparallel.fx.Fx.WRAP, com.jxparallel.fx.Fx.NATIVE ? com.jxparallel.fx.nativeimpl.Native.create(javafx.scene.control.TableView.TableViewFocusModel.class, new String[] {null}, new Object[] {arg0}) : new com.jxparallel.fx.peer.scene.control.TableView_TableViewFocusModel((javafx.scene.control.TableView) com.jxparallel.fx.Fx.fx(arg0)));
+            this(com.jxparallel.fx.Fx.WRAP, new com.jxparallel.fx.peer.scene.control.TableView_TableViewFocusModel((javafx.scene.control.TableView) com.jxparallel.fx.Fx.fxAs(arg0, javafx.scene.control.TableView.class)));
             com.jxparallel.fx.Fx.own(fxPeer(), this);
         }
 
         public void focus(com.jxparallel.fx.scene.control.TablePosition arg0) {
-            if (com.jxparallel.fx.Fx.NATIVE) {
-                com.jxparallel.fx.nativeimpl.Native.call(this, com.jxparallel.fx.scene.control.TableView.TableViewFocusModel.class, "focus", new Class<?>[] {com.jxparallel.fx.scene.control.TablePosition.class}, void.class, arg0);
-                return;
-            }
-            ((javafx.scene.control.TableView.TableViewFocusModel) fxPeer()).focus((javafx.scene.control.TablePosition) com.jxparallel.fx.Fx.fx(arg0));
+            ((javafx.scene.control.TableView.TableViewFocusModel) fxPeer()).focus((javafx.scene.control.TablePosition) com.jxparallel.fx.Fx.fxAs(arg0, javafx.scene.control.TablePosition.class));
         }
 
         public void focus(int arg0) {
-            if (com.jxparallel.fx.Fx.NATIVE) {
-                com.jxparallel.fx.nativeimpl.Native.call(this, com.jxparallel.fx.scene.control.TableView.TableViewFocusModel.class, "focus", new Class<?>[] {int.class}, void.class, arg0);
-                return;
-            }
             ((javafx.scene.control.TableView.TableViewFocusModel) fxPeer()).focus(arg0);
         }
 
         public void focus(int arg0, com.jxparallel.fx.scene.control.TableColumn<S, ?> arg1) {
-            if (com.jxparallel.fx.Fx.NATIVE) {
-                com.jxparallel.fx.nativeimpl.Native.call(this, com.jxparallel.fx.scene.control.TableView.TableViewFocusModel.class, "focus", new Class<?>[] {int.class, com.jxparallel.fx.scene.control.TableColumn.class}, void.class, arg0, arg1);
-                return;
-            }
-            ((javafx.scene.control.TableView.TableViewFocusModel) fxPeer()).focus(arg0, (javafx.scene.control.TableColumn) com.jxparallel.fx.Fx.fx(arg1));
+            ((javafx.scene.control.TableView.TableViewFocusModel) fxPeer()).focus(arg0, (javafx.scene.control.TableColumn) com.jxparallel.fx.Fx.fxAs(arg1, javafx.scene.control.TableColumn.class));
         }
 
         public void focusAboveCell() {
-            if (com.jxparallel.fx.Fx.NATIVE) {
-                com.jxparallel.fx.nativeimpl.Native.call(this, com.jxparallel.fx.scene.control.TableView.TableViewFocusModel.class, "focusAboveCell", new Class<?>[] {}, void.class);
-                return;
-            }
             ((javafx.scene.control.TableView.TableViewFocusModel) fxPeer()).focusAboveCell();
         }
 
         public void focusBelowCell() {
-            if (com.jxparallel.fx.Fx.NATIVE) {
-                com.jxparallel.fx.nativeimpl.Native.call(this, com.jxparallel.fx.scene.control.TableView.TableViewFocusModel.class, "focusBelowCell", new Class<?>[] {}, void.class);
-                return;
-            }
             ((javafx.scene.control.TableView.TableViewFocusModel) fxPeer()).focusBelowCell();
         }
 
         public void focusLeftCell() {
-            if (com.jxparallel.fx.Fx.NATIVE) {
-                com.jxparallel.fx.nativeimpl.Native.call(this, com.jxparallel.fx.scene.control.TableView.TableViewFocusModel.class, "focusLeftCell", new Class<?>[] {}, void.class);
-                return;
-            }
             ((javafx.scene.control.TableView.TableViewFocusModel) fxPeer()).focusLeftCell();
         }
 
         public void focusNext() {
-            if (com.jxparallel.fx.Fx.NATIVE) {
-                com.jxparallel.fx.nativeimpl.Native.call(this, com.jxparallel.fx.scene.control.TableView.TableViewFocusModel.class, "focusNext", new Class<?>[] {}, void.class);
-                return;
-            }
             ((javafx.scene.control.TableView.TableViewFocusModel) fxPeer()).focusNext();
         }
 
         public void focusPrevious() {
-            if (com.jxparallel.fx.Fx.NATIVE) {
-                com.jxparallel.fx.nativeimpl.Native.call(this, com.jxparallel.fx.scene.control.TableView.TableViewFocusModel.class, "focusPrevious", new Class<?>[] {}, void.class);
-                return;
-            }
             ((javafx.scene.control.TableView.TableViewFocusModel) fxPeer()).focusPrevious();
         }
 
         public void focusRightCell() {
-            if (com.jxparallel.fx.Fx.NATIVE) {
-                com.jxparallel.fx.nativeimpl.Native.call(this, com.jxparallel.fx.scene.control.TableView.TableViewFocusModel.class, "focusRightCell", new Class<?>[] {}, void.class);
-                return;
-            }
             ((javafx.scene.control.TableView.TableViewFocusModel) fxPeer()).focusRightCell();
         }
 
         public com.jxparallel.fx.beans.property.ReadOnlyObjectProperty<com.jxparallel.fx.scene.control.TablePosition> focusedCellProperty() {
-            if (com.jxparallel.fx.Fx.NATIVE) {
-                return (com.jxparallel.fx.beans.property.ReadOnlyObjectProperty) com.jxparallel.fx.nativeimpl.Native.call(this, com.jxparallel.fx.scene.control.TableView.TableViewFocusModel.class, "focusedCellProperty", new Class<?>[] {}, com.jxparallel.fx.beans.property.ReadOnlyObjectProperty.class);
-            }
             return (com.jxparallel.fx.beans.property.ReadOnlyObjectProperty) com.jxparallel.fx.Fx.jx(((javafx.scene.control.TableView.TableViewFocusModel) fxPeer()).focusedCellProperty());
         }
 
         public com.jxparallel.fx.scene.control.TablePosition getFocusedCell() {
-            if (com.jxparallel.fx.Fx.NATIVE) {
-                return (com.jxparallel.fx.scene.control.TablePosition) com.jxparallel.fx.nativeimpl.Native.call(this, com.jxparallel.fx.scene.control.TableView.TableViewFocusModel.class, "getFocusedCell", new Class<?>[] {}, com.jxparallel.fx.scene.control.TablePosition.class);
-            }
             return (com.jxparallel.fx.scene.control.TablePosition) com.jxparallel.fx.Fx.jx(((javafx.scene.control.TableView.TableViewFocusModel) fxPeer()).getFocusedCell());
         }
 
         protected int getItemCount() {
-            if (com.jxparallel.fx.Fx.NATIVE) {
-                return (Integer) com.jxparallel.fx.nativeimpl.Native.call(this, com.jxparallel.fx.scene.control.TableView.TableViewFocusModel.class, "getItemCount", new Class<?>[] {}, int.class);
-            }
             return (Integer) com.jxparallel.fx.Fx.invoke(fxPeer(), javafx.scene.control.TableView.TableViewFocusModel.class, "getItemCount", new Class<?>[] {});
         }
 
         protected S getModelItem(int arg0) {
-            if (com.jxparallel.fx.Fx.NATIVE) {
-                return (S) com.jxparallel.fx.nativeimpl.Native.call(this, com.jxparallel.fx.scene.control.TableView.TableViewFocusModel.class, "getModelItem", new Class<?>[] {int.class}, java.lang.Object.class, arg0);
-            }
             return (S) com.jxparallel.fx.Fx.jx(com.jxparallel.fx.Fx.invoke(fxPeer(), javafx.scene.control.TableView.TableViewFocusModel.class, "getModelItem", new Class<?>[] {int.class}, arg0));
         }
 
         public boolean isFocused(int arg0, com.jxparallel.fx.scene.control.TableColumn<S, ?> arg1) {
-            if (com.jxparallel.fx.Fx.NATIVE) {
-                return (Boolean) com.jxparallel.fx.nativeimpl.Native.call(this, com.jxparallel.fx.scene.control.TableView.TableViewFocusModel.class, "isFocused", new Class<?>[] {int.class, com.jxparallel.fx.scene.control.TableColumn.class}, boolean.class, arg0, arg1);
-            }
-            return ((javafx.scene.control.TableView.TableViewFocusModel) fxPeer()).isFocused(arg0, (javafx.scene.control.TableColumn) com.jxparallel.fx.Fx.fx(arg1));
+            return ((javafx.scene.control.TableView.TableViewFocusModel) fxPeer()).isFocused(arg0, (javafx.scene.control.TableColumn) com.jxparallel.fx.Fx.fxAs(arg1, javafx.scene.control.TableColumn.class));
         }
     }
 
@@ -605,140 +548,84 @@ public class TableView<S> extends com.jxparallel.fx.scene.control.Control {
         }
 
         public TableViewSelectionModel(com.jxparallel.fx.scene.control.TableView<S> arg0) {
-            this(com.jxparallel.fx.Fx.WRAP, com.jxparallel.fx.Fx.NATIVE ? com.jxparallel.fx.nativeimpl.Native.create(javafx.scene.control.TableView.TableViewSelectionModel.class, new String[] {null}, new Object[] {arg0}) : new com.jxparallel.fx.peer.scene.control.TableView_TableViewSelectionModel((javafx.scene.control.TableView) com.jxparallel.fx.Fx.fx(arg0)));
+            this(com.jxparallel.fx.Fx.WRAP, new com.jxparallel.fx.peer.scene.control.TableView_TableViewSelectionModel((javafx.scene.control.TableView) com.jxparallel.fx.Fx.fxAs(arg0, javafx.scene.control.TableView.class)));
             com.jxparallel.fx.Fx.own(fxPeer(), this);
         }
 
         public void clearAndSelect(int arg0, com.jxparallel.fx.scene.control.TableColumn<S, ?> arg1) {
-            if (com.jxparallel.fx.Fx.NATIVE) {
-                com.jxparallel.fx.nativeimpl.Native.call(this, com.jxparallel.fx.scene.control.TableView.TableViewSelectionModel.class, "clearAndSelect", new Class<?>[] {int.class, com.jxparallel.fx.scene.control.TableColumn.class}, void.class, arg0, arg1);
-                return;
-            }
             if (fxPeer() instanceof com.jxparallel.fx.Fx.Owned) {
-                ((com.jxparallel.fx.Fx.Owned) fxPeer()).callSuper("clearAndSelect(int,TableColumn)", new Object[] {arg0, (javafx.scene.control.TableColumn) com.jxparallel.fx.Fx.fx(arg1)});
+                ((com.jxparallel.fx.Fx.Owned) fxPeer()).callSuper("clearAndSelect(int,TableColumn)", new Object[] {arg0, (javafx.scene.control.TableColumn) com.jxparallel.fx.Fx.fxAs(arg1, javafx.scene.control.TableColumn.class)});
             } else {
-                com.jxparallel.fx.Fx.invoke(fxPeer(), javafx.scene.control.TableView.TableViewSelectionModel.class, "clearAndSelect", new Class<?>[] {int.class, javafx.scene.control.TableColumn.class}, arg0, (javafx.scene.control.TableColumn) com.jxparallel.fx.Fx.fx(arg1));
+                com.jxparallel.fx.Fx.invoke(fxPeer(), javafx.scene.control.TableView.TableViewSelectionModel.class, "clearAndSelect", new Class<?>[] {int.class, javafx.scene.control.TableColumn.class}, arg0, (javafx.scene.control.TableColumn) com.jxparallel.fx.Fx.fxAs(arg1, javafx.scene.control.TableColumn.class));
             }
         }
 
         public void clearAndSelect(int arg0, com.jxparallel.fx.scene.control.TableColumnBase<S, ?> arg1) {
-            if (com.jxparallel.fx.Fx.NATIVE) {
-                com.jxparallel.fx.nativeimpl.Native.call(this, com.jxparallel.fx.scene.control.TableView.TableViewSelectionModel.class, "clearAndSelect", new Class<?>[] {int.class, com.jxparallel.fx.scene.control.TableColumnBase.class}, void.class, arg0, arg1);
-                return;
-            }
-            ((javafx.scene.control.TableView.TableViewSelectionModel) fxPeer()).clearAndSelect(arg0, (javafx.scene.control.TableColumnBase) com.jxparallel.fx.Fx.fx(arg1));
+            ((javafx.scene.control.TableView.TableViewSelectionModel) fxPeer()).clearAndSelect(arg0, (javafx.scene.control.TableColumnBase) com.jxparallel.fx.Fx.fxAs(arg1, javafx.scene.control.TableColumnBase.class));
         }
 
         public void clearSelection(int arg0, com.jxparallel.fx.scene.control.TableColumn<S, ?> arg1) {
-            if (com.jxparallel.fx.Fx.NATIVE) {
-                com.jxparallel.fx.nativeimpl.Native.call(this, com.jxparallel.fx.scene.control.TableView.TableViewSelectionModel.class, "clearSelection", new Class<?>[] {int.class, com.jxparallel.fx.scene.control.TableColumn.class}, void.class, arg0, arg1);
-                return;
-            }
             if (fxPeer() instanceof com.jxparallel.fx.Fx.Owned) {
-                ((com.jxparallel.fx.Fx.Owned) fxPeer()).callSuper("clearSelection(int,TableColumn)", new Object[] {arg0, (javafx.scene.control.TableColumn) com.jxparallel.fx.Fx.fx(arg1)});
+                ((com.jxparallel.fx.Fx.Owned) fxPeer()).callSuper("clearSelection(int,TableColumn)", new Object[] {arg0, (javafx.scene.control.TableColumn) com.jxparallel.fx.Fx.fxAs(arg1, javafx.scene.control.TableColumn.class)});
             } else {
-                com.jxparallel.fx.Fx.invoke(fxPeer(), javafx.scene.control.TableView.TableViewSelectionModel.class, "clearSelection", new Class<?>[] {int.class, javafx.scene.control.TableColumn.class}, arg0, (javafx.scene.control.TableColumn) com.jxparallel.fx.Fx.fx(arg1));
+                com.jxparallel.fx.Fx.invoke(fxPeer(), javafx.scene.control.TableView.TableViewSelectionModel.class, "clearSelection", new Class<?>[] {int.class, javafx.scene.control.TableColumn.class}, arg0, (javafx.scene.control.TableColumn) com.jxparallel.fx.Fx.fxAs(arg1, javafx.scene.control.TableColumn.class));
             }
         }
 
         public void clearSelection(int arg0, com.jxparallel.fx.scene.control.TableColumnBase<S, ?> arg1) {
-            if (com.jxparallel.fx.Fx.NATIVE) {
-                com.jxparallel.fx.nativeimpl.Native.call(this, com.jxparallel.fx.scene.control.TableView.TableViewSelectionModel.class, "clearSelection", new Class<?>[] {int.class, com.jxparallel.fx.scene.control.TableColumnBase.class}, void.class, arg0, arg1);
-                return;
-            }
-            ((javafx.scene.control.TableView.TableViewSelectionModel) fxPeer()).clearSelection(arg0, (javafx.scene.control.TableColumnBase) com.jxparallel.fx.Fx.fx(arg1));
+            ((javafx.scene.control.TableView.TableViewSelectionModel) fxPeer()).clearSelection(arg0, (javafx.scene.control.TableColumnBase) com.jxparallel.fx.Fx.fxAs(arg1, javafx.scene.control.TableColumnBase.class));
         }
 
         public void focus(int arg0) {
-            if (com.jxparallel.fx.Fx.NATIVE) {
-                com.jxparallel.fx.nativeimpl.Native.call(this, com.jxparallel.fx.scene.control.TableView.TableViewSelectionModel.class, "focus", new Class<?>[] {int.class}, void.class, arg0);
-                return;
-            }
             ((javafx.scene.control.TableView.TableViewSelectionModel) fxPeer()).focus(arg0);
         }
 
         public int getFocusedIndex() {
-            if (com.jxparallel.fx.Fx.NATIVE) {
-                return (Integer) com.jxparallel.fx.nativeimpl.Native.call(this, com.jxparallel.fx.scene.control.TableView.TableViewSelectionModel.class, "getFocusedIndex", new Class<?>[] {}, int.class);
-            }
             return ((javafx.scene.control.TableView.TableViewSelectionModel) fxPeer()).getFocusedIndex();
         }
 
         protected int getItemCount() {
-            if (com.jxparallel.fx.Fx.NATIVE) {
-                return (Integer) com.jxparallel.fx.nativeimpl.Native.call(this, com.jxparallel.fx.scene.control.TableView.TableViewSelectionModel.class, "getItemCount", new Class<?>[] {}, int.class);
-            }
             return (Integer) com.jxparallel.fx.Fx.invoke(fxPeer(), javafx.scene.control.TableView.TableViewSelectionModel.class, "getItemCount", new Class<?>[] {});
         }
 
         protected S getModelItem(int arg0) {
-            if (com.jxparallel.fx.Fx.NATIVE) {
-                return (S) com.jxparallel.fx.nativeimpl.Native.call(this, com.jxparallel.fx.scene.control.TableView.TableViewSelectionModel.class, "getModelItem", new Class<?>[] {int.class}, java.lang.Object.class, arg0);
-            }
             return (S) com.jxparallel.fx.Fx.jx(com.jxparallel.fx.Fx.invoke(fxPeer(), javafx.scene.control.TableView.TableViewSelectionModel.class, "getModelItem", new Class<?>[] {int.class}, arg0));
         }
 
         public com.jxparallel.fx.collections.ObservableList<com.jxparallel.fx.scene.control.TablePosition> getSelectedCells() {
-            if (com.jxparallel.fx.Fx.NATIVE) {
-                return (com.jxparallel.fx.collections.ObservableList) com.jxparallel.fx.nativeimpl.Native.call(this, com.jxparallel.fx.scene.control.TableView.TableViewSelectionModel.class, "getSelectedCells", new Class<?>[] {}, com.jxparallel.fx.collections.ObservableList.class);
-            }
             return (com.jxparallel.fx.collections.ObservableList) com.jxparallel.fx.Fx.jx((fxPeer() instanceof com.jxparallel.fx.Fx.Owned ? ((com.jxparallel.fx.Fx.Owned) fxPeer()).callSuper("getSelectedCells()", new Object[] {}) : com.jxparallel.fx.Fx.invoke(fxPeer(), javafx.scene.control.TableView.TableViewSelectionModel.class, "getSelectedCells", new Class<?>[] {})));
         }
 
         protected java.util.List<S> getTableModel() {
-            if (com.jxparallel.fx.Fx.NATIVE) {
-                return (java.util.List) com.jxparallel.fx.nativeimpl.Native.call(this, com.jxparallel.fx.scene.control.TableView.TableViewSelectionModel.class, "getTableModel", new Class<?>[] {}, java.util.List.class);
-            }
             return (java.util.List) com.jxparallel.fx.Fx.jxList((java.util.List) com.jxparallel.fx.Fx.invoke(fxPeer(), javafx.scene.control.TableView.TableViewSelectionModel.class, "getTableModel", new Class<?>[] {}));
         }
 
         public com.jxparallel.fx.scene.control.TableView<S> getTableView() {
-            if (com.jxparallel.fx.Fx.NATIVE) {
-                return (com.jxparallel.fx.scene.control.TableView) com.jxparallel.fx.nativeimpl.Native.call(this, com.jxparallel.fx.scene.control.TableView.TableViewSelectionModel.class, "getTableView", new Class<?>[] {}, com.jxparallel.fx.scene.control.TableView.class);
-            }
             return (com.jxparallel.fx.scene.control.TableView) com.jxparallel.fx.Fx.jx(((javafx.scene.control.TableView.TableViewSelectionModel) fxPeer()).getTableView());
         }
 
         public boolean isSelected(int arg0, com.jxparallel.fx.scene.control.TableColumn<S, ?> arg1) {
-            if (com.jxparallel.fx.Fx.NATIVE) {
-                return (Boolean) com.jxparallel.fx.nativeimpl.Native.call(this, com.jxparallel.fx.scene.control.TableView.TableViewSelectionModel.class, "isSelected", new Class<?>[] {int.class, com.jxparallel.fx.scene.control.TableColumn.class}, boolean.class, arg0, arg1);
-            }
-            return (Boolean) (fxPeer() instanceof com.jxparallel.fx.Fx.Owned ? ((com.jxparallel.fx.Fx.Owned) fxPeer()).callSuper("isSelected(int,TableColumn)", new Object[] {arg0, (javafx.scene.control.TableColumn) com.jxparallel.fx.Fx.fx(arg1)}) : com.jxparallel.fx.Fx.invoke(fxPeer(), javafx.scene.control.TableView.TableViewSelectionModel.class, "isSelected", new Class<?>[] {int.class, javafx.scene.control.TableColumn.class}, arg0, (javafx.scene.control.TableColumn) com.jxparallel.fx.Fx.fx(arg1)));
+            return (Boolean) (fxPeer() instanceof com.jxparallel.fx.Fx.Owned ? ((com.jxparallel.fx.Fx.Owned) fxPeer()).callSuper("isSelected(int,TableColumn)", new Object[] {arg0, (javafx.scene.control.TableColumn) com.jxparallel.fx.Fx.fxAs(arg1, javafx.scene.control.TableColumn.class)}) : com.jxparallel.fx.Fx.invoke(fxPeer(), javafx.scene.control.TableView.TableViewSelectionModel.class, "isSelected", new Class<?>[] {int.class, javafx.scene.control.TableColumn.class}, arg0, (javafx.scene.control.TableColumn) com.jxparallel.fx.Fx.fxAs(arg1, javafx.scene.control.TableColumn.class)));
         }
 
         public boolean isSelected(int arg0, com.jxparallel.fx.scene.control.TableColumnBase<S, ?> arg1) {
-            if (com.jxparallel.fx.Fx.NATIVE) {
-                return (Boolean) com.jxparallel.fx.nativeimpl.Native.call(this, com.jxparallel.fx.scene.control.TableView.TableViewSelectionModel.class, "isSelected", new Class<?>[] {int.class, com.jxparallel.fx.scene.control.TableColumnBase.class}, boolean.class, arg0, arg1);
-            }
-            return ((javafx.scene.control.TableView.TableViewSelectionModel) fxPeer()).isSelected(arg0, (javafx.scene.control.TableColumnBase) com.jxparallel.fx.Fx.fx(arg1));
+            return ((javafx.scene.control.TableView.TableViewSelectionModel) fxPeer()).isSelected(arg0, (javafx.scene.control.TableColumnBase) com.jxparallel.fx.Fx.fxAs(arg1, javafx.scene.control.TableColumnBase.class));
         }
 
         public void select(int arg0, com.jxparallel.fx.scene.control.TableColumn<S, ?> arg1) {
-            if (com.jxparallel.fx.Fx.NATIVE) {
-                com.jxparallel.fx.nativeimpl.Native.call(this, com.jxparallel.fx.scene.control.TableView.TableViewSelectionModel.class, "select", new Class<?>[] {int.class, com.jxparallel.fx.scene.control.TableColumn.class}, void.class, arg0, arg1);
-                return;
-            }
             if (fxPeer() instanceof com.jxparallel.fx.Fx.Owned) {
-                ((com.jxparallel.fx.Fx.Owned) fxPeer()).callSuper("select(int,TableColumn)", new Object[] {arg0, (javafx.scene.control.TableColumn) com.jxparallel.fx.Fx.fx(arg1)});
+                ((com.jxparallel.fx.Fx.Owned) fxPeer()).callSuper("select(int,TableColumn)", new Object[] {arg0, (javafx.scene.control.TableColumn) com.jxparallel.fx.Fx.fxAs(arg1, javafx.scene.control.TableColumn.class)});
             } else {
-                com.jxparallel.fx.Fx.invoke(fxPeer(), javafx.scene.control.TableView.TableViewSelectionModel.class, "select", new Class<?>[] {int.class, javafx.scene.control.TableColumn.class}, arg0, (javafx.scene.control.TableColumn) com.jxparallel.fx.Fx.fx(arg1));
+                com.jxparallel.fx.Fx.invoke(fxPeer(), javafx.scene.control.TableView.TableViewSelectionModel.class, "select", new Class<?>[] {int.class, javafx.scene.control.TableColumn.class}, arg0, (javafx.scene.control.TableColumn) com.jxparallel.fx.Fx.fxAs(arg1, javafx.scene.control.TableColumn.class));
             }
         }
 
         public void select(int arg0, com.jxparallel.fx.scene.control.TableColumnBase<S, ?> arg1) {
-            if (com.jxparallel.fx.Fx.NATIVE) {
-                com.jxparallel.fx.nativeimpl.Native.call(this, com.jxparallel.fx.scene.control.TableView.TableViewSelectionModel.class, "select", new Class<?>[] {int.class, com.jxparallel.fx.scene.control.TableColumnBase.class}, void.class, arg0, arg1);
-                return;
-            }
-            ((javafx.scene.control.TableView.TableViewSelectionModel) fxPeer()).select(arg0, (javafx.scene.control.TableColumnBase) com.jxparallel.fx.Fx.fx(arg1));
+            ((javafx.scene.control.TableView.TableViewSelectionModel) fxPeer()).select(arg0, (javafx.scene.control.TableColumnBase) com.jxparallel.fx.Fx.fxAs(arg1, javafx.scene.control.TableColumnBase.class));
         }
 
         public void selectRange(int arg0, com.jxparallel.fx.scene.control.TableColumnBase<S, ?> arg1, int arg2, com.jxparallel.fx.scene.control.TableColumnBase<S, ?> arg3) {
-            if (com.jxparallel.fx.Fx.NATIVE) {
-                com.jxparallel.fx.nativeimpl.Native.call(this, com.jxparallel.fx.scene.control.TableView.TableViewSelectionModel.class, "selectRange", new Class<?>[] {int.class, com.jxparallel.fx.scene.control.TableColumnBase.class, int.class, com.jxparallel.fx.scene.control.TableColumnBase.class}, void.class, arg0, arg1, arg2, arg3);
-                return;
-            }
-            ((javafx.scene.control.TableView.TableViewSelectionModel) fxPeer()).selectRange(arg0, (javafx.scene.control.TableColumnBase) com.jxparallel.fx.Fx.fx(arg1), arg2, (javafx.scene.control.TableColumnBase) com.jxparallel.fx.Fx.fx(arg3));
+            ((javafx.scene.control.TableView.TableViewSelectionModel) fxPeer()).selectRange(arg0, (javafx.scene.control.TableColumnBase) com.jxparallel.fx.Fx.fxAs(arg1, javafx.scene.control.TableColumnBase.class), arg2, (javafx.scene.control.TableColumnBase) com.jxparallel.fx.Fx.fxAs(arg3, javafx.scene.control.TableColumnBase.class));
         }
 
         /** Called by the peer: runs the JX (possibly overridden) method. */
@@ -746,30 +633,30 @@ public class TableView<S> extends com.jxparallel.fx.scene.control.Control {
             TableViewSelectionModel jx = (TableViewSelectionModel) self;
             try {
             switch (method) {
-                case "select(int,TableColumn)":
-                    jx.select((Integer) a[0], (com.jxparallel.fx.scene.control.TableColumn) a[1]);
-                    return null;
                 case "isSelected(int,TableColumn)":
                     return (Object) jx.isSelected((Integer) a[0], (com.jxparallel.fx.scene.control.TableColumn) a[1]);
-                case "clearSelection(int,TableColumn)":
-                    jx.clearSelection((Integer) a[0], (com.jxparallel.fx.scene.control.TableColumn) a[1]);
-                    return null;
+                case "getSelectedCells()":
+                    return jx.getSelectedCells();
                 case "clearAndSelect(int,TableColumn)":
                     jx.clearAndSelect((Integer) a[0], (com.jxparallel.fx.scene.control.TableColumn) a[1]);
                     return null;
-                case "getSelectedCells()":
-                    return jx.getSelectedCells();
-                case "selectLeftCell()":
-                    jx.selectLeftCell();
+                case "clearSelection(int,TableColumn)":
+                    jx.clearSelection((Integer) a[0], (com.jxparallel.fx.scene.control.TableColumn) a[1]);
+                    return null;
+                case "select(int,TableColumn)":
+                    jx.select((Integer) a[0], (com.jxparallel.fx.scene.control.TableColumn) a[1]);
+                    return null;
+                case "selectAboveCell()":
+                    jx.selectAboveCell();
                     return null;
                 case "selectBelowCell()":
                     jx.selectBelowCell();
                     return null;
+                case "selectLeftCell()":
+                    jx.selectLeftCell();
+                    return null;
                 case "selectRightCell()":
                     jx.selectRightCell();
-                    return null;
-                case "selectAboveCell()":
-                    jx.selectAboveCell();
                     return null;
                 default:
                     throw new IllegalArgumentException(method);

@@ -73,46 +73,46 @@ public class MultipleSelectionModel<T> extends com.jxparallel.fx.scene.control.S
         MultipleSelectionModel jx = (MultipleSelectionModel) self;
         try {
         switch (method) {
-            case "selectFirst()":
-                jx.selectFirst();
-                return null;
-            case "selectAll()":
-                jx.selectAll();
-                return null;
-            case "selectLast()":
-                jx.selectLast();
-                return null;
-            case "selectIndices(int,int[])":
-                jx.selectIndices((Integer) a[0], (int[]) a[1]);
-                return null;
             case "getSelectedItems()":
                 return jx.getSelectedItems();
             case "getSelectedIndices()":
                 return jx.getSelectedIndices();
+            case "selectAll()":
+                jx.selectAll();
+                return null;
+            case "selectFirst()":
+                jx.selectFirst();
+                return null;
+            case "selectIndices(int,int[])":
+                jx.selectIndices((Integer) a[0], (int[]) a[1]);
+                return null;
+            case "selectLast()":
+                jx.selectLast();
+                return null;
             case "isEmpty()":
                 return (Object) jx.isEmpty();
-            case "select(int)":
-                jx.select((Integer) a[0]);
-                return null;
-            case "select(Object)":
-                jx.select((java.lang.Object) a[0]);
-                return null;
             case "isSelected(int)":
                 return (Object) jx.isSelected((Integer) a[0]);
+            case "clearAndSelect(int)":
+                jx.clearAndSelect((Integer) a[0]);
+                return null;
             case "clearSelection()":
                 jx.clearSelection();
                 return null;
             case "clearSelection(int)":
                 jx.clearSelection((Integer) a[0]);
                 return null;
-            case "clearAndSelect(int)":
-                jx.clearAndSelect((Integer) a[0]);
+            case "select(Object)":
+                jx.select((java.lang.Object) a[0]);
                 return null;
-            case "selectPrevious()":
-                jx.selectPrevious();
+            case "select(int)":
+                jx.select((Integer) a[0]);
                 return null;
             case "selectNext()":
                 jx.selectNext();
+                return null;
+            case "selectPrevious()":
+                jx.selectPrevious();
                 return null;
             default:
                 throw new IllegalArgumentException(method);

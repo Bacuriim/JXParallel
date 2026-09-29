@@ -7,13 +7,8 @@ public class CheckBoxTreeItem<T> extends com.jxparallel.fx.scene.control.TreeIte
         super(wrap, peer);
     }
 
-    public CheckBoxTreeItem(T arg0, com.jxparallel.fx.scene.Node arg1, boolean arg2, boolean arg3) {
-        this(com.jxparallel.fx.Fx.WRAP, com.jxparallel.fx.Fx.NATIVE ? com.jxparallel.fx.nativeimpl.Native.create(javafx.scene.control.CheckBoxTreeItem.class, new String[] {null, null, null, null}, new Object[] {arg0, arg1, arg2, arg3}) : new com.jxparallel.fx.peer.scene.control.CheckBoxTreeItem((T) com.jxparallel.fx.Fx.fx(arg0), (javafx.scene.Node) com.jxparallel.fx.Fx.fx(arg1), arg2, arg3));
-        com.jxparallel.fx.Fx.own(fxPeer(), this);
-    }
-
-    public CheckBoxTreeItem(T arg0, com.jxparallel.fx.scene.Node arg1) {
-        this(com.jxparallel.fx.Fx.WRAP, com.jxparallel.fx.Fx.NATIVE ? com.jxparallel.fx.nativeimpl.Native.create(javafx.scene.control.CheckBoxTreeItem.class, new String[] {null, null}, new Object[] {arg0, arg1}) : new com.jxparallel.fx.peer.scene.control.CheckBoxTreeItem((T) com.jxparallel.fx.Fx.fx(arg0), (javafx.scene.Node) com.jxparallel.fx.Fx.fx(arg1)));
+    public CheckBoxTreeItem() {
+        this(com.jxparallel.fx.Fx.WRAP, com.jxparallel.fx.Fx.NATIVE ? com.jxparallel.fx.nativeimpl.Native.create(javafx.scene.control.CheckBoxTreeItem.class, new String[] {}, new Object[] {}) : new com.jxparallel.fx.peer.scene.control.CheckBoxTreeItem());
         com.jxparallel.fx.Fx.own(fxPeer(), this);
     }
 
@@ -22,13 +17,18 @@ public class CheckBoxTreeItem<T> extends com.jxparallel.fx.scene.control.TreeIte
         com.jxparallel.fx.Fx.own(fxPeer(), this);
     }
 
-    public CheckBoxTreeItem() {
-        this(com.jxparallel.fx.Fx.WRAP, com.jxparallel.fx.Fx.NATIVE ? com.jxparallel.fx.nativeimpl.Native.create(javafx.scene.control.CheckBoxTreeItem.class, new String[] {}, new Object[] {}) : new com.jxparallel.fx.peer.scene.control.CheckBoxTreeItem());
+    public CheckBoxTreeItem(T arg0, com.jxparallel.fx.scene.Node arg1) {
+        this(com.jxparallel.fx.Fx.WRAP, com.jxparallel.fx.Fx.NATIVE ? com.jxparallel.fx.nativeimpl.Native.create(javafx.scene.control.CheckBoxTreeItem.class, new String[] {null, null}, new Object[] {arg0, arg1}) : new com.jxparallel.fx.peer.scene.control.CheckBoxTreeItem((T) com.jxparallel.fx.Fx.fx(arg0), (javafx.scene.Node) com.jxparallel.fx.Fx.fx(arg1)));
         com.jxparallel.fx.Fx.own(fxPeer(), this);
     }
 
     public CheckBoxTreeItem(T arg0, com.jxparallel.fx.scene.Node arg1, boolean arg2) {
         this(com.jxparallel.fx.Fx.WRAP, com.jxparallel.fx.Fx.NATIVE ? com.jxparallel.fx.nativeimpl.Native.create(javafx.scene.control.CheckBoxTreeItem.class, new String[] {null, null, null}, new Object[] {arg0, arg1, arg2}) : new com.jxparallel.fx.peer.scene.control.CheckBoxTreeItem((T) com.jxparallel.fx.Fx.fx(arg0), (javafx.scene.Node) com.jxparallel.fx.Fx.fx(arg1), arg2));
+        com.jxparallel.fx.Fx.own(fxPeer(), this);
+    }
+
+    public CheckBoxTreeItem(T arg0, com.jxparallel.fx.scene.Node arg1, boolean arg2, boolean arg3) {
+        this(com.jxparallel.fx.Fx.WRAP, com.jxparallel.fx.Fx.NATIVE ? com.jxparallel.fx.nativeimpl.Native.create(javafx.scene.control.CheckBoxTreeItem.class, new String[] {null, null, null, null}, new Object[] {arg0, arg1, arg2, arg3}) : new com.jxparallel.fx.peer.scene.control.CheckBoxTreeItem((T) com.jxparallel.fx.Fx.fx(arg0), (javafx.scene.Node) com.jxparallel.fx.Fx.fx(arg1), arg2, arg3));
         com.jxparallel.fx.Fx.own(fxPeer(), this);
     }
 
@@ -111,30 +111,21 @@ public class CheckBoxTreeItem<T> extends com.jxparallel.fx.scene.control.TreeIte
         }
 
         public TreeModificationEvent(com.jxparallel.fx.event.EventType<? extends com.jxparallel.fx.event.Event> arg0, com.jxparallel.fx.scene.control.CheckBoxTreeItem<T> arg1, boolean arg2) {
-            this(com.jxparallel.fx.Fx.WRAP, com.jxparallel.fx.Fx.NATIVE ? com.jxparallel.fx.nativeimpl.Native.create(javafx.scene.control.CheckBoxTreeItem.TreeModificationEvent.class, new String[] {null, null, null}, new Object[] {arg0, arg1, arg2}) : new com.jxparallel.fx.peer.scene.control.CheckBoxTreeItem_TreeModificationEvent((javafx.event.EventType) com.jxparallel.fx.Fx.fx(arg0), (javafx.scene.control.CheckBoxTreeItem) com.jxparallel.fx.Fx.fx(arg1), arg2));
+            this(com.jxparallel.fx.Fx.WRAP, new com.jxparallel.fx.peer.scene.control.CheckBoxTreeItem_TreeModificationEvent((javafx.event.EventType) com.jxparallel.fx.Fx.fx(arg0), (javafx.scene.control.CheckBoxTreeItem) com.jxparallel.fx.Fx.fxAs(arg1, javafx.scene.control.CheckBoxTreeItem.class), arg2));
             com.jxparallel.fx.Fx.own(fxPeer(), this);
         }
 
         public static final com.jxparallel.fx.event.EventType<com.jxparallel.fx.event.Event> ANY = (com.jxparallel.fx.event.EventType) com.jxparallel.fx.Fx.jx(javafx.scene.control.CheckBoxTreeItem.TreeModificationEvent.ANY);
 
         public com.jxparallel.fx.scene.control.CheckBoxTreeItem<T> getTreeItem() {
-            if (com.jxparallel.fx.Fx.NATIVE) {
-                return (com.jxparallel.fx.scene.control.CheckBoxTreeItem) com.jxparallel.fx.nativeimpl.Native.call(this, com.jxparallel.fx.scene.control.CheckBoxTreeItem.TreeModificationEvent.class, "getTreeItem", new Class<?>[] {}, com.jxparallel.fx.scene.control.CheckBoxTreeItem.class);
-            }
             return (com.jxparallel.fx.scene.control.CheckBoxTreeItem) com.jxparallel.fx.Fx.jx(((javafx.scene.control.CheckBoxTreeItem.TreeModificationEvent) fxPeer()).getTreeItem());
         }
 
         public boolean wasIndeterminateChanged() {
-            if (com.jxparallel.fx.Fx.NATIVE) {
-                return (Boolean) com.jxparallel.fx.nativeimpl.Native.call(this, com.jxparallel.fx.scene.control.CheckBoxTreeItem.TreeModificationEvent.class, "wasIndeterminateChanged", new Class<?>[] {}, boolean.class);
-            }
             return ((javafx.scene.control.CheckBoxTreeItem.TreeModificationEvent) fxPeer()).wasIndeterminateChanged();
         }
 
         public boolean wasSelectionChanged() {
-            if (com.jxparallel.fx.Fx.NATIVE) {
-                return (Boolean) com.jxparallel.fx.nativeimpl.Native.call(this, com.jxparallel.fx.scene.control.CheckBoxTreeItem.TreeModificationEvent.class, "wasSelectionChanged", new Class<?>[] {}, boolean.class);
-            }
             return ((javafx.scene.control.CheckBoxTreeItem.TreeModificationEvent) fxPeer()).wasSelectionChanged();
         }
     }

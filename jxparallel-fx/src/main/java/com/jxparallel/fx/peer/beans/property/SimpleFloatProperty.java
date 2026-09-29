@@ -5,20 +5,20 @@ package com.jxparallel.fx.peer.beans.property;
 public class SimpleFloatProperty extends javafx.beans.property.SimpleFloatProperty implements com.jxparallel.fx.Fx.Owned {
     private Object jxOwner;
 
-    public SimpleFloatProperty(java.lang.Object arg0, java.lang.String arg1) {
-        super(arg0, arg1);
-    }
-
     public SimpleFloatProperty() {
         super();
     }
 
-    public SimpleFloatProperty(java.lang.Object arg0, java.lang.String arg1, float arg2) {
-        super(arg0, arg1, arg2);
-    }
-
     public SimpleFloatProperty(float arg0) {
         super(arg0);
+    }
+
+    public SimpleFloatProperty(java.lang.Object arg0, java.lang.String arg1) {
+        super(arg0, arg1);
+    }
+
+    public SimpleFloatProperty(java.lang.Object arg0, java.lang.String arg1, float arg2) {
+        super(arg0, arg1, arg2);
     }
 
     @Override

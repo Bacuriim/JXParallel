@@ -7,13 +7,13 @@ public final class PathTransition extends com.jxparallel.fx.animation.Transition
         super(wrap, peer);
     }
 
-    public PathTransition(com.jxparallel.fx.util.Duration arg0, com.jxparallel.fx.scene.shape.Shape arg1) {
-        this(com.jxparallel.fx.Fx.WRAP, com.jxparallel.fx.Fx.NATIVE ? com.jxparallel.fx.nativeimpl.Native.create(javafx.animation.PathTransition.class, new String[] {null, null}, new Object[] {arg0, arg1}) : new javafx.animation.PathTransition((javafx.util.Duration) com.jxparallel.fx.Fx.fx(arg0), (javafx.scene.shape.Shape) com.jxparallel.fx.Fx.fx(arg1)));
+    public PathTransition() {
+        this(com.jxparallel.fx.Fx.WRAP, com.jxparallel.fx.Fx.NATIVE ? com.jxparallel.fx.nativeimpl.Native.create(javafx.animation.PathTransition.class, new String[] {}, new Object[] {}) : new javafx.animation.PathTransition());
         com.jxparallel.fx.Fx.own(fxPeer(), this);
     }
 
-    public PathTransition() {
-        this(com.jxparallel.fx.Fx.WRAP, com.jxparallel.fx.Fx.NATIVE ? com.jxparallel.fx.nativeimpl.Native.create(javafx.animation.PathTransition.class, new String[] {}, new Object[] {}) : new javafx.animation.PathTransition());
+    public PathTransition(com.jxparallel.fx.util.Duration arg0, com.jxparallel.fx.scene.shape.Shape arg1) {
+        this(com.jxparallel.fx.Fx.WRAP, com.jxparallel.fx.Fx.NATIVE ? com.jxparallel.fx.nativeimpl.Native.create(javafx.animation.PathTransition.class, new String[] {null, null}, new Object[] {arg0, arg1}) : new javafx.animation.PathTransition((javafx.util.Duration) com.jxparallel.fx.Fx.fx(arg0), (javafx.scene.shape.Shape) com.jxparallel.fx.Fx.fx(arg1)));
         com.jxparallel.fx.Fx.own(fxPeer(), this);
     }
 

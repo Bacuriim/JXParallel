@@ -8,13 +8,13 @@ public class TreeView<T> extends com.jxparallel.fx.scene.control.Control {
         super(wrap, peer);
     }
 
-    public TreeView(com.jxparallel.fx.scene.control.TreeItem<T> arg0) {
-        this(com.jxparallel.fx.Fx.WRAP, com.jxparallel.fx.Fx.NATIVE ? com.jxparallel.fx.nativeimpl.Native.create(javafx.scene.control.TreeView.class, new String[] {null}, new Object[] {arg0}) : new com.jxparallel.fx.peer.scene.control.TreeView((javafx.scene.control.TreeItem) com.jxparallel.fx.Fx.fx(arg0)));
+    public TreeView() {
+        this(com.jxparallel.fx.Fx.WRAP, com.jxparallel.fx.Fx.NATIVE ? com.jxparallel.fx.nativeimpl.Native.create(javafx.scene.control.TreeView.class, new String[] {}, new Object[] {}) : new com.jxparallel.fx.peer.scene.control.TreeView());
         com.jxparallel.fx.Fx.own(fxPeer(), this);
     }
 
-    public TreeView() {
-        this(com.jxparallel.fx.Fx.WRAP, com.jxparallel.fx.Fx.NATIVE ? com.jxparallel.fx.nativeimpl.Native.create(javafx.scene.control.TreeView.class, new String[] {}, new Object[] {}) : new com.jxparallel.fx.peer.scene.control.TreeView());
+    public TreeView(com.jxparallel.fx.scene.control.TreeItem<T> arg0) {
+        this(com.jxparallel.fx.Fx.WRAP, com.jxparallel.fx.Fx.NATIVE ? com.jxparallel.fx.nativeimpl.Native.create(javafx.scene.control.TreeView.class, new String[] {null}, new Object[] {arg0}) : new com.jxparallel.fx.peer.scene.control.TreeView((javafx.scene.control.TreeItem) com.jxparallel.fx.Fx.fx(arg0)));
         com.jxparallel.fx.Fx.own(fxPeer(), this);
     }
 
@@ -402,37 +402,25 @@ public class TreeView<T> extends com.jxparallel.fx.scene.control.Control {
         }
 
         public EditEvent(com.jxparallel.fx.scene.control.TreeView<T> arg0, com.jxparallel.fx.event.EventType<? extends com.jxparallel.fx.scene.control.TreeView.EditEvent> arg1, com.jxparallel.fx.scene.control.TreeItem<T> arg2, T arg3, T arg4) {
-            this(com.jxparallel.fx.Fx.WRAP, com.jxparallel.fx.Fx.NATIVE ? com.jxparallel.fx.nativeimpl.Native.create(javafx.scene.control.TreeView.EditEvent.class, new String[] {null, null, null, null, null}, new Object[] {arg0, arg1, arg2, arg3, arg4}) : new com.jxparallel.fx.peer.scene.control.TreeView_EditEvent((javafx.scene.control.TreeView) com.jxparallel.fx.Fx.fx(arg0), (javafx.event.EventType) com.jxparallel.fx.Fx.fx(arg1), (javafx.scene.control.TreeItem) com.jxparallel.fx.Fx.fx(arg2), (T) com.jxparallel.fx.Fx.fx(arg3), (T) com.jxparallel.fx.Fx.fx(arg4)));
+            this(com.jxparallel.fx.Fx.WRAP, new com.jxparallel.fx.peer.scene.control.TreeView_EditEvent((javafx.scene.control.TreeView) com.jxparallel.fx.Fx.fxAs(arg0, javafx.scene.control.TreeView.class), (javafx.event.EventType) com.jxparallel.fx.Fx.fx(arg1), (javafx.scene.control.TreeItem) com.jxparallel.fx.Fx.fxAs(arg2, javafx.scene.control.TreeItem.class), (T) com.jxparallel.fx.Fx.fx(arg3), (T) com.jxparallel.fx.Fx.fx(arg4)));
             com.jxparallel.fx.Fx.own(fxPeer(), this);
         }
 
         public static final com.jxparallel.fx.event.EventType<?> ANY = (com.jxparallel.fx.event.EventType) com.jxparallel.fx.Fx.jx(javafx.scene.control.TreeView.EditEvent.ANY);
 
         public T getNewValue() {
-            if (com.jxparallel.fx.Fx.NATIVE) {
-                return (T) com.jxparallel.fx.nativeimpl.Native.call(this, com.jxparallel.fx.scene.control.TreeView.EditEvent.class, "getNewValue", new Class<?>[] {}, java.lang.Object.class);
-            }
             return (T) com.jxparallel.fx.Fx.jx(((javafx.scene.control.TreeView.EditEvent) fxPeer()).getNewValue());
         }
 
         public T getOldValue() {
-            if (com.jxparallel.fx.Fx.NATIVE) {
-                return (T) com.jxparallel.fx.nativeimpl.Native.call(this, com.jxparallel.fx.scene.control.TreeView.EditEvent.class, "getOldValue", new Class<?>[] {}, java.lang.Object.class);
-            }
             return (T) com.jxparallel.fx.Fx.jx(((javafx.scene.control.TreeView.EditEvent) fxPeer()).getOldValue());
         }
 
         public com.jxparallel.fx.scene.control.TreeView<T> getSource() {
-            if (com.jxparallel.fx.Fx.NATIVE) {
-                return (com.jxparallel.fx.scene.control.TreeView) com.jxparallel.fx.nativeimpl.Native.call(this, com.jxparallel.fx.scene.control.TreeView.EditEvent.class, "getSource", new Class<?>[] {}, com.jxparallel.fx.scene.control.TreeView.class);
-            }
             return (com.jxparallel.fx.scene.control.TreeView) com.jxparallel.fx.Fx.jx(((javafx.scene.control.TreeView.EditEvent) fxPeer()).getSource());
         }
 
         public com.jxparallel.fx.scene.control.TreeItem<T> getTreeItem() {
-            if (com.jxparallel.fx.Fx.NATIVE) {
-                return (com.jxparallel.fx.scene.control.TreeItem) com.jxparallel.fx.nativeimpl.Native.call(this, com.jxparallel.fx.scene.control.TreeView.EditEvent.class, "getTreeItem", new Class<?>[] {}, com.jxparallel.fx.scene.control.TreeItem.class);
-            }
             return (com.jxparallel.fx.scene.control.TreeItem) com.jxparallel.fx.Fx.jx(((javafx.scene.control.TreeView.EditEvent) fxPeer()).getTreeItem());
         }
     }

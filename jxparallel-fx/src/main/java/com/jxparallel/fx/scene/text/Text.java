@@ -8,11 +8,6 @@ public class Text extends com.jxparallel.fx.scene.shape.Shape {
         super(wrap, peer);
     }
 
-    public Text(java.lang.String arg0) {
-        this(com.jxparallel.fx.Fx.WRAP, com.jxparallel.fx.Fx.NATIVE ? com.jxparallel.fx.nativeimpl.Native.create(javafx.scene.text.Text.class, new String[] {null}, new Object[] {arg0}) : new com.jxparallel.fx.peer.scene.text.Text(arg0));
-        com.jxparallel.fx.Fx.own(fxPeer(), this);
-    }
-
     public Text() {
         this(com.jxparallel.fx.Fx.WRAP, com.jxparallel.fx.Fx.NATIVE ? com.jxparallel.fx.nativeimpl.Native.create(javafx.scene.text.Text.class, new String[] {}, new Object[] {}) : new com.jxparallel.fx.peer.scene.text.Text());
         com.jxparallel.fx.Fx.own(fxPeer(), this);
@@ -20,6 +15,11 @@ public class Text extends com.jxparallel.fx.scene.shape.Shape {
 
     public Text(double arg0, double arg1, java.lang.String arg2) {
         this(com.jxparallel.fx.Fx.WRAP, com.jxparallel.fx.Fx.NATIVE ? com.jxparallel.fx.nativeimpl.Native.create(javafx.scene.text.Text.class, new String[] {null, null, null}, new Object[] {arg0, arg1, arg2}) : new com.jxparallel.fx.peer.scene.text.Text(arg0, arg1, arg2));
+        com.jxparallel.fx.Fx.own(fxPeer(), this);
+    }
+
+    public Text(java.lang.String arg0) {
+        this(com.jxparallel.fx.Fx.WRAP, com.jxparallel.fx.Fx.NATIVE ? com.jxparallel.fx.nativeimpl.Native.create(javafx.scene.text.Text.class, new String[] {null}, new Object[] {arg0}) : new com.jxparallel.fx.peer.scene.text.Text(arg0));
         com.jxparallel.fx.Fx.own(fxPeer(), this);
     }
 

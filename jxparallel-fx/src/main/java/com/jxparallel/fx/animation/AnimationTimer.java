@@ -16,17 +16,17 @@ public class AnimationTimer implements com.jxparallel.fx.Fx.Backed {
 
     @Override
     public boolean equals(Object o) {
-        return o == this || fxPeer.equals(com.jxparallel.fx.Fx.fx(o));
+        return o == this || fxPeer().equals(com.jxparallel.fx.Fx.fx(o));
     }
 
     @Override
     public int hashCode() {
-        return fxPeer.hashCode();
+        return fxPeer().hashCode();
     }
 
     @Override
     public String toString() {
-        return fxPeer.toString();
+        return fxPeer().toString();
     }
 
     public AnimationTimer() {
@@ -59,11 +59,11 @@ public class AnimationTimer implements com.jxparallel.fx.Fx.Backed {
         AnimationTimer jx = (AnimationTimer) self;
         try {
         switch (method) {
-            case "stop()":
-                jx.stop();
-                return null;
             case "handle(long)":
                 jx.handle((Long) a[0]);
+                return null;
+            case "stop()":
+                jx.stop();
                 return null;
             default:
                 throw new IllegalArgumentException(method);

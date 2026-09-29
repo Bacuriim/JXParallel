@@ -7,8 +7,8 @@ public class WritableImage extends com.jxparallel.fx.scene.image.Image {
         super(wrap, peer);
     }
 
-    public WritableImage(@javafx.beans.NamedArg(value = "reader") com.jxparallel.fx.scene.image.PixelReader arg0, @javafx.beans.NamedArg(value = "x") int arg1, @javafx.beans.NamedArg(value = "y") int arg2, @javafx.beans.NamedArg(value = "width") int arg3, @javafx.beans.NamedArg(value = "height") int arg4) {
-        this(com.jxparallel.fx.Fx.WRAP, new com.jxparallel.fx.peer.scene.image.WritableImage((javafx.scene.image.PixelReader) com.jxparallel.fx.Fx.fx(arg0), arg1, arg2, arg3, arg4));
+    public WritableImage(@javafx.beans.NamedArg(value = "width") int arg0, @javafx.beans.NamedArg(value = "height") int arg1) {
+        this(com.jxparallel.fx.Fx.WRAP, new com.jxparallel.fx.peer.scene.image.WritableImage(arg0, arg1));
         com.jxparallel.fx.Fx.own(fxPeer(), this);
     }
 
@@ -17,8 +17,8 @@ public class WritableImage extends com.jxparallel.fx.scene.image.Image {
         com.jxparallel.fx.Fx.own(fxPeer(), this);
     }
 
-    public WritableImage(@javafx.beans.NamedArg(value = "width") int arg0, @javafx.beans.NamedArg(value = "height") int arg1) {
-        this(com.jxparallel.fx.Fx.WRAP, new com.jxparallel.fx.peer.scene.image.WritableImage(arg0, arg1));
+    public WritableImage(@javafx.beans.NamedArg(value = "reader") com.jxparallel.fx.scene.image.PixelReader arg0, @javafx.beans.NamedArg(value = "x") int arg1, @javafx.beans.NamedArg(value = "y") int arg2, @javafx.beans.NamedArg(value = "width") int arg3, @javafx.beans.NamedArg(value = "height") int arg4) {
+        this(com.jxparallel.fx.Fx.WRAP, new com.jxparallel.fx.peer.scene.image.WritableImage((javafx.scene.image.PixelReader) com.jxparallel.fx.Fx.fx(arg0), arg1, arg2, arg3, arg4));
         com.jxparallel.fx.Fx.own(fxPeer(), this);
     }
 

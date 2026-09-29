@@ -36,16 +36,16 @@ public class StringProperty extends com.jxparallel.fx.beans.property.ReadOnlyStr
         ((javafx.beans.property.StringProperty) fxPeer()).unbindBidirectional((javafx.beans.property.Property) com.jxparallel.fx.Fx.fx(arg0));
     }
 
+    public boolean isBound() {
+        return (Boolean) (fxPeer() instanceof com.jxparallel.fx.Fx.Owned ? ((com.jxparallel.fx.Fx.Owned) fxPeer()).callSuper("isBound()", new Object[] {}) : com.jxparallel.fx.Fx.invoke(fxPeer(), javafx.beans.property.Property.class, "isBound", new Class<?>[] {}));
+    }
+
     public void bind(com.jxparallel.fx.beans.value.ObservableValue<? extends java.lang.String> arg0) {
         if (fxPeer() instanceof com.jxparallel.fx.Fx.Owned) {
             ((com.jxparallel.fx.Fx.Owned) fxPeer()).callSuper("bind(ObservableValue)", new Object[] {(javafx.beans.value.ObservableValue) com.jxparallel.fx.Fx.fx(arg0)});
         } else {
             com.jxparallel.fx.Fx.invoke(fxPeer(), javafx.beans.property.Property.class, "bind", new Class<?>[] {javafx.beans.value.ObservableValue.class}, (javafx.beans.value.ObservableValue) com.jxparallel.fx.Fx.fx(arg0));
         }
-    }
-
-    public boolean isBound() {
-        return (Boolean) (fxPeer() instanceof com.jxparallel.fx.Fx.Owned ? ((com.jxparallel.fx.Fx.Owned) fxPeer()).callSuper("isBound()", new Object[] {}) : com.jxparallel.fx.Fx.invoke(fxPeer(), javafx.beans.property.Property.class, "isBound", new Class<?>[] {}));
     }
 
     public void unbind() {
@@ -71,29 +71,29 @@ public class StringProperty extends com.jxparallel.fx.beans.property.ReadOnlyStr
         switch (method) {
             case "get()":
                 return jx.get();
-            case "removeListener(ChangeListener)":
-                jx.removeListener((com.jxparallel.fx.beans.value.ChangeListener) a[0]);
-                return null;
-            case "addListener(ChangeListener)":
-                jx.addListener((com.jxparallel.fx.beans.value.ChangeListener) a[0]);
+            case "isBound()":
+                return (Object) jx.isBound();
+            case "getBean()":
+                return jx.getBean();
+            case "getName()":
+                return jx.getName();
+            case "addListener(InvalidationListener)":
+                jx.addListener((com.jxparallel.fx.beans.InvalidationListener) a[0]);
                 return null;
             case "removeListener(InvalidationListener)":
                 jx.removeListener((com.jxparallel.fx.beans.InvalidationListener) a[0]);
                 return null;
-            case "addListener(InvalidationListener)":
-                jx.addListener((com.jxparallel.fx.beans.InvalidationListener) a[0]);
-                return null;
-            case "getName()":
-                return jx.getName();
-            case "getBean()":
-                return jx.getBean();
             case "bind(ObservableValue)":
                 jx.bind((com.jxparallel.fx.beans.value.ObservableValue) a[0]);
                 return null;
-            case "isBound()":
-                return (Object) jx.isBound();
             case "unbind()":
                 jx.unbind();
+                return null;
+            case "addListener(ChangeListener)":
+                jx.addListener((com.jxparallel.fx.beans.value.ChangeListener) a[0]);
+                return null;
+            case "removeListener(ChangeListener)":
+                jx.removeListener((com.jxparallel.fx.beans.value.ChangeListener) a[0]);
                 return null;
             case "set(Object)":
                 jx.set((java.lang.String) a[0]);

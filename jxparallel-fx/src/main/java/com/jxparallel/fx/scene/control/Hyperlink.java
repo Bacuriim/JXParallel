@@ -8,8 +8,8 @@ public class Hyperlink extends com.jxparallel.fx.scene.control.ButtonBase {
         super(wrap, peer);
     }
 
-    public Hyperlink(java.lang.String arg0, com.jxparallel.fx.scene.Node arg1) {
-        this(com.jxparallel.fx.Fx.WRAP, com.jxparallel.fx.Fx.NATIVE ? com.jxparallel.fx.nativeimpl.Native.create(javafx.scene.control.Hyperlink.class, new String[] {null, null}, new Object[] {arg0, arg1}) : new com.jxparallel.fx.peer.scene.control.Hyperlink(arg0, (javafx.scene.Node) com.jxparallel.fx.Fx.fx(arg1)));
+    public Hyperlink() {
+        this(com.jxparallel.fx.Fx.WRAP, com.jxparallel.fx.Fx.NATIVE ? com.jxparallel.fx.nativeimpl.Native.create(javafx.scene.control.Hyperlink.class, new String[] {}, new Object[] {}) : new com.jxparallel.fx.peer.scene.control.Hyperlink());
         com.jxparallel.fx.Fx.own(fxPeer(), this);
     }
 
@@ -18,8 +18,8 @@ public class Hyperlink extends com.jxparallel.fx.scene.control.ButtonBase {
         com.jxparallel.fx.Fx.own(fxPeer(), this);
     }
 
-    public Hyperlink() {
-        this(com.jxparallel.fx.Fx.WRAP, com.jxparallel.fx.Fx.NATIVE ? com.jxparallel.fx.nativeimpl.Native.create(javafx.scene.control.Hyperlink.class, new String[] {}, new Object[] {}) : new com.jxparallel.fx.peer.scene.control.Hyperlink());
+    public Hyperlink(java.lang.String arg0, com.jxparallel.fx.scene.Node arg1) {
+        this(com.jxparallel.fx.Fx.WRAP, com.jxparallel.fx.Fx.NATIVE ? com.jxparallel.fx.nativeimpl.Native.create(javafx.scene.control.Hyperlink.class, new String[] {null, null}, new Object[] {arg0, arg1}) : new com.jxparallel.fx.peer.scene.control.Hyperlink(arg0, (javafx.scene.Node) com.jxparallel.fx.Fx.fx(arg1)));
         com.jxparallel.fx.Fx.own(fxPeer(), this);
     }
 

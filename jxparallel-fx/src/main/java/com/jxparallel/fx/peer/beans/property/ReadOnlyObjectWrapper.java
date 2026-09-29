@@ -5,20 +5,20 @@ package com.jxparallel.fx.peer.beans.property;
 public class ReadOnlyObjectWrapper<T> extends javafx.beans.property.ReadOnlyObjectWrapper<T> implements com.jxparallel.fx.Fx.Owned {
     private Object jxOwner;
 
-    public ReadOnlyObjectWrapper(java.lang.Object arg0, java.lang.String arg1, T arg2) {
-        super(arg0, arg1, arg2);
-    }
-
-    public ReadOnlyObjectWrapper(java.lang.Object arg0, java.lang.String arg1) {
-        super(arg0, arg1);
+    public ReadOnlyObjectWrapper() {
+        super();
     }
 
     public ReadOnlyObjectWrapper(T arg0) {
         super(arg0);
     }
 
-    public ReadOnlyObjectWrapper() {
-        super();
+    public ReadOnlyObjectWrapper(java.lang.Object arg0, java.lang.String arg1) {
+        super(arg0, arg1);
+    }
+
+    public ReadOnlyObjectWrapper(java.lang.Object arg0, java.lang.String arg1, T arg2) {
+        super(arg0, arg1, arg2);
     }
 
     @Override

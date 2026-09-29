@@ -5,12 +5,12 @@ package com.jxparallel.fx.peer.scene;
 public class PerspectiveCamera extends javafx.scene.PerspectiveCamera implements com.jxparallel.fx.Fx.Owned {
     private Object jxOwner;
 
-    public PerspectiveCamera(boolean arg0) {
-        super(arg0);
-    }
-
     public PerspectiveCamera() {
         super();
+    }
+
+    public PerspectiveCamera(boolean arg0) {
+        super(arg0);
     }
 
     @Override

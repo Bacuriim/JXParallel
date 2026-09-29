@@ -29,21 +29,21 @@ public class ProgressBarTreeTableCell<S> extends javafx.scene.control.cell.Progr
     }
 
     @Override
-    public void commitEdit(java.lang.Double arg0) {
-        if (jxOwner == null) {
-            super.commitEdit(arg0);
-            return;
-        }
-        com.jxparallel.fx.scene.control.cell.ProgressBarTreeTableCell.$hook(jxOwner, "commitEdit(Object)", new Object[] {com.jxparallel.fx.Fx.jx(arg0)});
-    }
-
-    @Override
     public void cancelEdit() {
         if (jxOwner == null) {
             super.cancelEdit();
             return;
         }
         com.jxparallel.fx.scene.control.cell.ProgressBarTreeTableCell.$hook(jxOwner, "cancelEdit()", new Object[] {});
+    }
+
+    @Override
+    public void commitEdit(java.lang.Double arg0) {
+        if (jxOwner == null) {
+            super.commitEdit(arg0);
+            return;
+        }
+        com.jxparallel.fx.scene.control.cell.ProgressBarTreeTableCell.$hook(jxOwner, "commitEdit(Object)", new Object[] {com.jxparallel.fx.Fx.jx(arg0)});
     }
 
     @Override
@@ -80,11 +80,11 @@ public class ProgressBarTreeTableCell<S> extends javafx.scene.control.cell.Progr
             case "updateItem(Double,boolean)":
                 super.updateItem((java.lang.Double) a[0], (Boolean) a[1]);
                 return null;
-            case "commitEdit(Object)":
-                super.commitEdit((java.lang.Double) a[0]);
-                return null;
             case "cancelEdit()":
                 super.cancelEdit();
+                return null;
+            case "commitEdit(Object)":
+                super.commitEdit((java.lang.Double) a[0]);
                 return null;
             case "startEdit()":
                 super.startEdit();

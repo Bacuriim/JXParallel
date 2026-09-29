@@ -5,20 +5,20 @@ package com.jxparallel.fx.peer.beans.property;
 public class SimpleObjectProperty<T> extends javafx.beans.property.SimpleObjectProperty<T> implements com.jxparallel.fx.Fx.Owned {
     private Object jxOwner;
 
-    public SimpleObjectProperty(java.lang.Object arg0, java.lang.String arg1) {
-        super(arg0, arg1);
-    }
-
     public SimpleObjectProperty() {
         super();
     }
 
-    public SimpleObjectProperty(java.lang.Object arg0, java.lang.String arg1, T arg2) {
-        super(arg0, arg1, arg2);
-    }
-
     public SimpleObjectProperty(T arg0) {
         super(arg0);
+    }
+
+    public SimpleObjectProperty(java.lang.Object arg0, java.lang.String arg1) {
+        super(arg0, arg1);
+    }
+
+    public SimpleObjectProperty(java.lang.Object arg0, java.lang.String arg1, T arg2) {
+        super(arg0, arg1, arg2);
     }
 
     @Override

@@ -16,17 +16,17 @@ public class Point3D implements com.jxparallel.fx.Fx.Backed {
 
     @Override
     public boolean equals(Object o) {
-        return o == this || fxPeer.equals(com.jxparallel.fx.Fx.fx(o));
+        return o == this || fxPeer().equals(com.jxparallel.fx.Fx.fx(o));
     }
 
     @Override
     public int hashCode() {
-        return fxPeer.hashCode();
+        return fxPeer().hashCode();
     }
 
     @Override
     public String toString() {
-        return fxPeer.toString();
+        return fxPeer().toString();
     }
 
     public Point3D(@javafx.beans.NamedArg(value = "x") double arg0, @javafx.beans.NamedArg(value = "y") double arg1, @javafx.beans.NamedArg(value = "z") double arg2) {

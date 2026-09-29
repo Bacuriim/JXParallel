@@ -5,16 +5,16 @@ package com.jxparallel.fx.peer.scene.control.cell;
 public class CheckBoxTreeCell<T> extends javafx.scene.control.cell.CheckBoxTreeCell<T> implements com.jxparallel.fx.Fx.Owned {
     private Object jxOwner;
 
-    public CheckBoxTreeCell(javafx.util.Callback<javafx.scene.control.TreeItem<T>, javafx.beans.value.ObservableValue<java.lang.Boolean>> arg0, javafx.util.StringConverter<javafx.scene.control.TreeItem<T>> arg1) {
-        super(arg0, arg1);
+    public CheckBoxTreeCell() {
+        super();
     }
 
     public CheckBoxTreeCell(javafx.util.Callback<javafx.scene.control.TreeItem<T>, javafx.beans.value.ObservableValue<java.lang.Boolean>> arg0) {
         super(arg0);
     }
 
-    public CheckBoxTreeCell() {
-        super();
+    public CheckBoxTreeCell(javafx.util.Callback<javafx.scene.control.TreeItem<T>, javafx.beans.value.ObservableValue<java.lang.Boolean>> arg0, javafx.util.StringConverter<javafx.scene.control.TreeItem<T>> arg1) {
+        super(arg0, arg1);
     }
 
     @Override
@@ -37,21 +37,21 @@ public class CheckBoxTreeCell<T> extends javafx.scene.control.cell.CheckBoxTreeC
     }
 
     @Override
-    public void commitEdit(T arg0) {
-        if (jxOwner == null) {
-            super.commitEdit(arg0);
-            return;
-        }
-        com.jxparallel.fx.scene.control.cell.CheckBoxTreeCell.$hook(jxOwner, "commitEdit(Object)", new Object[] {com.jxparallel.fx.Fx.jx(arg0)});
-    }
-
-    @Override
     public void cancelEdit() {
         if (jxOwner == null) {
             super.cancelEdit();
             return;
         }
         com.jxparallel.fx.scene.control.cell.CheckBoxTreeCell.$hook(jxOwner, "cancelEdit()", new Object[] {});
+    }
+
+    @Override
+    public void commitEdit(T arg0) {
+        if (jxOwner == null) {
+            super.commitEdit(arg0);
+            return;
+        }
+        com.jxparallel.fx.scene.control.cell.CheckBoxTreeCell.$hook(jxOwner, "commitEdit(Object)", new Object[] {com.jxparallel.fx.Fx.jx(arg0)});
     }
 
     @Override
@@ -88,11 +88,11 @@ public class CheckBoxTreeCell<T> extends javafx.scene.control.cell.CheckBoxTreeC
             case "updateItem(Object,boolean)":
                 super.updateItem((T) a[0], (Boolean) a[1]);
                 return null;
-            case "commitEdit(Object)":
-                super.commitEdit((T) a[0]);
-                return null;
             case "cancelEdit()":
                 super.cancelEdit();
+                return null;
+            case "commitEdit(Object)":
+                super.commitEdit((T) a[0]);
                 return null;
             case "startEdit()":
                 super.startEdit();

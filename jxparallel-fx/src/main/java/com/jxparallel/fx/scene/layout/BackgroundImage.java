@@ -16,17 +16,17 @@ public final class BackgroundImage implements com.jxparallel.fx.Fx.Backed {
 
     @Override
     public boolean equals(Object o) {
-        return o == this || fxPeer.equals(com.jxparallel.fx.Fx.fx(o));
+        return o == this || fxPeer().equals(com.jxparallel.fx.Fx.fx(o));
     }
 
     @Override
     public int hashCode() {
-        return fxPeer.hashCode();
+        return fxPeer().hashCode();
     }
 
     @Override
     public String toString() {
-        return fxPeer.toString();
+        return fxPeer().toString();
     }
 
     public BackgroundImage(@javafx.beans.NamedArg(value = "image") com.jxparallel.fx.scene.image.Image arg0, @javafx.beans.NamedArg(value = "repeatX") com.jxparallel.fx.scene.layout.BackgroundRepeat arg1, @javafx.beans.NamedArg(value = "repeatY") com.jxparallel.fx.scene.layout.BackgroundRepeat arg2, @javafx.beans.NamedArg(value = "position") com.jxparallel.fx.scene.layout.BackgroundPosition arg3, @javafx.beans.NamedArg(value = "size") com.jxparallel.fx.scene.layout.BackgroundSize arg4) {

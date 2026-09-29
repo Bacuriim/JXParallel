@@ -20,7 +20,7 @@ class JXTextAgreementTest {
         assumeTrue(engine.getFontFile() != null, "needs a real font");
         try (Font font = JXSkiaRenderer.font()) {
             for (String text : new String[] {"Save", "Customers", "Ada Lovelace", "AVATAR Wave", "ação é útil", "1234567890"}) {
-                float drawn = JXSkiaRenderer.shaped(text, font).getBlockBounds().getWidth();
+                float drawn = JXSkiaRenderer.shaped(text, font, false).getBlockBounds().getWidth();
                 assertEquals(engine.width(text, JXTextEngine.DEFAULT_SIZE), drawn, 0.5f, text);
             }
         }

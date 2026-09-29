@@ -5,16 +5,16 @@ package com.jxparallel.fx.peer.scene.control;
 public class RadioMenuItem extends javafx.scene.control.RadioMenuItem implements com.jxparallel.fx.Fx.Owned {
     private Object jxOwner;
 
-    public RadioMenuItem(java.lang.String arg0, javafx.scene.Node arg1) {
-        super(arg0, arg1);
+    public RadioMenuItem() {
+        super();
     }
 
     public RadioMenuItem(java.lang.String arg0) {
         super(arg0);
     }
 
-    public RadioMenuItem() {
-        super();
+    public RadioMenuItem(java.lang.String arg0, javafx.scene.Node arg1) {
+        super(arg0, arg1);
     }
 
     @Override

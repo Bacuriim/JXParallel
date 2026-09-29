@@ -5,12 +5,12 @@ package com.jxparallel.fx.peer.scene.control.cell;
 public class CheckBoxListCell<T> extends javafx.scene.control.cell.CheckBoxListCell<T> implements com.jxparallel.fx.Fx.Owned {
     private Object jxOwner;
 
-    public CheckBoxListCell(javafx.util.Callback<T, javafx.beans.value.ObservableValue<java.lang.Boolean>> arg0) {
-        super(arg0);
-    }
-
     public CheckBoxListCell() {
         super();
+    }
+
+    public CheckBoxListCell(javafx.util.Callback<T, javafx.beans.value.ObservableValue<java.lang.Boolean>> arg0) {
+        super(arg0);
     }
 
     public CheckBoxListCell(javafx.util.Callback<T, javafx.beans.value.ObservableValue<java.lang.Boolean>> arg0, javafx.util.StringConverter<T> arg1) {
@@ -37,21 +37,21 @@ public class CheckBoxListCell<T> extends javafx.scene.control.cell.CheckBoxListC
     }
 
     @Override
-    public void commitEdit(T arg0) {
-        if (jxOwner == null) {
-            super.commitEdit(arg0);
-            return;
-        }
-        com.jxparallel.fx.scene.control.cell.CheckBoxListCell.$hook(jxOwner, "commitEdit(Object)", new Object[] {com.jxparallel.fx.Fx.jx(arg0)});
-    }
-
-    @Override
     public void cancelEdit() {
         if (jxOwner == null) {
             super.cancelEdit();
             return;
         }
         com.jxparallel.fx.scene.control.cell.CheckBoxListCell.$hook(jxOwner, "cancelEdit()", new Object[] {});
+    }
+
+    @Override
+    public void commitEdit(T arg0) {
+        if (jxOwner == null) {
+            super.commitEdit(arg0);
+            return;
+        }
+        com.jxparallel.fx.scene.control.cell.CheckBoxListCell.$hook(jxOwner, "commitEdit(Object)", new Object[] {com.jxparallel.fx.Fx.jx(arg0)});
     }
 
     @Override
@@ -88,11 +88,11 @@ public class CheckBoxListCell<T> extends javafx.scene.control.cell.CheckBoxListC
             case "updateItem(Object,boolean)":
                 super.updateItem((T) a[0], (Boolean) a[1]);
                 return null;
-            case "commitEdit(Object)":
-                super.commitEdit((T) a[0]);
-                return null;
             case "cancelEdit()":
                 super.cancelEdit();
+                return null;
+            case "commitEdit(Object)":
+                super.commitEdit((T) a[0]);
                 return null;
             case "startEdit()":
                 super.startEdit();

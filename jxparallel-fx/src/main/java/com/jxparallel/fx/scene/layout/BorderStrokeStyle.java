@@ -16,17 +16,17 @@ public final class BorderStrokeStyle implements com.jxparallel.fx.Fx.Backed {
 
     @Override
     public boolean equals(Object o) {
-        return o == this || fxPeer.equals(com.jxparallel.fx.Fx.fx(o));
+        return o == this || fxPeer().equals(com.jxparallel.fx.Fx.fx(o));
     }
 
     @Override
     public int hashCode() {
-        return fxPeer.hashCode();
+        return fxPeer().hashCode();
     }
 
     @Override
     public String toString() {
-        return fxPeer.toString();
+        return fxPeer().toString();
     }
 
     public BorderStrokeStyle(@javafx.beans.NamedArg(value = "type") javafx.scene.shape.StrokeType arg0, @javafx.beans.NamedArg(value = "lineJoin") javafx.scene.shape.StrokeLineJoin arg1, @javafx.beans.NamedArg(value = "lineCap") javafx.scene.shape.StrokeLineCap arg2, @javafx.beans.NamedArg(value = "miterLimit") double arg3, @javafx.beans.NamedArg(value = "dashOffset") double arg4, @javafx.beans.NamedArg(value = "dashArray") java.util.List<java.lang.Double> arg5) {

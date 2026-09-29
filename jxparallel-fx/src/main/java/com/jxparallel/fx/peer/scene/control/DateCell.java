@@ -29,21 +29,21 @@ public class DateCell extends javafx.scene.control.DateCell implements com.jxpar
     }
 
     @Override
-    public void commitEdit(java.time.LocalDate arg0) {
-        if (jxOwner == null) {
-            super.commitEdit(arg0);
-            return;
-        }
-        com.jxparallel.fx.scene.control.DateCell.$hook(jxOwner, "commitEdit(Object)", new Object[] {com.jxparallel.fx.Fx.jx(arg0)});
-    }
-
-    @Override
     public void cancelEdit() {
         if (jxOwner == null) {
             super.cancelEdit();
             return;
         }
         com.jxparallel.fx.scene.control.DateCell.$hook(jxOwner, "cancelEdit()", new Object[] {});
+    }
+
+    @Override
+    public void commitEdit(java.time.LocalDate arg0) {
+        if (jxOwner == null) {
+            super.commitEdit(arg0);
+            return;
+        }
+        com.jxparallel.fx.scene.control.DateCell.$hook(jxOwner, "commitEdit(Object)", new Object[] {com.jxparallel.fx.Fx.jx(arg0)});
     }
 
     @Override
@@ -71,11 +71,11 @@ public class DateCell extends javafx.scene.control.DateCell implements com.jxpar
             case "updateItem(LocalDate,boolean)":
                 super.updateItem((java.time.LocalDate) a[0], (Boolean) a[1]);
                 return null;
-            case "commitEdit(Object)":
-                super.commitEdit((java.time.LocalDate) a[0]);
-                return null;
             case "cancelEdit()":
                 super.cancelEdit();
+                return null;
+            case "commitEdit(Object)":
+                super.commitEdit((java.time.LocalDate) a[0]);
                 return null;
             case "startEdit()":
                 super.startEdit();

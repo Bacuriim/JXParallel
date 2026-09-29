@@ -7,18 +7,18 @@ public class Spinner<T> extends com.jxparallel.fx.scene.control.Control {
         super(wrap, peer);
     }
 
-    public Spinner(@javafx.beans.NamedArg(value = "items") com.jxparallel.fx.collections.ObservableList<T> arg0) {
-        this(com.jxparallel.fx.Fx.WRAP, com.jxparallel.fx.Fx.NATIVE ? com.jxparallel.fx.nativeimpl.Native.create(javafx.scene.control.Spinner.class, new String[] {"items"}, new Object[] {arg0}) : new com.jxparallel.fx.peer.scene.control.Spinner((javafx.collections.ObservableList) com.jxparallel.fx.Fx.fx(arg0)));
-        com.jxparallel.fx.Fx.own(fxPeer(), this);
-    }
-
-    public Spinner(@javafx.beans.NamedArg(value = "valueFactory") com.jxparallel.fx.scene.control.SpinnerValueFactory<T> arg0) {
-        this(com.jxparallel.fx.Fx.WRAP, com.jxparallel.fx.Fx.NATIVE ? com.jxparallel.fx.nativeimpl.Native.create(javafx.scene.control.Spinner.class, new String[] {"valueFactory"}, new Object[] {arg0}) : new com.jxparallel.fx.peer.scene.control.Spinner((javafx.scene.control.SpinnerValueFactory) com.jxparallel.fx.Fx.fx(arg0)));
-        com.jxparallel.fx.Fx.own(fxPeer(), this);
-    }
-
     public Spinner() {
         this(com.jxparallel.fx.Fx.WRAP, com.jxparallel.fx.Fx.NATIVE ? com.jxparallel.fx.nativeimpl.Native.create(javafx.scene.control.Spinner.class, new String[] {}, new Object[] {}) : new com.jxparallel.fx.peer.scene.control.Spinner());
+        com.jxparallel.fx.Fx.own(fxPeer(), this);
+    }
+
+    public Spinner(@javafx.beans.NamedArg(value = "min") double arg0, @javafx.beans.NamedArg(value = "max") double arg1, @javafx.beans.NamedArg(value = "initialValue") double arg2) {
+        this(com.jxparallel.fx.Fx.WRAP, com.jxparallel.fx.Fx.NATIVE ? com.jxparallel.fx.nativeimpl.Native.create(javafx.scene.control.Spinner.class, new String[] {"min", "max", "initialValue"}, new Object[] {arg0, arg1, arg2}) : new com.jxparallel.fx.peer.scene.control.Spinner(arg0, arg1, arg2));
+        com.jxparallel.fx.Fx.own(fxPeer(), this);
+    }
+
+    public Spinner(@javafx.beans.NamedArg(value = "min") double arg0, @javafx.beans.NamedArg(value = "max") double arg1, @javafx.beans.NamedArg(value = "initialValue") double arg2, @javafx.beans.NamedArg(value = "amountToStepBy") double arg3) {
+        this(com.jxparallel.fx.Fx.WRAP, com.jxparallel.fx.Fx.NATIVE ? com.jxparallel.fx.nativeimpl.Native.create(javafx.scene.control.Spinner.class, new String[] {"min", "max", "initialValue", "amountToStepBy"}, new Object[] {arg0, arg1, arg2, arg3}) : new com.jxparallel.fx.peer.scene.control.Spinner(arg0, arg1, arg2, arg3));
         com.jxparallel.fx.Fx.own(fxPeer(), this);
     }
 
@@ -32,13 +32,13 @@ public class Spinner<T> extends com.jxparallel.fx.scene.control.Control {
         com.jxparallel.fx.Fx.own(fxPeer(), this);
     }
 
-    public Spinner(@javafx.beans.NamedArg(value = "min") double arg0, @javafx.beans.NamedArg(value = "max") double arg1, @javafx.beans.NamedArg(value = "initialValue") double arg2) {
-        this(com.jxparallel.fx.Fx.WRAP, com.jxparallel.fx.Fx.NATIVE ? com.jxparallel.fx.nativeimpl.Native.create(javafx.scene.control.Spinner.class, new String[] {"min", "max", "initialValue"}, new Object[] {arg0, arg1, arg2}) : new com.jxparallel.fx.peer.scene.control.Spinner(arg0, arg1, arg2));
+    public Spinner(@javafx.beans.NamedArg(value = "items") com.jxparallel.fx.collections.ObservableList<T> arg0) {
+        this(com.jxparallel.fx.Fx.WRAP, com.jxparallel.fx.Fx.NATIVE ? com.jxparallel.fx.nativeimpl.Native.create(javafx.scene.control.Spinner.class, new String[] {"items"}, new Object[] {arg0}) : new com.jxparallel.fx.peer.scene.control.Spinner((javafx.collections.ObservableList) com.jxparallel.fx.Fx.fx(arg0)));
         com.jxparallel.fx.Fx.own(fxPeer(), this);
     }
 
-    public Spinner(@javafx.beans.NamedArg(value = "min") double arg0, @javafx.beans.NamedArg(value = "max") double arg1, @javafx.beans.NamedArg(value = "initialValue") double arg2, @javafx.beans.NamedArg(value = "amountToStepBy") double arg3) {
-        this(com.jxparallel.fx.Fx.WRAP, com.jxparallel.fx.Fx.NATIVE ? com.jxparallel.fx.nativeimpl.Native.create(javafx.scene.control.Spinner.class, new String[] {"min", "max", "initialValue", "amountToStepBy"}, new Object[] {arg0, arg1, arg2, arg3}) : new com.jxparallel.fx.peer.scene.control.Spinner(arg0, arg1, arg2, arg3));
+    public Spinner(@javafx.beans.NamedArg(value = "valueFactory") com.jxparallel.fx.scene.control.SpinnerValueFactory<T> arg0) {
+        this(com.jxparallel.fx.Fx.WRAP, com.jxparallel.fx.Fx.NATIVE ? com.jxparallel.fx.nativeimpl.Native.create(javafx.scene.control.Spinner.class, new String[] {"valueFactory"}, new Object[] {arg0}) : new com.jxparallel.fx.peer.scene.control.Spinner((javafx.scene.control.SpinnerValueFactory) com.jxparallel.fx.Fx.fx(arg0)));
         com.jxparallel.fx.Fx.own(fxPeer(), this);
     }
 

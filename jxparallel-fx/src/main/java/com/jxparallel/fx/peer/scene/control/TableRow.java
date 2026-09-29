@@ -29,15 +29,6 @@ public class TableRow<T> extends javafx.scene.control.TableRow<T> implements com
     }
 
     @Override
-    public void commitEdit(T arg0) {
-        if (jxOwner == null) {
-            super.commitEdit(arg0);
-            return;
-        }
-        com.jxparallel.fx.scene.control.TableRow.$hook(jxOwner, "commitEdit(Object)", new Object[] {com.jxparallel.fx.Fx.jx(arg0)});
-    }
-
-    @Override
     protected void updateItem(T arg0, boolean arg1) {
         if (jxOwner == null) {
             super.updateItem(arg0, arg1);
@@ -53,6 +44,15 @@ public class TableRow<T> extends javafx.scene.control.TableRow<T> implements com
             return;
         }
         com.jxparallel.fx.scene.control.TableRow.$hook(jxOwner, "cancelEdit()", new Object[] {});
+    }
+
+    @Override
+    public void commitEdit(T arg0) {
+        if (jxOwner == null) {
+            super.commitEdit(arg0);
+            return;
+        }
+        com.jxparallel.fx.scene.control.TableRow.$hook(jxOwner, "commitEdit(Object)", new Object[] {com.jxparallel.fx.Fx.jx(arg0)});
     }
 
     @Override
@@ -80,14 +80,14 @@ public class TableRow<T> extends javafx.scene.control.TableRow<T> implements com
             case "updateIndex(int)":
                 super.updateIndex((Integer) a[0]);
                 return null;
-            case "commitEdit(Object)":
-                super.commitEdit((T) a[0]);
-                return null;
             case "updateItem(Object,boolean)":
                 super.updateItem((T) a[0], (Boolean) a[1]);
                 return null;
             case "cancelEdit()":
                 super.cancelEdit();
+                return null;
+            case "commitEdit(Object)":
+                super.commitEdit((T) a[0]);
                 return null;
             case "startEdit()":
                 super.startEdit();

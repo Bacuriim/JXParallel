@@ -7,10 +7,23 @@ import com.jxparallel.fx.scene.Node;
 import com.jxparallel.fx.scene.control.Skin;
 import com.jxparallel.fx.scene.control.Skinnable;
 
-/** Base of the JX counterparts of JavaFX's internal skins: delegates Skin to the JavaFX skin. */
+/**
+ * Base of the JX counterparts of JavaFX's internal skins: delegates Skin to the JavaFX skin. In
+ * native mode there is no JavaFX skin; the peer is a {@link NativeSkin} holding the control, and
+ * the node of the skin is the control itself, as for JavaFX's SkinBase.
+ */
 @SuppressWarnings("unchecked")
 public abstract class SkinWrapper<C extends Skinnable> implements Skin<C>, Fx.Backed {
     private final Object fxPeer;
+
+    /** The peer of a skin in native mode (-Djx.backend=native). */
+    protected static final class NativeSkin {
+        final Object skinnable;
+
+        public NativeSkin(Object skinnable) {
+            this.skinnable = skinnable;
+        }
+    }
 
     protected SkinWrapper(Object peer) {
         this.fxPeer = peer;
@@ -40,16 +53,24 @@ public abstract class SkinWrapper<C extends Skinnable> implements Skin<C>, Fx.Ba
 
     @Override
     public C getSkinnable() {
+        if (fxPeer instanceof NativeSkin) {
+            return (C) ((NativeSkin) fxPeer).skinnable;
+        }
         return (C) Fx.jx(((javafx.scene.control.Skin<?>) fxPeer).getSkinnable());
     }
 
     @Override
     public Node getNode() {
+        if (fxPeer instanceof NativeSkin) {
+            return (Node) ((NativeSkin) fxPeer).skinnable;
+        }
         return (Node) Fx.jx(((javafx.scene.control.Skin<?>) fxPeer).getNode());
     }
 
     @Override
     public void dispose() {
-        ((javafx.scene.control.Skin<?>) fxPeer).dispose();
+        if (!(fxPeer instanceof NativeSkin)) {
+            ((javafx.scene.control.Skin<?>) fxPeer).dispose();
+        }
     }
 }

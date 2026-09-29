@@ -7,13 +7,8 @@ public class ReadOnlyBooleanWrapper extends com.jxparallel.fx.beans.property.Sim
         super(wrap, peer);
     }
 
-    public ReadOnlyBooleanWrapper(java.lang.Object arg0, java.lang.String arg1, boolean arg2) {
-        this(com.jxparallel.fx.Fx.WRAP, new com.jxparallel.fx.peer.beans.property.ReadOnlyBooleanWrapper((java.lang.Object) com.jxparallel.fx.Fx.fx(arg0), arg1, arg2));
-        com.jxparallel.fx.Fx.own(fxPeer(), this);
-    }
-
-    public ReadOnlyBooleanWrapper(java.lang.Object arg0, java.lang.String arg1) {
-        this(com.jxparallel.fx.Fx.WRAP, new com.jxparallel.fx.peer.beans.property.ReadOnlyBooleanWrapper((java.lang.Object) com.jxparallel.fx.Fx.fx(arg0), arg1));
+    public ReadOnlyBooleanWrapper() {
+        this(com.jxparallel.fx.Fx.WRAP, new com.jxparallel.fx.peer.beans.property.ReadOnlyBooleanWrapper());
         com.jxparallel.fx.Fx.own(fxPeer(), this);
     }
 
@@ -22,8 +17,13 @@ public class ReadOnlyBooleanWrapper extends com.jxparallel.fx.beans.property.Sim
         com.jxparallel.fx.Fx.own(fxPeer(), this);
     }
 
-    public ReadOnlyBooleanWrapper() {
-        this(com.jxparallel.fx.Fx.WRAP, new com.jxparallel.fx.peer.beans.property.ReadOnlyBooleanWrapper());
+    public ReadOnlyBooleanWrapper(java.lang.Object arg0, java.lang.String arg1) {
+        this(com.jxparallel.fx.Fx.WRAP, new com.jxparallel.fx.peer.beans.property.ReadOnlyBooleanWrapper((java.lang.Object) com.jxparallel.fx.Fx.fx(arg0), arg1));
+        com.jxparallel.fx.Fx.own(fxPeer(), this);
+    }
+
+    public ReadOnlyBooleanWrapper(java.lang.Object arg0, java.lang.String arg1, boolean arg2) {
+        this(com.jxparallel.fx.Fx.WRAP, new com.jxparallel.fx.peer.beans.property.ReadOnlyBooleanWrapper((java.lang.Object) com.jxparallel.fx.Fx.fx(arg0), arg1, arg2));
         com.jxparallel.fx.Fx.own(fxPeer(), this);
     }
 

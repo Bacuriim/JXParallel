@@ -20,38 +20,6 @@ public class MultipleSelectionModel<T> extends javafx.scene.control.MultipleSele
     }
 
     @Override
-    public void selectFirst() {
-        if (jxOwner == null) {
-            throw new IllegalStateException("selectFirst before the JX object exists");
-        }
-        com.jxparallel.fx.scene.control.MultipleSelectionModel.$hook(jxOwner, "selectFirst()", new Object[] {});
-    }
-
-    @Override
-    public void selectAll() {
-        if (jxOwner == null) {
-            throw new IllegalStateException("selectAll before the JX object exists");
-        }
-        com.jxparallel.fx.scene.control.MultipleSelectionModel.$hook(jxOwner, "selectAll()", new Object[] {});
-    }
-
-    @Override
-    public void selectLast() {
-        if (jxOwner == null) {
-            throw new IllegalStateException("selectLast before the JX object exists");
-        }
-        com.jxparallel.fx.scene.control.MultipleSelectionModel.$hook(jxOwner, "selectLast()", new Object[] {});
-    }
-
-    @Override
-    public void selectIndices(int arg0, int... arg1) {
-        if (jxOwner == null) {
-            throw new IllegalStateException("selectIndices before the JX object exists");
-        }
-        com.jxparallel.fx.scene.control.MultipleSelectionModel.$hook(jxOwner, "selectIndices(int,int[])", new Object[] {arg0, com.jxparallel.fx.Fx.jx(arg1)});
-    }
-
-    @Override
     public javafx.collections.ObservableList<T> getSelectedItems() {
         if (jxOwner == null) {
             throw new IllegalStateException("getSelectedItems before the JX object exists");
@@ -68,6 +36,38 @@ public class MultipleSelectionModel<T> extends javafx.scene.control.MultipleSele
     }
 
     @Override
+    public void selectAll() {
+        if (jxOwner == null) {
+            throw new IllegalStateException("selectAll before the JX object exists");
+        }
+        com.jxparallel.fx.scene.control.MultipleSelectionModel.$hook(jxOwner, "selectAll()", new Object[] {});
+    }
+
+    @Override
+    public void selectFirst() {
+        if (jxOwner == null) {
+            throw new IllegalStateException("selectFirst before the JX object exists");
+        }
+        com.jxparallel.fx.scene.control.MultipleSelectionModel.$hook(jxOwner, "selectFirst()", new Object[] {});
+    }
+
+    @Override
+    public void selectIndices(int arg0, int... arg1) {
+        if (jxOwner == null) {
+            throw new IllegalStateException("selectIndices before the JX object exists");
+        }
+        com.jxparallel.fx.scene.control.MultipleSelectionModel.$hook(jxOwner, "selectIndices(int,int[])", new Object[] {arg0, com.jxparallel.fx.Fx.jx(arg1)});
+    }
+
+    @Override
+    public void selectLast() {
+        if (jxOwner == null) {
+            throw new IllegalStateException("selectLast before the JX object exists");
+        }
+        com.jxparallel.fx.scene.control.MultipleSelectionModel.$hook(jxOwner, "selectLast()", new Object[] {});
+    }
+
+    @Override
     public boolean isEmpty() {
         if (jxOwner == null) {
             throw new IllegalStateException("isEmpty before the JX object exists");
@@ -76,27 +76,19 @@ public class MultipleSelectionModel<T> extends javafx.scene.control.MultipleSele
     }
 
     @Override
-    public void select(int arg0) {
-        if (jxOwner == null) {
-            throw new IllegalStateException("select before the JX object exists");
-        }
-        com.jxparallel.fx.scene.control.MultipleSelectionModel.$hook(jxOwner, "select(int)", new Object[] {arg0});
-    }
-
-    @Override
-    public void select(T arg0) {
-        if (jxOwner == null) {
-            throw new IllegalStateException("select before the JX object exists");
-        }
-        com.jxparallel.fx.scene.control.MultipleSelectionModel.$hook(jxOwner, "select(Object)", new Object[] {com.jxparallel.fx.Fx.jx(arg0)});
-    }
-
-    @Override
     public boolean isSelected(int arg0) {
         if (jxOwner == null) {
             throw new IllegalStateException("isSelected before the JX object exists");
         }
         return (Boolean) com.jxparallel.fx.Fx.fx(com.jxparallel.fx.scene.control.MultipleSelectionModel.$hook(jxOwner, "isSelected(int)", new Object[] {arg0}));
+    }
+
+    @Override
+    public void clearAndSelect(int arg0) {
+        if (jxOwner == null) {
+            throw new IllegalStateException("clearAndSelect before the JX object exists");
+        }
+        com.jxparallel.fx.scene.control.MultipleSelectionModel.$hook(jxOwner, "clearAndSelect(int)", new Object[] {arg0});
     }
 
     @Override
@@ -116,19 +108,19 @@ public class MultipleSelectionModel<T> extends javafx.scene.control.MultipleSele
     }
 
     @Override
-    public void clearAndSelect(int arg0) {
+    public void select(T arg0) {
         if (jxOwner == null) {
-            throw new IllegalStateException("clearAndSelect before the JX object exists");
+            throw new IllegalStateException("select before the JX object exists");
         }
-        com.jxparallel.fx.scene.control.MultipleSelectionModel.$hook(jxOwner, "clearAndSelect(int)", new Object[] {arg0});
+        com.jxparallel.fx.scene.control.MultipleSelectionModel.$hook(jxOwner, "select(Object)", new Object[] {com.jxparallel.fx.Fx.jx(arg0)});
     }
 
     @Override
-    public void selectPrevious() {
+    public void select(int arg0) {
         if (jxOwner == null) {
-            throw new IllegalStateException("selectPrevious before the JX object exists");
+            throw new IllegalStateException("select before the JX object exists");
         }
-        com.jxparallel.fx.scene.control.MultipleSelectionModel.$hook(jxOwner, "selectPrevious()", new Object[] {});
+        com.jxparallel.fx.scene.control.MultipleSelectionModel.$hook(jxOwner, "select(int)", new Object[] {arg0});
     }
 
     @Override
@@ -137,6 +129,14 @@ public class MultipleSelectionModel<T> extends javafx.scene.control.MultipleSele
             throw new IllegalStateException("selectNext before the JX object exists");
         }
         com.jxparallel.fx.scene.control.MultipleSelectionModel.$hook(jxOwner, "selectNext()", new Object[] {});
+    }
+
+    @Override
+    public void selectPrevious() {
+        if (jxOwner == null) {
+            throw new IllegalStateException("selectPrevious before the JX object exists");
+        }
+        com.jxparallel.fx.scene.control.MultipleSelectionModel.$hook(jxOwner, "selectPrevious()", new Object[] {});
     }
 
     @Override

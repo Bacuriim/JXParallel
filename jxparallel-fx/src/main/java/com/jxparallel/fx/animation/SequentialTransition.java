@@ -7,8 +7,8 @@ public final class SequentialTransition extends com.jxparallel.fx.animation.Tran
         super(wrap, peer);
     }
 
-    public SequentialTransition(com.jxparallel.fx.scene.Node arg0, com.jxparallel.fx.animation.Animation... arg1) {
-        this(com.jxparallel.fx.Fx.WRAP, com.jxparallel.fx.Fx.NATIVE ? com.jxparallel.fx.nativeimpl.Native.create(javafx.animation.SequentialTransition.class, new String[] {null, null}, new Object[] {arg0, arg1}) : new javafx.animation.SequentialTransition((javafx.scene.Node) com.jxparallel.fx.Fx.fx(arg0), (javafx.animation.Animation[]) com.jxparallel.fx.Fx.fxArray(arg1, javafx.animation.Animation.class)));
+    public SequentialTransition() {
+        this(com.jxparallel.fx.Fx.WRAP, com.jxparallel.fx.Fx.NATIVE ? com.jxparallel.fx.nativeimpl.Native.create(javafx.animation.SequentialTransition.class, new String[] {}, new Object[] {}) : new javafx.animation.SequentialTransition());
         com.jxparallel.fx.Fx.own(fxPeer(), this);
     }
 
@@ -22,8 +22,8 @@ public final class SequentialTransition extends com.jxparallel.fx.animation.Tran
         com.jxparallel.fx.Fx.own(fxPeer(), this);
     }
 
-    public SequentialTransition() {
-        this(com.jxparallel.fx.Fx.WRAP, com.jxparallel.fx.Fx.NATIVE ? com.jxparallel.fx.nativeimpl.Native.create(javafx.animation.SequentialTransition.class, new String[] {}, new Object[] {}) : new javafx.animation.SequentialTransition());
+    public SequentialTransition(com.jxparallel.fx.scene.Node arg0, com.jxparallel.fx.animation.Animation... arg1) {
+        this(com.jxparallel.fx.Fx.WRAP, com.jxparallel.fx.Fx.NATIVE ? com.jxparallel.fx.nativeimpl.Native.create(javafx.animation.SequentialTransition.class, new String[] {null, null}, new Object[] {arg0, arg1}) : new javafx.animation.SequentialTransition((javafx.scene.Node) com.jxparallel.fx.Fx.fx(arg0), (javafx.animation.Animation[]) com.jxparallel.fx.Fx.fxArray(arg1, javafx.animation.Animation.class)));
         com.jxparallel.fx.Fx.own(fxPeer(), this);
     }
 

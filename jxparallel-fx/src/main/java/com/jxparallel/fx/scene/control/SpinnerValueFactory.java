@@ -16,17 +16,17 @@ public class SpinnerValueFactory<T> implements com.jxparallel.fx.Fx.Backed {
 
     @Override
     public boolean equals(Object o) {
-        return o == this || fxPeer.equals(com.jxparallel.fx.Fx.fx(o));
+        return o == this || fxPeer().equals(com.jxparallel.fx.Fx.fx(o));
     }
 
     @Override
     public int hashCode() {
-        return fxPeer.hashCode();
+        return fxPeer().hashCode();
     }
 
     @Override
     public String toString() {
-        return fxPeer.toString();
+        return fxPeer().toString();
     }
 
     public SpinnerValueFactory() {
@@ -91,11 +91,11 @@ public class SpinnerValueFactory<T> implements com.jxparallel.fx.Fx.Backed {
         SpinnerValueFactory jx = (SpinnerValueFactory) self;
         try {
         switch (method) {
-            case "increment(int)":
-                jx.increment((Integer) a[0]);
-                return null;
             case "decrement(int)":
                 jx.decrement((Integer) a[0]);
+                return null;
+            case "increment(int)":
+                jx.increment((Integer) a[0]);
                 return null;
             default:
                 throw new IllegalArgumentException(method);
@@ -110,8 +110,8 @@ public class SpinnerValueFactory<T> implements com.jxparallel.fx.Fx.Backed {
             super(wrap, peer);
         }
 
-        public DoubleSpinnerValueFactory(@javafx.beans.NamedArg(value = "min") double arg0, @javafx.beans.NamedArg(value = "max") double arg1, @javafx.beans.NamedArg(value = "initialValue") double arg2, @javafx.beans.NamedArg(value = "amountToStepBy") double arg3) {
-            this(com.jxparallel.fx.Fx.WRAP, new com.jxparallel.fx.peer.scene.control.SpinnerValueFactory_DoubleSpinnerValueFactory(arg0, arg1, arg2, arg3));
+        public DoubleSpinnerValueFactory(@javafx.beans.NamedArg(value = "min") double arg0, @javafx.beans.NamedArg(value = "max") double arg1) {
+            this(com.jxparallel.fx.Fx.WRAP, new com.jxparallel.fx.peer.scene.control.SpinnerValueFactory_DoubleSpinnerValueFactory(arg0, arg1));
             com.jxparallel.fx.Fx.own(fxPeer(), this);
         }
 
@@ -120,8 +120,8 @@ public class SpinnerValueFactory<T> implements com.jxparallel.fx.Fx.Backed {
             com.jxparallel.fx.Fx.own(fxPeer(), this);
         }
 
-        public DoubleSpinnerValueFactory(@javafx.beans.NamedArg(value = "min") double arg0, @javafx.beans.NamedArg(value = "max") double arg1) {
-            this(com.jxparallel.fx.Fx.WRAP, new com.jxparallel.fx.peer.scene.control.SpinnerValueFactory_DoubleSpinnerValueFactory(arg0, arg1));
+        public DoubleSpinnerValueFactory(@javafx.beans.NamedArg(value = "min") double arg0, @javafx.beans.NamedArg(value = "max") double arg1, @javafx.beans.NamedArg(value = "initialValue") double arg2, @javafx.beans.NamedArg(value = "amountToStepBy") double arg3) {
+            this(com.jxparallel.fx.Fx.WRAP, new com.jxparallel.fx.peer.scene.control.SpinnerValueFactory_DoubleSpinnerValueFactory(arg0, arg1, arg2, arg3));
             com.jxparallel.fx.Fx.own(fxPeer(), this);
         }
 
@@ -175,8 +175,8 @@ public class SpinnerValueFactory<T> implements com.jxparallel.fx.Fx.Backed {
             super(wrap, peer);
         }
 
-        public IntegerSpinnerValueFactory(@javafx.beans.NamedArg(value = "min") int arg0, @javafx.beans.NamedArg(value = "max") int arg1, @javafx.beans.NamedArg(value = "initialValue") int arg2, @javafx.beans.NamedArg(value = "amountToStepBy") int arg3) {
-            this(com.jxparallel.fx.Fx.WRAP, new com.jxparallel.fx.peer.scene.control.SpinnerValueFactory_IntegerSpinnerValueFactory(arg0, arg1, arg2, arg3));
+        public IntegerSpinnerValueFactory(@javafx.beans.NamedArg(value = "min") int arg0, @javafx.beans.NamedArg(value = "max") int arg1) {
+            this(com.jxparallel.fx.Fx.WRAP, new com.jxparallel.fx.peer.scene.control.SpinnerValueFactory_IntegerSpinnerValueFactory(arg0, arg1));
             com.jxparallel.fx.Fx.own(fxPeer(), this);
         }
 
@@ -185,8 +185,8 @@ public class SpinnerValueFactory<T> implements com.jxparallel.fx.Fx.Backed {
             com.jxparallel.fx.Fx.own(fxPeer(), this);
         }
 
-        public IntegerSpinnerValueFactory(@javafx.beans.NamedArg(value = "min") int arg0, @javafx.beans.NamedArg(value = "max") int arg1) {
-            this(com.jxparallel.fx.Fx.WRAP, new com.jxparallel.fx.peer.scene.control.SpinnerValueFactory_IntegerSpinnerValueFactory(arg0, arg1));
+        public IntegerSpinnerValueFactory(@javafx.beans.NamedArg(value = "min") int arg0, @javafx.beans.NamedArg(value = "max") int arg1, @javafx.beans.NamedArg(value = "initialValue") int arg2, @javafx.beans.NamedArg(value = "amountToStepBy") int arg3) {
+            this(com.jxparallel.fx.Fx.WRAP, new com.jxparallel.fx.peer.scene.control.SpinnerValueFactory_IntegerSpinnerValueFactory(arg0, arg1, arg2, arg3));
             com.jxparallel.fx.Fx.own(fxPeer(), this);
         }
 

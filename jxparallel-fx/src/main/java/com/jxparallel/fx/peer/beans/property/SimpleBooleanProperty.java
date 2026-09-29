@@ -5,20 +5,20 @@ package com.jxparallel.fx.peer.beans.property;
 public class SimpleBooleanProperty extends javafx.beans.property.SimpleBooleanProperty implements com.jxparallel.fx.Fx.Owned {
     private Object jxOwner;
 
-    public SimpleBooleanProperty(java.lang.Object arg0, java.lang.String arg1) {
-        super(arg0, arg1);
-    }
-
     public SimpleBooleanProperty() {
         super();
     }
 
-    public SimpleBooleanProperty(java.lang.Object arg0, java.lang.String arg1, boolean arg2) {
-        super(arg0, arg1, arg2);
-    }
-
     public SimpleBooleanProperty(boolean arg0) {
         super(arg0);
+    }
+
+    public SimpleBooleanProperty(java.lang.Object arg0, java.lang.String arg1) {
+        super(arg0, arg1);
+    }
+
+    public SimpleBooleanProperty(java.lang.Object arg0, java.lang.String arg1, boolean arg2) {
+        super(arg0, arg1, arg2);
     }
 
     @Override

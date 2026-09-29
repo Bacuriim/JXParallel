@@ -5,16 +5,16 @@ package com.jxparallel.fx.peer.scene.control;
 public class CheckMenuItem extends javafx.scene.control.CheckMenuItem implements com.jxparallel.fx.Fx.Owned {
     private Object jxOwner;
 
-    public CheckMenuItem(java.lang.String arg0, javafx.scene.Node arg1) {
-        super(arg0, arg1);
+    public CheckMenuItem() {
+        super();
     }
 
     public CheckMenuItem(java.lang.String arg0) {
         super(arg0);
     }
 
-    public CheckMenuItem() {
-        super();
+    public CheckMenuItem(java.lang.String arg0, javafx.scene.Node arg1) {
+        super(arg0, arg1);
     }
 
     @Override

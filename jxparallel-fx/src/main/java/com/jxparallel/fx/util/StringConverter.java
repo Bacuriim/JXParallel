@@ -16,17 +16,17 @@ public class StringConverter<T> implements com.jxparallel.fx.Fx.Backed {
 
     @Override
     public boolean equals(Object o) {
-        return o == this || fxPeer.equals(com.jxparallel.fx.Fx.fx(o));
+        return o == this || fxPeer().equals(com.jxparallel.fx.Fx.fx(o));
     }
 
     @Override
     public int hashCode() {
-        return fxPeer.hashCode();
+        return fxPeer().hashCode();
     }
 
     @Override
     public String toString() {
-        return fxPeer.toString();
+        return fxPeer().toString();
     }
 
     public StringConverter() {
@@ -47,10 +47,10 @@ public class StringConverter<T> implements com.jxparallel.fx.Fx.Backed {
         StringConverter jx = (StringConverter) self;
         try {
         switch (method) {
-            case "toString(Object)":
-                return jx.toString((java.lang.Object) a[0]);
             case "fromString(String)":
                 return jx.fromString((java.lang.String) a[0]);
+            case "toString(Object)":
+                return jx.toString((java.lang.Object) a[0]);
             default:
                 throw new IllegalArgumentException(method);
         }

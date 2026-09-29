@@ -7,8 +7,8 @@ public class ImageCursor extends com.jxparallel.fx.scene.Cursor {
         super(wrap, peer);
     }
 
-    public ImageCursor(@javafx.beans.NamedArg(value = "image") com.jxparallel.fx.scene.image.Image arg0, @javafx.beans.NamedArg(value = "hotspotX") double arg1, @javafx.beans.NamedArg(value = "hotspotY") double arg2) {
-        this(com.jxparallel.fx.Fx.WRAP, new com.jxparallel.fx.peer.scene.ImageCursor((javafx.scene.image.Image) com.jxparallel.fx.Fx.fx(arg0), arg1, arg2));
+    public ImageCursor() {
+        this(com.jxparallel.fx.Fx.WRAP, new com.jxparallel.fx.peer.scene.ImageCursor());
         com.jxparallel.fx.Fx.own(fxPeer(), this);
     }
 
@@ -17,8 +17,8 @@ public class ImageCursor extends com.jxparallel.fx.scene.Cursor {
         com.jxparallel.fx.Fx.own(fxPeer(), this);
     }
 
-    public ImageCursor() {
-        this(com.jxparallel.fx.Fx.WRAP, new com.jxparallel.fx.peer.scene.ImageCursor());
+    public ImageCursor(@javafx.beans.NamedArg(value = "image") com.jxparallel.fx.scene.image.Image arg0, @javafx.beans.NamedArg(value = "hotspotX") double arg1, @javafx.beans.NamedArg(value = "hotspotY") double arg2) {
+        this(com.jxparallel.fx.Fx.WRAP, new com.jxparallel.fx.peer.scene.ImageCursor((javafx.scene.image.Image) com.jxparallel.fx.Fx.fx(arg0), arg1, arg2));
         com.jxparallel.fx.Fx.own(fxPeer(), this);
     }
 

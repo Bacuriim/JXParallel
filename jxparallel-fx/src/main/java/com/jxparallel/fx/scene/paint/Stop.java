@@ -16,17 +16,17 @@ public final class Stop implements com.jxparallel.fx.Fx.Backed {
 
     @Override
     public boolean equals(Object o) {
-        return o == this || fxPeer.equals(com.jxparallel.fx.Fx.fx(o));
+        return o == this || fxPeer().equals(com.jxparallel.fx.Fx.fx(o));
     }
 
     @Override
     public int hashCode() {
-        return fxPeer.hashCode();
+        return fxPeer().hashCode();
     }
 
     @Override
     public String toString() {
-        return fxPeer.toString();
+        return fxPeer().toString();
     }
 
     public Stop(@javafx.beans.NamedArg(value = "offset") double arg0, @javafx.beans.NamedArg(value = "color", defaultValue = "BLACK") com.jxparallel.fx.scene.paint.Color arg1) {

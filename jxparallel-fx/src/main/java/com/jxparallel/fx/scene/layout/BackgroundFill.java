@@ -16,17 +16,17 @@ public final class BackgroundFill implements com.jxparallel.fx.Fx.Backed {
 
     @Override
     public boolean equals(Object o) {
-        return o == this || fxPeer.equals(com.jxparallel.fx.Fx.fx(o));
+        return o == this || fxPeer().equals(com.jxparallel.fx.Fx.fx(o));
     }
 
     @Override
     public int hashCode() {
-        return fxPeer.hashCode();
+        return fxPeer().hashCode();
     }
 
     @Override
     public String toString() {
-        return fxPeer.toString();
+        return fxPeer().toString();
     }
 
     public BackgroundFill(@javafx.beans.NamedArg(value = "fill") com.jxparallel.fx.scene.paint.Paint arg0, @javafx.beans.NamedArg(value = "radii") com.jxparallel.fx.scene.layout.CornerRadii arg1, @javafx.beans.NamedArg(value = "insets") com.jxparallel.fx.geometry.Insets arg2) {
