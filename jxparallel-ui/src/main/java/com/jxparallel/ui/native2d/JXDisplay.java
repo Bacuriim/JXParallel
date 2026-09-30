@@ -73,6 +73,16 @@ public final class JXDisplay {
         if (handle != org.lwjgl.system.MemoryUtil.NULL) {
             GLFW.glfwMakeContextCurrent(handle);
             org.lwjgl.opengl.GLCapabilities capabilities = org.lwjgl.opengl.GL.createCapabilities();
+            // Only the client VM (32-bit Java 8) stalled a frame compiling NanoVG's wrappers; on the
+            // server VM the warm-up only costs CPU (measured on 64-bit Java 8).
+            boolean clientVm = System.getProperty("java.vm.name", "").contains("Client");
+            if (clientVm && JXWindow.NANOVG.equals(JXWindow.selectRenderer())) {
+                try {
+                    JXNanoVGRenderer.warmNatives(); // compile the natives a frame calls now, not in a frame
+                } catch (Throwable e) {
+                    // only a head start: the first frames link them if this failed
+                }
+            }
             GLFW.glfwMakeContextCurrent(org.lwjgl.system.MemoryUtil.NULL);
             if (spareWindow == org.lwjgl.system.MemoryUtil.NULL) {
                 spareWindow = handle;

@@ -384,7 +384,58 @@ A delta of -1 means every native run was below every plain JavaFX run. The worki
 start-up CPU are higher in native mode, but neither difference is significant after the
 correction. CPU in the phases that wait for frames (records, tabs, scroll, sustained) was also
 lower in native mode (Holm p ≤ 0.002). That CPU depends on frame pacing, which was not
-synchronized in this series, so it still needs confirming with a synchronized display.
+synchronized in this series, so it was measured again with a synchronized display (next section).
+
+## Synchronized display (10 runs per stack, both architectures)
+
+Measured again with the Windows session unlocked and the display on at 239 Hz, so frames are
+presented with vertical sync and the frame and CPU rows are valid. Same analysis as above (Holm
+over 66 comparisons). Raw data: 32-bit [runs](fx-backends-x86-2026-09-29-vsync-n10.csv),
+[medians](fx-backends-x86-2026-09-29-vsync-n10-median.csv),
+[statistics](fx-backends-x86-2026-09-29-vsync-n10-stats.csv); 64-bit
+[runs](fx-backends-x64-2026-09-29-vsync-n10.csv),
+[medians](fx-backends-x64-2026-09-29-vsync-n10-median.csv),
+[statistics](fx-backends-x64-2026-09-29-vsync-n10-stats.csv).
+
+| Metric (median) | 32-bit JavaFX | 32-bit native | Holm p | 64-bit JavaFX | 64-bit native | Holm p |
+|---|---:|---:|---:|---:|---:|---:|
+| Build to frame | 717 ms | 532 ms | < 0.001 | 739 ms | 629 ms | 0.06 |
+| JVM start to first frame | 1136 ms | 791 ms | < 0.001 | 1204 ms | 938 ms | 0.05 |
+| Process CPU to first frame | 1375 ms | 1422 ms | 1 | 2938 ms | 2430 ms | < 0.001 |
+| Records, CPU | 859 ms | 609 ms | 0.002 | 3484 ms | 1250 ms | < 0.001 |
+| Tab switches, time | 478 ms | 287 ms | < 0.001 | 477 ms | 252 ms | < 0.001 |
+| Tab switches, CPU | 117 ms | 188 ms | 1 | 484 ms | 445 ms | 1 |
+| Scroll, CPU | 1438 ms | 1180 ms | 0.005 | 4352 ms | 1969 ms | < 0.001 |
+| Sustained updates, CPU | 1883 ms | 984 ms | < 0.001 | 2109 ms | 1117 ms | < 0.001 |
+| Frame interval p50 | 4.14 ms | 4.16 ms | < 0.001 | 4.15 ms | 4.16 ms | 1 |
+| Frame interval p95 | 6.97 ms | 4.28 ms | < 0.001 | 7.18 ms | 4.28 ms | < 0.001 |
+| Frame interval p99 | 7.78 ms | 4.38 ms | < 0.001 | 8.29 ms | 4.36 ms | < 0.001 |
+| Worst frame | 15.9 ms | 5.2 ms | < 0.001 | 12.0 ms | 4.6 ms | < 0.001 |
+| 100,000 rows, time to frame | 97 ms | 108 ms | 1 | 24 ms | 21 ms | 0.89 |
+| Whole run, allocated | 312.7 MB | 166.0 MB | < 0.001 | 326.4 MB | 161.6 MB | < 0.001 |
+| Live heap after GC | 46.6 MB | 32.5 MB | < 0.001 | 51.7 MB | 40.3 MB | < 0.001 |
+| Peak working set | 150.7 MB | 150.2 MB | 1 | 309.3 MB | 284.3 MB | < 0.001 |
+| Whole run, process CPU | 5.75 s | 4.59 s | < 0.001 | 13.57 s | 7.43 s | < 0.001 |
+
+No time, CPU or memory metric is significantly worse in native mode on either architecture. The
+32-bit frame median is 0.4% higher, which is significant but is not slower frames: native
+sustains more frames per second (239.9 against 237.7), and JavaFX is timed at pulse start rather
+than at the buffer swap.
+
+### A 44 ms frame on 32-bit: native wrappers compiled by the caller
+
+Before this series, native mode on 32-bit had one frame of about 44 ms per run, a few seconds in.
+GC, layout, the swap, timer resolution (`-XX:+ForceTimeHighResolution`) and text were ruled out
+one by one. `-XX:+PrintCompilation` showed the cause: on the 32-bit client VM, the wrapper of a
+native method (`nnvgStrokeColor`, `nnvgArc`...) is generated when the method gets hot, and the
+calling thread waits for it, about 15 ms each. Three of them landing in one frame made the 44 ms
+frame. The fix warms those natives on a background thread one second after the first frame
+(`JXNanoVGRenderer.startWarmCalls`): NanoVG path calls only record commands, `nvgCancelFrame`
+drops them, and an empty `nvgEndFrame` makes no GL call, so the thread needs no GL context. The
+glyphs it uses are uploaded on the display thread beforehand (`warmNatives`). It runs only on the
+client VM: on 64-bit (server VM) wrappers are made without that wait, and the extra work made the
+tab-switch CPU worse there. Warming earlier was tried and rejected: on the display thread it
+delayed the first frame by 400 ms, and at start-up by about as much.
 
 ## Threats to validity
 
