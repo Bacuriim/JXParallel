@@ -595,6 +595,9 @@ public final class JXWindow implements AutoCloseable {
         GLFW.glfwSwapBuffers(window);
         if (!firstPaintReported) {
             firstPaintReported = true;
+            if (backend instanceof NanoVGBackend) {
+                JXNanoVGRenderer.startWarmCalls();
+            }
             if (onFirstPaint != null) {
                 onFirstPaint.run();
             }

@@ -1141,6 +1141,26 @@ desbloqueada.
   montagem, e menores que os do JavaFX (178 contra 205 MB). A diferença é paginação do Windows,
   não memória do processo.
 
+## 2026-09-29 (madrugada): medição com a tela ligada
+
+Com a sessão desbloqueada e a tela ligada a 239 Hz, as três pilhas foram medidas de novo com 10
+execuções cada, em 32 e 64 bits, agora com quadros sincronizados.
+
+Primeiro achado: em 32 bits o modo nativo tinha um quadro de cerca de 44 ms por execução. Foram
+descartados, um a um, coleta de lixo, layout, troca de buffers, resolução do timer e texto. O
+`-XX:+PrintCompilation` mostrou a causa: na JVM *client* de 32 bits, o invólucro de um método
+nativo do NanoVG é gerado quando o método fica quente, e a thread que chamou espera cerca de 15 ms
+por ele. Correção: aquecer esses métodos numa thread de fundo, um segundo depois do primeiro
+quadro, só na JVM *client*. Tentativas rejeitadas: aquecer na thread de desenho (primeiro quadro
+400 ms mais tarde), aquecer na partida (primeiro quadro em cerca de 920 ms) e aquecer em todas as
+JVMs (a CPU das abas piorou em 64 bits).
+
+Resultado (medianas, Holm): em 32 bits, pior quadro de 5,2 contra 15,9 ms, percentil 99 de 4,4
+contra 7,8 ms, alocação total de 166 contra 313 MB, CPU total de 4,59 contra 5,75 s. Nenhuma
+métrica de tempo, CPU ou memória ficou significativamente pior em nenhuma das arquiteturas. A
+mediana do intervalo entre quadros em 32 bits ficou 0,4% maior (4,16 contra 4,14 ms), com taxa de
+quadros maior no modo nativo. Dados em `docs/fx-backends-*-2026-09-29-vsync-n10*.csv`.
+
 ## Evolução das métricas principais
 
 | Data | Métrica | JavaFX | JXParallel | Observação |
@@ -1198,8 +1218,6 @@ Métricas de qualidade (JXParallel apenas; o JavaFX não tem contrato de concorr
 - HarfBuzz/FreeType para texto e Yoga para layout.
 - Benchmark de 100 mil linhas da tabela virtualizada nativa contra o `TableView`.
 - Rodar as 232 telas do DeviceConfig no modo nativo (depende do banco de homologação).
-- Repetir a comparação das três pilhas com a sessão desbloqueada, depois da renderização incremental.
-- Repetir as baterias com a sessão do Windows desbloqueada e a máquina ociosa (FPS válido).
 - Imagem golden do NanoVG (precisa de contexto OpenGL fora da tela).
 - japicmp na CI depois da versão 0.1.0.
 - Subir a taxa de mutantes mortos do `AdaptiveWorkerPool` e do `JXParallelConfig`.
