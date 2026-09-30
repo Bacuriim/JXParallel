@@ -437,6 +437,14 @@ client VM: on 64-bit (server VM) wrappers are made without that wait, and the ex
 tab-switch CPU worse there. Warming earlier was tried and rejected: on the display thread it
 delayed the first frame by 400 ms, and at start-up by about as much.
 
+## Other raw data
+
+- [fx-backends-x86-2026-09-29-final.csv](fx-backends-x86-2026-09-29-final.csv) and its
+  [medians](fx-backends-x86-2026-09-29-final-median.csv): the evaluated version, 32-bit, three
+  runs per stack, before the 10-run series.
+- [ab-prebuild-idle.csv](ab-prebuild-idle.csv) and [ab-prebuild-off.csv](ab-prebuild-off.csv):
+  native mode with and without building the hidden tabs while the window is idle.
+
 ## Threats to validity
 
 - A screen shaped like DeviceConfig's is not DeviceConfig: no database, no controllers, no
