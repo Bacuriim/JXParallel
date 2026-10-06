@@ -207,6 +207,14 @@ public final class Fx {
                     return fx;
                 }
                 wrapper = newInstance(c, WRAP, fx);
+                // creating the first wrapper of a class runs its static initializer, which may have
+                // wrapped this same peer already (ButtonType.OK = Fx.jx(javafx's OK)): that one is the
+                // wrapper, or the constant and what dialogs return would be two objects
+                WeakReference<Object> during = WRAPPERS.get(fx);
+                Object first = during == null ? null : during.get();
+                if (first != null) {
+                    return first;
+                }
                 WRAPPERS.put(fx, new WeakReference<>(wrapper));
             }
             return wrapper;

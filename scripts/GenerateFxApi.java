@@ -1028,6 +1028,11 @@ public class GenerateFxApi {
         if (raw == java.util.Iterator.class) {
             return "com.jxparallel.fx.Fx.jxIterator((java.util.Iterator) " + expr + ")";
         }
+        if (raw == java.util.Optional.class) {
+            // Dialog.showAndWait(): the value inside is a JavaFX object (a ButtonType) the application
+            // compares with its JX constants, as in result.get() == ButtonType.OK
+            return "(java.util.Optional) ((java.util.Optional<Object>) (java.util.Optional) " + expr + ").map(com.jxparallel.fx.Fx::jx)";
+        }
         if (!convertible(raw)) {
             return fromObject ? "(" + jx(type) + ") " + expr : expr;
         }

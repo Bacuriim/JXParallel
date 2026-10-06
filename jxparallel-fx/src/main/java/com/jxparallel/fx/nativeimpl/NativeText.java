@@ -331,8 +331,8 @@ final class NativeText {
             return;
         }
         Object value = factory.getValue();
-        if (!force && value == spinner.state.get("shownValue") && editor.values.containsKey("text")) {
-            return;
+        if (!force && editor.values.containsKey("text")) {
+            return; // the editor follows value changes (Native.followFactory); what the app typed stays
         }
         spinner.state.put("shownValue", value);
         StringConverter converter = factory.getConverter();

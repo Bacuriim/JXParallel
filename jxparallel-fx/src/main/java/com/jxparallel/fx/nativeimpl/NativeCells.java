@@ -449,6 +449,111 @@ final class NativeCells {
         return observed instanceof ObservableValue ? ((ObservableValue<?>) observed).getValue() : null;
     }
 
+    /**
+     * IndexedCell.updateIndex called by the application on a cell it placed itself: as in JavaFX,
+     * the cell gets the item at that index of its table (column value), row or list and its
+     * updateItem runs; outside the items it becomes empty. Cells of the virtual flow do not come here.
+     */
+    static void updateIndexed(NativeModel cell, int index) {
+        NativeModel table = NativeElements.model(Native.value(cell, "tableView"));
+        if (cell.is(javafx.scene.control.TableCell.class)) {
+            NativeModel column = NativeElements.model(Native.value(cell, "tableColumn"));
+            if (table == null || column == null) {
+                return;
+            }
+            List<Object> items = Native.list(table, "items");
+            if (index >= 0 && index < items.size()) {
+                callUpdateItem(cell, cellValue(table, column, items.get(index)), false);
+            } else {
+                callUpdateItem(cell, null, true);
+            }
+        } else if (cell.is(javafx.scene.control.TableRow.class)) {
+            if (table != null) {
+                List<Object> items = Native.list(table, "items");
+                boolean in = index >= 0 && index < items.size();
+                callUpdateItem(cell, in ? items.get(index) : null, !in);
+            }
+        } else if (cell.is(javafx.scene.control.ListCell.class)) {
+            NativeModel list = NativeElements.model(Native.value(cell, "listView"));
+            if (list != null) {
+                List<Object> items = Native.list(list, "items");
+                boolean in = index >= 0 && index < items.size();
+                callUpdateItem(cell, in ? items.get(index) : null, !in);
+            }
+        }
+    }
+
+    /**
+     * The table a column belongs to. JavaFX sets it when the column joins the table; here it is
+     * found among the tables of the open windows (the only place a column's table is needed).
+     */
+    static NativeModel tableOf(NativeModel column) {
+        NativeModel set = NativeElements.model(Native.value(column, "tableView"));
+        if (set != null) {
+            return set;
+        }
+        java.util.Set<NativeModel> seen = java.util.Collections.newSetFromMap(new java.util.IdentityHashMap<>());
+        for (NativeScene s : NativeRuntime.SCENES) {
+            NativeModel found = findTable(s.rootModel(), column, seen);
+            if (found != null) {
+                return found;
+            }
+        }
+        return null;
+    }
+
+    private static NativeModel findTable(NativeModel m, NativeModel column, java.util.Set<NativeModel> seen) {
+        if (m == null || !seen.add(m)) {
+            return null;
+        }
+        if (m.is(javafx.scene.control.TableView.class) && hasColumn(Native.list(m, "columns"), column)) {
+            return m;
+        }
+        List<Object> next = new ArrayList<>(m.children);
+        for (String key : new ArrayList<>(m.values.keySet())) {
+            Object v = Native.value(m, key); // properties hold the value (a TitledPane's content, a Tab's)
+            if (v instanceof List) {
+                next.addAll((List<?>) v);
+            } else {
+                next.add(v);
+            }
+        }
+        for (Object o : next) {
+            NativeModel child = NativeElements.model(o);
+            NativeModel found = child == null ? null : findTable(child, column, seen);
+            if (found != null) {
+                return found;
+            }
+        }
+        return null;
+    }
+
+    private static boolean hasColumn(List<Object> columns, NativeModel column) {
+        for (Object o : columns) {
+            NativeModel c = NativeElements.model(o);
+            if (c == column || (c != null && hasColumn(Native.list(c, "columns"), column))) {
+                return true;
+            }
+        }
+        return false;
+    }
+
+    /** TableColumnBase.getCellData(index): the value for the table's item at that index. */
+    static Object cellData(NativeModel column, int index) {
+        NativeModel table = tableOf(column);
+        if (table == null) {
+            return null;
+        }
+        List<Object> items = Native.list(table, "items");
+        return index < 0 || index >= items.size() ? null : cellValue(table, column, items.get(index));
+    }
+
+    /** TableColumnBase.getCellData(item). */
+    static Object cellDataOfItem(NativeModel column, Object item) {
+        NativeModel table = tableOf(column);
+        return table == null ? null : cellValue(table, column, item);
+    }
+
     /** The value a column shows for a row item, from its cellValueFactory. */
     static Object cellValue(NativeModel table, NativeModel column, Object item) {
         ObservableValue<?> observable = observable(table, column, item);

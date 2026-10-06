@@ -114,7 +114,7 @@ final class NativeBehavior {
                         int current = (int) NativeElements.number(m, "currentPageIndex", 0);
                         int next = b[4] == -1 ? current - 1 : b[4] == -2 ? current + 1 : (int) b[4];
                         if (next >= 0 && next < count) {
-                            Native.property(m, "currentPageIndex", int.class).setValue(next);
+                            NativeImpls.pageIndex(m).setValue(next);
                         }
                         return true;
                     }
@@ -318,13 +318,13 @@ final class NativeBehavior {
             return;
         }
         Object item = items.get(index);
+        Object before = Native.value(combo, "value"); // before the selection, which moves the value with it
         Object selection = combo.values.get("selectionModel");
         if (selection instanceof SingleSelectionModel) {
             @SuppressWarnings("unchecked")
             SingleSelectionModel<Object> sel = (SingleSelectionModel<Object>) selection;
             sel.select(index);
         }
-        Object before = Native.value(combo, "value");
         Native.property(combo, "value", Object.class).setValue(item);
         if (Boolean.TRUE.equals(Native.value(combo, "editable"))) {
             NativeModel editor = NativeText.editor(combo);
@@ -371,20 +371,76 @@ final class NativeBehavior {
         if (Boolean.FALSE.equals(Native.value(m, "collapsible"))) {
             return;
         }
-        NativeModel accordion = NativeCss.parentOf(m);
-        if (accordion != null && accordion.is(javafx.scene.control.Accordion.class)) {
-            boolean open = NativeElements.model(Native.value(accordion, "expandedPane")) == m;
-            Native.property(accordion, "expandedPane", Object.class).setValue(open ? null : m);
-            for (Object o : Native.list(accordion, "panes")) {
-                NativeModel pane = NativeElements.model(o);
-                if (pane != null) {
-                    Native.property(pane, "expanded", boolean.class).setValue(!open && pane == m);
-                }
-            }
+        setExpanded(m, Boolean.FALSE.equals(Native.value(m, "expanded")));
+    }
+
+    /**
+     * TitledPane.setExpanded, by the user or the application, as JavaFX 8 does it: in an Accordion
+     * the pane becomes (or stops being) the expanded pane and the others collapse; once the pane is
+     * shown, its content is visible only while expanded (TitledPaneSkin).
+     */
+    static void setExpanded(NativeModel pane, boolean expanded) {
+        setExpanded(pane, expanded, NativeCss.parentOf(pane));
+    }
+
+    private static void setExpanded(NativeModel pane, boolean expanded, NativeModel accordion) {
+        Native.property(pane, "expanded", boolean.class).setValue(expanded);
+        contentFollows(pane);
+        if (accordion == null || !accordion.is(javafx.scene.control.Accordion.class)) {
             return;
         }
-        boolean expanded = !Boolean.FALSE.equals(Native.value(m, "expanded"));
-        Native.property(m, "expanded", boolean.class).setValue(!expanded);
+        NativeModel open = NativeElements.model(Native.value(accordion, "expandedPane"));
+        if (expanded) {
+            Native.property(accordion, "expandedPane", Object.class).setValue(pane);
+            for (Object o : Native.list(accordion, "panes")) {
+                NativeModel other = NativeElements.model(o);
+                if (other != null && other != pane && !Boolean.FALSE.equals(Native.value(other, "expanded"))) {
+                    Native.property(other, "expanded", boolean.class).setValue(false);
+                    contentFollows(other);
+                }
+            }
+        } else if (open == pane) {
+            Native.property(accordion, "expandedPane", Object.class).setValue(null);
+        }
+    }
+
+    /** Accordion.setExpandedPane: that pane expands (and the others collapse), or all collapse. */
+    static void setExpandedPane(NativeModel accordion, NativeModel pane) {
+        if (pane != null) {
+            setExpanded(pane, true, accordion);
+            return;
+        }
+        NativeModel open = NativeElements.model(Native.value(accordion, "expandedPane"));
+        if (open != null) {
+            setExpanded(open, false, accordion);
+        }
+    }
+
+    /** After the pane is shown, its content's visibility follows expanded, as TitledPaneSkin sets it. */
+    static void contentFollows(NativeModel pane) {
+        if (!pane.state.containsKey("skinned")) {
+            return;
+        }
+        NativeModel content = NativeElements.model(Native.value(pane, "content"));
+        boolean expanded = !Boolean.FALSE.equals(Native.value(pane, "expanded"));
+        if (content != null && !Boolean.valueOf(expanded).equals(Native.value(content, "visible"))) {
+            Native.property(content, "visible", boolean.class).setValue(expanded);
+        }
+    }
+
+    /**
+     * First time a pane is shown: JavaFX's skins collapse an Accordion's panes other than the
+     * expanded one, and from then on the content's visibility follows expanded.
+     */
+    static void skin(NativeModel pane, Boolean expandedByAccordion) {
+        if (pane.state.containsKey("skinned")) {
+            return;
+        }
+        pane.state.put("skinned", Boolean.TRUE);
+        if (expandedByAccordion != null && !expandedByAccordion.equals(!Boolean.FALSE.equals(Native.value(pane, "expanded")))) {
+            Native.property(pane, "expanded", boolean.class).setValue(expandedByAccordion);
+        }
+        contentFollows(pane);
     }
 
     @SuppressWarnings("unchecked")
@@ -446,6 +502,9 @@ final class NativeBehavior {
             return ((NativeSelection.TableSelection) NativeRuntime.selectionOf(m)).rows();
         }
         NativeSelection.Multiple created = new NativeSelection.Multiple(m, "items");
+        if (existing instanceof javafx.beans.value.ObservableValue) {
+            return created; // the application set its own model (e.g. one that never selects): keep it, select nothing here
+        }
         m.values.put("selectionModel", created);
         return created;
     }

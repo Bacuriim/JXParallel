@@ -27,9 +27,34 @@ class OffFxThreadTest {
         started.await();
     }
 
-    /** On the FX thread: the work runs elsewhere and the event loop keeps running while it waits. */
+    /** Default: the work runs on the caller, so what was queued before runs after it, as in JavaFX. */
     @Test
-    void fxThreadKeepsProcessingEventsWhileWorkRuns() throws Exception {
+    void byDefaultQueuedEventsWaitForTheWorkLikeJavaFx() throws Exception {
+        CompletableFuture<String> order = new CompletableFuture<>();
+        StringBuilder steps = new StringBuilder();
+        Platform.runLater(() -> {
+            Platform.runLater(() -> {
+                steps.append("queued;");
+                order.complete(steps.toString());
+            });
+            try {
+                OffFxThread.call(() -> {
+                    assertTrue(Platform.isFxApplicationThread(), "runs on the caller");
+                    Thread.sleep(200);
+                    steps.append("work;");
+                    return null;
+                });
+            } catch (Exception e) {
+                order.completeExceptionally(e);
+            }
+        });
+        assertEquals("work;queued;", order.get(5, TimeUnit.SECONDS));
+    }
+
+    /** Nested mode (opt-in): the work runs elsewhere and the event loop keeps running while it waits. */
+    @Test
+    void nestedModeKeepsProcessingEventsWhileWorkRuns() throws Exception {
+        System.setProperty("jx.offfx.nested", "true");
         CompletableFuture<String> outcome = new CompletableFuture<>();
         AtomicBoolean eventRanDuringWork = new AtomicBoolean();
         Platform.runLater(() -> {
@@ -46,8 +71,12 @@ class OffFxThreadTest {
                 outcome.completeExceptionally(e);
             }
         });
-        assertEquals("done", outcome.get(5, TimeUnit.SECONDS));
-        assertTrue(eventRanDuringWork.get());
+        try {
+            assertEquals("done", outcome.get(5, TimeUnit.SECONDS));
+            assertTrue(eventRanDuringWork.get());
+        } finally {
+            System.clearProperty("jx.offfx.nested");
+        }
     }
 
     @Test

@@ -76,6 +76,183 @@ class NativeApiTest extends NativeTestSupport {
     }
 
     @Test
+    void paginationChecksLikeJavaFx8() throws Exception {
+        // the expected values are what JavaFX 8u51 does with the same calls
+        fx(() -> {
+            Pagination p = new Pagination();
+            List<Number> seen = new ArrayList<>();
+            p.currentPageIndexProperty().addListener((o, a, b) -> seen.add(b));
+            p.setPageCount(1);
+            p.setCurrentPageIndex(1);
+            assertEquals(0, p.getCurrentPageIndex(), "the index stays within the pages");
+            assertTrue(seen.isEmpty(), "listeners never see the index outside the pages (an application may load on each change)");
+            p.setCurrentPageIndex(-3);
+            assertEquals(0, p.getCurrentPageIndex());
+            p.setPageCount(5);
+            p.setCurrentPageIndex(4);
+            p.setPageCount(2);
+            assertEquals(4, p.getCurrentPageIndex(), "lowering the count keeps the index");
+            p.setPageCount(0);
+            assertEquals(2, p.getPageCount(), "a count below 1 is ignored");
+            return null;
+        });
+    }
+
+    @Test
+    void addingAChildTwiceThrowsAndLeavesTheListAsJavaFxDoes() throws Exception {
+        // an application that adds the same label again: JavaFX throws and the view never switches
+        fx(() -> {
+            Label error = new Label("erro");
+            Label other = new Label("outro");
+            VBox box = new VBox(error);
+            try {
+                box.getChildren().add(error);
+                throw new AssertionError("no exception");
+            } catch (IllegalArgumentException expected) {
+                assertTrue(expected.getMessage().startsWith("Children: duplicate children added"));
+            }
+            try {
+                box.getChildren().addAll(other, other);
+                throw new AssertionError("no exception");
+            } catch (IllegalArgumentException expected) {
+                // refused as a whole
+            }
+            assertEquals(Arrays.asList(error), new ArrayList<>(box.getChildren()));
+            box.getChildren().setAll(other, error); // what is replaced may come back
+            assertEquals(Arrays.asList(other, error), new ArrayList<>(box.getChildren()));
+            box.getChildren().set(0, other); // the same child at its own place
+            return null;
+        });
+    }
+
+    @Test
+    void aTabsDisableIsCopiedToItsContentLikeJavaFx8() throws Exception {
+        fx(() -> {
+            VBox content = new VBox();
+            Tab tab = new Tab("t", content);
+            new TabPane(tab, new Tab("other"));
+            tab.setDisable(true);
+            assertTrue(content.isDisable(), "Tab.updateDisabled sets the content's own disable");
+            tab.setDisable(false);
+            assertFalse(content.isDisable());
+            content.setDisable(true);
+            tab.setContent(new VBox());
+            tab.setContent(content);
+            assertFalse(content.isDisable(), "setting the content applies the tab's state");
+            return null;
+        });
+    }
+
+    @Test
+    void spinnerEditorFollowsValueChangesOnlyLikeJavaFx8() throws Exception {
+        // JavaFX 8u51: setValue to the same value leaves a cleared editor empty, also after showing
+        Spinner<Integer> spinner = fx(() -> {
+            Spinner<Integer> s = new Spinner<>(0, 100, 5);
+            assertEquals("5", s.getEditor().getText());
+            s.getValueFactory().setValue(0);
+            assertEquals("0", s.getEditor().getText());
+            s.getValueFactory().setValue(0);
+            s.getEditor().clear();
+            return s;
+        });
+        Stage stage = fx(() -> {
+            Stage st = new Stage();
+            st.setScene(new Scene(new VBox(spinner), 200, 100));
+            st.show();
+            return st;
+        });
+        assertEquals("", fx(() -> spinner.getEditor().getText()), "showing it does not refill the editor");
+        fx(() -> {
+            spinner.getValueFactory().setValue(7);
+            assertEquals("7", spinner.getEditor().getText());
+            stage.hide();
+            return null;
+        });
+    }
+
+    @Test
+    void borderPaneRegionsAreItsChildren() throws Exception {
+        fx(() -> {
+            com.jxparallel.fx.scene.layout.BorderPane pane = new com.jxparallel.fx.scene.layout.BorderPane();
+            Button a = new Button("a");
+            Button b = new Button("b");
+            pane.setCenter(a);
+            pane.setTop(b);
+            assertEquals(Arrays.asList(a, b), new ArrayList<>(pane.getChildrenUnmodifiable()));
+            assertSame(pane, a.getParent());
+            pane.setCenter(null);
+            assertEquals(Arrays.asList(b), new ArrayList<>(pane.getChildrenUnmodifiable()));
+            return null;
+        });
+    }
+
+    @Test
+    void comboSelectionIsTheNewValueInTheApplicationsValueListener() throws Exception {
+        fx(() -> {
+            ComboBox<String> combo = new ComboBox<>(FXCollections.observableArrayList("a", "b"));
+            List<Object> seen = new ArrayList<>();
+            combo.valueProperty().addListener((o, before, after) -> seen.add(combo.getSelectionModel().getSelectedItem()));
+            combo.setValue("b");
+            assertEquals(Arrays.asList("b"), seen);
+            return null;
+        });
+    }
+
+    @Test
+    void aSelectionModelTheApplicationSetsIsTheOneItGetsBack() throws Exception {
+        fx(() -> {
+            ListView<String> list = new ListView<>(FXCollections.observableArrayList("a", "b"));
+            MultipleSelectionModel<String> none = new MultipleSelectionModel<String>() {
+                @Override public com.jxparallel.fx.collections.ObservableList<Integer> getSelectedIndices() { return FXCollections.emptyObservableList(); }
+                @Override public com.jxparallel.fx.collections.ObservableList<String> getSelectedItems() { return FXCollections.emptyObservableList(); }
+                @Override public void selectIndices(int index, int... indices) { }
+                @Override public void selectAll() { }
+                @Override public void selectFirst() { }
+                @Override public void selectLast() { }
+                @Override public void clearAndSelect(int index) { }
+                @Override public void select(int index) { }
+                @Override public void select(String obj) { }
+                @Override public void clearSelection(int index) { }
+                @Override public void clearSelection() { }
+                @Override public boolean isSelected(int index) { return false; }
+                @Override public boolean isEmpty() { return true; }
+                @Override public void selectPrevious() { }
+                @Override public void selectNext() { }
+            };
+            list.setSelectionModel(none);
+            assertSame(none, list.getSelectionModel());
+            new Scene(new VBox(list), 200, 200).getRoot().layout(); // the cell factory runs and asks for it again
+            assertSame(none, list.getSelectionModel());
+            return null;
+        });
+    }
+
+    @Test
+    void columnCellDataAndTable() throws Exception {
+        fx(() -> {
+            @SuppressWarnings("rawtypes")
+            TableView<Map> table = new TableView<>();
+            @SuppressWarnings("rawtypes")
+            TableColumn<Map, Object> name = new TableColumn<>("Nome");
+            name.setCellValueFactory(new MapValueFactory<>("nome"));
+            table.getColumns().add(name);
+            Map<String, Object> row = new HashMap<>();
+            row.put("nome", "Device");
+            table.getItems().add(row);
+            Stage stage = new Stage();
+            // inside a TitledPane, as a typical record list
+            stage.setScene(new Scene(new VBox(new TitledPane("Fichas", new VBox(table))), 200, 100));
+            stage.show();
+            assertSame(table, name.getTableView());
+            assertEquals("Device", name.getCellData(0));
+            assertEquals("Device", name.getCellData(row));
+            assertNull(name.getCellData(5), "outside the items");
+            stage.hide();
+            return null;
+        });
+    }
+
+    @Test
     void textInputMethods() throws Exception {
         fx(() -> {
             TextField f = new TextField("meio");

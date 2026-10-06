@@ -149,7 +149,11 @@ public abstract class Preloader extends Application {
 
         @Override
         public void start(javafx.stage.Stage primaryStage) throws Exception {
-            jx.start((Stage) Fx.jx(primaryStage));
+            // native mode: as in Application, the preloader gets a native window; JavaFX's stays hidden
+            if (Fx.NATIVE) {
+                com.jxparallel.fx.nativeimpl.NativeRuntime.launchStarted();
+            }
+            jx.start(Fx.NATIVE ? new Stage() : (Stage) Fx.jx(primaryStage));
         }
 
         @Override

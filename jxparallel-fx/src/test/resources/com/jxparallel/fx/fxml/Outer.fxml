@@ -6,6 +6,7 @@
       fx:controller="com.jxparallel.fx.fxml.OuterController" maxHeight="-Infinity">
    <children>
       <Label fx:id="title" text="Title" />
+      <Label fx:id="percent" text="\%" />
       <GridPane>
          <columnConstraints><ColumnConstraints hgrow="SOMETIMES" minWidth="10.0" /></columnConstraints>
          <children>
@@ -14,5 +15,6 @@
          <VBox.margin><Insets top="4.0" /></VBox.margin>
       </GridPane>
       <fx:include fx:id="inner" source="Inner.fxml" />
+      <fx:include fx:id="named" source="InnerWithId.fxml" />
    </children>
 </VBox>

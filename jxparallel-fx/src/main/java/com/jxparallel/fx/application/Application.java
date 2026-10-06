@@ -117,7 +117,15 @@ public abstract class Application {
         @Override
         public void start(javafx.stage.Stage primaryStage) throws Exception {
             // native mode: the primary stage is a native window; JavaFX's stays hidden and only runs the event loop
-            jx.start(Fx.NATIVE ? new Stage() : (Stage) Fx.jx(primaryStage));
+            if (!Fx.NATIVE) {
+                jx.start((Stage) Fx.jx(primaryStage));
+                return;
+            }
+            try {
+                jx.start(new Stage());
+            } finally {
+                com.jxparallel.fx.nativeimpl.NativeRuntime.launchFinished();
+            }
         }
 
         @Override

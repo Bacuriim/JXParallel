@@ -480,43 +480,10 @@ GENERATED javafx.beans.property.Property
 GENERATED javafx.beans.property.ReadOnlyProperty
 GENERATED javafx.beans.property.ReadOnlyStringProperty
 GENERATED javafx.beans.binding.StringExpression
-GENERATED javafx.beans.property.SimpleStringProperty
 GENERATED javafx.beans.property.StringPropertyBase
-GENERATED javafx.beans.property.SimpleLongProperty
-GENERATED javafx.beans.property.LongPropertyBase
-GENERATED javafx.beans.property.LongProperty
-GENERATED javafx.beans.property.ReadOnlyLongProperty
-GENERATED javafx.beans.binding.LongExpression
-GENERATED javafx.beans.binding.NumberExpressionBase
-GENERATED javafx.beans.binding.NumberExpression
-GENERATED javafx.beans.property.SimpleBooleanProperty
-GENERATED javafx.beans.property.BooleanPropertyBase
-GENERATED javafx.beans.property.BooleanProperty
-GENERATED javafx.beans.property.ReadOnlyBooleanProperty
-GENERATED javafx.beans.binding.BooleanExpression
 SKIP (a java.util collection) javafx.beans.property.SimpleSetProperty
-GENERATED javafx.beans.property.SimpleObjectProperty
-GENERATED javafx.beans.property.ObjectPropertyBase
-GENERATED javafx.beans.property.ObjectProperty
-GENERATED javafx.beans.property.ReadOnlyObjectProperty
-GENERATED javafx.beans.binding.ObjectExpression
 SKIP (a java.util collection) javafx.beans.property.SimpleMapProperty
 SKIP (a java.util collection) javafx.beans.property.SimpleListProperty
-GENERATED javafx.beans.property.SimpleIntegerProperty
-GENERATED javafx.beans.property.IntegerPropertyBase
-GENERATED javafx.beans.property.IntegerProperty
-GENERATED javafx.beans.property.ReadOnlyIntegerProperty
-GENERATED javafx.beans.binding.IntegerExpression
-GENERATED javafx.beans.property.SimpleFloatProperty
-GENERATED javafx.beans.property.FloatPropertyBase
-GENERATED javafx.beans.property.FloatProperty
-GENERATED javafx.beans.property.ReadOnlyFloatProperty
-GENERATED javafx.beans.binding.FloatExpression
-GENERATED javafx.beans.property.SimpleDoubleProperty
-GENERATED javafx.beans.property.DoublePropertyBase
-GENERATED javafx.beans.property.DoubleProperty
-GENERATED javafx.beans.property.ReadOnlyDoubleProperty
-GENERATED javafx.beans.binding.DoubleExpression
 SKIP (a java.util collection) javafx.beans.property.SetPropertyBase
 SKIP (a java.util collection) javafx.beans.property.SetProperty
 GENERATED javafx.beans.property.ReadOnlyStringWrapper
@@ -526,26 +493,52 @@ SKIP (a java.util collection) javafx.beans.property.ReadOnlySetPropertyBase
 SKIP (a java.util collection) javafx.beans.property.ReadOnlySetProperty
 GENERATED javafx.beans.property.ReadOnlyObjectWrapper
 GENERATED javafx.beans.property.ReadOnlyObjectPropertyBase
+GENERATED javafx.beans.property.ReadOnlyObjectProperty
+GENERATED javafx.beans.binding.ObjectExpression
 SKIP (a java.util collection) javafx.beans.property.ReadOnlyMapWrapper
 SKIP (a java.util collection) javafx.beans.property.ReadOnlyMapPropertyBase
 SKIP (a java.util collection) javafx.beans.property.ReadOnlyMapProperty
 GENERATED javafx.beans.property.ReadOnlyLongWrapper
 GENERATED javafx.beans.property.ReadOnlyLongPropertyBase
+GENERATED javafx.beans.property.ReadOnlyLongProperty
+GENERATED javafx.beans.binding.LongExpression
+GENERATED javafx.beans.binding.NumberExpressionBase
+GENERATED javafx.beans.binding.NumberExpression
 SKIP (a java.util collection) javafx.beans.property.ReadOnlyListWrapper
 SKIP (a java.util collection) javafx.beans.property.ReadOnlyListPropertyBase
 SKIP (a java.util collection) javafx.beans.property.ReadOnlyListProperty
 GENERATED javafx.beans.property.ReadOnlyIntegerWrapper
 GENERATED javafx.beans.property.ReadOnlyIntegerPropertyBase
+GENERATED javafx.beans.property.ReadOnlyIntegerProperty
+GENERATED javafx.beans.binding.IntegerExpression
 GENERATED javafx.beans.property.ReadOnlyFloatWrapper
 GENERATED javafx.beans.property.ReadOnlyFloatPropertyBase
+GENERATED javafx.beans.property.ReadOnlyFloatProperty
+GENERATED javafx.beans.binding.FloatExpression
 GENERATED javafx.beans.property.ReadOnlyDoubleWrapper
 GENERATED javafx.beans.property.ReadOnlyDoublePropertyBase
+GENERATED javafx.beans.property.ReadOnlyDoubleProperty
+GENERATED javafx.beans.binding.DoubleExpression
 GENERATED javafx.beans.property.ReadOnlyBooleanWrapper
 GENERATED javafx.beans.property.ReadOnlyBooleanPropertyBase
+GENERATED javafx.beans.property.ReadOnlyBooleanProperty
+GENERATED javafx.beans.binding.BooleanExpression
+GENERATED javafx.beans.property.ObjectPropertyBase
+GENERATED javafx.beans.property.ObjectProperty
 SKIP (a java.util collection) javafx.beans.property.MapPropertyBase
 SKIP (a java.util collection) javafx.beans.property.MapProperty
+GENERATED javafx.beans.property.LongPropertyBase
+GENERATED javafx.beans.property.LongProperty
 SKIP (a java.util collection) javafx.beans.property.ListPropertyBase
 SKIP (a java.util collection) javafx.beans.property.ListProperty
+GENERATED javafx.beans.property.IntegerPropertyBase
+GENERATED javafx.beans.property.IntegerProperty
+GENERATED javafx.beans.property.FloatPropertyBase
+GENERATED javafx.beans.property.FloatProperty
+GENERATED javafx.beans.property.DoublePropertyBase
+GENERATED javafx.beans.property.DoubleProperty
+GENERATED javafx.beans.property.BooleanPropertyBase
+GENERATED javafx.beans.property.BooleanProperty
 GENERATED javafx.beans.binding.When
 GENERATED javafx.beans.binding.StringBinding
 GENERATED javafx.beans.binding.Binding
@@ -602,4 +595,4 @@ SKIP (deprecated builder) javafx.animation.FadeTransitionBuilder
 GENERATED javafx.animation.AnimationTimer
 SKIP (deprecated builder) javafx.animation.AnimationBuilder
 SKIP (not public) javafx.animation.AnimationAccessorImpl
-MAPPED 423
+MAPPED 416

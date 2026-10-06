@@ -22,11 +22,18 @@ import javafx.scene.input.InputEvent;
 import javafx.stage.Window;
 
 /**
- * Runs blocking work (database, network) off the JavaFX thread without changing the calling code.
- * Called on the JavaFX thread, {@link #call} hands the work to a background thread and keeps the
- * event loop running until it finishes: windows keep repainting (Windows never marks them "Not
- * responding"), input is ignored and the cursor shows wait, so no handler can run in the middle of
- * the caller. Called on any other thread it just runs the work.
+ * Runs blocking work (database, network) without changing the calling code.
+ *
+ * By default the work runs on the calling thread, exactly as in the original JavaFX code: the
+ * comparing the flows of a real application against JavaFX showed that anything else changes the order
+ * of events. In native mode the windows keep painting anyway, since they are drawn by JX's own
+ * thread.
+ *
+ * With {@code -Djx.offfx.nested=true}, called on the JavaFX thread, {@link #call} hands the work to
+ * a background thread and keeps the event loop running until it finishes: windows keep repainting
+ * in the JavaFX backend too, input is ignored and the cursor shows wait. The cost: runnables and
+ * Task callbacks already queued run in the middle of the caller (in a real application, a dialog's
+ * Task finished before the dialog had its record and failed), which JavaFX never does.
  */
 public final class OffFxThread {
     private static final ExecutorService EXECUTOR = Executors.newCachedThreadPool(r -> {
@@ -40,7 +47,7 @@ public final class OffFxThread {
     }
 
     public static <T> T call(Callable<T> work) throws Exception {
-        if (!Platform.isFxApplicationThread()) {
+        if (!Platform.isFxApplicationThread() || !Boolean.getBoolean("jx.offfx.nested")) {
             return work.call();
         }
         CompletableFuture<T> result = CompletableFuture.supplyAsync(() -> {

@@ -116,6 +116,13 @@ final class NativeDialogs {
                     Native.list(pane, "buttonTypes").addAll(ButtonType.OK, ButtonType.CANCEL);
                 }
             }
+            // As in JavaFX, the pane is in a scene of the dialog's window before the dialog shows:
+            // applications reach that window through getDialogPane().getScene().getWindow() to set
+            // its icons or owner. show() then uses this same stage.
+            NativeModel stage = model(new com.jxparallel.fx.stage.Stage());
+            dialog.state.put("stage", stage);
+            NativeModel paneScene = model(new com.jxparallel.fx.scene.Scene((com.jxparallel.fx.scene.Parent) Fx.jx(pane)));
+            Native.property(paneScene, "window", Object.class).setValue(stage);
         }
         return pane;
     }
@@ -211,8 +218,7 @@ final class NativeDialogs {
             Native.list(buttonBar, "buttons").add(b);
         }
         rootModel.children.add(buttonBar);
-        NativeModel stage = model(new com.jxparallel.fx.stage.Stage());
-        dialog.state.put("stage", stage);
+        NativeModel stage = (NativeModel) dialog.state.get("stage"); // made with the pane
         NativeModel scene = model(new com.jxparallel.fx.scene.Scene(root));
         Native.property(stage, "scene", Object.class).setValue(scene);
         Native.property(stage, "title", String.class).setValue(titleText(dialog));
@@ -563,6 +569,7 @@ final class NativeDialogs {
     static Object notify(NativeModel n, AlertType type) {
         Runnable show = () -> {
             com.jxparallel.fx.scene.layout.HBox box = new com.jxparallel.fx.scene.layout.HBox(10);
+            box.getStyleClass().add("notification-bar"); // ControlsFX's style class, for selectors and lookups
             NativeModel boxModel = model(box);
             boolean dark = Boolean.TRUE.equals(Native.value(n, "dark"));
             Native.property(boxModel, "style", String.class).setValue(dark

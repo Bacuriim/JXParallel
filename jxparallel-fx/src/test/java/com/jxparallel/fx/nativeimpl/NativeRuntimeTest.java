@@ -53,6 +53,47 @@ class NativeRuntimeTest extends NativeTestSupport {
     }
 
     @Test
+    void windowListHasTheShowingStages() throws Exception {
+        Stage stage = fx(() -> {
+            Stage st = new Stage();
+            st.setScene(new Scene(new VBox(), 100, 100));
+            st.show();
+            return st;
+        });
+        assertTrue(fx(() -> listed(stage)), "a shown stage is in the window list");
+        fx(() -> {
+            stage.hide();
+            return null;
+        });
+        assertFalse(fx(() -> listed(stage)), "a hidden stage leaves the window list");
+    }
+
+    @Test
+    void windowEventHandlersAddedToTheStageRunLikeItsOnShown() throws Exception {
+        List<String> seen = fx(() -> {
+            List<String> s = new ArrayList<>();
+            Stage st = new Stage();
+            st.setScene(new Scene(new VBox(), 100, 100));
+            st.addEventFilter(com.jxparallel.fx.stage.WindowEvent.WINDOW_SHOWN, e -> s.add("filter"));
+            st.addEventHandler(com.jxparallel.fx.stage.WindowEvent.WINDOW_SHOWN, e -> s.add("handler"));
+            st.setOnShown(e -> s.add("onShown"));
+            st.show();
+            st.hide();
+            return s;
+        });
+        assertEquals(java.util.Arrays.asList("filter", "handler", "onShown"), seen);
+    }
+
+    private static boolean listed(Stage stage) {
+        for (java.util.Iterator<com.jxparallel.fx.stage.Window> it = com.jxparallel.fx.stage.Window.impl_getWindows(); it.hasNext(); ) {
+            if (it.next() == stage) {
+                return true;
+            }
+        }
+        return false;
+    }
+
+    @Test
     void closeRequestCanBeVetoed() throws Exception {
         Stage stage = fx(() -> {
             Stage st = new Stage();

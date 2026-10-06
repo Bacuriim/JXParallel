@@ -149,6 +149,54 @@ class NativeControlsTest extends NativeTestSupport {
     }
 
     @Test
+    void accordionKeepsOnePaneOpenAndHidesCollapsedContentLikeJavaFx8() throws Exception {
+        // expected values measured on JavaFX 8u51 with the same calls
+        Pane c1 = fx(() -> new Pane()), c2 = fx(() -> new Pane()), c3 = fx(() -> new Pane());
+        TitledPane[] p = new TitledPane[3];
+        Accordion[] a = new Accordion[1];
+        NativeScene s = show(fx(() -> {
+            p[0] = new TitledPane("1", c1);
+            p[1] = new TitledPane("2", c2);
+            p[2] = new TitledPane("3", c3);
+            a[0] = new Accordion(p[0], p[1], p[2]);
+            return new VBox(a[0]);
+        }), 200, 300);
+        assertEquals("falsefalsefalse", fx(() -> "" + p[0].isExpanded() + p[1].isExpanded() + p[2].isExpanded()), "shown: all collapsed");
+        assertEquals("falsefalsefalse", fx(() -> "" + c1.isVisible() + c2.isVisible() + c3.isVisible()));
+        fx(() -> {
+            a[0].setExpandedPane(p[0]);
+            a[0].setExpandedPane(p[1]);
+            return null;
+        });
+        assertEquals("falsetruefalse", fx(() -> "" + p[0].isExpanded() + p[1].isExpanded() + p[2].isExpanded()));
+        assertEquals("falsetruefalse", fx(() -> "" + c1.isVisible() + c2.isVisible() + c3.isVisible()));
+        fx(() -> {
+            p[2].setExpanded(true);
+            return null;
+        });
+        assertEquals("falsefalsetrue", fx(() -> "" + p[0].isExpanded() + p[1].isExpanded() + p[2].isExpanded()));
+        assertSame(p[2], fx(() -> a[0].getExpandedPane()));
+        assertEquals("falsefalsetrue", fx(() -> "" + c1.isVisible() + c2.isVisible() + c3.isVisible()));
+        close(s);
+    }
+
+    @Test
+    void comboBoxValueSetBeforeTheSelectionModelIsUsedIsTheSelection() throws Exception {
+        // an application that sets the value at load and reads getSelectionModel().getSelectedItem() on validate
+        fx(() -> {
+            ComboBox<String> c = new ComboBox<>(FXCollections.observableArrayList("pulso", "usuario"));
+            c.setValue("usuario");
+            assertEquals("usuario", c.getSelectionModel().getSelectedItem());
+            assertEquals(1, c.getSelectionModel().getSelectedIndex());
+            ComboBox<String> outside = new ComboBox<>(FXCollections.observableArrayList("a"));
+            outside.setValue("fora");
+            assertEquals(-1, outside.getSelectionModel().getSelectedIndex(), "a value outside the items selects no index");
+            assertEquals("fora", outside.getSelectionModel().getSelectedItem());
+            return null;
+        });
+    }
+
+    @Test
     void comboBoxShowsTheConverterTextOfItsValueAndIsReadOnlyByDefault() throws Exception {
         ComboBox<Integer> combo = fx(() -> {
             ComboBox<Integer> c = new ComboBox<>(FXCollections.observableArrayList(1, 2, 3));
