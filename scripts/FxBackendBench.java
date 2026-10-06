@@ -229,6 +229,28 @@ public class FxBackendBench extends Application {
         status.setText("Registro " + record);
     }
 
+    /** The fields' values, toolkit-neutral (text, chosen item, selected, number, ISO date): equal in every version. */
+    @SuppressWarnings("unchecked")
+    private long stateHash() {
+        StringBuilder sb = new StringBuilder();
+        for (Control f : fields) {
+            if (f instanceof TextField) {
+                sb.append(((TextField) f).getText());
+            } else if (f instanceof ComboBox) {
+                sb.append(((ComboBox<String>) f).getValue());
+            } else if (f instanceof CheckBox) {
+                sb.append(((CheckBox) f).isSelected());
+            } else if (f instanceof Spinner) {
+                sb.append(((Spinner<Integer>) f).getValue());
+            } else if (f instanceof DatePicker) {
+                sb.append(((DatePicker) f).getValue());
+            }
+            sb.append('|');
+        }
+        sb.append(status.getText());
+        return sb.toString().hashCode() & 0xffffffffL;
+    }
+
     // ---- phases ----------------------------------------------------------------------------------
 
     @Override
@@ -264,6 +286,8 @@ public class FxBackendBench extends Application {
                         .forEach(e -> System.out.println("JX_THREAD sinceStart " + e.getValue() / 1_000_000 + " ms " + e.getKey()));
             }
             metric("first_frame_uptime_ms", ManagementFactory.getRuntimeMXBean().getUptime());
+            metric("private_first_frame_bytes", privateBytes());
+            metric("heap_committed_first_frame_bytes", MEMORY.getHeapMemoryUsage().getCommitted());
             metric("first_frame_process_cpu_ns", cpuNanos()); // everything since the JVM started, toolkit start-up included
             records(stage);
         });
@@ -283,6 +307,7 @@ public class FxBackendBench extends Application {
             metric("records_work_ns", work[0]);
             metric("records_cpu_ns", cpuNanos() - cpu);
             metric("records_allocated_bytes", allocatedBytes() - alloc);
+            metric("records_state_hash", stateHash());
             tabs(stage);
         });
     }
@@ -400,6 +425,9 @@ public class FxBackendBench extends Application {
         metric("gc_count", gcCount);
         metric("gc_time_ms", gcMillis);
         metric("heap_peak_bytes", peakHeap);
+        metric("private_end_bytes", privateBytes());
+        metric("heap_committed_end_bytes", MEMORY.getHeapMemoryUsage().getCommitted());
+        metric("nonheap_committed_end_bytes", MEMORY.getNonHeapMemoryUsage().getCommitted());
         metric("nonheap_bytes", MEMORY.getNonHeapMemoryUsage().getUsed());
         metric("allocated_total_bytes", allocatedBytes());
         metric("process_cpu_total_ns", cpuNanos());
@@ -517,6 +545,12 @@ public class FxBackendBench extends Application {
 
     static void metric(String name, long value) {
         System.out.println("JX_METRIC " + name + "=" + value);
+    }
+
+    /** The process's private bytes (on Windows, the committed virtual memory size the JVM reports). */
+    static long privateBytes() {
+        return ((com.sun.management.OperatingSystemMXBean) ManagementFactory.getOperatingSystemMXBean())
+                .getCommittedVirtualMemorySize();
     }
 
     static long cpuNanos() {
