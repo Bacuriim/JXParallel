@@ -34,6 +34,8 @@ import org.lwjgl.system.MemoryUtil;
 public final class JXWindow implements AutoCloseable {
     public static final String SKIA = "skia";
     public static final String NANOVG = "nanovg";
+    /** Painted on the CPU and shown with GDI: no OpenGL context (Windows; {@code -Djx.renderer=software}). */
+    public static final String SOFTWARE = "software";
     /** Two presses of the same button closer than this (ms and px) count as a double click, like Windows. */
     static final long MULTI_CLICK_MILLIS = 500;
     static final double MULTI_CLICK_DISTANCE = 4;
@@ -62,6 +64,9 @@ public final class JXWindow implements AutoCloseable {
     private volatile Consumer<JXInputEvent> inputListener;
     private boolean firstPaintReported;
     private Backend backend;
+    /** Software renderer: the minimum time between frames (one monitor refresh); 0 with OpenGL (vsync). */
+    private long frameIntervalNanos;
+    private long lastFrameNanos;
     private GLCapabilities capabilities;
     private double cursorX;
     private double cursorY;
@@ -83,6 +88,9 @@ public final class JXWindow implements AutoCloseable {
 
     static String selectRenderer() {
         String forced = System.getProperty("jx.renderer");
+        if (SOFTWARE.equalsIgnoreCase(forced) && JXGdiSurface.supported()) {
+            return SOFTWARE;
+        }
         if (forced != null && (SKIA.equalsIgnoreCase(forced) || NANOVG.equalsIgnoreCase(forced))) {
             return forced.toLowerCase(Locale.ROOT);
         }
@@ -294,6 +302,25 @@ public final class JXWindow implements AutoCloseable {
     }
 
     /**
+     * Paints {@code element} with the software renderer and returns the pixels, ARGB, row by row from
+     * the top. CPU only: no window, no OpenGL, any thread.
+     */
+    public static int[] captureSoftware(JXElement element, int width, int height) {
+        int[] argb = new int[Math.max(1, width * height)];
+        JXSoftwarePainter painter = new JXSoftwarePainter(argb, width, height, 1f);
+        painter.clear(JXSkiaRenderer.BACKGROUND);
+        JXNativeNode node = JXNativeNode.createBackendNode(element);
+        node.layoutForBackend(Math.max(1, width), Math.max(1, height));
+        new JXPaint(painter).paint(node);
+        return argb;
+    }
+
+    /** True when windows are painted by the software renderer ({@code -Djx.renderer=software}). */
+    public static boolean softwareRenderer() {
+        return SOFTWARE.equals(selectRenderer());
+    }
+
+    /**
      * Paints {@code element} with NanoVG in a hidden window and returns the pixels, ARGB, row by row
      * from the top. For screen comparisons on JVMs where only NanoVG runs (32-bit, Java 8).
      */
@@ -372,7 +399,8 @@ public final class JXWindow implements AutoCloseable {
         if (window != MemoryUtil.NULL || disposed) {
             return;
         }
-        long handle = JXDisplay.takeSpareWindow();
+        boolean software = SOFTWARE.equals(rendererName);
+        long handle = software ? MemoryUtil.NULL : JXDisplay.takeSpareWindow(); // the spare window has an OpenGL context
         boolean adopted = handle != MemoryUtil.NULL;
         if (adopted) {
             // the prewarmed hidden window, its OpenGL context already made: set it up as this window
@@ -384,7 +412,11 @@ public final class JXWindow implements AutoCloseable {
             GLFW.glfwSetWindowAttrib(handle, GLFW.GLFW_FOCUS_ON_SHOW, focusOnShow ? GLFW.GLFW_TRUE : GLFW.GLFW_FALSE);
         } else {
             GLFW.glfwDefaultWindowHints();
-            GLFW.glfwWindowHint(GLFW.GLFW_STENCIL_BITS, 8);
+            if (software) {
+                GLFW.glfwWindowHint(GLFW.GLFW_CLIENT_API, GLFW.GLFW_NO_API); // no OpenGL context: no driver memory
+            } else {
+                GLFW.glfwWindowHint(GLFW.GLFW_STENCIL_BITS, 8);
+            }
             GLFW.glfwWindowHint(GLFW.GLFW_VISIBLE, GLFW.GLFW_FALSE);
             GLFW.glfwWindowHint(GLFW.GLFW_RESIZABLE, resizable ? GLFW.GLFW_TRUE : GLFW.GLFW_FALSE);
             GLFW.glfwWindowHint(GLFW.GLFW_DECORATED, decorated ? GLFW.GLFW_TRUE : GLFW.GLFW_FALSE);
@@ -402,16 +434,22 @@ public final class JXWindow implements AutoCloseable {
         }
         place(handle);
         installCallbacks(handle);
-        GLFW.glfwMakeContextCurrent(handle);
-        GLFW.glfwSwapInterval(1);
-        if (adopted && JXDisplay.spareCapabilities() != null) {
-            capabilities = JXDisplay.spareCapabilities();
-            GL.setCapabilities(capabilities);
+        if (software) {
+            backend = new SoftwareBackend(org.lwjgl.glfw.GLFWNativeWin32.glfwGetWin32Window(handle));
+            org.lwjgl.glfw.GLFWVidMode mode = GLFW.glfwGetVideoMode(GLFW.glfwGetPrimaryMonitor());
+            frameIntervalNanos = 1_000_000_000L / Math.max(30, mode != null && mode.refreshRate() > 0 ? mode.refreshRate() : 60);
         } else {
-            capabilities = GL.createCapabilities();
+            GLFW.glfwMakeContextCurrent(handle);
+            GLFW.glfwSwapInterval(1);
+            if (adopted && JXDisplay.spareCapabilities() != null) {
+                capabilities = JXDisplay.spareCapabilities();
+                GL.setCapabilities(capabilities);
+            } else {
+                capabilities = GL.createCapabilities();
+            }
+            // The Skia class is only loaded here, so 32-bit JVMs never touch Skija.
+            backend = NANOVG.equals(rendererName) ? new NanoVGBackend() : new SkiaBackend();
         }
-        // The Skia class is only loaded here, so 32-bit JVMs never touch Skija.
-        backend = NANOVG.equals(rendererName) ? new NanoVGBackend() : new SkiaBackend();
         JXDisplay.add(this);
         GLFW.glfwShowWindow(handle);
         requestRender();
@@ -448,7 +486,12 @@ public final class JXWindow implements AutoCloseable {
             }
             requestRender();
         });
-        GLFW.glfwSetWindowRefreshCallback(handle, h -> requestRender());
+        GLFW.glfwSetWindowRefreshCallback(handle, h -> {
+            if (backend instanceof SoftwareBackend) {
+                ((SoftwareBackend) backend).exposed = true; // GDI keeps no copy of an uncovered window
+            }
+            requestRender();
+        });
         GLFW.glfwSetWindowFocusCallback(handle, (h, focused) ->
                 deliver(JXInputEvent.window(focused ? JXInputEvent.Kind.FOCUS_GAINED : JXInputEvent.Kind.FOCUS_LOST, width, height)));
         GLFW.glfwSetWindowCloseCallback(handle, h -> {
@@ -579,7 +622,17 @@ public final class JXWindow implements AutoCloseable {
         if (fbWidth[0] <= 0 || fbHeight[0] <= 0 || winWidth[0] <= 0 || winHeight[0] <= 0) {
             return; // minimized
         }
-        if (GLFW.glfwGetCurrentContext() != window) {
+        if (frameIntervalNanos > 0) {
+            // no vertical sync without OpenGL: at most one frame per refresh of the monitor
+            long now = System.nanoTime();
+            long due = lastFrameNanos + frameIntervalNanos;
+            if (now < due) {
+                renderRequested.set(true);
+                JXDisplay.wakeAt(due);
+                return;
+            }
+            lastFrameNanos = now;
+        } else if (GLFW.glfwGetCurrentContext() != window) {
             // switching contexts is costly on Windows (wglMakeCurrent); with one window it is already current
             GLFW.glfwMakeContextCurrent(window);
             GL.setCapabilities(capabilities);
@@ -592,7 +645,9 @@ public final class JXWindow implements AutoCloseable {
         } else {
             backend.render(root, fbWidth[0], fbHeight[0], winWidth[0], winHeight[0]);
         }
-        GLFW.glfwSwapBuffers(window);
+        if (frameIntervalNanos == 0) {
+            GLFW.glfwSwapBuffers(window);
+        }
         if (!firstPaintReported) {
             firstPaintReported = true;
             if (backend instanceof NanoVGBackend) {
@@ -613,13 +668,18 @@ public final class JXWindow implements AutoCloseable {
             return;
         }
         JXDisplay.remove(this);
-        GLFW.glfwMakeContextCurrent(handle);
-        GL.setCapabilities(capabilities);
+        boolean gl = capabilities != null;
+        if (gl) {
+            GLFW.glfwMakeContextCurrent(handle);
+            GL.setCapabilities(capabilities);
+        }
         if (backend != null) {
             backend.close();
             backend = null;
         }
-        GLFW.glfwMakeContextCurrent(MemoryUtil.NULL);
+        if (gl) {
+            GLFW.glfwMakeContextCurrent(MemoryUtil.NULL);
+        }
         GLFW.glfwDestroyWindow(handle);
         window = MemoryUtil.NULL;
     }
@@ -704,6 +764,40 @@ public final class JXWindow implements AutoCloseable {
         public void close() {
             closeSurface();
             context.close();
+        }
+    }
+
+    /** The CPU painter shown with GDI ({@link JXSoftwarePainter}, {@link JXGdiSurface}). */
+    private static final class SoftwareBackend implements Backend {
+        private final JXGdiSurface surface;
+        private final JXSoftwareFrame frame = new JXSoftwareFrame();
+        private final int[] whole = new int[4];
+        /** The window was uncovered: show the whole frame again, even if nothing changed. */
+        boolean exposed = true;
+
+        SoftwareBackend(long hwnd) {
+            surface = new JXGdiSurface(hwnd);
+        }
+
+        @Override
+        public void render(JXNativeNode root, int fbWidth, int fbHeight, int winWidth, int winHeight) {
+            if (root != null) {
+                root.layoutForBackend(Math.max(1, winWidth), Math.max(1, winHeight));
+            }
+            int rects = frame.paint(root, fbWidth, fbHeight, (float) fbWidth / winWidth);
+            if (exposed) {
+                exposed = false;
+                whole[2] = fbWidth;
+                whole[3] = fbHeight;
+                surface.present(frame.pixels(), fbWidth, fbHeight, whole, 1);
+            } else if (rects > 0) {
+                surface.present(frame.pixels(), fbWidth, fbHeight, frame.damaged(), rects);
+            }
+        }
+
+        @Override
+        public void close() {
+            surface.close();
         }
     }
 
