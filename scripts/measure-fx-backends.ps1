@@ -18,6 +18,8 @@
 # column; process memory (working set, private bytes) is sampled outside the JVM every 10 ms.
 
 $ErrorActionPreference = "Stop"
+# "a,b" in one argument (powershell -File passes lists as text)
+$Cases = @($Cases | ForEach-Object { $_ -split "," } | Where-Object { $_ })
 [System.Threading.Thread]::CurrentThread.CurrentCulture = [Globalization.CultureInfo]::InvariantCulture
 
 function Invoke-Case([string]$Name, [int]$Run) {
