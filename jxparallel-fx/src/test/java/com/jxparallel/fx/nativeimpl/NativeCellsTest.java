@@ -69,6 +69,38 @@ class NativeCellsTest extends NativeTestSupport {
     }
 
     @Test
+    void aCellPlacedByTheApplicationGetsItsItemOnUpdateIndex() throws Exception {
+        // as in JavaFX: updateTableView/Column/Row and updateIndex run the cell's updateItem
+        fx(() -> {
+            TableView<Row> table = new TableView<>(FXCollections.observableArrayList(new Row("Ana", 30, true), new Row("Bia", 40, false)));
+            TableColumn<Row, Object> name = column("Nome", "name");
+            table.getColumns().add(name);
+            List<String> seen = new ArrayList<>();
+            TableCell<Row, Object> cell = new TableCell<Row, Object>() {
+                @Override
+                protected void updateItem(Object item, boolean empty) {
+                    super.updateItem(item, empty);
+                    seen.add(empty ? "vazia" : item + "/" + getTableRow().getItem());
+                    setGraphic(empty ? null : new Button(String.valueOf(item)));
+                }
+            };
+            TableRow<Row> row = new TableRow<>();
+            row.updateTableView(table);
+            row.updateIndex(1);
+            assertEquals("row Bia", String.valueOf(row.getItem()));
+            cell.updateTableView(table);
+            cell.updateTableColumn(name);
+            cell.updateTableRow(row);
+            cell.updateIndex(1);
+            assertEquals(Arrays.asList("Bia/row Bia"), seen);
+            assertEquals("Bia", ((Button) cell.getGraphic()).getText());
+            cell.updateIndex(7);
+            assertEquals("vazia", seen.get(seen.size() - 1), "outside the items the cell is empty");
+            return null;
+        });
+    }
+
+    @Test
     void propertyValueFactoryUsesPropertiesGettersAndIsGetters() throws Exception {
         TableView<Row>[] table = new TableView[1];
         NativeScene s = show(fx(() -> {

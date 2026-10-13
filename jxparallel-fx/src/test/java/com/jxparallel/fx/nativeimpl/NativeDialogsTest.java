@@ -24,6 +24,7 @@ import javafx.application.Platform;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
+import static org.junit.jupiter.api.Assertions.assertSame;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
 /** Dialogs block in a nested event loop, like JavaFX, while the test clicks their buttons. */
@@ -65,6 +66,129 @@ class NativeDialogsTest extends NativeTestSupport {
         });
         assertEquals(ButtonType.CANCEL, result.get());
         assertEquals(windows, (int) fx(() -> NativeRuntime.SCENES.size()), "the dialog window is closed");
+    }
+
+    @Test
+    void theResultIsTheButtonTypeConstantItselfAsApplicationsCompareWithEqualsEquals() throws Exception {
+        // a confirmation dialog: if (result.get() == ButtonType.OK)
+        Optional<ButtonType> result = fx(() -> {
+            Alert alert = new Alert(Alert.AlertType.CONFIRMATION, "Copiar?");
+            clickLater(ButtonType.OK.getText());
+            return alert.showAndWait();
+        });
+        assertSame(ButtonType.OK, result.get());
+        // the same with the button fired by code, from a callback queued while the alert shows
+        Optional<ButtonType> fired = fx(() -> {
+            Alert alert = new Alert(Alert.AlertType.CONFIRMATION, "Copiar?");
+            com.jxparallel.fx.application.Platform.runLater(() -> ((Button) alert.getDialogPane().lookupButton(ButtonType.OK)).fire());
+            return alert.showAndWait();
+        });
+        assertSame(ButtonType.OK, fired.get());
+    }
+
+    @Test
+    void anAlertFromATaskCallbackInsideAModalStageReturnsTheClickedButton() throws Exception {
+        // a modal dialog: a modal stage (showAndWait); its button starts a Task whose
+        // onSucceeded asks with an Alert and closes the stage on OK
+        List<Object> seen = new ArrayList<>();
+        fx(() -> {
+            com.jxparallel.fx.stage.Stage stage = new com.jxparallel.fx.stage.Stage();
+            stage.initModality(com.jxparallel.fx.stage.Modality.APPLICATION_MODAL);
+            Button confirm = new Button("Copiar");
+            confirm.setOnAction(e -> {
+                com.jxparallel.fx.concurrent.Task<String> task = new com.jxparallel.fx.concurrent.Task<String>() {
+                    @Override
+                    protected String call() {
+                        return "info";
+                    }
+                };
+                task.setOnSucceeded(done -> {
+                    Alert alert = new Alert(Alert.AlertType.CONFIRMATION);
+                    alert.setTitle("Confirmação de Cópia");
+                    com.jxparallel.fx.application.Platform.runLater(() -> ((Button) alert.getDialogPane().lookupButton(ButtonType.OK)).fire());
+                    Optional<ButtonType> r = alert.showAndWait();
+                    seen.add(r.isPresent() ? r.get() : "vazio");
+                    if (r.isPresent() && r.get() == ButtonType.OK) {
+                        stage.close();
+                    }
+                });
+                new Thread(task).start();
+            });
+            stage.setScene(new com.jxparallel.fx.scene.Scene(new VBox(confirm), 200, 100));
+            com.jxparallel.fx.application.Platform.runLater(confirm::fire);
+            stage.showAndWait();
+            seen.add("fechou");
+            return null;
+        });
+        assertEquals(2, seen.size(), String.valueOf(seen));
+        assertSame(ButtonType.OK, seen.get(0));
+        assertEquals("fechou", seen.get(1));
+    }
+
+    @Test
+    void theDialogsWindowExistsBeforeItShowsAndIsTheOneShown() throws Exception {
+        // applications set the alert's icon through getDialogPane().getScene().getWindow() before show()
+        Alert alert = fx(() -> new Alert(Alert.AlertType.ERROR, "Senha inválida"));
+        com.jxparallel.fx.stage.Stage early = fx(() -> (com.jxparallel.fx.stage.Stage) alert.getDialogPane().getScene().getWindow());
+        assertNotNull(early, "the pane's scene has the dialog's window before show");
+        assertEquals(com.jxparallel.fx.stage.Modality.NONE, fx(() -> new com.jxparallel.fx.stage.Stage().getModality()),
+                "a stage's modality defaults to NONE, as in JavaFX");
+        fx(() -> {
+            alert.setTitle("Erro");
+            alert.show();
+            return null;
+        });
+        assertTrue(fx(() -> early.isShowing()), "show() shows that same window");
+        assertEquals("Erro", fx(() -> early.getTitle()));
+        fx(() -> {
+            alert.close();
+            return null;
+        });
+        assertFalse(fx(() -> early.isShowing()));
+    }
+
+    @Test
+    void eventsTheApplicationFiresReachTheHandlersAlsoAfterAnAlert() throws Exception {
+        List<String> clicks = new ArrayList<>();
+        VBox[] menu = new VBox[1];
+        com.jxparallel.fx.stage.Stage stage = fx(() -> {
+            menu[0] = new VBox(new Label("Fichas"));
+            menu[0].setOnMouseClicked(e -> clicks.add("menu"));
+            com.jxparallel.fx.stage.Stage st = new com.jxparallel.fx.stage.Stage();
+            st.setScene(new com.jxparallel.fx.scene.Scene(new VBox(menu[0]), 200, 100));
+            st.show();
+            return st;
+        });
+        fx(() -> {
+            com.jxparallel.fx.event.Event.fireEvent(menu[0], new com.jxparallel.fx.scene.input.MouseEvent(
+                    com.jxparallel.fx.scene.input.MouseEvent.MOUSE_CLICKED, 1, 1, 1, 1, com.jxparallel.fx.scene.input.MouseButton.PRIMARY, 1,
+                    false, false, false, false, true, false, false, true, false, true, null));
+            return null;
+        });
+        assertEquals(java.util.Arrays.asList("menu"), clicks, "before the alert");
+        clicks.clear();
+        Alert alert = fx(() -> {
+            Alert a = new Alert(Alert.AlertType.WARNING);
+            a.setHeaderText("Existem categorias inválidas");
+            a.show();
+            return a;
+        });
+        fx(() -> {
+            ((Button) alert.getDialogPane().lookupButton(ButtonType.OK)).fire();
+            return null;
+        });
+        assertFalse(fx(alert::isShowing), "OK closed the alert");
+        fx(() -> {
+            com.jxparallel.fx.event.Event.fireEvent(menu[0], new com.jxparallel.fx.scene.input.MouseEvent(
+                    com.jxparallel.fx.scene.input.MouseEvent.MOUSE_CLICKED, 1, 1, 1, 1, com.jxparallel.fx.scene.input.MouseButton.PRIMARY, 1,
+                    false, false, false, false, true, false, false, true, false, true, null));
+            return null;
+        });
+        assertEquals(java.util.Arrays.asList("menu"), clicks);
+        fx(() -> {
+            stage.hide();
+            return null;
+        });
     }
 
     @Test

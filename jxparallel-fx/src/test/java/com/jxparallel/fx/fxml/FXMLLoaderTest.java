@@ -33,9 +33,23 @@ class FXMLLoaderTest {
 
         assertEquals("Title", controller.title.getText());
         assertEquals(3, (int) controller.spinner.getValue());
-        assertSame(com.jxparallel.fx.scene.layout.GridPane.class, root.getChildren().get(1).getClass());
+        assertSame(com.jxparallel.fx.scene.layout.GridPane.class, root.getChildren().get(2).getClass());
         assertNotNull(controller.innerController.field);
         assertSame(controller.inner, controller.innerController.field.getParent());
+        // as FXMLLoader: the include's fx:id is the id only of an included root without one
+        assertEquals("inner", root.getChildren().get(3).getId());
+        assertEquals("own", root.getChildren().get(4).getId());
+        // FXMLLoader's escape: "\%" is the text "%"
+        assertEquals("%", ((com.jxparallel.fx.scene.control.Label) root.getChildren().get(1)).getText());
+    }
+
+    @Test
+    void theHandlerIsTheMethodTakingAnEventOrNothingNotAnotherOverload() throws Exception {
+        FXMLLoader loader = new FXMLLoader(getClass().getResource("Handlers.fxml"));
+        loader.load();
+        HandlersController controller = loader.getController();
+        controller.button.fire();
+        assertEquals("open()", controller.called);
     }
 
     @Test

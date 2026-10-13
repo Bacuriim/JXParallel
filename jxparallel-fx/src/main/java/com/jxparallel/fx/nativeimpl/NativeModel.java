@@ -34,7 +34,7 @@ public final class NativeModel implements Fx.Owned, EventTarget {
      */
     final Map<String, Object> state = new StateMap(this);
     /** Child models (JavaFX-side list: elements are models, the JX view converts them). */
-    final ObservableList<Object> children = FXCollections.observableArrayList();
+    final ObservableList<Object> children = new Children(this);
     NativeModel parent;
     private Object owner;
 
@@ -108,8 +108,23 @@ public final class NativeModel implements Fx.Owned, EventTarget {
     }
 
     @Override
+    /**
+     * Input from the window is dispatched by the native runtime (NativeEvents). An event the
+     * application fires itself (Event.fireEvent, Node.fireEvent) comes here and goes, as in JavaFX,
+     * through the filters from the window down to this node and the handlers back up.
+     */
     public EventDispatchChain buildEventDispatchChain(EventDispatchChain tail) {
-        return tail; // the native runtime dispatches itself (NativeEvents)
+        NativeModel target = this;
+        return tail.append((event, rest) -> {
+            java.util.List<NativeModel> path = new java.util.ArrayList<>();
+            for (NativeModel m = target; m != null; m = m.getParent()) {
+                path.add(0, m);
+            }
+            NativeScene s = NativeRuntime.windowOf(target);
+            java.util.List<NativeModel> chain = s != null ? NativeEvents.withWindow(s, path) : path;
+            boolean consumed = NativeEvents.dispatch(s, chain, n -> event.copyFor(n, target));
+            return consumed ? null : event;
+        });
     }
 
     public NativeModel getParent() {
@@ -157,6 +172,100 @@ public final class NativeModel implements Fx.Owned, EventTarget {
                 NativeElements.invalidate(owner);
             }
             return old;
+        }
+    }
+
+    /**
+     * A node's children, checked as JavaFX's Parent checks them before any change: a child already
+     * in the list (or twice in what is added) is refused with IllegalArgumentException, a null child
+     * with NullPointerException, and the list is left as it was.
+     */
+    static final class Children extends javafx.collections.ModifiableObservableListBase<Object> {
+        private final java.util.ArrayList<Object> items = new java.util.ArrayList<>();
+        private final NativeModel owner;
+
+        Children(NativeModel owner) {
+            this.owner = owner;
+        }
+
+        @Override
+        public Object get(int index) {
+            return items.get(index);
+        }
+
+        @Override
+        public int size() {
+            return items.size();
+        }
+
+        @Override
+        protected void doAdd(int index, Object element) {
+            check(java.util.Collections.singletonList(element), -1);
+            items.add(index, element);
+        }
+
+        @Override
+        protected Object doSet(int index, Object element) {
+            check(java.util.Collections.singletonList(element), index);
+            return items.set(index, element);
+        }
+
+        @Override
+        protected Object doRemove(int index) {
+            return items.remove(index);
+        }
+
+        @Override
+        public boolean addAll(java.util.Collection<?> c) {
+            check(c, -1);
+            return super.addAll(c);
+        }
+
+        @Override
+        public boolean addAll(int index, java.util.Collection<?> c) {
+            check(c, -1);
+            return super.addAll(index, c);
+        }
+
+        @Override
+        public boolean setAll(java.util.Collection<?> c) {
+            java.util.Set<Object> seen = java.util.Collections.newSetFromMap(new java.util.IdentityHashMap<>());
+            for (Object o : c) {
+                if (o == null) {
+                    throw new NullPointerException("Child cannot be null");
+                }
+                if (!seen.add(o)) {
+                    throw duplicate();
+                }
+            }
+            return super.setAll(c);
+        }
+
+        /** {@code replacing}: the index a set() overwrites (its current child may be the same node). */
+        private void check(java.util.Collection<?> added, int replacing) {
+            java.util.Set<Object> seen = java.util.Collections.newSetFromMap(new java.util.IdentityHashMap<>());
+            for (Object o : added) {
+                if (o == null) {
+                    throw new NullPointerException("Child cannot be null");
+                }
+                int at = indexOfIdentity(o);
+                if (!seen.add(o) || (at >= 0 && at != replacing)) {
+                    throw duplicate();
+                }
+            }
+        }
+
+        private int indexOfIdentity(Object o) {
+            for (int i = 0; i < items.size(); i++) {
+                if (items.get(i) == o) {
+                    return i;
+                }
+            }
+            return -1;
+        }
+
+        private IllegalArgumentException duplicate() {
+            return new IllegalArgumentException("Children: duplicate children added: parent = " + Fx.jx(owner));
         }
     }
 }

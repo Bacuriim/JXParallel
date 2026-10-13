@@ -460,7 +460,7 @@ public class Dialog<R> implements com.jxparallel.fx.event.EventTarget, com.jxpar
         if (com.jxparallel.fx.Fx.NATIVE) {
             return (java.util.Optional) com.jxparallel.fx.nativeimpl.Native.call(this, com.jxparallel.fx.scene.control.Dialog.class, "showAndWait", new Class<?>[] {}, java.util.Optional.class);
         }
-        return ((javafx.scene.control.Dialog) fxPeer()).showAndWait();
+        return (java.util.Optional) ((java.util.Optional<Object>) (java.util.Optional) ((javafx.scene.control.Dialog) fxPeer()).showAndWait()).map(com.jxparallel.fx.Fx::jx);
     }
 
     public com.jxparallel.fx.beans.property.ReadOnlyBooleanProperty showingProperty() {

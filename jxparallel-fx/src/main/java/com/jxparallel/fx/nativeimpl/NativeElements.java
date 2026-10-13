@@ -361,6 +361,7 @@ public final class NativeElements {
                 return JXElement.of("separator", p.build());
             }
             case "TitledPane": {
+                NativeBehavior.skin(m, expanded);
                 labeled(m, p);
                 p.set("label", string(m, "text"))
                         .set("expanded", expanded != null ? expanded : !Boolean.FALSE.equals(Native.value(m, "expanded")))

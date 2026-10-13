@@ -542,7 +542,7 @@ final class NativeEvents {
     }
 
     @SuppressWarnings("unchecked")
-    private static void handlers(NativeModel m, String kind, Event event) {
+    static void handlers(NativeModel m, String kind, Event event) {
         Object list = m.values.get(kind);
         if (!(list instanceof List) || ((List<?>) list).isEmpty()) {
             return;

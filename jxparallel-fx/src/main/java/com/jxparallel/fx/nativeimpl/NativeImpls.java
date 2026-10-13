@@ -82,6 +82,33 @@ final class NativeImpls {
         Native.register("ChoiceBox.getSelectionModel()", (self, m, a) -> Fx.jx(once(m, "selectionModel", () -> new NativeSelection.Single(m, "items", true))));
         Native.register("TabPane.getSelectionModel()", (self, m, a) -> Fx.jx(NativeRuntime.tabSelection(m)));
         Native.register("ListView.getSelectionModel()", (self, m, a) -> Fx.jx(once(m, "selectionModel", () -> new NativeSelection.Multiple(m, "items"))));
+        // Pagination's checks, as in JavaFX 8: the page index stays within the pages, and a page
+        // count below 1 is ignored (lowering the count leaves the index as it was).
+        Native.register("Pagination.currentPageIndexProperty()", (self, m, a) -> Fx.jx(pageIndex(m)));
+        Native.register("Pagination.setCurrentPageIndex(int)", (self, m, a) -> {
+            pageIndex(m).setValue(a[0]);
+            return null;
+        });
+        Native.register("Pagination.pageCountProperty()", (self, m, a) -> Fx.jx(pageCount(m)));
+        Native.register("Pagination.setPageCount(int)", (self, m, a) -> {
+            pageCount(m).setValue(a[0]);
+            return null;
+        });
+
+        // TitledPane and Accordion expansion as JavaFX 8 keeps it (one open pane, content visibility).
+        Native.register("TitledPane.setExpanded(boolean)", (self, m, a) -> {
+            NativeBehavior.setExpanded(m, (Boolean) a[0]);
+            return null;
+        });
+        Native.register("Accordion.setExpandedPane(TitledPane)", (self, m, a) -> {
+            NativeBehavior.setExpandedPane(m, NativeElements.model(a[0]));
+            return null;
+        });
+
+        // A column's table and the value it shows for a row, as TableColumn computes them.
+        Native.register("TableColumn.getTableView()", (self, m, a) -> Fx.jx(NativeCells.tableOf(m)));
+        Native.register("TableColumnBase.getCellData(int)", (self, m, a) -> Fx.jx(NativeCells.cellData(m, (Integer) a[0])));
+        Native.register("TableColumnBase.getCellData(Object)", (self, m, a) -> Fx.jx(NativeCells.cellDataOfItem(m, Fx.fx(a[0]))));
         for (String control : new String[]{"Spinner", "ComboBox", "DatePicker"}) {
             Native.register(control + ".getEditor()", (self, m, a) -> once(m, "editor", com.jxparallel.fx.scene.control.TextField::new));
         }
@@ -207,11 +234,56 @@ final class NativeImpls {
     /** A value created on first use and kept on the node (JavaFX creates these with the control). */
     private static Object once(NativeModel m, String name, java.util.function.Supplier<Object> create) {
         Object v = m.values.get(name);
+        if (v instanceof javafx.beans.value.ObservableValue) {
+            return ((javafx.beans.value.ObservableValue<?>) v).getValue(); // the application set its own (setSelectionModel)
+        }
         if (v == null) {
             v = create.get();
             m.values.put(name, v);
         }
         return v;
+    }
+
+    /**
+     * The page index property: a value outside the pages is pulled in before anyone is notified,
+     * as JavaFX does in the property's invalidated(), so listeners never see it.
+     */
+    @SuppressWarnings("unchecked")
+    static javafx.beans.property.Property<Object> pageIndex(NativeModel m) {
+        Object existing = m.values.get("currentPageIndex");
+        if (existing instanceof javafx.beans.property.Property) {
+            return (javafx.beans.property.Property<Object>) existing;
+        }
+        javafx.beans.property.SimpleIntegerProperty p = new javafx.beans.property.SimpleIntegerProperty(m, "currentPageIndex") {
+            @Override
+            public void set(int index) {
+                int count = (int) NativeElements.number(m, "pageCount", Integer.MAX_VALUE);
+                super.set(Math.max(0, Math.min(index, count - 1)));
+            }
+        };
+        m.values.put("currentPageIndex", p);
+        p.set(existing instanceof Number ? ((Number) existing).intValue() : 0);
+        return (javafx.beans.property.Property<Object>) (Object) p;
+    }
+
+    /** The page count property, which keeps its value when set below 1. */
+    @SuppressWarnings("unchecked")
+    static javafx.beans.property.Property<Object> pageCount(NativeModel m) {
+        Object existing = m.values.get("pageCount");
+        if (existing instanceof javafx.beans.property.Property) {
+            return (javafx.beans.property.Property<Object>) existing;
+        }
+        javafx.beans.property.SimpleIntegerProperty p = new javafx.beans.property.SimpleIntegerProperty(m, "pageCount",
+                existing instanceof Number ? ((Number) existing).intValue() : Integer.MAX_VALUE) {
+            @Override
+            public void set(int count) {
+                if (count >= 1) {
+                    super.set(count);
+                }
+            }
+        };
+        m.values.put("pageCount", p);
+        return (javafx.beans.property.Property<Object>) (Object) p;
     }
 
     static javafx.scene.control.SpinnerValueFactory<?> factory(NativeModel m) {

@@ -33,6 +33,23 @@ class FxBoundaryTest {
     }
 
     @Test
+    void showAndWaitGivesTheJxButtonType() throws Exception {
+        // the application compares result.get() == ButtonType.OK
+        java.util.concurrent.CompletableFuture<Object> result = new java.util.concurrent.CompletableFuture<>();
+        // the dialog is the only window: closing it must not end the toolkit the next test classes use
+        javafx.application.Platform.setImplicitExit(false);
+        javafx.application.Platform.runLater(() -> {
+            com.jxparallel.fx.scene.control.Dialog<com.jxparallel.fx.scene.control.ButtonType> dialog =
+                    new com.jxparallel.fx.scene.control.Dialog<>();
+            dialog.getDialogPane().getButtonTypes().add(com.jxparallel.fx.scene.control.ButtonType.OK);
+            javafx.application.Platform.runLater(() -> ((com.jxparallel.fx.scene.control.Button) dialog.getDialogPane()
+                    .lookupButton(com.jxparallel.fx.scene.control.ButtonType.OK)).fire());
+            result.complete(dialog.showAndWait().orElse(null));
+        });
+        assertSame(com.jxparallel.fx.scene.control.ButtonType.OK, result.get(10, java.util.concurrent.TimeUnit.SECONDS));
+    }
+
+    @Test
     void childrenComeBackAsTheSameJxObjects() {
         VBox box = new VBox();
         Label label = new Label("a");

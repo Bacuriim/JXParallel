@@ -48,6 +48,20 @@ final class NativeSelection {
                         syncing = false;
                     }
                 });
+                // the model is made on first use: a value set before that is already the selection,
+                // as in JavaFX, whose ComboBox has its selection model from the start
+                Object value = Native.value(model, "value");
+                if (value != null) {
+                    syncing = true;
+                    int index = Native.list(model, items).indexOf(value);
+                    if (index < 0) {
+                        setSelectedIndex(-1);
+                        setSelectedItem(value);
+                    } else {
+                        select(index);
+                    }
+                    syncing = false;
+                }
             }
         }
 

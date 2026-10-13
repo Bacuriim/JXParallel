@@ -40,6 +40,7 @@ public final class Native {
     private static final Set<String> MISSING = new ConcurrentSkipListSet<>();
     /** JavaFX defaults that differ from the Java default of the type. */
     private static final Map<String, Object> DEFAULTS = new HashMap<>();
+    private static final Set<String> BORDER_SLOTS = new java.util.HashSet<>(java.util.Arrays.asList("top", "left", "center", "right", "bottom"));
     private static volatile Consumer<NativeModel> onChange = model -> { };
 
     static {
@@ -389,7 +390,66 @@ public final class Native {
             created.addListener((obs, before, after) -> changed(model, name, after));
         }
         model.values.put(name, created);
+        if (BORDER_SLOTS.contains(name) && model.is(javafx.scene.layout.BorderPane.class)) {
+            // as in JavaFX, a BorderPane's top/left/center/right/bottom are also its children
+            NativeModel first = NativeElements.model(created.getValue());
+            if (first != null && !model.children.contains(first)) {
+                model.children.add(first);
+            }
+            ((Property<Object>) created).addListener((o, before, after) -> {
+                NativeModel old = NativeElements.model(before);
+                NativeModel now = NativeElements.model(after);
+                if (old != null) {
+                    model.children.remove(old);
+                }
+                if (now != null && !model.children.contains(now)) {
+                    model.children.add(now);
+                }
+            });
+        }
+        if (("disable".equals(name) || "content".equals(name)) && model.is(javafx.scene.control.Tab.class)) {
+            // as JavaFX 8's Tab.updateDisabled(): the content takes the tab's disabled state whenever
+            // the tab's disable or its content changes
+            created.addListener(o -> tabDisabled(model));
+        }
+        if ("valueFactory".equals(name) && model.is(javafx.scene.control.Spinner.class)) {
+            // as Spinner: the editor shows the value when the factory is set and whenever the value
+            // changes, and only then (text the application puts in the editor stays until the next change)
+            javafx.beans.value.ChangeListener<Object> follow = (o, before, after) ->
+                    NativeText.syncSpinner(model, NativeText.editor(model), true);
+            followFactory(model, created.getValue(), follow);
+            ((Property<Object>) created).addListener((o, before, after) -> {
+                if (before instanceof javafx.scene.control.SpinnerValueFactory) {
+                    ((javafx.scene.control.SpinnerValueFactory<Object>) before).valueProperty().removeListener(follow);
+                }
+                followFactory(model, after, follow);
+            });
+        }
+        if ("value".equals(name) && !model.values.containsKey("selectionModel")
+                && (model.is(javafx.scene.control.ComboBox.class) || model.is(javafx.scene.control.ChoiceBox.class))) {
+            // JavaFX's combo boxes follow their value from the constructor on, so the selection is already
+            // the new value when the application's own value listeners run
+            model.values.put("selectionModel", new NativeSelection.Single(model, "items", true));
+        }
         return created;
+    }
+
+    private static void tabDisabled(NativeModel tab) {
+        NativeModel content = NativeElements.model(value(tab, "content"));
+        if (content == null) {
+            return;
+        }
+        // (JavaFX also counts a disabled TabPane here; that case is not followed yet)
+        property(content, "disable", boolean.class).setValue(Boolean.TRUE.equals(value(tab, "disable")));
+        changed(content);
+    }
+
+    @SuppressWarnings("unchecked")
+    private static void followFactory(NativeModel spinner, Object factory, javafx.beans.value.ChangeListener<Object> follow) {
+        if (factory instanceof javafx.scene.control.SpinnerValueFactory) {
+            ((javafx.scene.control.SpinnerValueFactory<Object>) factory).valueProperty().addListener(follow);
+            NativeText.syncSpinner(spinner, NativeText.editor(spinner), true);
+        }
     }
 
     /** Reads the value without boxing, so the property is valid again and reports its next change. */

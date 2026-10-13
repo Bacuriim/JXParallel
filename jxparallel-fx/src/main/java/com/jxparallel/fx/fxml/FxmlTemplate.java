@@ -233,6 +233,11 @@ public final class FxmlTemplate {
         return null;
     }
 
+    /** An event parameter, of the JX API or of JavaFX's (an application may use either). */
+    private static boolean isEventType(Class<?> type) {
+        return com.jxparallel.fx.event.Event.class.isAssignableFrom(type) || javafx.event.Event.class.isAssignableFrom(type);
+    }
+
     private static boolean annotated(java.lang.reflect.AnnotatedElement element, String simpleName) {
         return annotation(element, simpleName) != null;
     }
@@ -478,7 +483,10 @@ public final class FxmlTemplate {
                     }
                     continue;
                 }
-                if (value.startsWith("$") || value.startsWith("%")) {
+                if (value.startsWith("\\")) {
+                    // FXMLLoader's escape: "\%", "\$", "\@" and "\\" are the literal text without the backslash
+                    value = value.substring(1);
+                } else if (value.startsWith("$") || value.startsWith("%")) {
                     throw new Unsupported("Expression or resource value: " + name + "=\"" + value + "\"");
                 }
                 if (name.indexOf('.') > 0) {
@@ -581,7 +589,9 @@ public final class FxmlTemplate {
             String fxId = fxAttribute(element, "id");
             if (fxId != null && !fxId.isEmpty()) {
                 plan.steps.add((target, context) -> {
-                    if (hasIdProperty(target.getClass())) {
+                    // as FXMLLoader: the include's fx:id becomes the id only of a root without one
+                    if (hasIdProperty(target.getClass())
+                            && target.getClass().getMethod("getId").invoke(target) == null) {
                         target.getClass().getMethod("setId", String.class).invoke(target, fxId);
                     }
                 });
@@ -771,8 +781,12 @@ public final class FxmlTemplate {
             Method target = null;
             for (Class<?> c = controllerType; c != null && c != Object.class && target == null; c = c.getSuperclass()) {
                 for (Method method : c.getDeclaredMethods()) {
-                    if (method.getName().equals(methodName) && method.getParameterTypes().length <= 1
-                            && (target == null || method.getParameterTypes().length == 1)) {
+                    // as FXMLLoader: only a method taking an event, else one taking nothing (an
+                    // overload with another parameter type, such as setItems(Record), is not a handler)
+                    Class<?>[] params = method.getParameterTypes();
+                    boolean takesEvent = params.length == 1 && isEventType(params[0]);
+                    if (method.getName().equals(methodName) && (params.length == 0 || takesEvent)
+                            && (target == null || takesEvent)) {
                         target = method;
                     }
                 }

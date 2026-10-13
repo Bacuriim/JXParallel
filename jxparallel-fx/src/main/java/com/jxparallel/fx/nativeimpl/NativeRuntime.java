@@ -61,8 +61,25 @@ public final class NativeRuntime {
             return null;
         });
         Native.register("Window.isShowing()", (self, m, a) -> sceneOf(m) != null);
+        Native.register("Window.impl_getWindows()", (self, m, a) -> {
+            // the showing windows, in the order they were shown (JavaFX 8's internal window list)
+            List<Object> windows = new ArrayList<>();
+            for (NativeScene s : SCENES) {
+                windows.add(Fx.jx(s.stage));
+            }
+            return windows.iterator();
+        });
         Native.register("Window.showingProperty()", (self, m, a) -> Fx.jx(Native.property(m, "showing", boolean.class)));
         Native.register("Stage.initModality(Modality)", (self, m, a) -> set(m, "modality", a[0]));
+        // JavaFX's defaults for the init-only values, which are not properties
+        Native.register("Stage.getModality()", (self, m, a) -> {
+            Object v = Native.value(m, "modality");
+            return Fx.jx(v != null ? v : Modality.NONE);
+        });
+        Native.register("Stage.getStyle()", (self, m, a) -> {
+            Object v = Native.value(m, "style");
+            return Fx.jx(v != null ? v : StageStyle.DECORATED);
+        });
         Native.register("Stage.initOwner(Window)", (self, m, a) -> set(m, "owner", a[0]));
         Native.register("Stage.initStyle(StageStyle)", (self, m, a) -> set(m, "style", a[0]));
         Native.register("Stage.setScene(Scene)", (self, m, a) -> setScene(m, a[0]));
@@ -88,6 +105,7 @@ public final class NativeRuntime {
         Native.register("Parent.lookup(String)", (self, m, a) -> Fx.jx(lookup(m, (String) a[0])));
         Native.register("Parent.getChildrenUnmodifiable()", (self, m, a) ->
                 Fx.jx(javafx.collections.FXCollections.unmodifiableObservableList(m.children)));
+        Native.register("Node.getParent()", (self, m, a) -> Fx.jx(m.getParent()));
         Native.register("Node.getScene()", (self, m, a) -> Fx.jx(sceneModelOf(m)));
         Native.register("Node.requestFocus()", (self, m, a) -> {
             NativeScene s = windowOf(m);
@@ -170,8 +188,15 @@ public final class NativeRuntime {
         });
         Native.register("IndexedCell.updateIndex(int)", (self, m, a) -> {
             Native.property(m, "index", int.class).setValue((Integer) a[0]);
+            NativeCells.updateIndexed(m, (Integer) a[0]);
             return null;
         });
+        // A cell placed by the application (the virtual flow sets these itself), as in JavaFX.
+        Native.register("TableCell.updateTableView(TableView)", (self, m, a) -> set(m, "tableView", a[0]));
+        Native.register("TableCell.updateTableColumn(TableColumn)", (self, m, a) -> set(m, "tableColumn", a[0]));
+        Native.register("TableCell.updateTableRow(TableRow)", (self, m, a) -> set(m, "tableRow", a[0]));
+        Native.register("TableRow.updateTableView(TableView)", (self, m, a) -> set(m, "tableView", a[0]));
+        Native.register("ListCell.updateListView(ListView)", (self, m, a) -> set(m, "listView", a[0]));
         Native.register("Cell.isEmpty()", (self, m, a) -> {
             Object empty = Native.value(m, "empty");
             return empty == null || Boolean.TRUE.equals(empty); // a cell is empty until it gets an item
@@ -598,6 +623,36 @@ public final class NativeRuntime {
             NestedLoop.exit(s.nestedKey);
             s.nestedKey = null;
         }
+        exitIfIdle();
+    }
+
+    /**
+     * True from the preloader's start until the application's start returns. JavaFX's launcher does
+     * not exit implicitly in that span: a preloader usually hides its window before the application
+     * shows one, and the application would otherwise end before its start method runs.
+     */
+    private static volatile boolean launching;
+    /** A window closed during the launch; if none is open when it ends, the platform ends as in JavaFX. */
+    private static volatile boolean closedDuringLaunch;
+
+    public static void launchStarted() {
+        launching = true;
+    }
+
+    /** The application's start returned: from now on closing the last window ends the platform. */
+    public static void launchFinished() {
+        launching = false;
+        if (closedDuringLaunch) {
+            closedDuringLaunch = false;
+            exitIfIdle();
+        }
+    }
+
+    private static void exitIfIdle() {
+        if (launching) {
+            closedDuringLaunch = true;
+            return;
+        }
         if (SCENES.isEmpty() && Platform.isImplicitExit() && !NativeDialogs.notificationsShowing()) {
             Platform.exit();
         }
@@ -606,17 +661,26 @@ public final class NativeRuntime {
     /** Delivers a window event to the stage's handler; true if it was consumed. */
     static boolean fireWindowEvent(NativeModel stage, javafx.event.EventType<WindowEvent> type, String handler) {
         Object h = Native.value(stage, handler);
-        if (!(h instanceof EventHandler)) {
+        boolean added = stage.values.get("eventFilters") instanceof List || stage.values.get("eventHandlers") instanceof List;
+        if (!(h instanceof EventHandler) && !added) {
             return false;
         }
         // the event names the native stage, so getSource() is the application's stage
         WindowEvent event = (WindowEvent) new WindowEvent(eventSource(), type).copyFor(stage, stage);
-        try {
-            @SuppressWarnings("unchecked")
-            EventHandler<WindowEvent> eh = (EventHandler<WindowEvent>) h;
-            eh.handle(event);
-        } catch (RuntimeException e) {
-            report(e);
+        // as the window's own dispatcher: filters, then handlers added with addEventHandler, then onX
+        NativeEvents.handlers(stage, "eventFilters", event);
+        if (event.isConsumed()) {
+            return true;
+        }
+        NativeEvents.handlers(stage, "eventHandlers", event);
+        if (h instanceof EventHandler) {
+            try {
+                @SuppressWarnings("unchecked")
+                EventHandler<WindowEvent> eh = (EventHandler<WindowEvent>) h;
+                eh.handle(event);
+            } catch (RuntimeException e) {
+                report(e);
+            }
         }
         return event.isConsumed();
     }
@@ -841,7 +905,16 @@ public final class NativeRuntime {
         try {
             NativeScene s = windowOf(m);
             JXElement element = NativeElements.toElement(m, new NativeElements.Context(s));
-            int[] argb = JXWindow.captureNanoVG(element, w, h);
+            int[] argb;
+            if (JXWindow.softwareRenderer() || "software".equals(System.getProperty("jx.snapshot"))) {
+                argb = JXWindow.captureSoftware(element, w, h);
+            } else {
+                try {
+                    argb = JXWindow.captureNanoVG(element, w, h);
+                } catch (RuntimeException | LinkageError noOpenGl) {
+                    argb = JXWindow.captureSoftware(element, w, h); // remote sessions, tests: still a real image
+                }
+            }
             image.getPixelWriter().setPixels(0, 0, w, h, javafx.scene.image.PixelFormat.getIntArgbInstance(), argb, 0, w);
         } catch (RuntimeException | LinkageError e) {
             // no OpenGL here (tests, remote sessions): a blank image of the right size

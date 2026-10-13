@@ -212,6 +212,69 @@ public final class JXTextEngine {
         return units * size / unitsPerEm;
     }
 
+    /**
+     * The shaped glyphs of {@code text}: glyph ids of this engine's font and their pen positions in
+     * pixels at {@code size}, unhinted, as {@link #width} measures them. Returns the glyph count;
+     * the arrays grow as needed and are returned through {@code out} ({@code out[0]} ids as
+     * {@code int[]}, {@code out[1]} x offsets and {@code out[2]} y offsets as {@code float[]}).
+     * For renderers that rasterize the glyphs themselves (the software renderer).
+     */
+    public int glyphs(String text, float size, Object[] out) {
+        if (font == 0L || text == null || text.isEmpty()) {
+            return 0;
+        }
+        // Shaped once per text, in font units (unhinted: they scale with the size), as the advances.
+        int[] run = runs.get(text);
+        if (run == null) {
+            run = shapeRun(text);
+            if (runs.size() >= MAX_CACHED) {
+                runs.clear();
+            }
+            runs.put(text, run);
+        }
+        int n = run.length / 3;
+        int[] ids = out[0] instanceof int[] && ((int[]) out[0]).length >= n ? (int[]) out[0] : new int[Math.max(16, n)];
+        float[] xs = out[1] instanceof float[] && ((float[]) out[1]).length >= n ? (float[]) out[1] : new float[ids.length];
+        float[] ys = out[2] instanceof float[] && ((float[]) out[2]).length >= n ? (float[]) out[2] : new float[ids.length];
+        float scale = size / unitsPerEm;
+        for (int i = 0; i < n; i++) {
+            ids[i] = run[3 * i];
+            xs[i] = run[3 * i + 1] * scale;
+            ys[i] = run[3 * i + 2] * scale;
+        }
+        out[0] = ids;
+        out[1] = xs;
+        out[2] = ys;
+        return n;
+    }
+
+    /** Glyph id, pen x and y (y down) in font units, per glyph. */
+    private final ConcurrentHashMap<String, int[]> runs = new ConcurrentHashMap<String, int[]>();
+
+    private int[] shapeRun(String text) {
+        long buffer = hb_buffer_create();
+        try {
+            hb_buffer_add_utf16(buffer, text, 0, -1);
+            hb_buffer_guess_segment_properties(buffer);
+            hb_shape(font, buffer, null);
+            org.lwjgl.util.harfbuzz.hb_glyph_info_t.Buffer infos = org.lwjgl.util.harfbuzz.HarfBuzz.hb_buffer_get_glyph_infos(buffer);
+            hb_glyph_position_t.Buffer positions = hb_buffer_get_glyph_positions(buffer);
+            int n = infos == null || positions == null ? 0 : Math.min(infos.remaining(), positions.remaining());
+            int[] run = new int[3 * n];
+            int pen = 0;
+            for (int i = 0; i < n; i++) {
+                hb_glyph_position_t p = positions.get(i);
+                run[3 * i] = infos.get(i).codepoint(); // after hb_shape, the glyph id
+                run[3 * i + 1] = pen + p.x_offset();
+                run[3 * i + 2] = -p.y_offset();
+                pen += p.x_advance();
+            }
+            return run;
+        } finally {
+            hb_buffer_destroy(buffer);
+        }
+    }
+
     /** Total advance of the shaped text in font units. */
     private int shapeAdvance(String text) {
         long buffer = hb_buffer_create();

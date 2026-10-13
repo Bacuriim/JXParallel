@@ -66,6 +66,9 @@ public final class JXDisplay {
      * of the driver's work (about 140 ms of CPU on Java 8 32-bit).
      */
     private static void warmDriver() {
+        if (JXWindow.SOFTWARE.equals(JXWindow.selectRenderer())) {
+            return; // no OpenGL: nothing to load, and a context would cost the memory this renderer saves
+        }
         GLFW.glfwDefaultWindowHints();
         GLFW.glfwWindowHint(GLFW.GLFW_STENCIL_BITS, 8);
         GLFW.glfwWindowHint(GLFW.GLFW_VISIBLE, GLFW.GLFW_FALSE);
@@ -163,6 +166,16 @@ public final class JXDisplay {
         return value;
     }
 
+    private static volatile long nextWake;
+
+    /** Display thread: wake the loop by {@code nanoTime} at the latest (a frame waiting for its slot). */
+    static void wakeAt(long nanoTime) {
+        long current = nextWake;
+        if (current == 0 || nanoTime < current) {
+            nextWake = nanoTime;
+        }
+    }
+
     /** Wakes the loop so it paints requested frames. Safe from any thread. */
     static void wake() {
         if (thread != null) {
@@ -238,8 +251,15 @@ public final class JXDisplay {
                 }
             }
             if (TASKS.isEmpty()) {
-                // A timeout keeps animations and timers that do not post a task ticking.
-                GLFW.glfwWaitEventsTimeout(0.25);
+                // A timeout keeps animations and timers that do not post a task ticking; a window
+                // waiting for its next frame slot (software renderer) shortens it.
+                double wait = 0.25;
+                long due = nextWake;
+                if (due != 0) {
+                    nextWake = 0;
+                    wait = Math.max(0, Math.min(wait, (due - System.nanoTime()) / 1e9));
+                }
+                GLFW.glfwWaitEventsTimeout(wait);
             } else {
                 GLFW.glfwPollEvents();
             }
