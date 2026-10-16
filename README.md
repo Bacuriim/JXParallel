@@ -434,7 +434,7 @@ Earlier reports (2026-09-22, when the native side drew into an AWT window):
 [Java 8 32-bit](docs/java8-32bit-comparison.md),
 [methodology](docs/ui-performance-measurement.md).
 The first UI stress report from that day was withdrawn: its native runner never pushed changes
-to the renderer. See the [development log](docs/tcc/diario-de-desenvolvimento.md).
+to the renderer.
 
 </details>
 
@@ -583,7 +583,6 @@ Roadmap: [roadmap.md](docs/roadmap.md). Changes: [CHANGELOG.md](CHANGELOG.md).
 | Plain JavaFX vs JX on JavaFX vs JX native (large-form screen) | [fx-backends-comparison-2026-09-29.md](docs/fx-backends-comparison-2026-09-29.md) |
 | FXML loading comparison | [fxml-load-comparison.md](docs/fxml-load-comparison.md) |
 | Testing strategy, compared with OpenJFX | [testing-strategy.md](docs/testing-strategy.md) |
-| Development log (pt-BR) | [diario-de-desenvolvimento.md](docs/tcc/diario-de-desenvolvimento.md) |
 
 ## Contributing
 
