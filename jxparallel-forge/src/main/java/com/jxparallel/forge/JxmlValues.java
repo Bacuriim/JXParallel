@@ -30,6 +30,7 @@ public final class JxmlValues {
             case STRINGS:
                 return strings(text);
             case ELEMENT:
+            case OBJECT:
                 throw new IllegalArgumentException("must be a binding, such as ${header}");
             default:
                 throw new IllegalStateException(type.name());
@@ -128,6 +129,8 @@ public final class JxmlValues {
                 return value instanceof Number ? asDouble(value) : insets(asString(value));
             case ELEMENT:
                 return asElement(value);
+            case OBJECT:
+                return value;
             default:
                 throw new IllegalStateException(type.name());
         }

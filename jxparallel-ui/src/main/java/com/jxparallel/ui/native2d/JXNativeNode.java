@@ -90,6 +90,8 @@ public final class JXNativeNode {
     private static final double[] TITLED_CONTENT_PADDING = {9.6, 9.6, 9.6, 9.6};
     private final String type;
     private final int kind;
+    /** Where typing goes in a text input (see {@link JXChangeEvents}); -1 is the end. */
+    int caret = -1;
     /** This node is a titled pane's content. */
     private boolean titledContent;
     private Map<String, Object> props;
@@ -590,6 +592,7 @@ public final class JXNativeNode {
         } else if (handler instanceof Runnable) {
             ((Runnable) handler).run();
         }
+        JXChangeEvents.pointer(this, event);
     }
 
     @SuppressWarnings("unchecked")
@@ -598,6 +601,7 @@ public final class JXNativeNode {
         if (handler instanceof JXNativeEventHandler) {
             ((JXNativeEventHandler<JXKeyEvent>) handler).handle(event);
         }
+        JXChangeEvents.key(this, event);
     }
 
     /**

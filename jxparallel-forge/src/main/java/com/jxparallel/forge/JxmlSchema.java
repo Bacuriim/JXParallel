@@ -37,19 +37,29 @@ public final class JxmlSchema {
         public final Map<String, Attr> attrs;
         /** Props every element of this tag gets unless an attribute sets them, as the JavaFX layer sends them. */
         public final Map<String, Object> defaults;
+        /** For, If and Else: part of the language, not an element; they take only their own attributes. */
+        public final boolean control;
+        /** The attribute that @{...} binds two ways and onChange reports, or null. */
+        public final String changeAttr;
+        /** The Java type of the value onChange passes: STRING, BOOLEAN or DOUBLE. */
+        public final AttrType changeType;
 
-        Tag(String name, String nativeType, Children children, Map<String, Attr> attrs, Map<String, Object> defaults) {
+        Tag(String name, String nativeType, Children children, Map<String, Attr> attrs, Map<String, Object> defaults,
+            boolean control, String changeAttr, AttrType changeType) {
             this.name = name;
             this.nativeType = nativeType;
             this.children = children;
             this.attrs = Collections.unmodifiableMap(attrs);
             this.defaults = Collections.unmodifiableMap(defaults);
+            this.control = control;
+            this.changeAttr = changeAttr;
+            this.changeType = changeType;
         }
 
         /** The tag's own attribute, or a layout attribute every tag accepts; null if neither. */
         public Attr attr(String name) {
             Attr own = attrs.get(name);
-            return own != null ? own : LAYOUT.get(name);
+            return own != null || control ? own : LAYOUT.get(name);
         }
     }
 
@@ -102,6 +112,16 @@ public final class JxmlSchema {
                 .attr("title", "title", AttrType.STRING, false).attr("closable", "closable", AttrType.BOOLEAN, false)
                 .done();
 
+        // The language: loops and conditions. Their children are placed in the parent, in order.
+        tag("For", null, Children.MANY).control()
+                .attr("items", "items", AttrType.OBJECT, true).attr("var", "var", AttrType.STRING, false)
+                .attr("type", "type", AttrType.STRING, false).attr("key", "key", AttrType.OBJECT, true)
+                .done();
+        tag("If", null, Children.MANY).control()
+                .attr("test", "test", AttrType.BOOLEAN, true)
+                .done();
+        tag("Else", null, Children.MANY).control().done();
+
         // Replaced by what the binding returns: a JXElement or JXComponent written in Java.
         tag("Slot", null, Children.NONE)
                 .attr("content", "content", AttrType.ELEMENT, true)
@@ -120,11 +140,13 @@ public final class JxmlSchema {
                 .attr("text", "value", AttrType.STRING, true).attr("prompt", "prompt", AttrType.STRING, true)
                 .attr("columns", "prefColumnCount", AttrType.DOUBLE, false)
                 .def("value", "").def("prompt", "").def("prefColumnCount", Double.valueOf(12))
+                .change("text", AttrType.STRING)
                 .done();
         tag("PasswordField", "password", Children.NONE)
                 .attr("text", "value", AttrType.STRING, true).attr("prompt", "prompt", AttrType.STRING, true)
                 .attr("columns", "prefColumnCount", AttrType.DOUBLE, false)
                 .def("value", "").def("prompt", "").def("prefColumnCount", Double.valueOf(12))
+                .change("text", AttrType.STRING)
                 .done();
         tag("TextArea", "textarea", Children.NONE)
                 .attr("text", "value", AttrType.STRING, true).attr("prompt", "prompt", AttrType.STRING, true)
@@ -132,24 +154,29 @@ public final class JxmlSchema {
                 .attr("columns", "prefColumnCount", AttrType.DOUBLE, false).attr("rows", "prefRowCount", AttrType.DOUBLE, false)
                 .def("value", "").def("prompt", "").def("wrapText", Boolean.FALSE).def("scrollTop", Double.valueOf(0))
                 .def("prefColumnCount", Double.valueOf(40)).def("prefRowCount", Double.valueOf(10))
+                .change("text", AttrType.STRING)
                 .done();
         tag("CheckBox", "checkbox", Children.NONE)
                 .attr("text", "label", AttrType.STRING, true).attr("selected", "checked", AttrType.BOOLEAN, true)
                 .def("label", "").def("checked", Boolean.FALSE).def("indeterminate", Boolean.FALSE)
+                .change("selected", AttrType.BOOLEAN)
                 .done();
         tag("ComboBox", "select", Children.NONE)
                 .attr("value", "value", AttrType.STRING, true).attr("prompt", "prompt", AttrType.STRING, true)
                 .attr("items", "options", AttrType.STRINGS, true)
                 .def("value", "").def("prompt", "").def("options", new String[0]).def("showing", Boolean.FALSE)
+                .change("value", AttrType.STRING)
                 .done();
         tag("Spinner", "spinner", Children.NONE)
                 .attr("value", "value", AttrType.STRING, true)
                 .attr("min", "min", AttrType.DOUBLE, false).attr("max", "max", AttrType.DOUBLE, false)
                 .def("value", "")
+                .change("value", AttrType.DOUBLE)
                 .done();
         tag("DatePicker", "datepicker", Children.NONE)
                 .attr("value", "value", AttrType.STRING, true).attr("prompt", "prompt", AttrType.STRING, true)
                 .def("value", "").def("prompt", "").def("showing", Boolean.FALSE)
+                .change("value", AttrType.STRING)
                 .done();
         tag("Separator", "separator", Children.NONE)
                 .attr("orientation", "orientation", AttrType.STRING, false)
@@ -163,6 +190,7 @@ public final class JxmlSchema {
                 .attr("min", "min", AttrType.DOUBLE, false).attr("max", "max", AttrType.DOUBLE, false)
                 .attr("value", "value", AttrType.DOUBLE, true)
                 .def("min", Double.valueOf(0)).def("max", Double.valueOf(100)).def("value", Double.valueOf(0))
+                .change("value", AttrType.DOUBLE)
                 .done();
     }
 
@@ -192,6 +220,9 @@ public final class JxmlSchema {
         private final Children children;
         private final Map<String, Attr> attrs = new LinkedHashMap<String, Attr>();
         private final Map<String, Object> defaults = new LinkedHashMap<String, Object>();
+        private boolean control;
+        private String changeAttr;
+        private AttrType changeType;
 
         TagBuilder(String name, String nativeType, Children children) {
             this.name = name;
@@ -209,8 +240,21 @@ public final class JxmlSchema {
             return this;
         }
 
+        TagBuilder control() {
+            control = true;
+            return this;
+        }
+
+        /** Adds onChange, which gets the new value of attr as a type; @{...} binds attr two ways. */
+        TagBuilder change(String attr, AttrType type) {
+            attrs.put("onChange", new Attr("onChange", "onChange", AttrType.CHANGE, false));
+            changeAttr = attr;
+            changeType = type;
+            return this;
+        }
+
         void done() {
-            TAGS.put(name, new Tag(name, nativeType, children, attrs, defaults));
+            TAGS.put(name, new Tag(name, nativeType, children, attrs, defaults, control, changeAttr, changeType));
         }
     }
 }

@@ -17,5 +17,9 @@ public enum AttrType {
     /** {@code #method}: a public no-argument controller method, as a {@link Runnable}. */
     HANDLER,
     /** A bound {@code JXElement} or {@code JXComponent} built in Java: how JXML hosts hand-written widgets. */
-    ELEMENT
+    ELEMENT,
+    /** The object a binding returns, as it is: the items of a {@code <For>} and the keys of its elements. */
+    OBJECT,
+    /** {@code #method}: a controller method that takes the new value, as a {@link java.util.function.Consumer}. */
+    CHANGE
 }

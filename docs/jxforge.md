@@ -107,6 +107,11 @@ Files whose generated class is newer than the `.jxml` are skipped.
 | `onAction="#save"` | `controller.save()`, a public method without arguments |
 | `text="\#1"` | a literal starting with `#` or `$` |
 | `<Slot content="${header}"/>` | a `JXElement` or `JXComponent` built in Java, placed here |
+| `<For items="${orders}" var="o" type="com.acme.Order">` | the children once per item; `${o.name}` is `o.getName()` |
+| `onAction="#open(o)"` | `controller.open(o)`, with loop variables as arguments |
+| `<If test="${admin}">` / `${!admin}` / `<Else>` | the children when the boolean is true (false), else the `<Else>` ones |
+| `onChange="#setName"` | `controller.setName(value)` when the user edits the input |
+| `text="@{customer.name}"` | reads `getCustomer().getName()`; on change calls `getCustomer().setName(value)` |
 
 The compiler writes these as direct calls (`c.getStatus()`, `c::save`), so a misspelled name is a
 `javac` error. Every generated line ends with the `.jxml` file and line it comes from:
@@ -147,6 +152,10 @@ inside a `Border`).
 | `ProgressBar` | `progress` | `progress` |
 | `Slider` | `slider` | `min`, `max`, `value` |
 | `Slot` | what the binding returns | `content` |
+| `For`, `If`, `Else` | none: they stand for elements | `items`, `var`, `type`, `key`; `test` |
+
+`TextField`, `PasswordField`, `TextArea`, `CheckBox`, `ComboBox`, `Spinner`, `DatePicker` and
+`Slider` also accept `onChange` (see [Input changes](#input-changes)).
 
 The table lives in one place, `JxmlSchema`, read by both the interpreter and the compiler. Prop
 names and value types are the ones the native renderer reads; a number written as text would be
@@ -158,6 +167,91 @@ The native tab pane takes the selected tab's content as its child. JXForge build
 content, as JavaFX does, and passes the others in the `deferredTabs` prop; the host can create
 their nodes ahead with `JXNativeNode.retainAhead`, so switching tabs only moves them into place.
 Tab contents get the keys `tab0`, `tab1`, ...
+
+## Loops and conditions
+
+```xml
+<Column controller="com.acme.OrdersController" gap="4">
+  <Label text="Orders"/>
+  <For items="${orders}" var="o" type="com.acme.Order" key="${o.id}">
+    <Row>
+      <Label text="${o.name}" hgrow="always"/>
+      <Button text="Open" onAction="#open(o)"/>
+    </Row>
+  </For>
+  <If test="${admin}"><Button text="Export" onAction="#export"/></If>
+  <Else><Label text="Read only"/></Else>
+</Column>
+```
+
+- `<For>` and `<If>` are allowed wherever a tag takes many children (`Column`, `Row`, `Stack`,
+  `Grid`, `Border`, ...). Their children are placed in the parent, in place, in order, with the
+  siblings before and after; no element is made for the loop itself.
+- `items` is any `Iterable` or array (of objects or primitives); null loops over nothing.
+  `var` names the loop variable. A binding or a handler argument may start with it: `${o.name}`
+  calls `o.getName()`, `${o.total()}` calls `o.total()`, `${o}` is the item itself, and
+  `#open(o)` calls `controller.open(o)` (several: `#move(a, b)`). A loop variable hides a
+  controller property of the same name, and a loop inside a loop may reuse the name: the
+  nearest one wins. `items` of an inner loop may start with the outer variable (`${o.lines}`).
+- `type` is the class of the items. The generated code is a Java loop over a variable of that
+  class, so `javac` checks every getter called on it; a misspelled `${o.nmae}` is a compile
+  error pointing at the `.jxml` line. `type` is required as soon as the variable is used with
+  a getter, a handler argument or `@{}` (a `JxmlException` says so); it is optional when the
+  body only shows `${o}` or counts the items.
+- `key` sets the `key` prop of the element the loop produces, so the renderer keeps that
+  element's node when the list changes. The loop body must then be exactly one element. The
+  native reconcile compares keys with `==` (identity), so a key must be a stable object: the
+  same instance on every build. A `String` constant, an enum or an object of the model is;
+  a boxed number above 127 or a string made on each call is not, and gets no reuse.
+- `<If test="${path}">` includes its children when the boolean is true; `${!path}` negates
+  (only here). An `<Else>` that directly follows the `<If>` is included otherwise. An `<Else>`
+  anywhere else, or a second one, is an error. The boolean is read with the same getter rule
+  as other bindings (`${admin}` calls `getAdmin()`).
+- Not allowed: a loop or condition as the root, inside `Scroll`, `Tab` or `Tabs` (they take
+  one child or only tabs; wrap them in a `<Column>`).
+
+Interpreter and generated code build the same tree. In the generated class, a container with a
+loop or condition collects its children in a list; every other container is unchanged.
+
+## Input changes
+
+The native renderer reports edits through the `onChange` prop of the node: a
+`java.util.function.Consumer` that gets the new value. Inputs are controlled, as in React: the
+node keeps showing its `value` prop until the screen is built again with the new one.
+
+| Tag | New value passed | Reported when |
+|---|---|---|
+| `TextField`, `PasswordField`, `TextArea` | `String`, the whole text | typing, Backspace, Delete (the caret moves with the arrows, Home and End; Enter adds a line in a `TextArea`; no selection yet) |
+| `CheckBox` | `boolean` | click, or space |
+| `Slider` | `double` | click on the track |
+| `Spinner` | `double` | Up / Down arrows, within `min` and `max` |
+| `ComboBox` | `String`, the option | Up / Down arrows |
+| `DatePicker` | `String`, ISO `yyyy-MM-dd` | Up / Down (day), Page Up / Page Down (month) |
+
+Popups of the combo box and date picker are not drawn yet, so these two change with the keyboard.
+
+```xml
+<TextField text="${note}" onChange="#setNote"/>           <!-- controller.setNote(String) -->
+<TextField text="@{customer.name}"/>                       <!-- getCustomer().getName() / setName(String) -->
+<CheckBox text="Agree" selected="@{agree}"/>               <!-- getAgree() / setAgree(boolean) -->
+<Slider value="@{volume}"/>                                <!-- getVolume() / setVolume(double) -->
+<For items="${orders}" var="o" type="com.acme.Order">
+  <TextField text="@{o.name}"/>                            <!-- o.getName() / o.setName(String) -->
+  <TextField text="${o.name}" onChange="#rename(o)"/>      <!-- controller.rename(o, String) -->
+</For>
+```
+
+- `onChange="#setName"` calls the controller method with the value, after any loop variables
+  (`#rename(o)` calls `rename(o, value)`). The method must accept the type in the table, as javac
+  would for a call: `setVolume(double)` and `setVolume(Double)` do, `setVolume(int)` does not.
+- `@{path}` is the two-way shorthand, on the attribute that holds the edited value: `text` of the
+  text inputs, `selected` of the check box, `value` of the others. It reads like `${path}`, and
+  on change calls the setter `setX` of the last segment on the object the rest of the path
+  returns (evaluated when the value arrives). The setter must take the type in the table.
+- `@{a.b()}` (a record accessor, which has no setter), `@{o}` (nothing to set), `@{}` on other
+  attributes and `@{}` together with `onChange` are errors.
+- The generated code is a lambda that calls the controller, so a misspelled setter is a `javac`
+  error.
 
 ## Mixing JXML and Java
 
@@ -177,7 +271,9 @@ JXML screen with `new XView().build(controller)`, and JXML places a Java compone
 
 ## Not done yet
 
-- Loops and conditions in the markup (lists of rows, optional parts); today they go in a `<Slot>`.
+- The widgets of the [1.0 checklist](jxforge-1.0.md) that are not tags yet.
+- Selection in text inputs, and popups for the combo box and date picker.
+- `<For>` over a `Map`, and the loop index as a variable.
 - Development mode: the interpreter watching the files and rebuilding the screen on save.
 - An XSD for autocompletion in IDEs.
 - Compiling existing `.fxml` files with the same compiler, so a JavaFX application moving to the

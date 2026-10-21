@@ -14,7 +14,7 @@ public final class JxmlTrees {
     /**
      * Null when both trees have the same types, the same props with the same Java types and
      * values (arrays by content), and the same children; otherwise where they first differ.
-     * Handlers ({@link Runnable}) only have to be present on both sides: call them to check them.
+     * Handlers ({@link Runnable}, and change handlers, {@link java.util.function.Consumer}) only have to be present on both sides: call them to check them.
      */
     public static String diff(JXElement a, JXElement b) {
         return diff(a, b, "/");
@@ -57,7 +57,7 @@ public final class JxmlTrees {
         if (x == null || y == null) {
             return x == y ? null : where + ": " + x + " vs " + y;
         }
-        if (x instanceof Runnable && y instanceof Runnable) {
+        if (x instanceof Runnable && y instanceof Runnable || x instanceof java.util.function.Consumer && y instanceof java.util.function.Consumer) {
             return null;
         }
         if (x.getClass() != y.getClass()) {

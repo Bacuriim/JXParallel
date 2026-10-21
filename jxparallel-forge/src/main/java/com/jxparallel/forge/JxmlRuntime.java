@@ -17,6 +17,30 @@ public final class JxmlRuntime {
     private JxmlRuntime() {
     }
 
+    /**
+     * What a {@code <For>} loops over: any {@link Iterable} or array (of objects or of primitives);
+     * null loops over nothing. The type argument is the loop's {@code type}, which lets javac check
+     * what the loop body calls on each item.
+     */
+    @SuppressWarnings("unchecked")
+    public static <T> Iterable<T> items(Object source) {
+        if (source == null) {
+            return java.util.Collections.emptyList();
+        }
+        if (source instanceof Iterable) {
+            return (Iterable<T>) source;
+        }
+        if (source.getClass().isArray()) {
+            int length = java.lang.reflect.Array.getLength(source);
+            java.util.List<Object> list = new java.util.ArrayList<Object>(length);
+            for (int i = 0; i < length; i++) {
+                list.add(java.lang.reflect.Array.get(source, i));
+            }
+            return (Iterable<T>) list;
+        }
+        throw new IllegalArgumentException("<For> loops over an Iterable or an array, not " + source.getClass().getName());
+    }
+
     /** The key of the content of tab {@code index}; the same instance as the literal {@code "tab<index>"}. */
     public static String tabKey(int index) {
         return index < TAB_KEYS.length ? TAB_KEYS[index] : ("tab" + index).intern();

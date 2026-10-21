@@ -9,6 +9,7 @@ import java.util.Collections;
 import java.util.List;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
+import java.util.function.Consumer;
 
 import com.jxparallel.ui.JXElement;
 import com.jxparallel.ui.JXProps;
@@ -22,31 +23,49 @@ import com.jxparallel.ui.JXProps;
  * controller, and {@code ${a.b()}} calls {@code getA().b()} (record components);
  * {@code #save} calls the controller's public no-argument method {@code save()};
  * a value starting with a backslash is a literal without it ({@code \#1}).
+ *
+ * <p>Inside {@code <For items="${orders}" var="o">} a binding may start with the loop variable
+ * ({@code ${o.total}}) and a handler may take loop variables ({@code #open(o)} calls
+ * {@code controller.open(o)}). {@code onChange="#setName"} calls the controller with the new value of
+ * the input, and {@code text="@{customer.name}"} reads {@code getCustomer().getName()} and calls
+ * {@code getCustomer().setName(value)} on change.
  */
 public final class JxmlTemplate implements JxmlView<Object> {
     /** How an attribute gets its value. */
-    enum Kind { LITERAL, BINDING, HANDLER }
+    enum Kind { LITERAL, BINDING, HANDLER, CHANGE, SETTER }
 
     /** One prop of one element. */
     static final class Prop {
         final JxmlSchema.Attr attr;
         final Kind kind;
         final Object literal;
+        /** The loop variable a binding starts with, or null when it starts at the controller. */
+        final String root;
+        /** Getters called one after the other from the root; for a SETTER, the ones that reach the bean. */
         final String[] path;
+        /** The controller method of a HANDLER or CHANGE, or the setter name of a SETTER. */
         final String method;
+        /** Loop variables passed to a HANDLER or CHANGE method, before the new value. */
+        final String[] args;
+        /** {@code ${!flag}} in an {@code <If test>}. */
+        final boolean negate;
         final int line;
 
-        Prop(JxmlSchema.Attr attr, Kind kind, Object literal, String[] path, String method, int line) {
+        Prop(JxmlSchema.Attr attr, Kind kind, Object literal, String root, String[] path, String method, String[] args,
+             boolean negate, int line) {
             this.attr = attr;
             this.kind = kind;
             this.literal = literal;
+            this.root = root;
             this.path = path;
             this.method = method;
+            this.args = args;
+            this.negate = negate;
             this.line = line;
         }
     }
 
-    /** One element, or a tab pane with its tabs. */
+    /** One element, a tab pane with its tabs, or a {@code <For>} / {@code <If>} that stands for several elements. */
     static final class Element {
         final JxmlSchema.Tag tag;
         final int line;
@@ -57,14 +76,23 @@ public final class JxmlTemplate implements JxmlView<Object> {
         final boolean[] closable;
         /** The tag's default props that no attribute of this element sets. */
         final Map<String, Object> defaults;
+        /** For only: the loop variable, and the class of the items (null if not given). */
+        final String var;
+        final String type;
+        /** If only: what is included when the test is false (the {@code <Else>} that follows). */
+        final List<Element> otherwise;
 
-        Element(JxmlSchema.Tag tag, int line, List<Prop> props, List<Element> children, String[] titles, boolean[] closable) {
+        Element(JxmlSchema.Tag tag, int line, List<Prop> props, List<Element> children, String[] titles, boolean[] closable,
+                String var, String type, List<Element> otherwise) {
             this.tag = tag;
             this.line = line;
             this.props = props;
             this.children = children;
             this.titles = titles;
             this.closable = closable;
+            this.var = var;
+            this.type = type;
+            this.otherwise = otherwise;
             Map<String, Object> d = new java.util.LinkedHashMap<String, Object>(tag.defaults);
             for (Prop p : props) {
                 d.remove(p.attr.prop);
@@ -72,8 +100,25 @@ public final class JxmlTemplate implements JxmlView<Object> {
             this.defaults = Collections.unmodifiableMap(d);
         }
 
+        Element withOtherwise(List<Element> elements) {
+            return new Element(tag, line, props, children, titles, closable, var, type, Collections.unmodifiableList(elements));
+        }
+
+        /** The prop set by the attribute of this name, or null. */
+        Prop prop(String name) {
+            for (Prop p : props) {
+                if (p.attr.name.equals(name)) {
+                    return p;
+                }
+            }
+            return null;
+        }
+
         /** No bindings or handlers anywhere below: the same tree for every controller. */
         boolean constant() {
+            if (tag.control) {
+                return false;
+            }
             for (Prop p : props) {
                 if (p.kind != Kind.LITERAL) {
                     return false;
@@ -85,6 +130,50 @@ public final class JxmlTemplate implements JxmlView<Object> {
                 }
             }
             return true;
+        }
+    }
+
+    /** A loop variable in scope while a file is resolved. */
+    private static final class Var {
+        final String name;
+        final boolean typed;
+        final Var parent;
+
+        Var(String name, boolean typed, Var parent) {
+            this.name = name;
+            this.typed = typed;
+            this.parent = parent;
+        }
+
+        static Var find(Var scope, String name) {
+            for (Var v = scope; v != null; v = v.parent) {
+                if (v.name.equals(name)) {
+                    return v;
+                }
+            }
+            return null;
+        }
+    }
+
+    /** The loop variables and their current items while a tree is built; the nearest one wins. */
+    private static final class Scope {
+        final String name;
+        final Object value;
+        final Scope parent;
+
+        Scope(String name, Object value, Scope parent) {
+            this.name = name;
+            this.value = value;
+            this.parent = parent;
+        }
+
+        static Object get(Scope scope, String name) {
+            for (Scope s = scope; s != null; s = s.parent) {
+                if (s.name.equals(name)) {
+                    return s.value;
+                }
+            }
+            throw new IllegalStateException(name);
         }
     }
 
@@ -103,7 +192,7 @@ public final class JxmlTemplate implements JxmlView<Object> {
     public static JxmlTemplate read(InputStream input, String source) {
         JxmlParser.Node node = JxmlParser.parse(input, source);
         String controller = node.attrs.remove("controller");
-        return new JxmlTemplate(source, controller, resolve(node, source, null));
+        return new JxmlTemplate(source, controller, resolve(node, source, null, null));
     }
 
     /** The controller class named by the root's {@code controller} attribute, or null. */
@@ -117,15 +206,21 @@ public final class JxmlTemplate implements JxmlView<Object> {
 
     @Override
     public JXElement build(Object controller) {
-        return build(root, controller, null);
+        return build(root, controller, null, null);
     }
 
     // ---- resolution ------------------------------------------------------------------------------
 
-    private static Element resolve(JxmlParser.Node node, String source, JxmlSchema.Tag parent) {
+    private static Element resolve(JxmlParser.Node node, String source, JxmlSchema.Tag parent, Var vars) {
         JxmlSchema.Tag tag = JxmlSchema.tag(node.tag);
         if (tag == null) {
             throw new JxmlException(source, node.line, "unknown tag <" + node.tag + ">; known: " + JxmlSchema.tags().keySet());
+        }
+        if ("Else".equals(tag.name)) {
+            throw new JxmlException(source, node.line, "<Else> must directly follow an <If>");
+        }
+        if (tag.control && (parent == null || parent.children != JxmlSchema.Children.MANY)) {
+            throw new JxmlException(source, node.line, "<" + tag.name + "> is only allowed where a tag takes many children");
         }
         if (tag.children == JxmlSchema.Children.TAB && (parent == null || parent.children != JxmlSchema.Children.TABS)) {
             throw new JxmlException(source, node.line, "<Tab> is only allowed inside <Tabs>");
@@ -133,13 +228,49 @@ public final class JxmlTemplate implements JxmlView<Object> {
         if (node.attrs.containsKey("controller")) {
             throw new JxmlException(source, node.line, "controller is only allowed on the root element");
         }
+        String var = null;
+        String type = null;
+        Var inner = vars;
+        if ("For".equals(tag.name)) {
+            var = node.attrs.get("var");
+            if (!node.attrs.containsKey("items")) {
+                throw new JxmlException(source, node.line, "<For> needs items=\"${...}\"");
+            }
+            if (var == null || !isIdentifier(var)) {
+                throw new JxmlException(source, node.line, "<For> needs var=\"name\", the name of the loop variable");
+            }
+            type = node.attrs.get("type");
+            if (type != null) {
+                for (String part : type.split("\\.", -1)) {
+                    if (!isIdentifier(part)) {
+                        throw new JxmlException(source, node.line, "type=\"" + type + "\" must be a class name, such as com.acme.Order");
+                    }
+                }
+            }
+            inner = new Var(var, type != null, vars);
+        } else if ("If".equals(tag.name) && !node.attrs.containsKey("test")) {
+            throw new JxmlException(source, node.line, "<If> needs test=\"${...}\"");
+        }
         List<Prop> props = new ArrayList<Prop>();
         for (Map.Entry<String, String> entry : node.attrs.entrySet()) {
             JxmlSchema.Attr attr = tag.attr(entry.getKey());
             if (attr == null) {
                 throw new JxmlException(source, node.line, "<" + tag.name + "> has no attribute " + entry.getKey());
             }
-            props.add(prop(attr, entry.getValue(), source, node.line, tag));
+            if ("For".equals(tag.name) && ("var".equals(attr.name) || "type".equals(attr.name))) {
+                continue;
+            }
+            Var scope = "For".equals(tag.name) && "key".equals(attr.name) ? inner : vars;
+            addProps(props, attr, entry.getValue(), source, node.line, tag, scope);
+        }
+        int changes = 0;
+        for (Prop p : props) {
+            if (p.kind == Kind.CHANGE || p.kind == Kind.SETTER) {
+                changes++;
+            }
+        }
+        if (changes > 1) {
+            throw new JxmlException(source, node.line, "<" + tag.name + "> has both onChange and a @{...} binding; use one");
         }
         if (isSlot(tag) && (props.size() != 1 || !"content".equals(props.get(0).attr.name))) {
             throw new JxmlException(source, node.line, "<Slot> takes exactly one attribute: content=\"${...}\"");
@@ -159,13 +290,11 @@ public final class JxmlTemplate implements JxmlView<Object> {
                     throw new JxmlException(source, node.line, "<" + tag.name + "> takes one child");
                 }
                 for (JxmlParser.Node child : node.children) {
-                    children.add(resolve(child, source, tag));
+                    children.add(resolve(child, source, tag, vars));
                 }
                 break;
             case MANY:
-                for (JxmlParser.Node child : node.children) {
-                    children.add(resolve(child, source, tag));
-                }
+                children = resolveAll(node.children, source, tag, inner);
                 break;
             case TABS:
                 titles = new String[node.children.size()];
@@ -175,7 +304,7 @@ public final class JxmlTemplate implements JxmlView<Object> {
                     if (!"Tab".equals(tabNode.tag)) {
                         throw new JxmlException(source, tabNode.line, "<Tabs> takes only <Tab> children");
                     }
-                    Element tab = resolve(tabNode, source, tag);
+                    Element tab = resolve(tabNode, source, tag, vars);
                     titles[i] = "";
                     closable[i] = true;
                     for (Prop p : tab.props) {
@@ -197,38 +326,156 @@ public final class JxmlTemplate implements JxmlView<Object> {
             default:
                 throw new IllegalStateException();
         }
+        if (var != null && node.attrs.containsKey("key")) {
+            if (children.size() != 1 || children.get(0).tag.control || isSlot(children.get(0).tag)) {
+                throw new JxmlException(source, node.line,
+                        "<For key> needs exactly one element in the loop, which gets the key (not a <Slot>, <For> or <If>)");
+            }
+            if (children.get(0).prop("key") != null) {
+                throw new JxmlException(source, children.get(0).line, "the element already has a key; remove it or the key of the <For>");
+            }
+        }
         return new Element(tag, node.line, Collections.unmodifiableList(props), Collections.unmodifiableList(children),
-                titles, closable);
+                titles, closable, var, type, Collections.<Element>emptyList());
     }
 
-    private static Prop prop(JxmlSchema.Attr attr, String value, String source, int line, JxmlSchema.Tag tag) {
-        if (attr.type == AttrType.HANDLER) {
-            if (!value.startsWith("#") || !isIdentifier(value.substring(1))) {
-                throw new JxmlException(source, line, attr.name + " must name a controller method, such as #save");
+    /** Children of a tag that takes many: an {@code <Else>} joins the {@code <If>} just before it. */
+    private static List<Element> resolveAll(List<JxmlParser.Node> nodes, String source, JxmlSchema.Tag parent, Var vars) {
+        List<Element> out = new ArrayList<Element>();
+        boolean openIf = false;
+        for (JxmlParser.Node node : nodes) {
+            if ("Else".equals(node.tag)) {
+                if (!openIf) {
+                    throw new JxmlException(source, node.line, "<Else> must directly follow an <If>");
+                }
+                if (!node.attrs.isEmpty()) {
+                    throw new JxmlException(source, node.line, "<Else> has no attribute " + node.attrs.keySet().iterator().next());
+                }
+                int last = out.size() - 1;
+                out.set(last, out.get(last).withOtherwise(resolveAll(node.children, source, JxmlSchema.tag("Else"), vars)));
+                openIf = false;
+                continue;
             }
-            return new Prop(attr, Kind.HANDLER, null, null, value.substring(1), line);
+            Element e = resolve(node, source, parent, vars);
+            out.add(e);
+            openIf = "If".equals(e.tag.name);
+        }
+        return out;
+    }
+
+    private static void addProps(List<Prop> out, JxmlSchema.Attr attr, String value, String source, int line,
+                                 JxmlSchema.Tag tag, Var vars) {
+        if (attr.type == AttrType.HANDLER || attr.type == AttrType.CHANGE) {
+            out.add(handler(attr, value, source, line, vars));
+            return;
+        }
+        if (value.startsWith("@{") && value.endsWith("}")) {
+            if (!attr.name.equals(tag.changeAttr)) {
+                throw new JxmlException(source, line, "<" + tag.name + "> " + attr.name + " cannot be bound two ways with @{...}"
+                        + (tag.changeAttr == null ? "" : "; use " + tag.changeAttr + "=\"@{...}\""));
+            }
+            String[] segments = segments(value.substring(2, value.length() - 1), value, source, line);
+            String last = segments[segments.length - 1];
+            if (last.endsWith("()")) {
+                throw new JxmlException(source, line, value + " needs a bean property with a setter; "
+                        + last + " is a record accessor, which has none");
+            }
+            Prop read = reference(attr, segments, false, value, source, line, vars);
+            if (read.path.length == 0) {
+                throw new JxmlException(source, line, "bad binding " + value + "; expected @{name} or @{a.b}, a property to set");
+            }
+            JxmlSchema.Attr change = tag.attr("onChange");
+            out.add(read);
+            out.add(new Prop(change, Kind.SETTER, null, read.root, java.util.Arrays.copyOf(read.path, read.path.length - 1),
+                    "set" + Character.toUpperCase(last.charAt(0)) + last.substring(1), new String[0], false, line));
+            return;
         }
         if (value.startsWith("${") && value.endsWith("}")) {
             if (!attr.bindable) {
                 throw new JxmlException(source, line, "<" + tag.name + "> " + attr.name + " cannot be bound");
             }
-            String[] path = value.substring(2, value.length() - 1).trim().split("\\.", -1);
-            for (String segment : path) {
-                String name = segment.endsWith("()") ? segment.substring(0, segment.length() - 2) : segment;
-                if (!isIdentifier(name)) {
-                    throw new JxmlException(source, line, "bad binding " + value
-                            + "; expected ${name}, ${a.b} or, for records, ${a.b()}");
+            String inner = value.substring(2, value.length() - 1).trim();
+            boolean negate = inner.startsWith("!");
+            if (negate) {
+                if (!"If".equals(tag.name)) {
+                    throw new JxmlException(source, line, "${!...} is only allowed in <If test>");
                 }
+                inner = inner.substring(1).trim();
             }
-            return new Prop(attr, Kind.BINDING, null, path, null, line);
+            out.add(reference(attr, segments(inner, value, source, line), negate, value, source, line, vars));
+            return;
         }
         String text = value.startsWith("\\") ? value.substring(1) : value;
         try {
-            return new Prop(attr, Kind.LITERAL, JxmlValues.literal(attr.type, text), null, null, line);
+            out.add(new Prop(attr, Kind.LITERAL, JxmlValues.literal(attr.type, text), null, null, null, null, false, line));
         } catch (IllegalArgumentException e) {
             throw new JxmlException(source, line, attr.name + "=\"" + value + "\" is not a valid "
                     + attr.type.name().toLowerCase() + ": " + e.getMessage());
         }
+    }
+
+    private static String[] segments(String path, String value, String source, int line) {
+        String[] segments = path.trim().split("\\.", -1);
+        for (String segment : segments) {
+            String name = segment.endsWith("()") ? segment.substring(0, segment.length() - 2) : segment;
+            if (!isIdentifier(name)) {
+                throw new JxmlException(source, line, "bad binding " + value
+                        + "; expected ${name}, ${a.b} or, for records, ${a.b()}");
+            }
+        }
+        return segments;
+    }
+
+    /** A binding: the first segment names a loop variable in scope, or else a getter of the controller. */
+    private static Prop reference(JxmlSchema.Attr attr, String[] segments, boolean negate, String value, String source,
+                                  int line, Var vars) {
+        Var v = Var.find(vars, segments[0]);
+        if (v == null) {
+            return new Prop(attr, Kind.BINDING, null, null, segments, null, null, negate, line);
+        }
+        if (segments.length > 1 && !v.typed) {
+            throw untyped(v.name, source, line);
+        }
+        return new Prop(attr, Kind.BINDING, null, v.name, java.util.Arrays.copyOfRange(segments, 1, segments.length), null,
+                null, negate, line);
+    }
+
+    private static JxmlException untyped(String name, String source, int line) {
+        return new JxmlException(source, line, "the loop variable " + name + " is used with getters or handlers, so its <For> needs "
+                + "type=\"fully.qualified.Item\"; the generated code is checked by javac against it");
+    }
+
+    /** {@code #save}, or {@code #open(item)} with loop variables passed first. */
+    private static Prop handler(JxmlSchema.Attr attr, String value, String source, int line, Var vars) {
+        String message = attr.name + " must name a controller method, such as #save";
+        if (!value.startsWith("#")) {
+            throw new JxmlException(source, line, message);
+        }
+        String name = value.substring(1).trim();
+        String[] args = new String[0];
+        int open = name.indexOf('(');
+        if (open >= 0) {
+            if (!name.endsWith(")")) {
+                throw new JxmlException(source, line, message);
+            }
+            String list = name.substring(open + 1, name.length() - 1).trim();
+            name = name.substring(0, open).trim();
+            args = list.isEmpty() ? args : list.split(",", -1);
+            for (int i = 0; i < args.length; i++) {
+                args[i] = args[i].trim();
+                Var v = Var.find(vars, args[i]);
+                if (v == null) {
+                    throw new JxmlException(source, line, args[i] + " in " + value + " is not a loop variable in scope");
+                }
+                if (!v.typed) {
+                    throw untyped(v.name, source, line);
+                }
+            }
+        }
+        if (!isIdentifier(name)) {
+            throw new JxmlException(source, line, message);
+        }
+        return new Prop(attr, attr.type == AttrType.CHANGE ? Kind.CHANGE : Kind.HANDLER, null, null, null, name, args, false, line);
     }
 
     static boolean isSlot(JxmlSchema.Tag tag) {
@@ -249,9 +496,9 @@ public final class JxmlTemplate implements JxmlView<Object> {
 
     // ---- interpretation --------------------------------------------------------------------------
 
-    private JXElement build(Element e, Object controller, String key) {
+    private JXElement build(Element e, Object controller, Scope scope, Object key) {
         if (isSlot(e.tag)) {
-            return (JXElement) value(e.props.get(0), controller);
+            return (JXElement) value(e.props.get(0), controller, scope);
         }
         JXProps.Builder props = JXProps.builder();
         for (Map.Entry<String, Object> d : e.defaults.entrySet()) {
@@ -259,7 +506,7 @@ public final class JxmlTemplate implements JxmlView<Object> {
         }
         Integer selected = Integer.valueOf(0);
         for (Prop p : e.props) {
-            Object value = value(p, controller);
+            Object value = value(p, controller, scope);
             if (e.tag.children == JxmlSchema.Children.TABS && "selected".equals(p.attr.prop)) {
                 selected = (Integer) value;
             } else {
@@ -269,70 +516,181 @@ public final class JxmlTemplate implements JxmlView<Object> {
         if (key != null) {
             props.set("key", key);
         }
-        int n = e.children.size();
-        JXElement[] children = new JXElement[n];
-        for (int i = 0; i < n; i++) {
-            children[i] = build(e.children.get(i), controller,
-                    e.tag.children == JxmlSchema.Children.TABS ? JxmlRuntime.tabKey(i) : null);
+        List<JXElement> built = new ArrayList<JXElement>(e.children.size());
+        if (e.tag.children == JxmlSchema.Children.TABS) {
+            for (int i = 0; i < e.children.size(); i++) {
+                built.add(build(e.children.get(i), controller, scope, JxmlRuntime.tabKey(i)));
+            }
+        } else {
+            addAll(e.children, controller, scope, null, built);
         }
+        JXElement[] children = built.toArray(new JXElement[0]);
         if (e.tag.children == JxmlSchema.Children.TABS) {
             return JxmlRuntime.tabs(props, selected, e.titles, e.closable, children);
         }
         return JXElement.of(e.tag.nativeType, props.build(), children);
     }
 
-    private Object value(Prop p, Object controller) {
+    /** Builds {@code nodes} into {@code out}; a loop or condition puts its elements here, in place. */
+    private void addAll(List<Element> nodes, Object controller, Scope scope, Object key, List<JXElement> out) {
+        for (Element n : nodes) {
+            if ("For".equals(n.tag.name)) {
+                Prop items = n.prop("items");
+                Prop keyProp = n.prop("key");
+                Iterable<Object> each;
+                try {
+                    each = JxmlRuntime.items(value(items, controller, scope));
+                } catch (IllegalArgumentException ex) {
+                    throw new JxmlException(source, items.line, ex.getMessage());
+                }
+                for (Object item : each) {
+                    Scope inner = new Scope(n.var, item, scope);
+                    addAll(n.children, controller, inner, keyProp == null ? null : value(keyProp, controller, inner), out);
+                }
+            } else if ("If".equals(n.tag.name)) {
+                boolean test = ((Boolean) value(n.prop("test"), controller, scope)).booleanValue();
+                addAll(test ? n.children : n.otherwise, controller, scope, null, out);
+            } else {
+                out.add(build(n, controller, scope, key));
+            }
+        }
+    }
+
+    private Object value(Prop p, Object controller, Scope scope) {
         switch (p.kind) {
             case LITERAL:
                 return p.literal;
             case HANDLER:
-                final Method method = method(controller, p, p.method, true);
+                final Object[] fixed = loopValues(p, scope);
+                final Method method = method(controller, p, p.method, fixed.length, null);
                 final Object target = controller;
                 return new Runnable() {
                     @Override
                     public void run() {
-                        invoke(method, target, p);
+                        invoke(method, target, fixed, p);
                     }
                 };
+            case CHANGE:
+                return change(p, controller, loopValues(p, scope));
+            case SETTER:
+                return setter(p, controller, scope);
             case BINDING:
-                Object value = controller;
-                for (String segment : p.path) {
-                    if (value == null) {
-                        throw new JxmlException(source, p.line, "${" + String.join(".", p.path) + "}: null before " + segment);
-                    }
-                    value = invoke(method(value, p, getter(segment), false), value, p);
-                }
-                return JxmlValues.bound(p.attr.type, value);
+                Object value = walk(p, controller, scope, p.path.length);
+                Object bound = JxmlValues.bound(p.attr.type, value);
+                return p.negate ? Boolean.valueOf(!((Boolean) bound).booleanValue()) : bound;
             default:
                 throw new IllegalStateException();
         }
     }
 
-    private Method method(Object target, Prop p, String name, boolean handler) {
+    private static Object[] loopValues(Prop p, Scope scope) {
+        Object[] values = new Object[p.args.length];
+        for (int i = 0; i < values.length; i++) {
+            values[i] = Scope.get(scope, p.args[i]);
+        }
+        return values;
+    }
+
+    /** The value of the first {@code count} getters of {@code p}'s path, from its loop variable or the controller. */
+    private Object walk(Prop p, Object controller, Scope scope, int count) {
+        Object value = p.root == null ? controller : Scope.get(scope, p.root);
+        for (int i = 0; i < count; i++) {
+            if (value == null) {
+                throw new JxmlException(source, p.line, "${" + String.join(".", p.path) + "}: null before " + p.path[i]);
+            }
+            value = invoke(method(value, p, getter(p.path[i]), 0, null), value, new Object[0], p);
+        }
+        return value;
+    }
+
+    /** The method an {@code onChange} handler names, called with the loop variables and then the new value. */
+    private Consumer<Object> change(final Prop p, final Object controller, final Object[] fixed) {
+        final Class<?> valueType = valueClass(p);
+        final Method method = method(controller, p, p.method, fixed.length + 1, valueType);
+        return new Consumer<Object>() {
+            @Override
+            public void accept(Object newValue) {
+                Object[] args = java.util.Arrays.copyOf(fixed, fixed.length + 1);
+                args[fixed.length] = newValue;
+                invoke(method, controller, args, p);
+            }
+        };
+    }
+
+    /** {@code @{a.b}}: the setter {@code setB} of the bean {@code getA()} returns, found when the value arrives. */
+    private Consumer<Object> setter(final Prop p, final Object controller, final Scope scope) {
+        final Class<?> valueType = valueClass(p);
+        return new Consumer<Object>() {
+            @Override
+            public void accept(Object newValue) {
+                Object bean = walk(p, controller, scope, p.path.length);
+                invoke(method(bean, p, p.method, 1, valueType), bean, new Object[] {newValue}, p);
+            }
+        };
+    }
+
+    /** What the input passes to onChange: String, Boolean or Double, by tag. */
+    private Class<?> valueClass(Prop p) {
+        for (JxmlSchema.Tag tag : JxmlSchema.tags().values()) {
+            if (tag.attrs.get("onChange") == p.attr) {
+                switch (tag.changeType) {
+                    case BOOLEAN:
+                        return Boolean.class;
+                    case DOUBLE:
+                        return Double.class;
+                    default:
+                        return String.class;
+                }
+            }
+        }
+        throw new IllegalStateException(p.attr.name);
+    }
+
+    /**
+     * A public method of the target's class: with no arguments for a getter or handler, otherwise the
+     * first of that name with {@code arity} parameters whose last takes {@code last} (boxed or primitive).
+     */
+    private Method method(Object target, Prop p, String name, int arity, Class<?> last) {
         if (target == null) {
             throw new JxmlException(source, p.line, p.attr.name + " needs a controller");
         }
         Class<?> type = target.getClass();
         Map<String, Method> byName = methods.computeIfAbsent(type, k -> new ConcurrentHashMap<String, Method>());
-        Method m = byName.get(name);
+        String id = name + "/" + arity + "/" + (last == null ? "" : last.getSimpleName());
+        Method m = byName.get(id);
         if (m == null) {
-            try {
-                m = type.getMethod(name);
-            } catch (NoSuchMethodException e) {
-                throw new JxmlException(source, p.line, type.getName() + " has no public method " + name + "()");
+            for (Method candidate : type.getMethods()) {
+                Class<?>[] params = candidate.getParameterTypes();
+                if (candidate.getName().equals(name) && params.length == arity
+                        && (last == null || accepts(params[arity - 1], last))) {
+                    m = candidate;
+                    break;
+                }
+            }
+            if (m == null) {
+                throw new JxmlException(source, p.line, type.getName() + " has no public method " + name + "("
+                        + (arity == 0 ? "" : "...") + ")" + (last == null ? "" : " taking a " + last.getSimpleName() + " last"));
             }
             if (!Modifier.isPublic(m.getDeclaringClass().getModifiers())) {
                 m.setAccessible(true); // a public method of a package-private class, as the generated code calls it
             }
-            byName.put(name, m);
+            byName.put(id, m);
         }
         return m;
     }
 
-    private Object invoke(Method m, Object target, Prop p) {
+    /** Whether javac accepts a value of boxed type {@code value} for a parameter of type {@code param}. */
+    private static boolean accepts(Class<?> param, Class<?> value) {
+        if (param.isPrimitive()) {
+            return param == boolean.class && value == Boolean.class || param == double.class && value == Double.class;
+        }
+        return param.isAssignableFrom(value);
+    }
+
+    private Object invoke(Method m, Object target, Object[] args, Prop p) {
         try {
-            return m.invoke(target);
-        } catch (IllegalAccessException e) {
+            return m.invoke(target, args);
+        } catch (IllegalAccessException | IllegalArgumentException e) {
             throw new JxmlException(source, p.line, "cannot call " + m, e);
         } catch (InvocationTargetException e) {
             Throwable cause = e.getCause();

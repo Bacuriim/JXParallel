@@ -14,6 +14,10 @@ import java.util.Map;
  * <p>Literal values become static constants, so a build allocates no more than the interpreter.
  * With {@code hoist}, subtrees without bindings or handlers are built once, when the class loads,
  * and shared by every build: elements are immutable, so this is safe.
+ *
+ * <p>A {@code <For>} becomes a Java {@code for} loop over a variable of the class named by its
+ * {@code type}, so javac checks what the body calls on each item; an {@code <If>} becomes an
+ * {@code if}. The container holding them collects its children in a list, in order.
  */
 public final class JxmlCompiler {
     /** What to generate. */
@@ -29,14 +33,29 @@ public final class JxmlCompiler {
         }
     }
 
+    /** A loop variable in scope: its JXML name, the Java variable that holds it and that variable's type. */
+    private static final class Local {
+        final String name;
+        final String javaName;
+        final String javaType;
+
+        Local(String name, String javaName, String javaType) {
+            this.name = name;
+            this.javaName = javaName;
+            this.javaType = javaType;
+        }
+    }
+
     private final JxmlTemplate template;
     private final Options options;
     private final String controllerType;
     private final StringBuilder fields = new StringBuilder();
     private final List<String> methods = new ArrayList<String>();
     private final Map<Object, String> constants = new IdentityHashMap<Object, String>();
+    private final List<Local> scope = new ArrayList<Local>();
     private int nextConstant;
     private int nextMethod;
+    private int nextVariable;
 
     private JxmlCompiler(JxmlTemplate template, Options options) {
         this.template = template;
@@ -100,11 +119,12 @@ public final class JxmlCompiler {
     }
 
     /**
-     * An expression for {@code e}. In a constant context (inside a hoisted subtree) there is no
-     * controller and nothing is hoisted again.
+     * An expression for {@code e}, which is a plain element. In a constant context (inside a hoisted
+     * subtree) there is no controller and nothing is hoisted again. {@code key} is a Java expression
+     * for the element's key prop, or null; only a string literal can be hoisted with the element.
      */
     private String element(JxmlTemplate.Element e, String key, boolean constantContext, String indent) {
-        if (options.hoist && !constantContext && e.constant()) {
+        if (options.hoist && !constantContext && e.constant() && (key == null || key.startsWith("\""))) {
             String name = "K" + (nextConstant++);
             String body = construct(e, key, true, "            ");
             fields.append("    private static final JXElement ").append(name).append(" = ").append(body)
@@ -117,22 +137,87 @@ public final class JxmlCompiler {
     /** Leaves inline; containers in their own method, which keeps methods small and lines traceable. */
     private String construct(JxmlTemplate.Element e, String key, boolean constantContext, String indent) {
         if (e.children.isEmpty()) {
-            return inline(e, key, constantContext, indent + "    ");
+            return inline(e, key, constantContext, indent + "    ", false);
         }
         String name = (constantContext ? "k" : "e") + (nextMethod++);
         StringBuilder m = new StringBuilder();
         m.append("    private static JXElement ").append(name).append('(')
-                .append(constantContext ? "" : "final " + controllerType + " c").append(") { // ")
-                .append(where(e.line)).append('\n')
-                .append("        return ").append(inline(e, key, constantContext, "                ")).append(";\n")
-                .append("    }\n");
+                .append(constantContext ? "" : "final " + controllerType + " c" + scopeParameters()).append(") { // ")
+                .append(where(e.line)).append('\n');
+        if (dynamic(e)) {
+            m.append("        final java.util.List<JXElement> k = new java.util.ArrayList<JXElement>();\n");
+            emit(e.children, null, m, "        ");
+            m.append("        return ").append(inline(e, key, constantContext, "                ", true)).append(";\n");
+        } else {
+            m.append("        return ").append(inline(e, key, constantContext, "                ", false)).append(";\n");
+        }
+        m.append("    }\n");
         methods.add(m.toString());
-        return name + (constantContext ? "()" : "(c)");
+        return name + (constantContext ? "()" : "(c" + scopeArguments() + ")");
     }
 
-    private String inline(JxmlTemplate.Element e, String key, boolean constantContext, String indent) {
+    private static boolean dynamic(JxmlTemplate.Element e) {
+        for (JxmlTemplate.Element child : e.children) {
+            if (child.tag.control) {
+                return true;
+            }
+        }
+        return false;
+    }
+
+    /** Statements adding the elements of {@code nodes} to the list {@code k}; loops and conditions open blocks. */
+    private void emit(List<JxmlTemplate.Element> nodes, String key, StringBuilder out, String indent) {
+        for (JxmlTemplate.Element n : nodes) {
+            if ("For".equals(n.tag.name)) {
+                String type = n.type == null ? "Object" : n.type;
+                String items = reference(n.prop("items"));
+                Local local = new Local(n.var, n.var + "_" + (nextVariable++), type);
+                out.append(indent).append("for (").append(type).append(' ').append(local.javaName)
+                        .append(" : JxmlRuntime.<").append(type).append(">items(").append(items).append(")) { // ")
+                        .append(where(n.line)).append('\n');
+                scope.add(local);
+                JxmlTemplate.Prop keyProp = n.prop("key");
+                emit(n.children, keyProp == null ? null : reference(keyProp), out, indent + "    ");
+                scope.remove(scope.size() - 1);
+                out.append(indent).append("}\n");
+            } else if ("If".equals(n.tag.name)) {
+                out.append(indent).append("if (").append(value(n.prop("test"), n.tag)).append(".booleanValue()) { // ")
+                        .append(where(n.line)).append('\n');
+                emit(n.children, null, out, indent + "    ");
+                if (n.otherwise.isEmpty()) {
+                    out.append(indent).append("}\n");
+                } else {
+                    out.append(indent).append("} else {\n");
+                    emit(n.otherwise, null, out, indent + "    ");
+                    out.append(indent).append("}\n");
+                }
+            } else {
+                out.append(indent).append("k.add(").append(element(n, key, false, indent + "        ")).append(");\n");
+            }
+        }
+    }
+
+    /** Declarations and arguments that hand the loop variables in scope to a method of their own. */
+    private String scopeParameters() {
+        StringBuilder out = new StringBuilder();
+        for (Local local : scope) {
+            out.append(", final ").append(local.javaType).append(' ').append(local.javaName);
+        }
+        return out.toString();
+    }
+
+    private String scopeArguments() {
+        StringBuilder out = new StringBuilder();
+        for (Local local : scope) {
+            out.append(", ").append(local.javaName);
+        }
+        return out.toString();
+    }
+
+    /** {@code listed}: the children are in the list {@code k}, which an enclosing statement block filled. */
+    private String inline(JxmlTemplate.Element e, String key, boolean constantContext, String indent, boolean listed) {
         if (JxmlTemplate.isSlot(e.tag)) {
-            return value(e.props.get(0)) + " /* " + where(e.line) + " */";
+            return value(e.props.get(0), e.tag) + " /* " + where(e.line) + " */";
         }
         boolean tabs = e.tag.children == JxmlSchema.Children.TABS;
         StringBuilder props = new StringBuilder("JXProps.builder()");
@@ -142,7 +227,7 @@ public final class JxmlCompiler {
         }
         String selected = "JxmlValues.asInt(Integer.valueOf(0))";
         for (JxmlTemplate.Prop p : e.props) {
-            String value = value(p);
+            String value = value(p, e.tag);
             if (tabs && "selected".equals(p.attr.prop)) {
                 selected = value;
                 continue;
@@ -151,11 +236,13 @@ public final class JxmlCompiler {
                     .append(value).append(") // ").append(where(p.line));
         }
         if (key != null) {
-            props.append('\n').append(indent).append(".set(\"key\", ").append(quote(key)).append(')');
+            props.append('\n').append(indent).append(".set(\"key\", ").append(key).append(')');
         }
         List<String> children = new ArrayList<String>();
-        for (int i = 0; i < e.children.size(); i++) {
-            children.add(element(e.children.get(i), tabs ? "tab" + i : null, constantContext, indent));
+        if (!listed) {
+            for (int i = 0; i < e.children.size(); i++) {
+                children.add(element(e.children.get(i), tabs ? quote("tab" + i) : null, constantContext, indent));
+            }
         }
         if (tabs) {
             return "JxmlRuntime.tabs(" + props + "\n" + indent + ", " + selected + ", " + literal(e.titles) + ", "
@@ -163,23 +250,49 @@ public final class JxmlCompiler {
         }
         StringBuilder out = new StringBuilder("JXElement.of(").append(quote(e.tag.nativeType)).append(", ")
                 .append(props).append('\n').append(indent).append(".build()");
+        if (listed) {
+            out.append(",\n").append(indent).append("k.toArray(new JXElement[0])");
+        }
         for (String child : children) {
             out.append(",\n").append(indent).append(child);
         }
         return out.append(')').toString();
     }
 
-    private String value(JxmlTemplate.Prop p) {
+    /** The getters of a binding, called from its loop variable or from the controller {@code c}. */
+    private String reference(JxmlTemplate.Prop p) {
+        String start = "c";
+        if (p.root != null) {
+            for (Local local : scope) {
+                if (local.name.equals(p.root)) {
+                    start = local.javaName; // the last one declared: it shadows the ones before
+                }
+            }
+        }
+        StringBuilder call = new StringBuilder(start);
+        for (String segment : p.path) {
+            call.append('.').append(JxmlTemplate.getter(segment)).append("()");
+        }
+        return call.toString();
+    }
+
+    private String value(JxmlTemplate.Prop p, JxmlSchema.Tag tag) {
         switch (p.kind) {
             case LITERAL:
                 return literal(p.literal);
             case HANDLER:
-                return "(Runnable) c::" + p.method;
-            case BINDING:
-                StringBuilder call = new StringBuilder("c");
-                for (String segment : p.path) {
-                    call.append('.').append(JxmlTemplate.getter(segment)).append("()");
+                if (p.args.length == 0) {
+                    return "(Runnable) c::" + p.method;
                 }
+                return "(Runnable) () -> c." + p.method + "(" + String.join(", ", arguments(p)) + ")";
+            case CHANGE:
+                List<String> args = arguments(p);
+                args.add("v");
+                return consumer(tag) + " v -> c." + p.method + "(" + String.join(", ", args) + ")";
+            case SETTER:
+                return consumer(tag) + " v -> " + reference(p) + "." + p.method + "(v)";
+            case BINDING:
+                String call = reference(p);
                 switch (p.attr.type) {
                     case STRING:
                         return "JxmlValues.asString(" + call + ")";
@@ -188,17 +301,41 @@ public final class JxmlCompiler {
                     case INT:
                         return "JxmlValues.asInt(" + call + ")";
                     case BOOLEAN:
-                        return "JxmlValues.asBoolean(" + call + ")";
+                        return p.negate ? "Boolean.valueOf(!JxmlValues.asBoolean(" + call + ").booleanValue())"
+                                : "JxmlValues.asBoolean(" + call + ")";
                     case STRINGS:
                         return "JxmlValues.asStrings(" + call + ")";
                     case ELEMENT:
                         return "JxmlValues.asElement(" + call + ")";
+                    case OBJECT:
+                        return call;
                     default:
                         return "JxmlValues.bound(com.jxparallel.forge.AttrType." + p.attr.type.name() + ", " + call + ")";
                 }
             default:
                 throw new IllegalStateException();
         }
+    }
+
+    /** The loop variables a handler passes, as the Java variables that hold them. */
+    private List<String> arguments(JxmlTemplate.Prop p) {
+        List<String> out = new ArrayList<String>();
+        for (String arg : p.args) {
+            String name = null;
+            for (Local local : scope) {
+                if (local.name.equals(arg)) {
+                    name = local.javaName;
+                }
+            }
+            out.add(name);
+        }
+        return out;
+    }
+
+    /** The cast that gives a lambda the type of the value its input passes. */
+    private static String consumer(JxmlSchema.Tag tag) {
+        String type = tag.changeType == AttrType.BOOLEAN ? "Boolean" : tag.changeType == AttrType.DOUBLE ? "Double" : "String";
+        return "(java.util.function.Consumer<" + type + ">)";
     }
 
     /** Strings and booleans inline; everything else a static constant, built once. */
