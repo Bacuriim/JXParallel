@@ -279,6 +279,23 @@ JXParallel.background(() -> repository.count())
 The window picks its renderer by itself: Skia on 64-bit JVMs, NanoVG on 32-bit JVMs.
 `-Djx.renderer=skia|nanovg` forces one and `-Djx.monitor=N` opens the window on another monitor.
 
+The same screen can be written as markup and compiled to plain Java at build time by JXForge
+(`jxforge:generate`), with no XML parsing or reflection left at runtime; `javac` checks the
+controller calls:
+
+```xml
+<Column gap="12" padding="16" controller="com.acme.EditorController">
+  <Label text="${title}"/>
+  <Button text="Save" onAction="#save"/>
+</Column>
+```
+
+```java
+window.setContent(new EditorView().build(controller));
+```
+
+Details: [jxforge.md](docs/jxforge.md).
+
 ### Tests
 
 ```java
@@ -536,6 +553,7 @@ compile; the JavaFX comparison runners also run on the JavaFX 8 bundled with Ora
 |---|---|---|
 | `jxparallel-core` | worker pool, tasks, configuration, properties, events, observable collections | no |
 | `jxparallel-ui` | native scene graph, controls, layouts, `JXWindow`, Skia and NanoVG renderers | no |
+| `jxparallel-forge`, `jxforge-maven-plugin` | JXForge: native screens in JXML, compiled to Java at build time or interpreted | no |
 | `jxparallel-javafx` | FX thread dispatch (`JXParallelFx`, `JXFxDispatcher`) and JavaFX control wrappers | yes |
 | `jxparallel-fxml` | `FXMLLoaderService` with parallel loading and cache | yes |
 | `jxparallel-junit4`, `-junit5`, `-mockito`, `-powermock` | test integrations | no |
@@ -566,6 +584,7 @@ mutation testing) and how that compares with OpenJFX: [testing-strategy.md](docs
 | Native mode of the JavaFX-compatible API (`-Djx.backend=native`) | Implemented and tested headless (phase 2b); not yet run on a large real application |
 | Incremental UI updates | Implemented: memoized render and in-place reconciliation |
 | Virtualized list and table | Implemented (native mode); tree planned |
+| JXML screens (JXForge) | Prototype: compiler, interpreter, Maven plugin; no loops or conditions in the markup yet |
 | CSS | Subset: selectors with specificity, pseudo-classes, looked-up colors, inline styles |
 | Accessibility | Tree model only; no screen-reader adapter |
 
@@ -582,6 +601,7 @@ Roadmap: [roadmap.md](docs/roadmap.md). Changes: [CHANGELOG.md](CHANGELOG.md).
 | UI comparison, 32-bit and 64-bit | [ui-comparison-2026-09-25.md](docs/ui-comparison-2026-09-25.md) |
 | Plain JavaFX vs JX on JavaFX vs JX native (large-form screen) | [fx-backends-comparison-2026-09-29.md](docs/fx-backends-comparison-2026-09-29.md) |
 | FXML loading comparison | [fxml-load-comparison.md](docs/fxml-load-comparison.md) |
+| JXForge: JXML compiled to Java | [jxforge.md](docs/jxforge.md), [benchmark](docs/jxforge-benchmark-2026-10-21.md) |
 | Testing strategy, compared with OpenJFX | [testing-strategy.md](docs/testing-strategy.md) |
 
 ## Contributing
