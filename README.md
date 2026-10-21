@@ -601,7 +601,7 @@ Roadmap: [roadmap.md](docs/roadmap.md). Changes: [CHANGELOG.md](CHANGELOG.md).
 | UI comparison, 32-bit and 64-bit | [ui-comparison-2026-09-25.md](docs/ui-comparison-2026-09-25.md) |
 | Plain JavaFX vs JX on JavaFX vs JX native (large-form screen) | [fx-backends-comparison-2026-09-29.md](docs/fx-backends-comparison-2026-09-29.md) |
 | FXML loading comparison | [fxml-load-comparison.md](docs/fxml-load-comparison.md) |
-| JXForge: JXML compiled to Java | [jxforge.md](docs/jxforge.md), [benchmark](docs/jxforge-benchmark-2026-10-21.md) |
+| JXForge: JXML compiled to Java | [jxforge.md](docs/jxforge.md), [benchmark](docs/jxforge-benchmark-2026-10-21.md), [every component against JavaFX](docs/jxforge-components-benchmark-2026-10-21.md) |
 | Testing strategy, compared with OpenJFX | [testing-strategy.md](docs/testing-strategy.md) |
 
 ## Contributing

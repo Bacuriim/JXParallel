@@ -60,6 +60,10 @@ def _retained(row):
     with_, released, n = num(row.get("heap_live_with_bytes")), num(row.get("heap_live_released_bytes")), num(row.get("n"))
     if with_ is None or released is None or not n:
         return None
+    # the Java 8 client VM reports the live heap in steps of about 2.9 MB after System.gc(), which is more than what a
+    # JXML component retains: those values (and any that come out zero or negative) are noise, not a measurement
+    if str(row.get("jvm", "")).startswith("java8") or with_ - released <= 0:
+        return None
     return (with_ - released) / n
 
 

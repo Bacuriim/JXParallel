@@ -54,7 +54,7 @@ NavigationBar,2000
 NavigationRail,2000
 Opacity,1500
 Padding,1500
-Pagination,800
+Pagination,300
 Pane,1500
 PasswordField,1500
 Positioned,1500
@@ -79,7 +79,7 @@ Switch,2000
 TabBar,2000
 TableView,20
 Tabs,800
-TextArea,1500
+TextArea,500
 TextField,1500
 TextFlow,1500
 Tile,1500

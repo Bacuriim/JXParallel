@@ -664,4 +664,4 @@ JXML screen with `new XView().build(controller)`, and JXML places a Java compone
   native UI gets compiled screens without rewriting them.
 - Gradle plugin.
 
-Measurements: [jxforge-benchmark-2026-10-21.md](jxforge-benchmark-2026-10-21.md).
+Measurements: [jxforge-benchmark-2026-10-21.md](jxforge-benchmark-2026-10-21.md) (20 form screens: compiled, interpreted, FXML) and [jxforge-components-benchmark-2026-10-21.md](jxforge-components-benchmark-2026-10-21.md) (every component one by one, against JavaFX).
