@@ -26,6 +26,8 @@ values and grid row indexes sum to the same totals as the FXML screens (4320 and
 
 ## 1. Compiled vs interpreted
 
+![Twenty form screens on Java 17: FXML against JXML interpreted, cached template and compiled](assets/charts/forge-20-screens.svg)
+
 Time for 20 screens, milliseconds (median, range of 10 runs):
 
 | JVM | Stage | Interpreted | Template | **Compiled** | Compiled, no hoisting |

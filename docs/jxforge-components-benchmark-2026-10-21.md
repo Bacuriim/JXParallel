@@ -25,6 +25,10 @@ equivalent, on Java 17 x64 (the other JVMs are below). Above 1x, JXML is better.
 | Classes loaded | 2.1x fewer |
 | CPU of the whole process, from JVM start | 7.3x less |
 
+![Compiled JXML against JavaFX, Java 17 x64: 20x faster to build cold, 17x warm, 80x ready to paint warm, 4.4x to update, 39x less retained memory](assets/charts/headline-java17.svg)
+
+The charts are SVG (light and dark) with a PNG copy of each in `docs/assets/charts/`, drawn by `scripts/make-component-charts.py` from the CSVs.
+
 **Where JXML is not ahead** (details and causes in "Where JXML is not ahead"):
 
 - **Updating** `Tree` and `TreeTable` (0.37x to 0.60x, and 100x more allocation): every render flattens the whole model.
@@ -67,7 +71,9 @@ Cold is pass 1 (class loading, interpreter, first JIT), warm is pass 8. Allocati
 Every table compares the 43 components that have a JavaFX equivalent. "Worst" is the component
 where JXML is least ahead (or behind, below 1x); "JXML worse in" counts the components below 1x.
 
-﻿### java8-x86: 43 components with a JavaFX equivalent
+﻿![The same metrics on Java 8 x86, 17 x64 and 21 x64, as grouped bars](assets/charts/by-jvm.svg)
+
+### java8-x86: 43 components with a JavaFX equivalent
 
 JavaFX divided by JXML compiled (above 1x, JXML is better):
 
@@ -222,6 +228,8 @@ Where compiled JXML is worse than JavaFX:
 
 ## Per instance, Java 17 x64
 
+![Memory kept alive per instance for twelve components, JavaFX against compiled JXML](assets/charts/retained-per-instance.svg)
+
 | Component | N | build warm µs | ready warm µs | update warm µs | alloc ready warm B | retained B |
 |---|---:|---:|---:|---:|---:|---:|
 | Label | 5000 | 4.42 / 0.160 | 33.0 / 0.52 | 6.98 / 0.548 | 33274 / 513 | 12085 / 607 |
@@ -292,6 +300,12 @@ Where compiled JXML is worse than JavaFX:
 ## Where JXML is not ahead
 
 What the data shows, and what is only a likely cause.
+
+![Changing one prop of every instance, per component: JXML is faster for 39 of 43, slower for TreeTable, ScrollBar, Tree and Separator](assets/charts/update-by-component.svg)
+
+![Painting per component (indicative): JXML is slower for text inputs and tabs](assets/charts/paint-by-component.svg)
+
+![Memory allocated by the update, per component: tiny updates and the trees allocate more in JXML](assets/charts/alloc-update-by-component.svg)
 
 - **Tree and TreeTable update.** 100x more allocation and 0.2x to 0.6x the speed of scrolling 7 rows (5.6 ms against 3.3 ms for `Tree` on Java 17, 21 MB allocated against 225 KB). Cause, from the code: `JxmlRuntime.tree` flattens the whole model (10,100 items) on every build and only then windows it for the renderer, so the cost follows the model, not the screen. A lazy flatten of the visible window would remove it. `ListView` and `TableView` do not have this problem: they are ahead of JavaFX on update time on Java 8 and 17 and at 0.9x for `TableView` on Java 21.
 - **Small updates (`ScrollBar`, `Slider`, `ProgressBar`, `Separator`, `Image`).** For a prop that is a plain field in JavaFX, a set is almost free, while JXML builds a new immutable element and reconciles it: 3x to 16x more allocation, and slower for `ScrollBar` and `Separator` (0.46x and 0.88x on Java 17). This is the cost of the model, not a defect of one component; for every component with real work per instance (text, combo, date, tabs) the update is faster in JXML.
