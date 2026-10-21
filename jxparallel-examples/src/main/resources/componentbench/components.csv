@@ -73,7 +73,7 @@ Opacity,Opacity,containers,closed,1500,string,#text,value,s,text,Stack,Stack,a p
 Visibility,Visibility,containers,closed,1500,string,#text,value,s,text,Stack,Stack,a pure rename of Stack: same tree
 ListView,ListView,lists,closed,20,firsts,list,first,i,first (scroll position),ListView,,window of 30 rows from a model of 10000; update scrolls by 7 rows
 TableView,TableView,lists,closed,20,firsts,table,first,i,first (scroll position),TableView,,window of 30 rows from a model of 10000 rows of 3 columns; update scrolls by 7 rows
-Tree,Tree,lists,closed,8,firsts,list,first,i,first (scroll position),TreeView,,100 folders of 99 children; all expanded: 10000 visible rows; JXML builds every item on each build and update; JavaFX only on creation
+Tree,Tree,lists,closed,8,firsts,list,first,i,first (scroll position),TreeView,,100 folders of 99 children; all expanded: 10000 visible rows; the folders loop is memo="true"; so the items are built once for as long as the model is the same list; JavaFX also builds them once
 TreeTable,TreeTable,lists,closed,8,firsts,table,first,i,first (scroll position),TreeTableView,,as Tree; with a Size column; update scrolls by 7 rows
 MenuButton,MenuButton,overlays,closed,1000,string,menubutton,label,s,text,MenuButton,,
 ContextMenu,ContextMenu,overlays,closed,1000,string,menuitem,label,s,text,,,JavaFX ContextMenu is a popup window object; not a scene node

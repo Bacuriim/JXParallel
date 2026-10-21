@@ -16,6 +16,11 @@ public class LanguageController {
     public double age;
     public String city = "";
     public final Customer customer = new Customer();
+    public int top;
+
+    public int getTop() {
+        return top;
+    }
 
     public List<Order> getOrders() {
         return orders;

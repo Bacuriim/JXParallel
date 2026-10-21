@@ -138,7 +138,7 @@ final class JxmlPrepare {
                 names.add(attr.name);
             }
         }
-        names.removeAll(java.util.Arrays.asList("theme", "key", "content", "items", "var", "type", "from", "limit", "test", "pixels"));
+        names.removeAll(java.util.Arrays.asList("theme", "key", "content", "items", "var", "type", "from", "limit", "memo", "test", "pixels"));
         return names;
     }
 

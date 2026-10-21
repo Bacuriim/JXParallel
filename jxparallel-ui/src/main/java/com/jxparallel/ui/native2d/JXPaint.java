@@ -65,6 +65,9 @@ final class JXPaint {
         if (outermost) {
             deferred.clear(); // a frame object is reused by the next frame
             overlayRoot = node;
+            boolean sized = node.getHeight() > 0; // the root is the window: nothing outside it is seen
+            clipTop = sized ? node.getY() : Float.NEGATIVE_INFINITY;
+            clipBottom = sized ? node.getY() + node.getHeight() : Float.POSITIVE_INFINITY;
         }
         depth++;
         try {
@@ -163,6 +166,65 @@ final class JXPaint {
         }
     }
 
+    /**
+     * A node that is this far beyond the window (in pixels) is still painted: what it draws outside its own box, such as
+     * a shadow, a focus ring or a line of text taller than the box, is not far from it.
+     */
+    private static final float CULL_MARGIN = 32;
+
+    /** Tests turn it off to compare a frame with and without the skipped nodes; the pixels must be the same. */
+    static boolean cull = true;
+
+    /** The part of the window the children being painted can reach: the nearest ancestor's clip, top and bottom. */
+    private float clipTop = Float.NEGATIVE_INFINITY;
+    private float clipBottom = Float.POSITIVE_INFINITY;
+
+    private static boolean scrolls(String type) {
+        return "scroll".equals(type) || "list".equals(type) || "table".equals(type);
+    }
+
+    /**
+     * True when {@code node} and everything it paints are above or below the clip, so painting it changes no pixel.
+     * Only the vertical extent is looked at (text that is longer than its box runs sideways, not up or down); a node
+     * that opens over the window is never skipped, and a container is skipped only when none of its descendants,
+     * which may lie outside its own box, reaches the clip.
+     */
+    private boolean outside(JXNativeNode node) {
+        if (!cull || node.floatingNode || node.overlayHost || node.overlayContent) {
+            return false;
+        }
+        float top = Math.min(node.getY(), node.getY() + node.getHeight());
+        float bottom = Math.max(node.getY(), node.getY() + node.getHeight());
+        if (bottom + CULL_MARGIN >= clipTop && top - CULL_MARGIN <= clipBottom) {
+            return false;
+        }
+        if (node.getChildren().isEmpty()) {
+            return true;
+        }
+        float[] reach = {top, bottom};
+        reach(node, reach);
+        return reach[1] + CULL_MARGIN < clipTop || reach[0] - CULL_MARGIN > clipBottom;
+    }
+
+    /** Widens {@code range} (top, bottom) to what the children of {@code node} paint, as {@link #children} paints them. */
+    private static void reach(JXNativeNode node, float[] range) {
+        String type = node.getType();
+        if (node.collapsed() || node.overlayContent || scrolls(type) || "textarea".equals(type)
+                || Boolean.TRUE.equals(node.getProperty("clip"))) {
+            return; // nothing of the children is drawn outside the node's own box
+        }
+        List<JXNativeNode> kids = node.getChildren();
+        for (int i = 0, n = kids.size(); i < n; i++) {
+            JXNativeNode kid = kids.get(i);
+            if (kid.floatingNode) {
+                continue; // painted over the window by the overlay pass, not in place
+            }
+            range[0] = Math.min(range[0], Math.min(kid.getY(), kid.getY() + kid.getHeight()));
+            range[1] = Math.max(range[1], Math.max(kid.getY(), kid.getY() + kid.getHeight()));
+            reach(kid, range);
+        }
+    }
+
     private void children(JXNativeNode node) {
         if (node.collapsed() || node.overlayContent) {
             return; // only the title bar of a collapsed pane shows; the children of a menu are drawn with its panel
@@ -170,20 +232,31 @@ final class JXPaint {
         String type = node.getType();
         boolean clip = Boolean.TRUE.equals(node.getProperty("clip"));
         float[] viewport = null;
-        if ("scroll".equals(type) || "list".equals(type) || "table".equals(type)) {
+        if (scrolls(type)) {
             viewport = JXControlLayout.viewport(node);
         } else if ("textarea".equals(type)) {
             viewport = new float[] {node.getX() + 1, node.getY() + 1, node.getWidth() - 2, node.getHeight() - 2};
         }
+        float savedTop = clipTop;
+        float savedBottom = clipBottom;
         if (viewport != null) {
             p.clip(viewport[0], viewport[1], viewport[2], viewport[3]);
+            clipTop = Math.max(clipTop, viewport[1]);
+            clipBottom = Math.min(clipBottom, viewport[1] + viewport[3]);
         } else if (clip) {
             p.clip(node.getX(), node.getY(), node.getWidth(), node.getHeight());
+            clipTop = Math.max(clipTop, node.getY());
+            clipBottom = Math.min(clipBottom, node.getY() + node.getHeight());
         }
         List<JXNativeNode> kids = node.getChildren();
         for (int i = 0, n = kids.size(); i < n; i++) {
-            paint(kids.get(i)); // indexed: no iterator per node per frame
+            JXNativeNode kid = kids.get(i);
+            if (!outside(kid)) {
+                paint(kid); // indexed: no iterator per node per frame
+            }
         }
+        clipTop = savedTop;
+        clipBottom = savedBottom;
         if (viewport != null && ("list".equals(type) || "table".equals(type)) && node.getProperty("popupOf") == null) {
             emptyRows(node, viewport);
         }

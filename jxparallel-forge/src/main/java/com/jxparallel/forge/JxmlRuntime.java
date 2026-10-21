@@ -138,11 +138,20 @@ public final class JxmlRuntime {
         if (!(height > 0)) {
             throw new IllegalArgumentException("rowHeight must be greater than 0, not " + height);
         }
-        java.util.List<Object[]> visible = new java.util.ArrayList<Object[]>();
-        flatten(java.util.Arrays.asList(items), 0, visible);
-        int total = visible.size();
-        int first = Math.max(0, Math.min(Math.max(0, total - 1), ((Number) props.get("first")).intValue()));
+        int requested = Math.max(0, ((Number) props.get("first")).intValue());
         int limit = props.get("rows") == null ? JxmlTemplate.DEFAULT_ROWS : Math.max(0, ((Number) props.get("rows")).intValue());
+        // one pass over the model that counts every visible item and keeps only the rows of the window: a tree of
+        // thousands of items makes a few dozen rows, and the pass makes no object for the others
+        java.util.List<JXElement> top = java.util.Arrays.asList(items);
+        Window window = new Window(requested, limit);
+        collect(top, 0, window);
+        int total = window.position;
+        int first = Math.max(0, Math.min(Math.max(0, total - 1), requested));
+        if (first != requested) { // the window was asked beyond the end: the last item is the first row
+            window = new Window(first, limit);
+            collect(top, 0, window);
+        }
+        java.util.List<Object[]> visible = window.rows;
         JXProps.Builder out = JXProps.builder();
         for (java.util.Map.Entry<String, Object> entry : props.asMap().entrySet()) {
             if (!"rows".equals(entry.getKey())) {
@@ -151,22 +160,40 @@ public final class JxmlRuntime {
         }
         out.set("itemCount", Integer.valueOf(total)).set("first", Integer.valueOf(first))
                 .set("scrollY", Double.valueOf(first * height));
-        java.util.List<JXElement> rows = new java.util.ArrayList<JXElement>();
-        for (int i = first; i < total && i - first < limit; i++) {
-            Object[] row = visible.get(i);
-            rows.add(table ? tableRow((JXElement) row[0], i, row) : treeCell((JXElement) row[0], i, row, true));
+        java.util.List<JXElement> rows = new java.util.ArrayList<JXElement>(visible.size());
+        for (int k = 0; k < visible.size(); k++) {
+            Object[] row = visible.get(k);
+            rows.add(table ? tableRow((JXElement) row[0], first + k, row) : treeCell((JXElement) row[0], first + k, row, true));
         }
         return JXElement.of(table ? "table" : "list", out.build(), rows.toArray(new JXElement[0]));
     }
 
-    /** {item, depth, hasChildren, expanded} of each visible item, depth first. */
-    private static void flatten(java.util.List<JXElement> items, int depth, java.util.List<Object[]> out) {
-        for (JXElement item : items) {
-            boolean has = !item.getChildren().isEmpty();
+    /** The rows {@code [first, first + limit)} of the visible items, and how many items there are in all. */
+    private static final class Window {
+        final int first;
+        final long end;
+        final java.util.List<Object[]> rows = new java.util.ArrayList<Object[]>();
+        int position;
+
+        Window(int first, int limit) {
+            this.first = first;
+            this.end = (long) first + limit;
+        }
+    }
+
+    /** Counts the visible items, depth first, and adds {item, depth, hasChildren, expanded} of those in the window. */
+    private static void collect(java.util.List<JXElement> items, int depth, Window window) {
+        for (int i = 0, n = items.size(); i < n; i++) { // indexed: no iterator for each of thousands of lists
+            JXElement item = items.get(i);
+            java.util.List<JXElement> below = item.getChildren();
+            boolean has = !below.isEmpty();
             boolean expanded = has && Boolean.TRUE.equals(item.getProps().get("expanded"));
-            out.add(new Object[] {item, Integer.valueOf(depth), Boolean.valueOf(has), Boolean.valueOf(expanded)});
+            if (window.position >= window.first && window.position < window.end) {
+                window.rows.add(new Object[] {item, Integer.valueOf(depth), Boolean.valueOf(has), Boolean.valueOf(expanded)});
+            }
+            window.position++;
             if (expanded) {
-                flatten(item.getChildren(), depth + 1, out);
+                collect(below, depth + 1, window);
             }
         }
     }

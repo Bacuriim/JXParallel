@@ -190,13 +190,13 @@ add("TableView", "lists", "firsts",
     '<TableCell text="${r.total}"/></TableRow></TableView>', ("table", "first", "i"), "first (scroll position)", fx="TableView",
     note="window of 30 rows from a model of 10000 rows of 3 columns; update scrolls by 7 rows")
 add("Tree", "lists", "firsts",
-    '<Tree rowHeight="24" first="${i}" rows="30" prefHeight="720"><For items="${folders}" var="f" type="com.jxparallel.examples.nativeui.components.BenchFolder" key="${f}">'
+    '<Tree rowHeight="24" first="${i}" rows="30" prefHeight="720"><For items="${folders}" var="f" type="com.jxparallel.examples.nativeui.components.BenchFolder" key="${f}" memo="true">'
     '<TreeItem text="${f.name}" expanded="true"><For items="${f.children}" var="c" type="java.lang.String" key="${c}"><TreeItem text="${c}"/></For></TreeItem>'
     '</For></Tree>', ("list", "first", "i"), "first (scroll position)", fx="TreeView",
-    note="100 folders of 99 children, all expanded: 10000 visible rows; JXML builds every item on each build and update, JavaFX only on creation")
+    note="100 folders of 99 children, all expanded: 10000 visible rows; the folders loop is memo=\"true\", so the items are built once for as long as the model is the same list, JavaFX also builds them once")
 add("TreeTable", "lists", "firsts",
     '<TreeTable rowHeight="24" first="${i}" rows="30" columns="Name, Size" columnWidths="-1, 80" constrained="true" prefHeight="750">'
-    '<For items="${folders}" var="f" type="com.jxparallel.examples.nativeui.components.BenchFolder" key="${f}">'
+    '<For items="${folders}" var="f" type="com.jxparallel.examples.nativeui.components.BenchFolder" key="${f}" memo="true">'
     '<TreeItem text="${f.name}" expanded="true" values="${f.size}"><For items="${f.children}" var="c" type="java.lang.String" key="${c}">'
     '<TreeItem text="${c}" values="${f.size}"/></For></TreeItem></For></TreeTable>', ("table", "first", "i"), "first (scroll position)", fx="TreeTableView",
     note="as Tree, with a Size column; update scrolls by 7 rows")

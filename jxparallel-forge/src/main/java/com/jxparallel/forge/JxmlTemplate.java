@@ -84,6 +84,8 @@ public final class JxmlTemplate implements JxmlView<Object> {
         final String type;
         /** If only: what is included when the test is false (the {@code <Else>} that follows). */
         final List<Element> otherwise;
+        /** For only, with {@code memo="true"}: what the loop built last time; null for any other element. */
+        final JxmlMemo memo;
 
         Element(JxmlSchema.Tag tag, String source, int line, List<Prop> props, List<Element> children, String[] titles,
                 boolean[] closable, String var, String type, List<Element> otherwise) {
@@ -97,6 +99,8 @@ public final class JxmlTemplate implements JxmlView<Object> {
             this.var = var;
             this.type = type;
             this.otherwise = otherwise;
+            Prop memoProp = "For".equals(tag.name) ? prop("memo") : null;
+            this.memo = memoProp != null && Boolean.TRUE.equals(memoProp.literal) ? new JxmlMemo() : null;
             Map<String, Object> d = new java.util.LinkedHashMap<String, Object>(tag.defaults);
             for (Prop p : props) {
                 d.remove(p.attr.prop);
@@ -105,8 +109,7 @@ public final class JxmlTemplate implements JxmlView<Object> {
         }
 
         Element withOtherwise(List<Element> elements) {
-            return new Element(tag, source, line, props, children, titles, closable, var, type, Collections.unmodifiableList(elements));
-        }
+            return new Element(tag, source, line, props, children, titles, closable, var, type, Collections.unmodifiableList(elements));        }
 
         /** The prop set by the attribute of this name, or null. */
         Prop prop(String name) {
@@ -419,8 +422,45 @@ public final class JxmlTemplate implements JxmlView<Object> {
                 throw new JxmlException(source, children.get(0).line, "the element already has a key; remove it or the key of the <For>");
             }
         }
-        return new Element(tag, source, node.line, Collections.unmodifiableList(props), Collections.unmodifiableList(children),
-                titles, closable, var, type, Collections.<Element>emptyList());
+        Element element = new Element(tag, source, node.line, Collections.unmodifiableList(props),
+                Collections.unmodifiableList(children), titles, closable, var, type, Collections.<Element>emptyList());
+        if (element.memo != null) {
+            checkMemoBody(element.children, Collections.singleton(var));
+        }
+        return element;
+    }
+
+    /**
+     * The body of a {@code <For memo="true">} is built once for as long as the list stays the same, so it may read
+     * nothing but its own loop variables (and those of the loops inside it): a value of the controller or of a loop
+     * around the {@code memo} loop would go stale. Handlers are fine, the controller they call is part of what the
+     * loop remembers.
+     */
+    private static void checkMemoBody(List<Element> elements, java.util.Set<String> roots) {
+        for (Element e : elements) {
+            java.util.Set<String> inner = roots;
+            if (e.var != null) {
+                inner = new java.util.HashSet<String>(roots);
+                inner.add(e.var);
+            }
+            for (Prop p : e.props) {
+                if ((p.kind == Kind.BINDING || p.kind == Kind.SETTER) && (p.root == null || !inner.contains(p.root))) {
+                    throw new JxmlException(p.source, p.line, "<For memo> builds its elements once for as long as the list is the same, "
+                            + "so \"" + p.attr.name + "\" can read only the loop variable " + roots + ", not "
+                            + (p.root == null ? "the controller" : "\"" + p.root + "\", a variable of an outer loop"));
+                }
+                if ((p.kind == Kind.HANDLER || p.kind == Kind.CHANGE) && p.args != null) {
+                    for (String arg : p.args) {
+                        if (!inner.contains(arg)) {
+                            throw new JxmlException(p.source, p.line, "<For memo> builds its elements once for as long as the list is the "
+                                    + "same, so \"" + p.attr.name + "\" can pass only the loop variable " + roots + ", not \"" + arg + "\"");
+                        }
+                    }
+                }
+            }
+            checkMemoBody(e.children, inner);
+            checkMemoBody(e.otherwise, roots);
+        }
     }
 
     /** A tag that takes only some tags as children: loops and conditions are looked through, anything else is an error. */
@@ -698,7 +738,7 @@ public final class JxmlTemplate implements JxmlView<Object> {
         if (isSlot(e.tag)) {
             return (JXElement) value(e.props.get(0), controller, scope);
         }
-        JXProps.Builder props = JXProps.builder();
+        JXProps.Builder props = JXProps.builder(e.defaults.size() + e.props.size() + (key == null ? 0 : 1));
         for (Map.Entry<String, Object> d : e.defaults.entrySet()) {
             props.set(d.getKey(), d.getValue());
         }
@@ -752,17 +792,27 @@ public final class JxmlTemplate implements JxmlView<Object> {
                 Prop keyProp = n.prop("key");
                 Prop from = n.prop("from");
                 Prop limit = n.prop("limit");
+                Object source = value(items, controller, scope);
+                Integer fromValue = from == null ? null : (Integer) value(from, controller, scope);
+                Integer limitValue = limit == null ? null : (Integer) value(limit, controller, scope);
+                JXElement[] kept = n.memo == null ? null : n.memo.get(controller, source, fromValue, limitValue);
+                if (kept != null) {
+                    Collections.addAll(out, kept);
+                    continue;
+                }
                 Iterable<Object> each;
                 try {
-                    each = JxmlRuntime.items(value(items, controller, scope),
-                            from == null ? null : (Integer) value(from, controller, scope),
-                            limit == null ? null : (Integer) value(limit, controller, scope));
+                    each = JxmlRuntime.items(source, fromValue, limitValue);
                 } catch (IllegalArgumentException ex) {
                     throw new JxmlException(items.source, items.line, ex.getMessage());
                 }
+                List<JXElement> into = n.memo == null ? out : new ArrayList<JXElement>();
                 for (Object item : each) {
                     Scope inner = new Scope(n.var, item, scope);
-                    addAll(n.children, controller, inner, keyProp == null ? null : value(keyProp, controller, inner), out);
+                    addAll(n.children, controller, inner, keyProp == null ? null : value(keyProp, controller, inner), into);
+                }
+                if (n.memo != null) {
+                    Collections.addAll(out, n.memo.put(controller, source, fromValue, limitValue, into.toArray(new JXElement[0])));
                 }
             } else if ("If".equals(n.tag.name)) {
                 boolean test = ((Boolean) value(n.prop("test"), controller, scope)).booleanValue();

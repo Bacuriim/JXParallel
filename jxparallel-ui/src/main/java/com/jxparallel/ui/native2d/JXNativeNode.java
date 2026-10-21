@@ -8,6 +8,7 @@ import java.util.Map;
 import java.util.Objects;
 
 import com.jxparallel.ui.JXElement;
+import com.jxparallel.ui.JXProps;
 import com.jxparallel.ui.text.JXTextEngine;
 
 /**
@@ -129,8 +130,11 @@ public final class JXNativeNode {
     private boolean titledContent;
     private Map<String, Object> props;
     private JXElement source;
-    private final List<JXNativeNode> children = new ArrayList<JXNativeNode>();
-    private final List<JXNativeNode> unmodifiableChildren;
+    /** What every node without children shares: most nodes of a tree are leaves, and none needs a list of its own. */
+    private static final List<JXNativeNode> NO_CHILDREN = Collections.emptyList();
+    private List<JXNativeNode> children = NO_CHILDREN;
+    /** The read-only view {@link #getChildren} hands out; null until asked for, and reset when the list is replaced. */
+    private List<JXNativeNode> childView;
     private int x;
     private int y;
     private int width;
@@ -176,7 +180,8 @@ public final class JXNativeNode {
     /** Layout results a control keeps between layouts (fitted table columns). */
     private Object layoutState;
     /** Column widths a table row gets from its table. */
-    private float[] parentWidths = new float[0];
+    private float[] parentWidths = NO_WIDTHS;
+    private static final float[] NO_WIDTHS = new float[0];
 
     JXNativeNode(JXElement element) {
         this.source = element;
@@ -185,18 +190,31 @@ public final class JXNativeNode {
         this.floatingNode = JXOverlays.floating(type);
         this.overlayContent = JXOverlays.overlayContainer(type);
         this.overlayHost = JXOverlays.popupHost(type) || floatingNode || "menubutton".equals(type) || "menubar".equals(type);
-        setProps(element.getProps().asMap());
-        for (JXElement child : element.getChildren()) {
-            children.add(child(child));
+        setProps(element.getProps());
+        List<JXElement> below = element.getChildren();
+        int n = below.size();
+        if (n > 0) {
+            children = new ArrayList<JXNativeNode>(n); // exactly as many as there are
+            for (int i = 0; i < n; i++) {
+                children.add(child(below.get(i)));
+            }
         }
-        this.unmodifiableChildren = Collections.unmodifiableList(children);
+    }
+
+    /** The list of this node's children, made when the first one comes: a leaf shares {@link #NO_CHILDREN}. */
+    private List<JXNativeNode> ownChildren() {
+        if (children == NO_CHILDREN) {
+            children = new ArrayList<JXNativeNode>(4);
+            childView = null;
+        }
+        return children;
     }
 
     private JXNativeNode child(JXElement element) {
         JXNativeNode child = new JXNativeNode(element);
         if (kind == TITLED) {
             child.titledContent = true;
-            child.setProps(child.props); // picks up the content padding default
+            child.setProps(element.getProps()); // picks up the content padding default
         }
         return child;
     }
@@ -270,8 +288,11 @@ public final class JXNativeNode {
             if (retain) {
                 retainLeaving(next);
             }
-            children.clear();
-            children.addAll(Arrays.asList(next));
+            if (children != NO_CHILDREN || next.length > 0) {
+                List<JXNativeNode> own = ownChildren();
+                own.clear();
+                own.addAll(Arrays.asList(next));
+            }
             result |= RESIZED; // positions change: the parent lays its children out again
         }
         return result;
@@ -407,11 +428,12 @@ public final class JXNativeNode {
         if (element == source) {
             return UNCHANGED; // same immutable element (memoized render): nothing below changed
         }
+        JXProps previous = source.getProps();
         source = element;
         Map<String, Object> next = element.getProps().asMap();
         boolean placement = vgrow != priority(next.get("vgrow")) || hgrow != priority(next.get("hgrow"));
-        boolean relayout = sizeAffected(next);
-        setProps(next);
+        boolean relayout = sizeAffected(previous, element.getProps());
+        setProps(element.getProps());
         boolean subtree = false;
         List<JXElement> nextChildren = element.getChildren();
         boolean retain = Boolean.TRUE.equals(next.get("retainChildren"));
@@ -433,7 +455,7 @@ public final class JXNativeNode {
             }
         }
         for (int i = common; i < nextChildren.size(); i++) {
-            children.add(child(nextChildren.get(i)));
+            ownChildren().add(child(nextChildren.get(i)));
             relayout = true;
         }
         while (children.size() > nextChildren.size()) {
@@ -562,7 +584,15 @@ public final class JXNativeNode {
     }
 
     public List<JXNativeNode> getChildren() {
-        return unmodifiableChildren;
+        if (children == NO_CHILDREN) {
+            return NO_CHILDREN;
+        }
+        List<JXNativeNode> view = childView;
+        if (view == null) {
+            view = Collections.unmodifiableList(children);
+            childView = view;
+        }
+        return view;
     }
 
     public int getX() {
@@ -827,17 +857,17 @@ public final class JXNativeNode {
         return horizontal ? hgrow : vgrow;
     }
 
-    /** readLayoutProp as a consumer, made once per node rather than on every props change. */
-    private final java.util.function.BiConsumer<String, Object> layoutPropReader = this::readLayoutProp;
-
-    private void setProps(Map<String, Object> next) {
+    private void setProps(JXProps given) {
+        Map<String, Object> next = given.asMap();
         props = next;
         vgrow = 0;
         hgrow = 0;
         gap = 0;
         fillWidth = true;
         fillHeight = true;
-        overrides = null;
+        if (overrides != null) {
+            Arrays.fill(overrides, Double.NaN); // the array a node once needed is kept: a props change is not a new one
+        }
         alignment = null;
         padding = NO_INSETS;
         margin = NO_INSETS;
@@ -858,7 +888,9 @@ public final class JXNativeNode {
         rightAnchor = Double.NaN;
         topAnchor = Double.NaN;
         bottomAnchor = Double.NaN;
-        next.forEach(layoutPropReader); // Map.forEach: no entry objects, unlike entrySet() on an unmodifiable map
+        for (int i = 0, n = given.size(); i < n; i++) { // by index: no entry objects, no iterator, no consumer kept in the node
+            readLayoutProp(given.keyAt(i), given.valueAt(i));
+        }
         if (titledContent && kind >= COLUMN && kind <= TILE && !next.containsKey("padding")) {
             padding = TITLED_CONTENT_PADDING;
         }
@@ -1240,35 +1272,38 @@ public final class JXNativeNode {
     }
 
     /** True if the new props can change this node's size or its placement in the parent. */
-    private boolean sizeAffected(Map<String, Object> next) {
-        // Walk the keys the two maps have (a few) instead of every layout key (dozens).
-        for (String key : props.keySet()) {
-            if (LAYOUT_KEY_SET.contains(key) && !Objects.deepEquals(props.get(key), next.get(key))) {
+    private boolean sizeAffected(JXProps old, JXProps next) {
+        // Walk the props the two have (a few) instead of every layout key (dozens), by index: reconciling thousands
+        // of nodes makes no key set and no iterator for any of them.
+        for (int i = 0, n = old.size(); i < n; i++) {
+            String key = old.keyAt(i);
+            if (LAYOUT_KEY_SET.contains(key) && !Objects.deepEquals(old.valueAt(i), next.get(key))) {
                 return true;
             }
         }
-        for (String key : next.keySet()) {
-            if (LAYOUT_KEY_SET.contains(key) && !props.containsKey(key)) {
+        for (int i = 0, n = next.size(); i < n; i++) {
+            String key = next.keyAt(i);
+            if (LAYOUT_KEY_SET.contains(key) && !old.asMap().containsKey(key)) {
                 return true;
             }
         }
         if ("#text".equals(type)) {
-            return !Objects.equals(props.get("value"), next.get("value"));
+            return !Objects.equals(old.get("value"), next.get("value"));
         }
         if ("button".equals(type) || "toggle".equals(type) || "checkbox".equals(type) || "titled".equals(type)
                 || "radio".equals(type) || "hyperlink".equals(type) || "switch".equals(type) || "chip".equals(type)
                 || "menubutton".equals(type) || "menu".equals(type) || "menuitem".equals(type)) {
-            return !Objects.equals(props.get("label"), next.get("label"));
+            return !Objects.equals(old.get("label"), next.get("label"));
         }
         if ("cell".equals(type)) {
-            return !Objects.equals(props.get("value"), next.get("value"));
+            return !Objects.equals(old.get("value"), next.get("value"));
         }
         if ("image".equals(type)) {
-            return props.get("pixels") != next.get("pixels");
+            return old.get("pixels") != next.get("pixels");
         }
         if ("select".equals(type)) {
-            return !Objects.equals(props.get("value"), next.get("value"))
-                    || !Objects.deepEquals(props.get("options"), next.get("options"));
+            return !Objects.equals(old.get("value"), next.get("value"))
+                    || !Objects.deepEquals(old.get("options"), next.get("options"));
         }
         return false;
     }

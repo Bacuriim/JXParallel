@@ -203,6 +203,101 @@ class JxmlLanguageTest {
         assertTrue(plain.getChildren().get(0) != plain.getChildren().get(1));
     }
 
+    // ---- For memo ----------------------------------------------------------------------------------
+
+    private static final String MEMO_ORDERS = "<For items=\"${orders}\" var=\"o\" type=\"" + ORDER + "\" memo=\"true\" key=\"${o.id}\">"
+            + "<Row><Label text=\"${o.name}\"/><For items=\"${o.lines}\" var=\"l\" type=\"" + LINE + "\"><Label text=\"${l.text}\"/></For>"
+            + "<Button text=\"Open\" onAction=\"#open(o)\"/></Row></For>";
+
+    @Test
+    void aMemoLoopBuildsTheSameTreeAsOneWithoutMemo() throws Exception {
+        JXElement memo = agree(screen(MEMO_ORDERS));
+        JXElement plain = agree(screen(MEMO_ORDERS.replace(" memo=\"true\"", "")));
+        assertNull(JxmlTrees.diff(plain, memo));
+    }
+
+    @Test
+    void aMemoLoopHandsOutTheSameElementsWhileTheControllerAndTheListStayTheSame() throws Exception {
+        for (JxmlView<Object> view : views(screen(MEMO_ORDERS + "<Label text=\"${note}\"/>"))) {
+            LanguageController c = new LanguageController();
+            JXElement first = view.build(c);
+            c.note = "changed"; // what is outside the loop is built again
+            JXElement second = view.build(c);
+            assertEquals(4, second.getChildren().size());
+            assertEquals("changed", second.getChildren().get(3).getProps().get("value"));
+            for (int i = 0; i < 3; i++) {
+                assertSame(first.getChildren().get(i), second.getChildren().get(i), "row " + i);
+            }
+        }
+    }
+
+    @Test
+    void aLoopWithoutMemoBuildsNewElementsEveryTime() throws Exception {
+        for (JxmlView<Object> view : views(screen(MEMO_ORDERS.replace(" memo=\"true\"", "")))) {
+            LanguageController c = new LanguageController();
+            assertTrue(view.build(c).getChildren().get(0) != view.build(c).getChildren().get(0));
+        }
+    }
+
+    @Test
+    void aMemoLoopBuildsAgainWhenTheListGrowsOrIsAnotherObject() throws Exception {
+        for (JxmlView<Object> view : views(screen(MEMO_ORDERS))) {
+            LanguageController c = new LanguageController();
+            JXElement first = view.build(c);
+            c.orders.add(new LanguageController.Order(4, "D", true));
+            JXElement grown = view.build(c);
+            assertEquals(4, grown.getChildren().size());
+            assertEquals("D", grown.getChildren().get(3).getChildren().get(0).getProps().get("value"));
+            assertTrue(first.getChildren().get(0) != grown.getChildren().get(0));
+        }
+        // ${names} is a new array on every call: another object each time, so nothing is reused
+        for (JxmlView<Object> view : views(screen("<For items=\"${names}\" var=\"n\" memo=\"true\"><Label text=\"${n}\"/></For>"))) {
+            LanguageController c = new LanguageController();
+            JXElement first = view.build(c);
+            JXElement second = view.build(c);
+            assertEquals(Arrays.asList("n1", "n2"), values(second));
+            assertTrue(first.getChildren().get(0) != second.getChildren().get(0));
+        }
+    }
+
+    @Test
+    void aMemoLoopBuildsAgainForAnotherController() throws Exception {
+        for (JxmlView<Object> view : views(screen(MEMO_ORDERS))) {
+            JXElement first = view.build(new LanguageController());
+            JXElement second = view.build(new LanguageController());
+            assertTrue(first.getChildren().get(0) != second.getChildren().get(0));
+        }
+    }
+
+    @Test
+    void aMemoLoopBuildsAgainWhenItsWindowMoves() throws Exception {
+        String xml = screen("<For items=\"${orders}\" var=\"o\" type=\"" + ORDER + "\" from=\"${top}\" limit=\"2\" memo=\"true\">"
+                + "<Label text=\"${o.name}\"/></For>");
+        for (JxmlView<Object> view : views(xml)) {
+            LanguageController c = new LanguageController();
+            c.top = 0;
+            JXElement first = view.build(c);
+            assertSame(first.getChildren().get(0), view.build(c).getChildren().get(0));
+            c.top = 1;
+            assertEquals(Arrays.asList("B", "C"), values(view.build(c)));
+        }
+    }
+
+    @Test
+    void aMemoLoopCanNotReadWhatCanChangeWithoutItsListChanging() {
+        JxmlException controller = assertThrows(JxmlException.class, () -> read(screen(
+                "<For items=\"${orders}\" var=\"o\" type=\"" + ORDER + "\" memo=\"true\"><Label text=\"${note}\"/></For>")));
+        assertTrue(controller.getMessage().contains("memo") && controller.getMessage().contains("controller"), controller.getMessage());
+        JxmlException outer = assertThrows(JxmlException.class, () -> read(screen(
+                "<For items=\"${orders}\" var=\"o\" type=\"" + ORDER + "\"><For items=\"${o.lines}\" var=\"l\" type=\"" + LINE
+                        + "\" memo=\"true\"><Label text=\"${o.name}\"/></For></For>")));
+        assertTrue(outer.getMessage().contains("memo") && outer.getMessage().contains("\"o\""), outer.getMessage());
+        JxmlException arg = assertThrows(JxmlException.class, () -> read(screen(
+                "<For items=\"${orders}\" var=\"o\" type=\"" + ORDER + "\"><For items=\"${o.lines}\" var=\"l\" type=\"" + LINE
+                        + "\" memo=\"true\"><Button text=\"x\" onAction=\"#open(o)\"/></For></For>")));
+        assertTrue(arg.getMessage().contains("memo"), arg.getMessage());
+    }
+
     // ---- If / Else ---------------------------------------------------------------------------------
 
     @Test

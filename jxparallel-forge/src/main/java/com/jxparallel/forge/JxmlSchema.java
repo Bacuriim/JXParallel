@@ -190,6 +190,7 @@ public final class JxmlSchema {
                 .attr("items", "items", AttrType.OBJECT, true).attr("var", "var", AttrType.STRING, false)
                 .attr("type", "type", AttrType.STRING, false).attr("key", "key", AttrType.OBJECT, true)
                 .attr("from", "from", AttrType.INT, true).attr("limit", "limit", AttrType.INT, true)
+                .attr("memo", "memo", AttrType.BOOLEAN, false)
                 .done();
         tag("If", null, Children.MANY).control()
                 .attr("test", "test", AttrType.BOOLEAN, true)

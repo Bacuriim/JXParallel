@@ -9,7 +9,7 @@
       </TreeItem>
       <TreeItem text="test"/>
     </TreeItem>
-    <For items="${folders}" var="f" type="com.jxparallel.forge.samples.SampleController.Node" key="${f.id}">
+    <For items="${folders}" var="f" type="com.jxparallel.forge.samples.SampleController.Node" key="${f.id}" memo="true">
       <TreeItem text="${f.name}" expanded="${f.expanded}" onAction="#pick(f)" onToggle="#toggle(f)">
         <For items="${f.children}" var="c" type="com.jxparallel.forge.samples.SampleController.Node">
           <TreeItem text="${c.name}" expanded="true" onAction="#pick(c)">
