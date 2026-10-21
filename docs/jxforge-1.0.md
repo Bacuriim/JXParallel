@@ -35,77 +35,77 @@ compiler build the same tree for it, and a test covers it. Everything else is `t
 | Border layout | Scaffold body | Scaffold | BorderPane | `Border` | `border` | 1 | done |
 | Grid | Table / GridView (static) | Grid (custom) | GridPane | `Grid` | `grid` | 1 | done |
 | Scrolling | SingleChildScrollView | verticalScroll | ScrollPane | `Scroll` | `scroll` | 1 | done |
-| Flow / wrap | Wrap | FlowRow / FlowColumn | FlowPane | `Flow` | `flow` | 2 | todo |
-| Tile grid | GridView.count | LazyVerticalGrid (fixed) | TilePane | `Tile` | `tile` | 2 | todo |
-| Absolute anchors | Positioned | Modifier.offset | AnchorPane | `Anchor` | `anchor` | 2 | todo |
-| Positioned child | Positioned | Modifier.align / offset | AnchorPane constraints | `Anchor` children with `top`/`left`/... | `anchor` | 2 | todo |
-| Plain pane | Container (no style) | Box | Pane / Group / Region | `Pane` | `pane` | 2 | todo |
-| Styled box | Container / DecoratedBox | Surface / Box with background | Region with style | `Box` (color, border, radius) | - | 4 | todo |
-| Padding | Padding | Modifier.padding | padding | `padding` attribute | - | 3 | done |
-| Center | Center | Box contentAlignment | alignment | `alignment` attribute | - | 3 | done |
-| Align | Align | Modifier.align | StackPane.alignment | `alignment` attribute | - | 3 | done |
-| Fixed size | SizedBox | Modifier.size | prefWidth / prefHeight | `prefWidth` / `prefHeight` | - | 3 | done |
-| Expand / flex | Expanded / Flexible | Modifier.weight | hgrow / vgrow | `hgrow` / `vgrow` | - | 3 | done |
-| Spacer | Spacer | Spacer | Region with grow | `Spacer` | `pane` | 3 | todo |
+| Flow / wrap | Wrap | FlowRow / FlowColumn | FlowPane | `Flow` (`Wrap`) | `flow` | 2 | done |
+| Tile grid | GridView.count | LazyVerticalGrid (fixed) | TilePane | `Tile` | `tile` | 2 | done |
+| Absolute anchors | Positioned | Modifier.offset | AnchorPane | `Anchor` | `anchor` | 2 | done |
+| Positioned child | Positioned | Modifier.align / offset | AnchorPane constraints | `top` / `right` / `bottom` / `left` on any child of `Anchor`; `Positioned`; `x` / `y` in a `Pane` | `anchor`, `pane` | 2 | done |
+| Plain pane | Container (no style) | Box | Pane / Group / Region | `Pane` | `pane` | 2 | done |
+| Styled box | Container / DecoratedBox | Surface / Box with background | Region with style | `Box` / `Container`; `background`, `borderColor`, ... on any tag | `stack` | 3 | done |
+| Padding | Padding | Modifier.padding | padding | `padding` attribute; `Padding` | `stack` | 3 | done |
+| Center | Center | Box contentAlignment | alignment | `alignment` attribute; `Center` | `stack` | 3 | done |
+| Align | Align | Modifier.align | StackPane.alignment | `alignment` attribute; `Align` | `stack` | 3 | done |
+| Fixed size | SizedBox | Modifier.size | prefWidth / prefHeight | `prefWidth` / `prefHeight`; `SizedBox` | `stack` | 3 | done |
+| Expand / flex | Expanded / Flexible | Modifier.weight | hgrow / vgrow | `hgrow` / `vgrow`; `Expanded`, `Flexible` | - | 3 | done |
+| Spacer | Spacer | Spacer | Region with grow | `Spacer` | `pane` | 3 | done |
 | Split pane | - | - | SplitPane | `SplitPane` | - | 4 | todo |
 | Static text | Text | Text | Label / Text | `Label` | `#text` | 1 | done |
-| Rich text | RichText / Text.rich | buildAnnotatedString | TextFlow | `TextFlow` | `textflow` | 2 | todo |
-| Image | Image | Image | ImageView | `Image` | `image` | 2 | todo |
+| Rich text | RichText / Text.rich | buildAnnotatedString | TextFlow | `TextFlow` | `textflow` | 2 | done |
+| Image | Image | Image | ImageView | `Image` (pixels from Java; no file decoding) | `image` | 2 | done |
 | Icon | Icon | Icon | Glyph / Label graphic | `Icon` | - | 4 | todo |
 | Circle avatar | CircleAvatar | Image + clip | - | `Avatar` | - | 4 | todo |
 | Badge | Badge | Badge / BadgedBox | - | `Badge` | - | 4 | todo |
-| Opacity | Opacity | Modifier.alpha | opacity | `opacity` attribute | - | 4 | todo |
-| Visibility | Visibility | if (visible) | visible | `<If>` or `visible` attribute | - | 5 | todo |
+| Opacity | Opacity | Modifier.alpha | opacity | `opacity` attribute on any tag; `Opacity` | `stack` | 3 | done |
+| Visibility | Visibility | if (visible) | visible | `<If>`, or the `hidden` attribute on any tag; `Visibility` | `stack` | 3 | done |
 | Button | ElevatedButton / TextButton | Button / TextButton | Button | `Button` | `button` | 1 | done |
 | Button variants | Elevated, Filled, Tonal, Outlined, Text | Filled, Tonal, Outlined, Text, Elevated | - | `Button` with `variant` | `button` | 4 | todo |
 | Icon button | IconButton | IconButton | Button with graphic | `IconButton` | `button` | 4 | todo |
 | Floating action button | FloatingActionButton | FloatingActionButton | - | `Fab` | - | 4 | todo |
-| Toggle button | ToggleButtons | SegmentedButton | ToggleButton | `ToggleButton` | `toggle` | 2 | todo |
-| Toggle group | ToggleButtons (selection) | SingleChoiceSegmentedButtonRow | ToggleGroup | `ToggleGroup` | - | 5 | todo |
-| Link | - | ClickableText | Hyperlink | `Hyperlink` | `hyperlink` | 2 | todo |
-| Button bar | OverflowBar | Row of buttons | ButtonBar | `ButtonBar` | `buttonbar` | 2 | todo |
+| Toggle button | ToggleButtons | SegmentedButton | ToggleButton | `ToggleButton` | `toggle` | 2 | done |
+| Toggle group | ToggleButtons (selection) | SingleChoiceSegmentedButtonRow | ToggleGroup | `group` and `value` on `ToggleButton` / `RadioButton` | `toggle`, `radio` | 5 | done |
+| Link | - | ClickableText | Hyperlink | `Hyperlink` | `hyperlink` | 2 | done |
+| Button bar | OverflowBar | Row of buttons | ButtonBar | `ButtonBar` | `buttonbar` | 2 | done |
 | Text field | TextField | TextField / OutlinedTextField | TextField | `TextField` | `input` | 1 | done |
 | Password field | TextField(obscureText) | OutlinedTextField + PasswordVisualTransformation | PasswordField | `PasswordField` | `password` | 1 | done |
 | Text area | TextField(maxLines) | TextField(minLines) | TextArea | `TextArea` | `textarea` | 1 | done |
 | Check box | Checkbox | Checkbox | CheckBox | `CheckBox` | `checkbox` | 1 | done |
 | Switch | Switch | Switch | - | `Switch` | - | 4 | todo |
-| Radio button | Radio | RadioButton | RadioButton | `RadioButton` | `radio` | 2 | todo |
+| Radio button | Radio | RadioButton | RadioButton | `RadioButton` (alone, or with `group`) | `radio` | 2 | done |
 | Slider | Slider | Slider | Slider | `Slider` | `slider` | 1 | done |
 | Scroll bar | Scrollbar | VerticalScrollbar | ScrollBar | `ScrollBar` | - | 4 | todo |
 | Combo box | DropdownButton | ExposedDropdownMenuBox | ComboBox | `ComboBox` | `select` | 1 | done |
-| Choice box | DropdownButton | ExposedDropdownMenuBox | ChoiceBox | `ChoiceBox` (as `ComboBox`) | `select` | 3 | todo |
-| Dropdown menu | DropdownMenu / PopupMenuButton | DropdownMenu | MenuButton | `ComboBox` / `MenuButton` | `select`, `popup` | 3 | todo |
+| Choice box | DropdownButton | ExposedDropdownMenuBox | ChoiceBox | `ChoiceBox` (as `ComboBox`) | `select` | 3 | done |
+| Dropdown menu | DropdownMenu / PopupMenuButton | DropdownMenu | MenuButton | `ComboBox` / `MenuButton` | `select`, `popup` | 4 | todo |
 | Spinner | - | - | Spinner | `Spinner` | `spinner` | 1 | done |
 | Date picker | showDatePicker | DatePicker | DatePicker | `DatePicker` | `datepicker` | 1 | done |
 | Time picker | showTimePicker | TimePicker | - | `TimePicker` | - | 4 | todo |
 | Color picker | - | - | ColorPicker | `ColorPicker` | - | 4 | todo |
 | Progress bar | LinearProgressIndicator | LinearProgressIndicator | ProgressBar | `ProgressBar` | `progress` | 1 | done |
-| Progress circle | CircularProgressIndicator | CircularProgressIndicator | ProgressIndicator | `ProgressIndicator` | `indicator` | 2 | todo |
-| Divider | Divider | Divider | Separator | `Separator` | `separator` | 1 | done |
+| Progress circle | CircularProgressIndicator | CircularProgressIndicator | ProgressIndicator | `ProgressIndicator` | `indicator` | 2 | done |
+| Divider | Divider | Divider | Separator | `Separator` (`Divider`) | `separator` | 1 | done |
 | Chip | Chip / FilterChip / ChoiceChip | AssistChip / FilterChip / InputChip | - | `Chip` | - | 4 | todo |
-| Card | Card | Card / ElevatedCard | - | `Card` | - | 4 | todo |
-| List (virtual) | ListView | LazyColumn / LazyRow | ListView | `List` | `list` | 2 | todo |
-| Grid (virtual) | GridView | LazyVerticalGrid | - | `List` with columns, or `Tile` + `<For>` | `list`, `tile` | 3 | todo |
-| List item | ListTile | ListItem | ListCell | `ListItem` | `cell` | 3 | todo |
-| Table | DataTable | - | TableView / TableColumn | `Table` / `Column` cells | `table`, `tablerow` | 2 | todo |
+| Card | Card | Card / ElevatedCard | - | `Card` (no shadow) | `column` | 3 | done |
+| List (virtual) | ListView | LazyColumn / LazyRow | ListView | `ListView` | `list` | 2 | done |
+| Grid (virtual) | GridView | LazyVerticalGrid | - | `Tile` + `<For>` (the `list` element has no columns) | `tile` | 3 | done |
+| List item | ListTile | ListItem | ListCell | `ListItem`, `ListTile` | `cell`, `row` | 3 | done |
+| Table | DataTable | - | TableView / TableColumn | `TableView`, `TableRow`, `TableCell` | `table`, `tablerow`, `cell` | 2 | done |
 | Tree | - | - | TreeView | `Tree` | - | 4 | todo |
 | Tree table | - | - | TreeTableView | `TreeTable` | - | 4 | todo |
 | Tab pane | TabBarView | HorizontalPager | TabPane / Tab | `Tabs` / `Tab` | `tabs` | 1 | done |
-| Tab bar | TabBar | TabRow | TabPane header | `Tabs` | `tabs` | 3 | todo |
-| Accordion | ExpansionPanelList | - | Accordion | `Accordion` | `accordion` | 2 | todo |
-| Titled pane | ExpansionTile | - | TitledPane | `TitledPane` | `titled` | 2 | todo |
-| Pagination | PageView + indicator | HorizontalPager | Pagination | `Pagination` | `pagination` | 2 | todo |
-| Stepper | Stepper | - | - | `Stepper` | - | 3 | todo |
-| Scaffold | Scaffold | Scaffold | BorderPane | `Scaffold` (as `Border`) | `border` | 3 | todo |
-| Top bar | AppBar | TopAppBar | ToolBar | `AppBar` | `row` | 3 | todo |
-| Tool bar | - | - | ToolBar | `ToolBar` | `row` | 3 | todo |
-| Bottom bar | BottomAppBar | BottomAppBar | - | `BottomBar` | `row` | 3 | todo |
-| Bottom navigation | BottomNavigationBar / NavigationBar | NavigationBar | - | `NavigationBar` | `row` | 3 | todo |
-| Navigation rail | NavigationRail | NavigationRail | - | `NavigationRail` | `column` | 3 | todo |
+| Tab bar | TabBar | TabRow | TabPane header | `TabBar` | `tabs` | 4 | todo |
+| Accordion | ExpansionPanelList | - | Accordion | `Accordion` | `accordion` | 2 | done |
+| Titled pane | ExpansionTile | - | TitledPane | `TitledPane` | `titled` | 2 | done |
+| Pagination | PageView + indicator | HorizontalPager | Pagination | `Pagination` | `pagination` | 2 | done |
+| Stepper | Stepper | - | - | `Stepper` | - | 4 | todo |
+| Scaffold | Scaffold | Scaffold | BorderPane | `Scaffold` (as `Border`) | `border` | 3 | done |
+| Top bar | AppBar | TopAppBar | ToolBar | `AppBar` | `row` | 3 | done |
+| Tool bar | - | - | ToolBar | `ToolBar` | `row` | 3 | done |
+| Bottom bar | BottomAppBar | BottomAppBar | - | `BottomAppBar` (`BottomBar`) | `row` | 3 | done |
+| Bottom navigation | BottomNavigationBar / NavigationBar | NavigationBar | - | `NavigationBar` | `row` | 3 | done |
+| Navigation rail | NavigationRail | NavigationRail | - | `NavigationRail` | `column` | 3 | done |
 | Drawer | Drawer | ModalNavigationDrawer | - | `Drawer` | `popup` | 4 | todo |
 | Menu bar | MenuBar | - | MenuBar / Menu / MenuItem | `MenuBar` | - | 4 | todo |
 | Context menu | PopupMenuButton | DropdownMenu | ContextMenu | `ContextMenu` | `popup` | 4 | todo |
-| Tooltip | Tooltip | TooltipBox | Tooltip | `Tooltip` | `tooltip` | 2 | todo |
+| Tooltip | Tooltip | TooltipBox | Tooltip | `Tooltip` (drawn where it is placed; no hover trigger) | `tooltip` | 2 | done |
 | Dialog | Dialog / AlertDialog | AlertDialog / Dialog | Dialog / Alert | `Dialog` / `AlertDialog` | `popup` | 4 | todo |
 | Snack bar | SnackBar | Snackbar | - | `SnackBar` | `popup` | 4 | todo |
 | File chooser | file_picker (plugin) | ActivityResult | FileChooser | - | - | - | out of scope (OS dialog) |
@@ -120,6 +120,7 @@ compiler build the same tree for it, and a test covers it. Everything else is `t
 |---|---|---|---|
 | Loop, item templates | `<For items="${orders}" var="o" type="com.acme.Order">` with any children; `${o.total}`, `#open(o)` | 5 | done |
 | Loop keys | `key="${o.id}"` on `<For>` | 5 | done |
+| Loop window | `<For items="${orders}" var="o" from="${first}" limit="30">` builds 30 items from `first` | 5 | done |
 | Condition | `<If test="${admin}">` ... `<Else>` ... | 5 | done |
 | Negation | `test="${!admin}"` | 5 | done |
 | Change events | `onChange="#setName"` on inputs, checkbox, slider, combo box, spinner, date picker | 5 | done |
@@ -134,3 +135,30 @@ compiler build the same tree for it, and a test covers it. Everything else is `t
 Marked `done` above: `For`, `If` / `Else`, change events and two-way binding, with interpreter,
 compiler, schema, tests and the documentation in [jxforge.md](jxforge.md). Every widget row
 marked `todo` is a later phase; rows of group 2 come first because the renderer already draws them.
+
+## What phase 2 delivers
+
+Every row of group 2 and group 3 is `done` except the three moved to group 4 below; each has a
+sample in `jxparallel-forge/src/test/shared/samples`, which the forge tests build with the interpreter
+and the compiler (hoisting on and off) and `jxparallel-examples-native` mounts on the native renderer.
+Rows that came out of group 4 or 5 because the renderer already reads what they need:
+
+| Row | Why it is not group 4 |
+|---|---|
+| Styled box, Card | `JXPaint.region` paints `background`, `borderColor` and their radii for any node (no shadow) |
+| Opacity | `JXPaint.paint` reads `opacity` of any node |
+| Visibility | `JXPaint.paint` skips a node with `hidden`, which keeps its place in the layout |
+| Toggle group | the group is state of the application: `group` and `value` derive `checked` / `selected` |
+
+Rows moved to group 4:
+
+| Row | Reason |
+|---|---|
+| Dropdown menu (`MenuButton`) | no menu-button element exists, and the popups of `select` and `datepicker` are not drawn yet |
+| Tab bar | a header strip whose content lives elsewhere has no element: a `<Tab>` needs its content as a child, and the renderer reports no header clicks (`Tabs` is the tab pane, row "Tab pane") |
+| Stepper | the active and done look of a step depends on a bound step index, which a composite (expanded when the file is read) cannot compute; it needs a derived-props step like `ListView`'s, and a design for the step markers |
+
+Limits of the renderer that rows marked `done` carry (see "Not done yet" in [jxforge.md](jxforge.md)):
+`ListView` and `TableView` report no selection or scroll events (a row's `onAction` and the
+application's `first` do that), `Pagination` and `TitledPane` change only when the application changes
+their props, and `Tooltip` has no hover trigger.

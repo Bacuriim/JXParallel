@@ -1,0 +1,14 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!-- ListView: a window of rows of a model, each a ListItem; the second list has a graphic in its items. -->
+<Column controller="com.jxparallel.forge.samples.SampleController" gap="4">
+  <ListView items="${rows}" var="r" type="com.jxparallel.forge.samples.SampleController.Row" key="${r.id}"
+            first="${top}" rows="6" cellHeight="24" prefHeight="120">
+    <ListItem text="${r.name}" selected="${r.selected}" odd="false" listFocused="true" alignment="LEFT"
+              onAction="#select(r)"/>
+  </ListView>
+  <ListView items="${rows}" var="r" first="1" cellHeight="30" prefHeight="90">
+    <ListItem text="${r}">
+      <Label text="*" fontSize="9"/>
+    </ListItem>
+  </ListView>
+</Column>

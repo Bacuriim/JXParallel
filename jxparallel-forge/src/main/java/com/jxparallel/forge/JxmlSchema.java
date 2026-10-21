@@ -12,7 +12,7 @@ import java.util.Map;
  */
 public final class JxmlSchema {
     /** How many children a tag takes. */
-    public enum Children { NONE, ONE, MANY, TABS, TAB }
+    public enum Children { NONE, ONE, MANY, TABS, TAB, TEMPLATE }
 
     /** One attribute: its JXML name, the prop it sets, its type, and whether {@code ${...}} may bind it. */
     public static final class Attr {
@@ -43,9 +43,30 @@ public final class JxmlSchema {
         public final String changeAttr;
         /** The Java type of the value onChange passes: STRING, BOOLEAN or DOUBLE. */
         public final AttrType changeType;
+        /**
+         * A tag that stands for other tags: {@code JxmlComposites} rewrites it into primitive tags before the
+         * interpreter and the compiler see it, so it has no native element of its own.
+         */
+        public final boolean composite;
+        /** For a composite that only renames a primitive tag: that tag, and the attributes it gets unless written. */
+        public final String alias;
+        public final Map<String, String> aliasAttrs;
+        /**
+         * ListView and TableView: one child, the template of a row; the rows come from {@code items}, a window of
+         * {@code rows} of them from {@code first} (a {@code <For from limit>} the resolver writes around the template).
+         */
+        public final boolean virtual;
+        /** The built props go through {@code JxmlRuntime.finish}, which derives some of them from others. */
+        public final boolean finish;
 
         Tag(String name, String nativeType, Children children, Map<String, Attr> attrs, Map<String, Object> defaults,
-            boolean control, String changeAttr, AttrType changeType) {
+            boolean control, String changeAttr, AttrType changeType, boolean composite, String alias,
+            Map<String, String> aliasAttrs, boolean virtual, boolean finish) {
+            this.composite = composite;
+            this.alias = alias;
+            this.aliasAttrs = Collections.unmodifiableMap(aliasAttrs);
+            this.virtual = virtual;
+            this.finish = finish;
             this.name = name;
             this.nativeType = nativeType;
             this.children = children;
@@ -82,6 +103,24 @@ public final class JxmlSchema {
         layout("halignment", "halignment", AttrType.STRING, false);
         layout("valignment", "valignment", AttrType.STRING, false);
         layout("slot", "position", AttrType.STRING, false); // top, left, center, right, bottom of a Border
+        // placement in an Anchor (the renderer's topAnchor... props) and in a Pane (layoutX, layoutY)
+        layout("top", "topAnchor", AttrType.DOUBLE, true);
+        layout("right", "rightAnchor", AttrType.DOUBLE, true);
+        layout("bottom", "bottomAnchor", AttrType.DOUBLE, true);
+        layout("left", "leftAnchor", AttrType.DOUBLE, true);
+        layout("x", "layoutX", AttrType.DOUBLE, true);
+        layout("y", "layoutY", AttrType.DOUBLE, true);
+        // what the renderer paints for any node (JXPaint.paint and JXPaint.region) and picks (hitPath)
+        layout("opacity", "opacity", AttrType.DOUBLE, true);
+        layout("hidden", "hidden", AttrType.BOOLEAN, true);
+        layout("mouseTransparent", "mouseTransparent", AttrType.BOOLEAN, false);
+        // a click: the renderer calls the handler of the deepest element under the pointer (JXNativeNode.dispatchPointer)
+        layout("onAction", "onAction", AttrType.HANDLER, false);
+        layout("background", "background", AttrType.COLOR, true);
+        layout("backgroundRadius", "backgroundRadius", AttrType.DOUBLE, true);
+        layout("borderColor", "borderColor", AttrType.COLOR, true);
+        layout("borderWidth", "borderWidth", AttrType.DOUBLE, true);
+        layout("borderRadius", "borderRadius", AttrType.DOUBLE, true);
 
         tag("Column", "column", Children.MANY)
                 .attr("gap", "gap", AttrType.DOUBLE, true).attr("padding", "padding", AttrType.INSETS, false)
@@ -116,6 +155,7 @@ public final class JxmlSchema {
         tag("For", null, Children.MANY).control()
                 .attr("items", "items", AttrType.OBJECT, true).attr("var", "var", AttrType.STRING, false)
                 .attr("type", "type", AttrType.STRING, false).attr("key", "key", AttrType.OBJECT, true)
+                .attr("from", "from", AttrType.INT, true).attr("limit", "limit", AttrType.INT, true)
                 .done();
         tag("If", null, Children.MANY).control()
                 .attr("test", "test", AttrType.BOOLEAN, true)
@@ -129,6 +169,8 @@ public final class JxmlSchema {
 
         tag("Label", "#text", Children.NONE)
                 .attr("text", "value", AttrType.STRING, true).attr("wrapText", "wrapText", AttrType.BOOLEAN, false)
+                .attr("bold", "bold", AttrType.BOOLEAN, false).attr("fontSize", "fontSize", AttrType.DOUBLE, false)
+                .attr("textFill", "textFill", AttrType.COLOR, true)
                 .def("value", "")
                 .done();
         tag("Button", "button", Children.NONE)
@@ -192,6 +234,160 @@ public final class JxmlSchema {
                 .def("min", Double.valueOf(0)).def("max", Double.valueOf(100)).def("value", Double.valueOf(0))
                 .change("value", AttrType.DOUBLE)
                 .done();
+
+        // Containers the renderer already lays out (JXFlowLayout, JXBoxLayout).
+        tag("Flow", "flow", Children.MANY)
+                .attr("hgap", "hgap", AttrType.DOUBLE, true).attr("vgap", "vgap", AttrType.DOUBLE, true)
+                .attr("padding", "padding", AttrType.INSETS, false).attr("alignment", "alignment", AttrType.STRING, false)
+                .attr("orientation", "orientation", AttrType.STRING, false)
+                .attr("prefWrapLength", "prefWrapLength", AttrType.DOUBLE, false)
+                .attr("columnHalignment", "columnHalignment", AttrType.STRING, false)
+                .attr("rowValignment", "rowValignment", AttrType.STRING, false)
+                .done();
+        tag("Tile", "tile", Children.MANY)
+                .attr("hgap", "hgap", AttrType.DOUBLE, true).attr("vgap", "vgap", AttrType.DOUBLE, true)
+                .attr("padding", "padding", AttrType.INSETS, false).attr("alignment", "alignment", AttrType.STRING, false)
+                .attr("orientation", "orientation", AttrType.STRING, false)
+                .attr("prefColumns", "prefColumns", AttrType.INT, false).attr("prefRows", "prefRows", AttrType.INT, false)
+                .attr("prefTileWidth", "prefTileWidth", AttrType.DOUBLE, false)
+                .attr("prefTileHeight", "prefTileHeight", AttrType.DOUBLE, false)
+                .attr("tileAlignment", "tileAlignment", AttrType.STRING, false)
+                .done();
+        tag("Anchor", "anchor", Children.MANY)
+                .attr("padding", "padding", AttrType.INSETS, false)
+                .done();
+        tag("Pane", "pane", Children.MANY)
+                .attr("padding", "padding", AttrType.INSETS, false)
+                .done();
+        tag("TextFlow", "textflow", Children.MANY)
+                .done();
+        tag("ButtonBar", "buttonbar", Children.MANY)
+                .done();
+        tag("Accordion", "accordion", Children.MANY)
+                .done();
+        tag("TitledPane", "titled", Children.ONE)
+                .attr("text", "label", AttrType.STRING, true).attr("expanded", "expanded", AttrType.BOOLEAN, true)
+                .attr("collapsible", "collapsible", AttrType.BOOLEAN, false).attr("onAction", "onAction", AttrType.HANDLER, false)
+                .def("label", "")
+                .done();
+        tag("Pagination", "pagination", Children.ONE)
+                .attr("pageCount", "pageCount", AttrType.INT, true).attr("current", "current", AttrType.INT, true)
+                .attr("maxPageIndicatorCount", "maxPageIndicatorCount", AttrType.INT, false)
+                .def("pageCount", Integer.valueOf(1)).def("current", Integer.valueOf(0))
+                .def("maxPageIndicatorCount", Integer.valueOf(10))
+                .done();
+
+        // Controls the renderer already draws (JXPaint.self, JXControlLayout.sizes).
+        tag("ToggleButton", "toggle", Children.NONE).finish()
+                .attr("text", "label", AttrType.STRING, true).attr("selected", "selected", AttrType.BOOLEAN, true)
+                .attr("onAction", "onAction", AttrType.HANDLER, false).attr("disabled", "disabled", AttrType.BOOLEAN, true)
+                .attr("group", "group", AttrType.STRING, true).attr("value", "value", AttrType.STRING, false)
+                .def("label", "").def("selected", Boolean.FALSE)
+                .change("group", AttrType.STRING)
+                .done();
+        tag("RadioButton", "radio", Children.NONE).finish()
+                .attr("text", "label", AttrType.STRING, true).attr("selected", "checked", AttrType.BOOLEAN, true)
+                .attr("onAction", "onAction", AttrType.HANDLER, false).attr("disabled", "disabled", AttrType.BOOLEAN, true)
+                .attr("group", "group", AttrType.STRING, true).attr("value", "value", AttrType.STRING, false)
+                .def("label", "").def("checked", Boolean.FALSE)
+                .change("group", AttrType.STRING)
+                .done();
+        tag("Hyperlink", "hyperlink", Children.NONE)
+                .attr("text", "label", AttrType.STRING, true).attr("visited", "visited", AttrType.BOOLEAN, true)
+                .attr("onAction", "onAction", AttrType.HANDLER, false).attr("disabled", "disabled", AttrType.BOOLEAN, true)
+                .def("label", "")
+                .done();
+        tag("ProgressIndicator", "indicator", Children.NONE)
+                .attr("progress", "progress", AttrType.DOUBLE, true)
+                .def("progress", Double.valueOf(-1))
+                .done();
+        tag("Tooltip", "tooltip", Children.NONE)
+                .attr("text", "label", AttrType.STRING, true)
+                .def("label", "")
+                .done();
+        tag("Image", "image", Children.NONE)
+                .attr("pixels", "pixels", AttrType.PIXELS, true)
+                .attr("imageWidth", "imageWidth", AttrType.DOUBLE, true).attr("imageHeight", "imageHeight", AttrType.DOUBLE, true)
+                .attr("fitWidth", "fitWidth", AttrType.DOUBLE, true).attr("fitHeight", "fitHeight", AttrType.DOUBLE, true)
+                .attr("preserveRatio", "preserveRatio", AttrType.BOOLEAN, false)
+                .done();
+
+        // Rows of virtual lists and tables (JXControlLayout: list, table, tablerow, cell).
+        tag("ListView", "list", Children.TEMPLATE).virtual().finish()
+                .attr("items", "itemCount", AttrType.COUNT, true).attr("var", "var", AttrType.STRING, false)
+                .attr("type", "type", AttrType.STRING, false).attr("rows", "rows", AttrType.INT, true)
+                .attr("first", "first", AttrType.INT, true).attr("cellHeight", "cellHeight", AttrType.DOUBLE, true)
+                .def("first", Integer.valueOf(0)).def("cellHeight", Double.valueOf(24))
+                .done();
+        tag("TableView", "table", Children.TEMPLATE).virtual().finish()
+                .attr("items", "itemCount", AttrType.COUNT, true).attr("var", "var", AttrType.STRING, false)
+                .attr("type", "type", AttrType.STRING, false).attr("rows", "rows", AttrType.INT, true)
+                .attr("first", "first", AttrType.INT, true).attr("rowHeight", "rowHeight", AttrType.DOUBLE, true)
+                .attr("columns", "columns", AttrType.STRINGS, true).attr("columnWidths", "columnWidths", AttrType.DOUBLES, true)
+                .attr("constrained", "constrained", AttrType.BOOLEAN, false)
+                .def("first", Integer.valueOf(0)).def("rowHeight", Double.valueOf(24)).def("columns", new String[0])
+                .def("constrained", Boolean.FALSE)
+                .done();
+        tag("TableRow", "tablerow", Children.MANY)
+                .attr("selected", "selected", AttrType.BOOLEAN, true).attr("odd", "odd", AttrType.BOOLEAN, true)
+                .attr("listFocused", "listFocused", AttrType.BOOLEAN, true)
+                .done();
+        tag("ListItem", "cell", Children.ONE)
+                .attr("text", "value", AttrType.STRING, true).attr("selected", "selected", AttrType.BOOLEAN, true)
+                .attr("odd", "odd", AttrType.BOOLEAN, true).attr("listFocused", "listFocused", AttrType.BOOLEAN, true)
+                .attr("alignment", "alignment", AttrType.STRING, false).attr("onAction", "onAction", AttrType.HANDLER, false)
+                .def("value", "")
+                .done();
+        // A cell of a table row: no background of its own (the row paints it), a column line, tighter padding.
+        tag("TableCell", "cell", Children.ONE)
+                .attr("text", "value", AttrType.STRING, true).attr("selected", "selected", AttrType.BOOLEAN, true)
+                .attr("odd", "odd", AttrType.BOOLEAN, true).attr("listFocused", "listFocused", AttrType.BOOLEAN, true)
+                .attr("alignment", "alignment", AttrType.STRING, false).attr("onAction", "onAction", AttrType.HANDLER, false)
+                .def("value", "").def("tableCell", Boolean.TRUE).def("paintBackground", Boolean.FALSE)
+                .def("padding", new double[] {2, 3, 2, 3})
+                .done();
+
+        // Composites: JxmlComposites rewrites them into the tags above before anything else reads the file.
+        alias("Wrap", "Flow");
+        alias("Positioned", "Stack");
+        alias("Container", "Stack");
+        alias("Box", "Stack");
+        alias("Padding", "Stack");
+        alias("Opacity", "Stack");
+        alias("Visibility", "Stack");
+        alias("Center", "Stack", "alignment", "CENTER", "hgrow", "always", "vgrow", "always");
+        alias("Align", "Stack", "alignment", "CENTER", "hgrow", "always", "vgrow", "always");
+        alias("ChoiceBox", "ComboBox");
+        alias("Divider", "Separator");
+        alias("Card", "Column", "gap", "8", "padding", "12", "fillWidth", "true", "background", "#FFFFFF",
+                "backgroundRadius", "6", "borderColor", "#D9D9D9", "borderRadius", "6", "borderWidth", "1");
+        alias("ToolBar", "Row", "gap", "4", "padding", "4 8", "alignment", "CENTER_LEFT", "background", "#EDEDED");
+        alias("BottomAppBar", "Row", "gap", "8", "padding", "8 12", "alignment", "CENTER_LEFT", "background", "#EDEDED");
+        alias("BottomBar", "Row", "gap", "8", "padding", "8 12", "alignment", "CENTER_LEFT", "background", "#EDEDED");
+        alias("NavigationRail", "Column", "gap", "8", "padding", "8", "alignment", "TOP_CENTER", "background", "#EDEDED");
+        tag("SizedBox", null, Children.ONE).composite()
+                .attr("width", "width", AttrType.DOUBLE, true).attr("height", "height", AttrType.DOUBLE, true)
+                .done();
+        tag("Spacer", null, Children.NONE).composite().done();
+        tag("Expanded", null, Children.ONE).composite().done();
+        tag("Flexible", null, Children.ONE).composite().done();
+        tag("ListTile", null, Children.MANY).composite()
+                .attr("title", "title", AttrType.STRING, true).attr("subtitle", "subtitle", AttrType.STRING, true)
+                .attr("onAction", "onAction", AttrType.HANDLER, false)
+                .attr("gap", "gap", AttrType.DOUBLE, true).attr("padding", "padding", AttrType.INSETS, false)
+                .attr("alignment", "alignment", AttrType.STRING, false)
+                .done();
+        tag("AppBar", null, Children.MANY).composite()
+                .attr("title", "title", AttrType.STRING, true)
+                .attr("gap", "gap", AttrType.DOUBLE, true).attr("padding", "padding", AttrType.INSETS, false)
+                .attr("alignment", "alignment", AttrType.STRING, false)
+                .done();
+        tag("NavigationBar", null, Children.MANY).composite()
+                .attr("gap", "gap", AttrType.DOUBLE, true).attr("padding", "padding", AttrType.INSETS, false)
+                .done();
+        tag("Scaffold", null, Children.MANY).composite()
+                .attr("padding", "padding", AttrType.INSETS, false)
+                .done();
     }
 
     private JxmlSchema() {
@@ -214,6 +410,27 @@ public final class JxmlSchema {
         return new TagBuilder(name, nativeType, children);
     }
 
+    /**
+     * A composite that only renames {@code target}: it takes the same attributes and children, and gets
+     * {@code defaults} (attribute, value, attribute, value...) unless the file writes them.
+     */
+    private static void alias(String name, String target, String... defaults) {
+        Tag of = TAGS.get(target);
+        TagBuilder b = new TagBuilder(name, null, of.children);
+        b.composite = true;
+        b.alias = target;
+        b.attrs.putAll(of.attrs);
+        b.changeAttr = of.changeAttr;
+        b.changeType = of.changeType;
+        for (int i = 0; i < defaults.length; i += 2) {
+            if (of.attr(defaults[i]) == null) {
+                throw new IllegalStateException(name + " defaults an attribute " + target + " lacks: " + defaults[i]);
+            }
+            b.aliasAttrs.put(defaults[i], defaults[i + 1]);
+        }
+        b.done();
+    }
+
     private static final class TagBuilder {
         private final String name;
         private final String nativeType;
@@ -221,6 +438,11 @@ public final class JxmlSchema {
         private final Map<String, Attr> attrs = new LinkedHashMap<String, Attr>();
         private final Map<String, Object> defaults = new LinkedHashMap<String, Object>();
         private boolean control;
+        private boolean composite;
+        private String alias;
+        private final Map<String, String> aliasAttrs = new LinkedHashMap<String, String>();
+        private boolean virtual;
+        private boolean finish;
         private String changeAttr;
         private AttrType changeType;
 
@@ -245,6 +467,21 @@ public final class JxmlSchema {
             return this;
         }
 
+        TagBuilder composite() {
+            composite = true;
+            return this;
+        }
+
+        TagBuilder virtual() {
+            virtual = true;
+            return this;
+        }
+
+        TagBuilder finish() {
+            finish = true;
+            return this;
+        }
+
         /** Adds onChange, which gets the new value of attr as a type; @{...} binds attr two ways. */
         TagBuilder change(String attr, AttrType type) {
             attrs.put("onChange", new Attr("onChange", "onChange", AttrType.CHANGE, false));
@@ -254,7 +491,8 @@ public final class JxmlSchema {
         }
 
         void done() {
-            TAGS.put(name, new Tag(name, nativeType, children, attrs, defaults, control, changeAttr, changeType));
+            TAGS.put(name, new Tag(name, nativeType, children, attrs, defaults, control, changeAttr, changeType,
+                    composite, alias, aliasAttrs, virtual, finish));
         }
     }
 }

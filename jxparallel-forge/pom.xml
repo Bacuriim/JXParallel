@@ -29,4 +29,39 @@
             <scope>test</scope>
         </dependency>
     </dependencies>
+
+    <build>
+        <plugins>
+            <!-- The sample screens and their controller live in src/test/shared, which the mount tests of
+                 jxparallel-examples-native use too: one set of samples for the interpreter, the compiler and the renderer. -->
+            <plugin>
+                <groupId>org.codehaus.mojo</groupId>
+                <artifactId>build-helper-maven-plugin</artifactId>
+                <version>3.6.0</version>
+                <executions>
+                    <execution>
+                        <id>add-shared-samples</id>
+                        <phase>generate-test-sources</phase>
+                        <goals>
+                            <goal>add-test-source</goal>
+                            <goal>add-test-resource</goal>
+                        </goals>
+                        <configuration>
+                            <sources>
+                                <source>${project.basedir}/src/test/shared/java</source>
+                            </sources>
+                            <resources>
+                                <resource>
+                                    <directory>${project.basedir}/src/test/shared</directory>
+                                    <includes>
+                                        <include>samples/**</include>
+                                    </includes>
+                                </resource>
+                            </resources>
+                        </configuration>
+                    </execution>
+                </executions>
+            </plugin>
+        </plugins>
+    </build>
 </project>

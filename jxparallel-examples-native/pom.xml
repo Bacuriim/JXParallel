@@ -110,6 +110,28 @@
                             </sources>
                         </configuration>
                     </execution>
+                    <!-- the sample screens of the forge tests, mounted on the native renderer by ForgeTagsMountTest -->
+                    <execution>
+                        <id>add-forge-samples</id>
+                        <phase>generate-test-sources</phase>
+                        <goals>
+                            <goal>add-test-source</goal>
+                            <goal>add-test-resource</goal>
+                        </goals>
+                        <configuration>
+                            <sources>
+                                <source>${project.basedir}/../jxparallel-forge/src/test/shared/java</source>
+                            </sources>
+                            <resources>
+                                <resource>
+                                    <directory>${project.basedir}/../jxparallel-forge/src/test/shared</directory>
+                                    <includes>
+                                        <include>samples/**</include>
+                                    </includes>
+                                </resource>
+                            </resources>
+                        </configuration>
+                    </execution>
                 </executions>
             </plugin>
         </plugins>

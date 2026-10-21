@@ -211,7 +211,8 @@ public final class JxmlTemplate implements JxmlView<Object> {
 
     // ---- resolution ------------------------------------------------------------------------------
 
-    private static Element resolve(JxmlParser.Node node, String source, JxmlSchema.Tag parent, Var vars) {
+    private static Element resolve(JxmlParser.Node written, String source, JxmlSchema.Tag parent, Var vars) {
+        JxmlParser.Node node = JxmlComposites.expand(written, source); // composites become primitive tags here, once
         JxmlSchema.Tag tag = JxmlSchema.tag(node.tag);
         if (tag == null) {
             throw new JxmlException(source, node.line, "unknown tag <" + node.tag + ">; known: " + JxmlSchema.tags().keySet());
@@ -219,7 +220,11 @@ public final class JxmlTemplate implements JxmlView<Object> {
         if ("Else".equals(tag.name)) {
             throw new JxmlException(source, node.line, "<Else> must directly follow an <If>");
         }
-        if (tag.control && (parent == null || parent.children != JxmlSchema.Children.MANY)) {
+        if (tag.virtual) {
+            node = virtualRows(node, tag, source);
+        }
+        if (tag.control && (parent == null
+                || parent.children != JxmlSchema.Children.MANY && parent.children != JxmlSchema.Children.TEMPLATE)) {
             throw new JxmlException(source, node.line, "<" + tag.name + "> is only allowed where a tag takes many children");
         }
         if (tag.children == JxmlSchema.Children.TAB && (parent == null || parent.children != JxmlSchema.Children.TABS)) {
@@ -272,6 +277,16 @@ public final class JxmlTemplate implements JxmlView<Object> {
         if (changes > 1) {
             throw new JxmlException(source, node.line, "<" + tag.name + "> has both onChange and a @{...} binding; use one");
         }
+        for (Prop p : props) {
+            if (tag.virtual && p.kind == Kind.LITERAL && p.literal instanceof Double && !(((Double) p.literal) > 0)
+                    && ("cellHeight".equals(p.attr.name) || "rowHeight".equals(p.attr.name))) {
+                throw new JxmlException(source, p.line, "<" + tag.name + "> " + p.attr.name + " must be greater than 0: "
+                        + "the rows have a fixed height, which is how the list knows where to scroll");
+            }
+        }
+        if (tag.changeAttr != null && "group".equals(tag.changeAttr)) {
+            checkGroup(node, tag, changes, source);
+        }
         if (isSlot(tag) && (props.size() != 1 || !"content".equals(props.get(0).attr.name))) {
             throw new JxmlException(source, node.line, "<Slot> takes exactly one attribute: content=\"${...}\"");
         }
@@ -294,6 +309,7 @@ public final class JxmlTemplate implements JxmlView<Object> {
                 }
                 break;
             case MANY:
+            case TEMPLATE:
                 children = resolveAll(node.children, source, tag, inner);
                 break;
             case TABS:
@@ -337,6 +353,79 @@ public final class JxmlTemplate implements JxmlView<Object> {
         }
         return new Element(tag, node.line, Collections.unmodifiableList(props), Collections.unmodifiableList(children),
                 titles, closable, var, type, Collections.<Element>emptyList());
+    }
+
+    /** Rows a virtual list builds when {@code rows} is not written: well above what a window shows. */
+    static final int DEFAULT_ROWS = 30;
+
+    /**
+     * A {@code ListView} or {@code TableView} as the list element with one child, a {@code <For>} over its
+     * {@code items} that builds {@code rows} rows from {@code first}; the template becomes the loop body.
+     * {@code var}, {@code type}, {@code key} and {@code rows} belong to the loop, not to the list.
+     */
+    private static JxmlParser.Node virtualRows(JxmlParser.Node node, JxmlSchema.Tag tag, String source) {
+        String items = node.attrs.get("items");
+        if (items == null) {
+            throw new JxmlException(source, node.line, "<" + tag.name + "> needs items=\"${...}\", the rows' model");
+        }
+        String var = node.attrs.get("var");
+        if (var == null || !isIdentifier(var)) {
+            throw new JxmlException(source, node.line, "<" + tag.name + "> needs var=\"name\", the name of a row's item");
+        }
+        if (node.children.size() != 1) {
+            throw new JxmlException(source, node.line, "<" + tag.name + "> takes one child, the template of a row");
+        }
+        JxmlParser.Node template = node.children.get(0);
+        JxmlSchema.Tag templateTag = JxmlSchema.tag(template.tag);
+        if ("TableView".equals(tag.name) && !"TableRow".equals(template.tag)) {
+            throw new JxmlException(source, template.line, "<TableView> takes one <TableRow>, the template of a row");
+        }
+        if (templateTag != null && (templateTag.control || isSlot(templateTag))) {
+            throw new JxmlException(source, template.line, "the row template of <" + tag.name + "> is one element, not <"
+                    + template.tag + ">");
+        }
+        JxmlParser.Node loop = new JxmlParser.Node("For", node.line);
+        loop.attrs.put("items", items);
+        loop.attrs.put("var", var);
+        if (node.attrs.containsKey("type")) {
+            loop.attrs.put("type", node.attrs.get("type"));
+        }
+        if (node.attrs.containsKey("key")) {
+            loop.attrs.put("key", node.attrs.get("key"));
+        }
+        loop.attrs.put("from", node.attrs.containsKey("first") ? node.attrs.get("first") : "0");
+        loop.attrs.put("limit", node.attrs.containsKey("rows") ? node.attrs.get("rows") : String.valueOf(DEFAULT_ROWS));
+        loop.children.add(template);
+        JxmlParser.Node list = new JxmlParser.Node(node.tag, node.line);
+        for (Map.Entry<String, String> entry : node.attrs.entrySet()) {
+            String name = entry.getKey();
+            if (!"var".equals(name) && !"type".equals(name) && !"key".equals(name) && !"rows".equals(name)) {
+                list.attrs.put(name, entry.getValue());
+            }
+        }
+        list.children.add(loop);
+        return list;
+    }
+
+    /** A radio or toggle button in a group: {@code group} is what the group holds, {@code value} what this one chooses. */
+    private static void checkGroup(JxmlParser.Node node, JxmlSchema.Tag tag, int changes, String source) {
+        boolean group = node.attrs.containsKey("group");
+        String name = "<" + tag.name + ">";
+        if (group && !node.attrs.containsKey("value")) {
+            throw new JxmlException(source, node.line, name + " with group needs value=\"...\", what the group holds when this one is chosen");
+        }
+        if (!group && node.attrs.containsKey("value")) {
+            throw new JxmlException(source, node.line, name + " value only means something with group=\"${...}\" or group=\"@{...}\"");
+        }
+        if (!group && changes > 0) {
+            throw new JxmlException(source, node.line, name + " reports a choice only with a group; add group=\"${...}\"");
+        }
+        if (group && node.attrs.containsKey("selected")) {
+            throw new JxmlException(source, node.line, name + " has both group and selected; the group decides");
+        }
+        if (changes > 0 && node.attrs.containsKey("onAction")) {
+            throw new JxmlException(source, node.line, name + " has both onAction and a group choice (onChange or @{...}); use one");
+        }
     }
 
     /** Children of a tag that takes many: an {@code <Else>} joins the {@code <If>} just before it. */
@@ -528,7 +617,15 @@ public final class JxmlTemplate implements JxmlView<Object> {
         if (e.tag.children == JxmlSchema.Children.TABS) {
             return JxmlRuntime.tabs(props, selected, e.titles, e.closable, children);
         }
-        return JXElement.of(e.tag.nativeType, props.build(), children);
+        JXProps finished = props.build();
+        if (e.tag.finish) {
+            try {
+                finished = JxmlRuntime.finish(e.tag.name, finished);
+            } catch (IllegalArgumentException ex) {
+                throw new JxmlException(source, e.line, "<" + e.tag.name + "> " + ex.getMessage(), ex);
+            }
+        }
+        return JXElement.of(e.tag.nativeType, finished, children);
     }
 
     /** Builds {@code nodes} into {@code out}; a loop or condition puts its elements here, in place. */
@@ -537,9 +634,13 @@ public final class JxmlTemplate implements JxmlView<Object> {
             if ("For".equals(n.tag.name)) {
                 Prop items = n.prop("items");
                 Prop keyProp = n.prop("key");
+                Prop from = n.prop("from");
+                Prop limit = n.prop("limit");
                 Iterable<Object> each;
                 try {
-                    each = JxmlRuntime.items(value(items, controller, scope));
+                    each = JxmlRuntime.items(value(items, controller, scope),
+                            from == null ? null : (Integer) value(from, controller, scope),
+                            limit == null ? null : (Integer) value(limit, controller, scope));
                 } catch (IllegalArgumentException ex) {
                     throw new JxmlException(source, items.line, ex.getMessage());
                 }
@@ -576,7 +677,12 @@ public final class JxmlTemplate implements JxmlView<Object> {
                 return setter(p, controller, scope);
             case BINDING:
                 Object value = walk(p, controller, scope, p.path.length);
-                Object bound = JxmlValues.bound(p.attr.type, value);
+                Object bound;
+                try {
+                    bound = JxmlValues.bound(p.attr.type, value);
+                } catch (IllegalArgumentException ex) {
+                    throw new JxmlException(source, p.line, p.attr.name + "=\"${" + String.join(".", p.path) + "}\": " + ex.getMessage(), ex);
+                }
                 return p.negate ? Boolean.valueOf(!((Boolean) bound).booleanValue()) : bound;
             default:
                 throw new IllegalStateException();

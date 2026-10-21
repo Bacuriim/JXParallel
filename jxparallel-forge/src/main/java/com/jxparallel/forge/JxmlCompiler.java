@@ -171,6 +171,11 @@ public final class JxmlCompiler {
             if ("For".equals(n.tag.name)) {
                 String type = n.type == null ? "Object" : n.type;
                 String items = reference(n.prop("items"));
+                JxmlTemplate.Prop from = n.prop("from");
+                JxmlTemplate.Prop limit = n.prop("limit");
+                if (from != null || limit != null) { // a window of the items: a virtual list's rows
+                    items += ", " + (from == null ? "null" : value(from, n.tag)) + ", " + (limit == null ? "null" : value(limit, n.tag));
+                }
                 Local local = new Local(n.var, n.var + "_" + (nextVariable++), type);
                 out.append(indent).append("for (").append(type).append(' ').append(local.javaName)
                         .append(" : JxmlRuntime.<").append(type).append(">items(").append(items).append(")) { // ")
@@ -248,8 +253,12 @@ public final class JxmlCompiler {
             return "JxmlRuntime.tabs(" + props + "\n" + indent + ", " + selected + ", " + literal(e.titles) + ", "
                     + literal(e.closable) + ",\n" + indent + "new JXElement[] {" + String.join(", ", children) + "})";
         }
+        String built = props + "\n" + indent + ".build()";
+        if (e.tag.finish) {
+            built = "JxmlRuntime.finish(" + quote(e.tag.name) + ", " + built + ")";
+        }
         StringBuilder out = new StringBuilder("JXElement.of(").append(quote(e.tag.nativeType)).append(", ")
-                .append(props).append('\n').append(indent).append(".build()");
+                .append(built);
         if (listed) {
             out.append(",\n").append(indent).append("k.toArray(new JXElement[0])");
         }

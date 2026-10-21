@@ -29,8 +29,14 @@ public final class JxmlValues {
                 return insets(text);
             case STRINGS:
                 return strings(text);
+            case DOUBLES:
+                return doubles(text);
+            case COLOR:
+                return color(text);
             case ELEMENT:
             case OBJECT:
+            case COUNT:
+            case PIXELS:
                 throw new IllegalArgumentException("must be a binding, such as ${header}");
             default:
                 throw new IllegalStateException(type.name());
@@ -80,6 +86,97 @@ public final class JxmlValues {
         return parts;
     }
 
+    /** Comma-separated numbers: {@code "60, -1, 80"}. */
+    static double[] doubles(String text) {
+        if (text.trim().isEmpty()) {
+            return new double[0];
+        }
+        String[] parts = text.split(",");
+        double[] out = new double[parts.length];
+        for (int i = 0; i < parts.length; i++) {
+            out[i] = Double.parseDouble(parts[i].trim());
+        }
+        return out;
+    }
+
+    /** {@code #RGB}, {@code #RRGGBB} (opaque) or {@code #AARRGGBB}, as the ARGB int the renderer paints. */
+    static Integer color(String text) {
+        String s = text.trim();
+        String message = "expected #RGB, #RRGGBB or #AARRGGBB";
+        if (!s.startsWith("#")) {
+            throw new IllegalArgumentException(message);
+        }
+        String hex = s.substring(1);
+        for (int i = 0; i < hex.length(); i++) {
+            if (Character.digit(hex.charAt(i), 16) < 0) {
+                throw new IllegalArgumentException(message);
+            }
+        }
+        if (hex.length() == 3) {
+            hex = "" + hex.charAt(0) + hex.charAt(0) + hex.charAt(1) + hex.charAt(1) + hex.charAt(2) + hex.charAt(2);
+        }
+        if (hex.length() == 6) {
+            return Integer.valueOf((int) (0xFF000000L | Long.parseLong(hex, 16)));
+        }
+        if (hex.length() == 8) {
+            return Integer.valueOf((int) Long.parseLong(hex, 16));
+        }
+        throw new IllegalArgumentException(message);
+    }
+
+    /** A bound color: a number is the ARGB int itself, text is written like a literal; null sets nothing. */
+    public static Integer asColor(Object value) {
+        if (value == null) {
+            return null;
+        }
+        return value instanceof Number ? Integer.valueOf(((Number) value).intValue()) : color(asString(value));
+    }
+
+    /** How many items an {@link Iterable} or array holds; null holds none. */
+    public static Integer asCount(Object value) {
+        if (value == null) {
+            return Integer.valueOf(0);
+        }
+        if (value instanceof java.util.Collection) {
+            return Integer.valueOf(((java.util.Collection<?>) value).size());
+        }
+        if (value instanceof Iterable) {
+            int n = 0;
+            for (Object ignored : (Iterable<?>) value) {
+                n++;
+            }
+            return Integer.valueOf(n);
+        }
+        if (value.getClass().isArray()) {
+            return Integer.valueOf(java.lang.reflect.Array.getLength(value));
+        }
+        throw new IllegalArgumentException("expected an Iterable or an array, not " + value.getClass().getName());
+    }
+
+    /** Pixels as the renderer takes them, the same array (it tells a changed image by identity); null shows nothing. */
+    public static int[] asPixels(Object value) {
+        if (value == null || value instanceof int[]) {
+            return (int[]) value;
+        }
+        throw new IllegalArgumentException("pixels must be an int[] of ARGB values, not " + value.getClass().getName());
+    }
+
+    public static double[] asDoubles(Object value) {
+        if (value instanceof double[]) {
+            return (double[]) value;
+        }
+        if (value instanceof java.util.Collection) {
+            java.util.Collection<?> items = (java.util.Collection<?>) value;
+            double[] out = new double[items.size()];
+            int i = 0;
+            for (Object item : items) {
+                out[i++] = asDouble(item).doubleValue();
+            }
+            return out;
+        }
+        return value == null ? new double[0] : doubles(asString(value));
+    }
+
     public static String asString(Object value) {
         return value == null ? "" : String.valueOf(value);
     }
@@ -127,6 +224,14 @@ public final class JxmlValues {
                 return asStrings(value);
             case INSETS:
                 return value instanceof Number ? asDouble(value) : insets(asString(value));
+            case DOUBLES:
+                return asDoubles(value);
+            case COLOR:
+                return asColor(value);
+            case COUNT:
+                return asCount(value);
+            case PIXELS:
+                return asPixels(value);
             case ELEMENT:
                 return asElement(value);
             case OBJECT:
