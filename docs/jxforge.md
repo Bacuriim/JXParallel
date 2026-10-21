@@ -264,6 +264,16 @@ Tab contents get the keys `tab0`, `tab1`, ...
   a boxed number above 127 or a string made on each call is not, and gets no reuse.
 - `from` and `limit` (numbers or bindings) take a window of the items: at most `limit` of them, starting
   at index `from`. A start past the end gives no elements. This is what a virtual list is built on.
+- `memo="true"` makes the loop remember what it built: while the controller, the `items` object (the same
+  list, with the same size) and the `from` / `limit` window are the same as at the last build, the loop hands
+  out the very same elements again, and the renderer, which skips an element it already holds, does not look
+  below them. Use it for a large part of a screen that does not change while the rest does, such as the items
+  of a tree of thousands of rows. It is opt-in because it has a price: **to change what the loop shows, give it
+  another list (or add to or remove from it, which changes the size); an item edited in place is not seen.**
+  The body is therefore checked: it may read only its own loop variables (`${f.name}`, `#pick(f)`) and those of
+  loops inside it, not the controller (`${title}`) nor the variable of an outer loop; a `JxmlException` names the
+  line. Only the last inputs are kept, one entry for each loop of a file, and the entry keeps the controller
+  (handlers call it). The interpreter and the generated code agree (`JxmlMemo`).
 - `<If test="${path}">` includes its children when the boolean is true; `${!path}` negates
   (only here). An `<Else>` that directly follows the `<If>` is included otherwise. An `<Else>`
   anywhere else, or a second one, is an error. The boolean is read with the same getter rule
@@ -554,9 +564,11 @@ write.
   `onToggle` only on the first. `values` in a `Tree` is an error at the line of the `Tree`.
 - **Keys.** An item with a `key` (the `key` of a `<For>`, or `key="..."`) keeps its node when the window scrolls, if every row of
   the window has one: the renderer matches rows by key only when all of them have it.
-- **Limits.** Every item is built on each render; only the window reaches the renderer (the build is not windowed, as a
-  `ListView`'s is). There is no `children="${...}"` attribute for a recursive model: nest the items, put a `<For>` at each level,
-  or flatten the model yourself into a `ListView` of rows with a depth.
+- **Limits.** Every item is built on each render, unless a `<For memo="true">` around the items keeps them (see "Loops and
+  conditions"); only the window reaches the renderer (the build is not windowed, as a `ListView`'s is). `JxmlRuntime.tree` makes
+  one pass over the items that counts them and makes objects only for the rows of the window, so the cost of a render with the
+  model kept is a walk over it, not an allocation per item. There is no `children="${...}"` attribute for a recursive model: nest
+  the items, put a `<For>` at each level, or flatten the model yourself into a `ListView` of rows with a depth.
 
 ## Development mode
 
