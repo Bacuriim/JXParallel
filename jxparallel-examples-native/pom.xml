@@ -18,5 +18,57 @@
             <artifactId>jxparallel-ui</artifactId>
             <version>${project.version}</version>
         </dependency>
+        <dependency>
+            <groupId>com.jxparallel</groupId>
+            <artifactId>jxparallel-forge</artifactId>
+            <version>${project.version}</version>
+        </dependency>
+        <dependency>
+            <groupId>org.junit.jupiter</groupId>
+            <artifactId>junit-jupiter</artifactId>
+            <scope>test</scope>
+        </dependency>
     </dependencies>
+
+    <build>
+        <resources>
+            <resource>
+                <directory>src/main/resources</directory>
+            </resource>
+            <!-- the JXML files too, for the interpreter modes of ForgeLoadBenchmark -->
+            <resource>
+                <directory>src/main/jxml</directory>
+            </resource>
+        </resources>
+        <plugins>
+            <plugin>
+                <groupId>com.jxparallel</groupId>
+                <artifactId>jxforge-maven-plugin</artifactId>
+                <version>${project.version}</version>
+                <executions>
+                    <execution>
+                        <id>views</id>
+                        <goals>
+                            <goal>generate</goal>
+                        </goals>
+                        <configuration>
+                            <packageName>com.jxparallel.examples.nativeui.forgebench.gen</packageName>
+                        </configuration>
+                    </execution>
+                    <!-- the same screens without constant hoisting, to measure what hoisting adds -->
+                    <execution>
+                        <id>views-plain</id>
+                        <goals>
+                            <goal>generate</goal>
+                        </goals>
+                        <configuration>
+                            <packageName>com.jxparallel.examples.nativeui.forgebench.plain</packageName>
+                            <outputDirectory>${project.build.directory}/generated-sources/jxforge-plain</outputDirectory>
+                            <hoistConstants>false</hoistConstants>
+                        </configuration>
+                    </execution>
+                </executions>
+            </plugin>
+        </plugins>
+    </build>
 </project>
