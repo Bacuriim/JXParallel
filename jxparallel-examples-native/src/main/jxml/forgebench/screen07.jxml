@@ -1,0 +1,129 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<Border controller="com.jxparallel.examples.nativeui.forgebench.Screen07Controller">
+  <Row slot="top" gap="4" padding="4 8">
+    <Button text="Action 0" onAction="#onAction"/>
+    <Button text="Action 1" onAction="#onAction"/>
+    <Button text="Action 2" onAction="#onAction"/>
+    <Button text="Action 3" onAction="#onAction"/>
+    <Button text="Action 4" onAction="#onAction"/>
+    <Button text="Action 5" onAction="#onAction"/>
+    <Button text="Action 6" onAction="#onAction"/>
+    <Button text="Action 7" onAction="#onAction"/>
+  </Row>
+  <Tabs slot="center">
+    <Tab title="Section 1" closable="false">
+      <Scroll fitToWidth="true">
+        <Grid hgap="8" vgap="6">
+          <Label text="Field 7.0" row="0" column="0"/>
+          <TextField prompt="Value 0" text="${field0}" row="0" column="1"/>
+          <Label text="Field 7.1" row="1" column="0"/>
+          <ComboBox prompt="Choose 1" items="${choices}" value="${field1}" row="1" column="1"/>
+          <Label text="Field 7.2" row="2" column="0"/>
+          <CheckBox text="Enabled 2" selected="${field2}" row="2" column="1"/>
+          <Label text="Field 7.3" row="3" column="0"/>
+          <DatePicker prompt="Date 3" value="${field3}" row="3" column="1"/>
+          <Label text="Field 7.4" row="4" column="0"/>
+          <Spinner min="0" max="100" value="${field4}" row="4" column="1"/>
+          <Label text="Field 7.5" row="5" column="0"/>
+          <TextField prompt="Value 5" text="${field5}" row="5" column="1"/>
+          <Label text="Field 7.6" row="6" column="0"/>
+          <ComboBox prompt="Choose 6" items="${choices}" value="${field6}" row="6" column="1"/>
+          <Label text="Field 7.7" row="7" column="0"/>
+          <CheckBox text="Enabled 7" selected="${field7}" row="7" column="1"/>
+          <Label text="Field 7.8" row="8" column="0"/>
+          <DatePicker prompt="Date 8" value="${field8}" row="8" column="1"/>
+          <Label text="Field 7.9" row="9" column="0"/>
+          <Spinner min="0" max="100" value="${field9}" row="9" column="1"/>
+          <Label text="Field 7.10" row="10" column="0"/>
+          <TextField prompt="Value 10" text="${field10}" row="10" column="1"/>
+          <Label text="Field 7.11" row="11" column="0"/>
+          <ComboBox prompt="Choose 11" items="${choices}" value="${field11}" row="11" column="1"/>
+          <Label text="Field 7.12" row="12" column="0"/>
+          <CheckBox text="Enabled 12" row="12" column="1"/>
+          <Label text="Field 7.13" row="13" column="0"/>
+          <DatePicker prompt="Date 13" row="13" column="1"/>
+          <Label text="Field 7.14" row="14" column="0"/>
+          <Spinner min="0" max="100" value="14" row="14" column="1"/>
+        </Grid>
+      </Scroll>
+    </Tab>
+    <Tab title="Section 2" closable="false">
+      <Scroll fitToWidth="true">
+        <Grid hgap="8" vgap="6">
+          <Label text="Field 7.15" row="0" column="0"/>
+          <TextField prompt="Value 15" row="0" column="1"/>
+          <Label text="Field 7.16" row="1" column="0"/>
+          <ComboBox prompt="Choose 16" row="1" column="1"/>
+          <Label text="Field 7.17" row="2" column="0"/>
+          <CheckBox text="Enabled 17" row="2" column="1"/>
+          <Label text="Field 7.18" row="3" column="0"/>
+          <DatePicker prompt="Date 18" row="3" column="1"/>
+          <Label text="Field 7.19" row="4" column="0"/>
+          <Spinner min="0" max="100" value="19" row="4" column="1"/>
+          <Label text="Field 7.20" row="5" column="0"/>
+          <TextField prompt="Value 20" row="5" column="1"/>
+          <Label text="Field 7.21" row="6" column="0"/>
+          <ComboBox prompt="Choose 21" row="6" column="1"/>
+          <Label text="Field 7.22" row="7" column="0"/>
+          <CheckBox text="Enabled 22" row="7" column="1"/>
+          <Label text="Field 7.23" row="8" column="0"/>
+          <DatePicker prompt="Date 23" row="8" column="1"/>
+          <Label text="Field 7.24" row="9" column="0"/>
+          <Spinner min="0" max="100" value="24" row="9" column="1"/>
+          <Label text="Field 7.25" row="10" column="0"/>
+          <TextField prompt="Value 25" row="10" column="1"/>
+          <Label text="Field 7.26" row="11" column="0"/>
+          <ComboBox prompt="Choose 26" row="11" column="1"/>
+          <Label text="Field 7.27" row="12" column="0"/>
+          <CheckBox text="Enabled 27" row="12" column="1"/>
+          <Label text="Field 7.28" row="13" column="0"/>
+          <DatePicker prompt="Date 28" row="13" column="1"/>
+          <Label text="Field 7.29" row="14" column="0"/>
+          <Spinner min="0" max="100" value="29" row="14" column="1"/>
+        </Grid>
+      </Scroll>
+    </Tab>
+    <Tab title="Section 3" closable="false">
+      <Scroll fitToWidth="true">
+        <Grid hgap="8" vgap="6">
+          <Label text="Field 7.30" row="0" column="0"/>
+          <TextField prompt="Value 30" row="0" column="1"/>
+          <Label text="Field 7.31" row="1" column="0"/>
+          <ComboBox prompt="Choose 31" row="1" column="1"/>
+          <Label text="Field 7.32" row="2" column="0"/>
+          <CheckBox text="Enabled 32" row="2" column="1"/>
+          <Label text="Field 7.33" row="3" column="0"/>
+          <DatePicker prompt="Date 33" row="3" column="1"/>
+          <Label text="Field 7.34" row="4" column="0"/>
+          <Spinner min="0" max="100" value="34" row="4" column="1"/>
+          <Label text="Field 7.35" row="5" column="0"/>
+          <TextField prompt="Value 35" row="5" column="1"/>
+          <Label text="Field 7.36" row="6" column="0"/>
+          <ComboBox prompt="Choose 36" row="6" column="1"/>
+          <Label text="Field 7.37" row="7" column="0"/>
+          <CheckBox text="Enabled 37" row="7" column="1"/>
+          <Label text="Field 7.38" row="8" column="0"/>
+          <DatePicker prompt="Date 38" row="8" column="1"/>
+          <Label text="Field 7.39" row="9" column="0"/>
+          <Spinner min="0" max="100" value="39" row="9" column="1"/>
+          <Label text="Field 7.40" row="10" column="0"/>
+          <TextField prompt="Value 40" row="10" column="1"/>
+          <Label text="Field 7.41" row="11" column="0"/>
+          <ComboBox prompt="Choose 41" row="11" column="1"/>
+          <Label text="Field 7.42" row="12" column="0"/>
+          <CheckBox text="Enabled 42" row="12" column="1"/>
+          <Label text="Field 7.43" row="13" column="0"/>
+          <DatePicker prompt="Date 43" row="13" column="1"/>
+          <Label text="Field 7.44" row="14" column="0"/>
+          <Spinner min="0" max="100" value="44" row="14" column="1"/>
+        </Grid>
+      </Scroll>
+    </Tab>
+  </Tabs>
+  <Row slot="bottom" gap="12">
+    <Label text="${status}"/>
+    <Label text="Screen 7"/>
+    <Label text="User"/>
+    <Label text="v1.0"/>
+  </Row>
+</Border>

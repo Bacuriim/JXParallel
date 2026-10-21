@@ -1,0 +1,15 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!-- Styles, a dark theme and parts included from other files. -->
+<Column controller="com.jxparallel.forge.samples.SampleController" theme="dark" gap="4" padding="8">
+  <Style name="title" textFill="primary" bold="true" fontSize="16"/>
+  <Style name="card" background="surface" borderColor="outline" borderRadius="4" padding="8"/>
+  <Style name="danger" background="error" textFill="onPrimary"/>
+  <Include src="parts/header.jxml" hgrow="always"/>
+  <Label text="Styled" style="title"/>
+  <Card style="card"><Label text="in a card" style="title danger"/></Card>
+  <Button text="The element wins" style="danger" background="#00FF00"/>
+  <For items="${rows}" var="r" type="com.jxparallel.forge.samples.SampleController.Row" from="0" limit="2">
+    <Include src="parts/row.jxml"/>
+  </For>
+  <Include src="parts/header.jxml"/>
+</Column>
