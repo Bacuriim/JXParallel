@@ -217,7 +217,7 @@ Out of scope for 1.0: animations and transitions, custom painters, WebView and O
 ## Native UI
 
 `jxparallel-ui` is a scene graph with its own layout (preferred sizes, grow priorities, grids,
-anchors, flow), controls with the Modena look and a Material look, focus, keyboard and pointer
+anchors, flow), controls in a Material 3 look (light and dark, compact density), focus, keyboard and pointer
 routing, overlays and a software fallback.
 
 ```mermaid
@@ -543,7 +543,7 @@ JMH gate, ArchUnit, mutation testing): [docs/testing-strategy.md](docs/testing-s
 | Worker pool, tasks, backpressure, lifecycle | Tested; used by all benchmarks |
 | Properties, events, observable collections | Tested |
 | FX thread dispatch and parallel FXML loading | Tested; pre-parsed templates with `FXMLLoader` fallback |
-| Native window (Skia 64-bit, NanoVG 32-bit) | Working; Modena and Material looks |
+| Native window (Skia 64-bit, NanoVG 32-bit) | Working; Material 3 look everywhere, light and dark (NanoVG not yet checked with it on 32-bit) |
 | JXForge (JXML compiler, interpreter, Maven plugin, live view) | Implemented and tested; 91 widgets, loops, conditions, styles, themes, includes |
 | Incremental UI updates | Implemented: memoized render and in-place reconciliation |
 | Virtualized list, table, tree and tree table | Implemented |

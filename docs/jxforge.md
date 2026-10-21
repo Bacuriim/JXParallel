@@ -616,7 +616,9 @@ A file may start with `<Style>` elements, direct children of its root, which are
 - The theme: `theme="light"` or `"dark"` on the root. The six tokens `primary onPrimary surface onSurface outline error` are accepted wherever a color is
   written, as a literal (`background="surface"`), and become the color of the file's theme when it is read, so the interpreter and the compiler build the same
   props. The root also gets the prop `theme`, which the renderer inherits down the tree: it paints the themed root with `surface`, draws `Label` text in
-  `onSurface` and the Material controls above in the theme's colors. The classic controls (`Button` without `variant`, `CheckBox`, `TextField` ...) keep their Modena look.
+  `onSurface` and every control in the theme's colors: the look is Material 3 everywhere (the classic controls too: `Button` without `variant`, `CheckBox`,
+  `TextField` ...), in a compact density, with the sizes the layout always had. The renderer derives the other Material roles (containers, variants, state layers,
+  inverse surface, scrim) from the six tokens, per theme.
 - Tokens, light / dark: primary `#1565C0` / `#90CAF9`, onPrimary `#FFFFFF` / `#0D2B4A`, surface `#FFFFFF` / `#1C1B1F`, onSurface `#1C1B1F` / `#E6E1E5`, outline
   `#79747E` / `#938F99`, error `#B3261C` / `#F2B8B5`. `JxmlThemes` (here) and `JXTheme` (the renderer) hold the same table; a test compares them.
 
