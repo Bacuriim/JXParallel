@@ -152,8 +152,63 @@ class JXMaterialCullingTest {
                 int[] off = pixels(root, false, height);
                 int[] on = pixels(root, true, height);
                 assertArrayEquals(off, on, (dark ? "dark" : "light") + " theme, window of " + height + " px");
+                assertTrue(texts(root, true) < texts(root, false), "the culling skipped nodes at " + height + " px: "
+                        + texts(root, true) + " of " + texts(root, false) + " texts");
+            }
+            JXPaint.cull = true;
+        }
+    }
+
+    private static int texts(JXNativeNode root, boolean cull) {
+        JXPaint.cull = cull;
+        JXPaintRecordingTest.RecordingPainter painter = new JXPaintRecordingTest.RecordingPainter();
+        new JXPaint(painter).paint(root);
+        int n = 0;
+        for (String line : painter.log.toString().split("\n")) {
+            if (line.startsWith("text ")) {
+                n++;
             }
         }
+        return n;
+    }
+
+    /** What a control draws beyond its box (focus ring, state layer, shadow) is erased by an incremental repaint. */
+    @Test
+    void anIncrementalRepaintErasesTheRingsAndLayersOfAControlThatLostItsStates() {
+        for (boolean dark : new boolean[] {false, true}) {
+            JXElement on = states(dark, true);
+            JXElement off = states(dark, false);
+            JXNativeNode root = JXNativeNode.createBackendNode(off);
+            root.layoutForBackend(WIDTH, 400);
+            JXSoftwareFrame incremental = new JXSoftwareFrame(true);
+            incremental.paint(root, WIDTH, 400, 1f);
+            for (JXElement step : new JXElement[] {on, off, on, off}) {
+                assertTrue(root.reconcile(step));
+                root.layoutForBackend(WIDTH, 400);
+                incremental.paint(root, WIDTH, 400, 1f);
+                JXSoftwareFrame whole = new JXSoftwareFrame(false);
+                whole.paint(root, WIDTH, 400, 1f);
+                assertArrayEquals(java.util.Arrays.copyOf(whole.pixels(), WIDTH * 400),
+                        java.util.Arrays.copyOf(incremental.pixels(), WIDTH * 400), (dark ? "dark" : "light") + " theme");
+            }
+        }
+    }
+
+    private static JXElement states(boolean dark, boolean on) {
+        JXProps.Builder column = p().set("gap", 20.0).set("padding", new double[] {20, 20, 20, 20});
+        if (dark) {
+            column.set("theme", "dark");
+        }
+        return e("column", column,
+                e("button", p().set("label", "Filled").set("variant", "filled").set("focused", on).set("hover", on)),
+                e("button", p().set("label", "Fab").set("variant", "fab").set("focused", on).set("pressed", on)),
+                e("checkbox", p().set("label", "Check").set("hover", on).set("focused", on)),
+                e("radio", p().set("label", "Radio").set("checked", true).set("hover", on).set("pressed", on)),
+                e("switch", p().set("label", "Switch").set("checked", true).set("hover", on).set("focused", on)),
+                e("slider", p().set("value", 0.0).set("hover", on).set("focused", on)),
+                e("slider", p().set("value", 100.0).set("pressed", on)),
+                e("input", p().set("value", "text").set("focused", on).set("hover", on)),
+                e("select", p().set("value", "A").set("options", new Object[] {"A", "B"}).set("showing", on)));
     }
 
     @Test
@@ -166,6 +221,7 @@ class JXMaterialCullingTest {
                 root.layoutForBackend(WIDTH, 240);
                 assertArrayEquals(pixels(root, false, 240), pixels(root, true, 240),
                         (dark ? "dark" : "light") + " theme, shifted " + shift);
+                assertTrue(texts(root, true) < texts(root, false), "the culling skipped nodes, shifted " + shift);
             }
         }
     }
