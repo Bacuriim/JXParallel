@@ -320,6 +320,17 @@ public final class JXWindow implements AutoCloseable {
         return argb;
     }
 
+    /**
+     * Paints an already laid-out tree with the software renderer into {@code argb} (at least {@code width * height}
+     * entries, ARGB, row by row from the top), after clearing it. Unlike {@link #captureSoftware} it neither builds
+     * nodes nor lays out, so a benchmark can time the painting alone. CPU only: no window, any thread.
+     */
+    public static void paintSoftware(JXNativeNode laidOut, int[] argb, int width, int height) {
+        JXSoftwarePainter painter = new JXSoftwarePainter(argb, width, height, 1f);
+        painter.clear(JXSkiaRenderer.BACKGROUND);
+        new JXPaint(painter).paint(laidOut);
+    }
+
     /** True when windows are painted by the software renderer ({@code -Djx.renderer=software}). */
     public static boolean softwareRenderer() {
         return SOFTWARE.equals(selectRenderer());

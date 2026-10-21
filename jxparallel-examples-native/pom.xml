@@ -58,7 +58,7 @@
                         <configuration>
                             <arguments>
                                 <argument>--src</argument>
-                                <argument>${project.basedir}/src/main/jxml</argument>
+                                <argument>${project.basedir}/src/main/jxml/forgebench</argument>
                                 <argument>--out</argument>
                                 <argument>${project.build.directory}/generated-sources/jxforge</argument>
                                 <argument>--package</argument>
@@ -76,7 +76,7 @@
                         <configuration>
                             <arguments>
                                 <argument>--src</argument>
-                                <argument>${project.basedir}/src/main/jxml</argument>
+                                <argument>${project.basedir}/src/main/jxml/forgebench</argument>
                                 <argument>--out</argument>
                                 <argument>${project.build.directory}/generated-sources/jxforge-plain</argument>
                                 <argument>--package</argument>
@@ -85,10 +85,27 @@
                             </arguments>
                         </configuration>
                     </execution>
+                    <!-- the per-component samples (ComponentBench). Only the hoisted build: what hoisting adds was measured with the 20 screens -->
+                    <execution>
+                        <id>views-components</id>
+                        <phase>generate-sources</phase>
+                        <goals>
+                            <goal>java</goal>
+                        </goals>
+                        <configuration>
+                            <arguments>
+                                <argument>--src</argument>
+                                <argument>${project.basedir}/src/main/jxml/components</argument>
+                                <argument>--out</argument>
+                                <argument>${project.build.directory}/generated-sources/jxforge-components</argument>
+                                <argument>--package</argument>
+                                <argument>com.jxparallel.examples.nativeui.components.gen</argument>
+                            </arguments>
+                        </configuration>
+                    </execution>
                 </executions>
                 <configuration>
-                    <mainClass>com.jxparallel.forge.JXForge</mainClass>
-                    <classpathScope>compile</classpathScope>
+                    <mainClass>com.jxparallel.forge.JXForge</mainClass>                    <classpathScope>compile</classpathScope>
                     <blockSystemExit>true</blockSystemExit>
                 </configuration>
             </plugin>
@@ -107,6 +124,7 @@
                             <sources>
                                 <source>${project.build.directory}/generated-sources/jxforge</source>
                                 <source>${project.build.directory}/generated-sources/jxforge-plain</source>
+                                <source>${project.build.directory}/generated-sources/jxforge-components</source>
                             </sources>
                         </configuration>
                     </execution>
@@ -154,6 +172,10 @@
                                 <id>views-plain</id>
                                 <phase>none</phase>
                             </execution>
+                            <execution>
+                                <id>views-components</id>
+                                <phase>none</phase>
+                            </execution>
                         </executions>
                     </plugin>
                     <plugin>
@@ -168,6 +190,7 @@
                                 </goals>
                                 <configuration>
                                     <packageName>com.jxparallel.examples.nativeui.forgebench.gen</packageName>
+                                    <sourceDirectory>${project.basedir}/src/main/jxml/forgebench</sourceDirectory>
                                 </configuration>
                             </execution>
                             <execution>
@@ -179,6 +202,18 @@
                                     <packageName>com.jxparallel.examples.nativeui.forgebench.plain</packageName>
                                     <outputDirectory>${project.build.directory}/generated-sources/jxforge-plain</outputDirectory>
                                     <hoistConstants>false</hoistConstants>
+                                    <sourceDirectory>${project.basedir}/src/main/jxml/forgebench</sourceDirectory>
+                                </configuration>
+                            </execution>
+                            <execution>
+                                <id>views-components</id>
+                                <goals>
+                                    <goal>generate</goal>
+                                </goals>
+                                <configuration>
+                                    <packageName>com.jxparallel.examples.nativeui.components.gen</packageName>
+                                    <sourceDirectory>${project.basedir}/src/main/jxml/components</sourceDirectory>
+                                    <outputDirectory>${project.build.directory}/generated-sources/jxforge-components</outputDirectory>
                                 </configuration>
                             </execution>
                         </executions>

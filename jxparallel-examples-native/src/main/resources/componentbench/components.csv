@@ -1,0 +1,95 @@
+name,tag,group,variant,n,kind,probe_type,probe_prop,probe_kind,update,fx,alias_of,note
+Label,Label,inputs,closed,5000,string,#text,value,s,text,Label,,
+Hyperlink,Hyperlink,inputs,closed,5000,string,hyperlink,label,s,text,Hyperlink,,
+TextField,TextField,inputs,closed,1500,string,input,value,s,text,TextField,,
+PasswordField,PasswordField,inputs,closed,1500,string,password,value,s,text,PasswordField,,
+TextArea,TextArea,inputs,closed,1500,string,textarea,value,s,text,TextArea,,
+ComboBox,ComboBox,inputs,closed,1500,string,select,value,s,value,ComboBox,,
+ChoiceBox,ChoiceBox,inputs,closed,1500,string,select,value,s,value,ChoiceBox,ComboBox,a pure rename of ComboBox: same tree; the JavaFX counterpart is the ChoiceBox class
+Spinner,Spinner,inputs,closed,1500,digits,spinner,value,s,value,Spinner,,
+DatePicker,DatePicker,inputs,closed,1500,dates,datepicker,value,s,value,DatePicker,,
+TimePicker,TimePicker,inputs,closed,1500,times,timepicker,value,s,value,,,no JavaFX equivalent (JavaFX has no time picker)
+ColorPicker,ColorPicker,inputs,closed,1500,colors,colorpicker,value,s,value,ColorPicker,,
+Slider,Slider,inputs,closed,5000,numbers,slider,value,d,value,Slider,,
+ScrollBar,ScrollBar,inputs,closed,1500,numbers,scrollbar,value,d,value,ScrollBar,,
+ProgressBar,ProgressBar,inputs,closed,5000,fractions,progress,progress,d,progress,ProgressBar,,
+ProgressIndicator,ProgressIndicator,inputs,closed,1000,fractions,indicator,progress,d,progress,ProgressIndicator,,
+Separator,Separator,inputs,closed,5000,widths,separator,prefWidth,d,prefWidth,Separator,,
+Divider,Divider,inputs,closed,5000,widths,separator,prefWidth,d,prefWidth,Separator,Separator,a pure rename of Separator: same tree
+Image,Image,inputs,closed,5000,widths,image,fitWidth,d,fitWidth,ImageView,,
+Tooltip,Tooltip,inputs,closed,5000,string,tooltip,label,s,text,,,JavaFX Tooltip is a popup window object; not a scene node: it has no layout or paint without a window
+Button,Button,buttons,closed,5000,string,button,label,s,text,Button,,
+ToggleButton,ToggleButton,buttons,closed,5000,string,toggle,label,s,text,ToggleButton,,
+RadioButton,RadioButton,buttons,closed,5000,string,radio,label,s,text,RadioButton,,
+CheckBox,CheckBox,buttons,closed,5000,string,checkbox,label,s,text,CheckBox,,
+IconButton,IconButton,buttons,closed,2000,flags,button,disabled,b,disabled,,,no JavaFX equivalent: the icon is a vector drawn by the renderer; JavaFX would need a graphic node built by hand
+Fab,Fab,buttons,closed,2000,string,button,label,s,text,,,no JavaFX equivalent (floating action button)
+Switch,Switch,material,closed,2000,string,switch,label,s,text,,,no JavaFX equivalent
+Icon,Icon,material,closed,2000,sizes,icon,size,d,size,,,no JavaFX equivalent (built-in vector icons)
+Chip,Chip,material,closed,2000,string,chip,label,s,text,,,no JavaFX equivalent
+Badge,Badge,material,closed,2000,ints,badge,count,i,count,,,no JavaFX equivalent
+Avatar,Avatar,material,closed,2000,initials,avatar,initials,s,initials,,,no JavaFX equivalent
+Stepper,Stepper,material,closed,2000,steps,stepper,current,i,current,,,no JavaFX equivalent
+TabBar,TabBar,material,closed,2000,steps,tabbar,selected,i,selected,,,no JavaFX equivalent: a TabPane always includes the content area; the TabBar is only the header strip
+Card,Card,material,closed,2000,string,#text,value,s,text,,,no JavaFX equivalent (a styled Column)
+ListTile,ListTile,material,closed,2000,string,#text,value,s,title,,,no JavaFX equivalent
+AppBar,AppBar,material,closed,2000,string,#text,value,s,title,,,no JavaFX equivalent
+NavigationBar,NavigationBar,material,closed,2000,string,button,label,s,text,,,no JavaFX equivalent
+NavigationRail,NavigationRail,material,closed,2000,string,button,label,s,text,,,no JavaFX equivalent
+BottomAppBar,BottomAppBar,material,closed,2000,string,#text,value,s,text,,,no JavaFX equivalent
+BottomBar,BottomBar,material,closed,2000,string,#text,value,s,text,,BottomAppBar,a pure rename of BottomAppBar: same tree; no JavaFX equivalent
+Scaffold,Scaffold,material,closed,2000,string,#text,value,s,title,,,no JavaFX equivalent (a BorderPane with bars)
+Column,Column,containers,closed,1500,string,#text,value,s,text,Column,,
+Row,Row,containers,closed,1500,string,#text,value,s,text,Row,,
+Stack,Stack,containers,closed,1500,string,#text,value,s,text,Stack,,
+Grid,Grid,containers,closed,1500,string,#text,value,s,text,Grid,,
+Border,Border,containers,closed,1500,string,#text,value,s,text,Border,,
+Scroll,Scroll,containers,closed,800,string,#text,value,s,text,Scroll,,
+Flow,Flow,containers,closed,1500,string,#text,value,s,text,Flow,,
+Tile,Tile,containers,closed,1500,string,#text,value,s,text,Tile,,
+Anchor,Anchor,containers,closed,1500,string,#text,value,s,text,Anchor,,
+Pane,Pane,containers,closed,1500,string,#text,value,s,text,Pane,,
+TextFlow,TextFlow,containers,closed,1500,string,#text,value,s,text,TextFlow,,
+ButtonBar,ButtonBar,containers,closed,800,string,button,label,s,text,ButtonBar,,
+Accordion,Accordion,containers,closed,800,string,titled,label,s,text,Accordion,,
+TitledPane,TitledPane,containers,closed,800,string,titled,label,s,text,TitledPane,,
+Pagination,Pagination,containers,closed,800,pages,pagination,current,i,current,Pagination,,
+Tabs,Tabs,containers,closed,800,string,#text,value,s,text,Tabs,,
+SplitPane,SplitPane,containers,closed,800,string,#text,value,s,text,SplitPane,,
+ToolBar,ToolBar,containers,closed,800,string,button,label,s,text,ToolBar,,the JXML ToolBar is a styled Row; the JavaFX ToolBar is a control with overflow handling: not equal work
+MenuBar,MenuBar,containers,closed,800,string,menu,label,s,text,MenuBar,,
+SizedBox,SizedBox,containers,closed,1500,widths,stack,minWidth,d,width,,,no JavaFX equivalent: JavaFX sets sizes on any Region; there is no separate control
+Spacer,Spacer,containers,closed,1500,string,#text,value,s,text,,,no JavaFX equivalent: a Region with grow priorities
+Expanded,Expanded,containers,closed,1500,string,#text,value,s,text,,,no JavaFX equivalent: grow priorities on the child
+Flexible,Flexible,containers,closed,1500,string,#text,value,s,text,,,no JavaFX equivalent: grow priorities on the child
+Center,Center,containers,closed,1500,string,#text,value,s,text,,,no JavaFX equivalent: a StackPane with alignment
+Align,Align,containers,closed,1500,string,#text,value,s,text,,,no JavaFX equivalent: a StackPane with alignment
+Wrap,Wrap,containers,closed,1500,string,#text,value,s,text,Flow,Flow,a pure rename of Flow: same tree
+Positioned,Positioned,containers,closed,1500,string,#text,value,s,text,Stack,Stack,a pure rename of Stack: same tree
+Container,Container,containers,closed,1500,string,#text,value,s,text,Stack,Stack,a pure rename of Stack: same tree
+Box,Box,containers,closed,1500,string,#text,value,s,text,Stack,Stack,a pure rename of Stack: same tree
+Padding,Padding,containers,closed,1500,string,#text,value,s,text,Stack,Stack,a pure rename of Stack: same tree
+Opacity,Opacity,containers,closed,1500,string,#text,value,s,text,Stack,Stack,a pure rename of Stack: same tree
+Visibility,Visibility,containers,closed,1500,string,#text,value,s,text,Stack,Stack,a pure rename of Stack: same tree
+ListView,ListView,lists,closed,20,firsts,list,first,i,first (scroll position),ListView,,window of 30 rows from a model of 10000; update scrolls by 7 rows
+TableView,TableView,lists,closed,20,firsts,table,first,i,first (scroll position),TableView,,window of 30 rows from a model of 10000 rows of 3 columns; update scrolls by 7 rows
+Tree,Tree,lists,closed,8,firsts,list,first,i,first (scroll position),TreeView,,100 folders of 99 children; all expanded: 10000 visible rows; JXML builds every item on each build and update; JavaFX only on creation
+TreeTable,TreeTable,lists,closed,8,firsts,table,first,i,first (scroll position),TreeTableView,,as Tree; with a Size column; update scrolls by 7 rows
+MenuButton,MenuButton,overlays,closed,1000,string,menubutton,label,s,text,MenuButton,,
+ContextMenu,ContextMenu,overlays,closed,1000,string,menuitem,label,s,text,,,JavaFX ContextMenu is a popup window object; not a scene node
+Modal,Modal,overlays,closed,100,string,#text,value,s,text,,,no JavaFX equivalent in a scene graph: JavaFX dialogs are windows
+Dialog,Dialog,overlays,closed,100,string,#text,value,s,title,,,JavaFX Dialog is a window; DialogPane without a window has no comparable layout
+AlertDialog,AlertDialog,overlays,closed,100,string,#text,value,s,title,,,JavaFX Alert is a window; not comparable
+Drawer,Drawer,overlays,closed,100,string,#text,value,s,text,,,no JavaFX equivalent
+SnackBar,SnackBar,overlays,closed,1000,string,snackbar,message,s,message,,,no JavaFX equivalent
+ComboBoxOpen,ComboBox,overlays,open,1500,string,select,value,s,value,,,open variant: N popups open at once (an amplifier of the cost of one popup; (open - closed) / N is per popup); JavaFX popups are windows: no JavaFX mode
+DatePickerOpen,DatePicker,overlays,open,1500,dates,datepicker,value,s,value,,,open variant: N popups open at once (an amplifier of the cost of one popup; (open - closed) / N is per popup); JavaFX popups are windows: no JavaFX mode
+TimePickerOpen,TimePicker,overlays,open,1500,times,timepicker,value,s,value,,,open variant: N popups open at once (an amplifier of the cost of one popup; (open - closed) / N is per popup); JavaFX popups are windows: no JavaFX mode
+ColorPickerOpen,ColorPicker,overlays,open,1500,colors,colorpicker,value,s,value,,,open variant: N popups open at once (an amplifier of the cost of one popup; (open - closed) / N is per popup); JavaFX popups are windows: no JavaFX mode
+MenuButtonOpen,MenuButton,overlays,open,1000,string,menubutton,label,s,text,,,open variant: N popups open at once (an amplifier of the cost of one popup; (open - closed) / N is per popup); JavaFX popups are windows: no JavaFX mode
+ContextMenuOpen,ContextMenu,overlays,open,1000,string,menuitem,label,s,text,,,open variant: N popups open at once (an amplifier of the cost of one popup; (open - closed) / N is per popup); JavaFX popups are windows: no JavaFX mode
+ModalOpen,Modal,overlays,open,100,string,#text,value,s,text,,,open variant: N popups open at once (an amplifier of the cost of one popup; (open - closed) / N is per popup); JavaFX popups are windows: no JavaFX mode
+DialogOpen,Dialog,overlays,open,100,string,#text,value,s,title,,,open variant: N popups open at once (an amplifier of the cost of one popup; (open - closed) / N is per popup); JavaFX popups are windows: no JavaFX mode
+AlertDialogOpen,AlertDialog,overlays,open,100,string,#text,value,s,title,,,open variant: N popups open at once (an amplifier of the cost of one popup; (open - closed) / N is per popup); JavaFX popups are windows: no JavaFX mode
+DrawerOpen,Drawer,overlays,open,100,string,#text,value,s,text,,,open variant: N popups open at once (an amplifier of the cost of one popup; (open - closed) / N is per popup); JavaFX popups are windows: no JavaFX mode
+SnackBarOpen,SnackBar,overlays,open,1000,string,snackbar,message,s,message,,,open variant: N popups open at once (an amplifier of the cost of one popup; (open - closed) / N is per popup); JavaFX popups are windows: no JavaFX mode
