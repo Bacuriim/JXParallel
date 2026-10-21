@@ -1,0 +1,62 @@
+plugins {
+    id 'java-gradle-plugin'
+    id 'maven-publish'
+}
+
+group = 'com.jxparallel'
+version = '0.1.0-SNAPSHOT'
+
+// The forge version the plugin resolves at build time; the same as this plugin's version.
+def forgeVersion = '0.1.0-SNAPSHOT'
+
+repositories {
+    mavenLocal()
+    mavenCentral()
+}
+
+java {
+    sourceCompatibility = JavaVersion.VERSION_1_8
+    targetCompatibility = JavaVersion.VERSION_1_8
+}
+
+tasks.withType(JavaCompile).configureEach {
+    options.encoding = 'UTF-8'
+    if (JavaVersion.current().isJava9Compatible()) {
+        options.release = 8
+    }
+}
+
+gradlePlugin {
+    plugins {
+        jxforge {
+            id = 'com.jxparallel.jxforge'
+            implementationClass = 'com.jxparallel.forge.gradle.JXForgePlugin'
+            displayName = 'JXForge'
+            description = 'Compiles .jxml files to Java at build time.'
+        }
+    }
+}
+
+processResources {
+    inputs.property 'forgeVersion', forgeVersion
+    filesMatching('jxforge-plugin.properties') {
+        expand(forgeVersion: forgeVersion)
+    }
+}
+
+dependencies {
+    // Only to compile against the exception contract in tests; the task resolves the forge itself.
+    testImplementation platform('org.junit:junit-bom:5.10.2')
+    testImplementation 'org.junit.jupiter:junit-jupiter'
+    testRuntimeOnly 'org.junit.platform:junit-platform-launcher'
+}
+
+test {
+    useJUnitPlatform()
+    // The TestKit builds run offline and resolve the forge from ~/.m2.
+    systemProperty 'jxforge.version', forgeVersion
+    testLogging {
+        events 'failed'
+        exceptionFormat 'full'
+    }
+}
