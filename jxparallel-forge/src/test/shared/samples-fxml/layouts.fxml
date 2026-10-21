@@ -1,0 +1,62 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!-- BorderPane (every slot), VBox, HBox, StackPane, ToolBar, ButtonBar, the attributes every class takes and the include. -->
+<?import javafx.geometry.Insets?>
+<?import javafx.scene.control.*?>
+<?import javafx.scene.layout.*?>
+<BorderPane xmlns="http://javafx.com/javafx" xmlns:fx="http://javafx.com/fxml"
+            fx:controller="com.jxparallel.forge.samples.SampleController" padding="4">
+  <top>
+    <ToolBar padding="2">
+      <Button fx:id="saveButton" text="Save" onAction="#save" defaultButton="true" textFill="#336699" disable="false"
+              mnemonicParsing="false"/>
+      <Button text="Cancel" onAction="#save" padding="2, 6, 2, 6">
+        <graphic>
+          <ImageView fitWidth="12" fitHeight="12" preserveRatio="true"/>
+        </graphic>
+      </Button>
+      <Button text="Other" onAction="#save"/>
+    </ToolBar>
+  </top>
+  <left>
+    <VBox spacing="4" alignment="TOP_LEFT" fillWidth="true" minWidth="40" maxWidth="200" minHeight="10" maxHeight="400">
+      <padding>
+        <Insets top="1" right="2" bottom="3" left="4"/>
+      </padding>
+      <children>
+        <Label text="Name" wrapText="true" textFill="#112233" id="nameLabel" opacity="0.5" visible="true"
+               managed="true" layoutX="1" layoutY="2"/>
+        <TextField text="Ada" VBox.vgrow="ALWAYS" prefWidth="120" prefHeight="24"/>
+        <Label text="Hidden" visible="false" prefWidth="USE_COMPUTED_SIZE" prefHeight="-1" maxWidth="Infinity" minWidth="-Infinity"/>
+        <Button text="Margin" padding="3">
+          <VBox.margin>
+            <Insets topRightBottomLeft="5"/>
+          </VBox.margin>
+        </Button>
+      </children>
+    </VBox>
+  </left>
+  <center>
+    <StackPane alignment="CENTER">
+      <HBox spacing="6" alignment="CENTER_LEFT" fillHeight="false" padding="2, 4, 2, 4">
+        <Label text="One" HBox.hgrow="SOMETIMES"/>
+        <Label text="Two" HBox.hgrow="NEVER"/>
+      </HBox>
+      <fx:include source="parts/header.fxml"/>
+    </StackPane>
+  </center>
+  <right>
+    <ButtonBar>
+      <buttons>
+        <Button text="OK" onAction="#save"/>
+        <Button text="Close"/>
+      </buttons>
+    </ButtonBar>
+  </right>
+  <bottom>
+    <HBox spacing="12">
+      <Label fx:id="status" text="Ready"/>
+      <Label text="\${not a binding}"/>
+      <Label text="#1"/>
+    </HBox>
+  </bottom>
+</BorderPane>

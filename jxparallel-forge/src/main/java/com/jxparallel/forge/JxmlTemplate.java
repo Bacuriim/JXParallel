@@ -187,6 +187,7 @@ public final class JxmlTemplate implements JxmlView<Object> {
     final String source;
     final String controller;
     final Element root;
+    private final List<String> warnings = new ArrayList<String>();
     private final Map<Class<?>, Map<String, Method>> methods = new ConcurrentHashMap<Class<?>, Map<String, Method>>();
 
     private JxmlTemplate(String source, String controller, Element root) {
@@ -205,10 +206,21 @@ public final class JxmlTemplate implements JxmlView<Object> {
      * {@code source} is the name of the file for the loader, which resolves each {@code src} against it.
      */
     public static JxmlTemplate read(InputStream input, String source, JxmlLoader loader) {
-        JxmlParser.Node node = JxmlParser.parse(input, source);
+        List<String> warnings = new ArrayList<String>();
+        JxmlParser.Node node = JxmlParser.parse(input, source, warnings);
         String controller = node.attrs.remove("controller");
-        String theme = JxmlPrepare.run(node, controller, loader);
-        return new JxmlTemplate(source, controller, resolve(node, source, null, null, null, theme));
+        String theme = JxmlPrepare.run(node, controller, loader, warnings);
+        JxmlTemplate template = new JxmlTemplate(source, controller, resolve(node, source, null, null, null, theme));
+        template.warnings.addAll(warnings);
+        return template;
+    }
+
+    /**
+     * What the file reads but cannot carry over, such as the {@code fx:id}s of an FXML file (each as
+     * {@code file:line: message}); empty for a JXML file.
+     */
+    public List<String> getWarnings() {
+        return Collections.unmodifiableList(warnings);
     }
 
     /** Reads a file from the file system; its includes are found next to it. */

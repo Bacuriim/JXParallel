@@ -1,0 +1,7 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!-- A part included by layouts.fxml: no controller of its own, so it is not a view. -->
+<?import javafx.scene.control.*?>
+<?import javafx.scene.layout.*?>
+<HBox xmlns="http://javafx.com/javafx" xmlns:fx="http://javafx.com/fxml" spacing="2">
+  <Label fx:id="partTitle" text="Included"/>
+</HBox>

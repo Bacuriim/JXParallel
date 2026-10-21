@@ -71,7 +71,7 @@ public final class JxmlCompiler {
 
     /** {@code customer-list.jxml} becomes {@code CustomerListView}. */
     public static String className(String fileName, String suffix) {
-        String base = fileName.endsWith(".jxml") ? fileName.substring(0, fileName.length() - 5) : fileName;
+        String base = fileName.endsWith(".jxml") || fileName.endsWith(".fxml") ? fileName.substring(0, fileName.length() - 5) : fileName;
         StringBuilder name = new StringBuilder();
         boolean upper = true;
         for (char ch : base.toCharArray()) {

@@ -27,6 +27,12 @@ public final class JXForge {
         public final List<File> upToDate = new ArrayList<File>();
         /** Files that are only parts of others (included, with no root controller): they get no class. */
         public final List<File> parts = new ArrayList<File>();
+        /**
+         * What the files read but cannot carry over, as {@code file:line: message}: for FXML files, each {@code fx:id}
+         * and each handler the controller must offer without arguments. Only files that were compiled in this run
+         * (not the up to date ones) have warnings.
+         */
+        public final List<String> warnings = new ArrayList<String>();
         public long nanos;
     }
 
@@ -74,6 +80,11 @@ public final class JXForge {
                 template = JxmlTemplate.read(input, name, loader);
             } finally {
                 input.close();
+            }
+            for (String warning : template.getWarnings()) {
+                if (!result.warnings.contains(warning)) {
+                    result.warnings.add(warning);
+                }
             }
             String java = JxmlCompiler.compile(template, new JxmlCompiler.Options(packageName, className, hoist));
             if (!packageDir.isDirectory() && !packageDir.mkdirs()) {
@@ -132,7 +143,7 @@ public final class JXForge {
         for (File entry : entries) {
             if (entry.isDirectory()) {
                 collect(entry, files);
-            } else if (entry.getName().endsWith(".jxml")) {
+            } else if (entry.getName().endsWith(".jxml") || entry.getName().endsWith(".fxml")) {
                 files.add(entry);
             }
         }
@@ -143,7 +154,43 @@ public final class JXForge {
         return r.isEmpty() ? file.getName() : r;
     }
 
+    /**
+     * The JXML text of an FXML file, to migrate it by hand: the tree {@code JXForge} compiles for it, one element per
+     * line ({@code <Include src>} names {@code .jxml} files). What the translation cannot carry over is added to
+     * {@code warnings} (may be null) as {@code file:line: message}; what has no equivalent is a {@link JxmlException}.
+     */
+    public static String fxmlToJxml(File fxml, List<String> warnings) throws IOException {
+        InputStream input = new FileInputStream(fxml);
+        try {
+            return FxmlTranslator.print(FxmlTranslator.translate(input, fxml.getName(), warnings));
+        } finally {
+            input.close();
+        }
+    }
+
     public static void main(String[] args) throws IOException {
+        if (args.length > 0 && "--fxml-to-jxml".equals(args[0])) {
+            if (args.length < 2 || args.length > 3) {
+                System.err.println("usage: JXForge --fxml-to-jxml <in.fxml> [<out.jxml>]   (prints to the console without <out>)");
+                System.exit(2);
+            }
+            try {
+                List<String> warnings = new ArrayList<String>();
+                String jxml = fxmlToJxml(new File(args[1]), warnings);
+                if (args.length == 3) {
+                    java.nio.file.Files.write(new File(args[2]).toPath(), jxml.getBytes(StandardCharsets.UTF_8));
+                } else {
+                    System.out.print(jxml);
+                }
+                for (String warning : warnings) {
+                    System.err.println("warning: " + warning);
+                }
+            } catch (JxmlException e) {
+                System.err.println(e.getMessage());
+                System.exit(1);
+            }
+            return;
+        }
         String src = "src/main/jxml";
         String out = "target/generated-sources/jxforge";
         String packageName = null;
@@ -171,6 +218,9 @@ public final class JXForge {
         }
         try {
             Result r = compileDirectory(new File(src), new File(out), packageName, suffix, hoist);
+            for (String warning : r.warnings) {
+                System.err.println("warning: " + warning);
+            }
             System.out.printf("JXForge: %d written, %d up to date, %.1f ms%n", r.written.size(), r.upToDate.size(), r.nanos / 1e6);
         } catch (JxmlException e) {
             System.err.println(e.getMessage());
