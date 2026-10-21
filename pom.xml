@@ -14,6 +14,7 @@
     <modules>
         <module>jxparallel-core</module>
         <module>jxparallel-ui</module>
+        <module>jxparallel-forge</module>
         <module>jxparallel-examples-native</module>
         <module>jxparallel-junit4</module>
         <module>jxparallel-junit5</module>

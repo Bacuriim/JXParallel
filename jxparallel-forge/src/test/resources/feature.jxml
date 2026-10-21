@@ -1,0 +1,45 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!-- Every kind of attribute and child the schema has: literals of each type, bindings, handlers, tabs, a slot. -->
+<Border controller="com.jxparallel.forge.FeatureController">
+  <Row slot="top" gap="4" padding="4 8">
+    <Button text="Save" onAction="#save" defaultButton="true"/>
+    <Button text="Cancel" onAction="#cancel" disabled="${busy}"/>
+    <Separator orientation="vertical"/>
+    <Label text="${status}" hgrow="always"/>
+  </Row>
+  <Tabs slot="center" selected="${tab}">
+    <Tab title="Customer" closable="false">
+      <Scroll fitToWidth="true">
+        <Grid hgap="8" vgap="6" padding="12">
+          <Label text="Name" row="0" column="0"/>
+          <TextField text="${customer.name}" prompt="Full name" row="0" column="1" hgrow="always"/>
+          <Label text="City" row="1" column="0"/>
+          <ComboBox items="${cities}" prompt="Choose" row="1" column="1"/>
+          <Label text="Since" row="2" column="0"/>
+          <DatePicker prompt="Date" row="2" column="1"/>
+          <Label text="Rating" row="3" column="0"/>
+          <Spinner value="4" min="0" max="5" row="3" column="1"/>
+          <CheckBox text="Active" selected="true" row="4" column="1"/>
+        </Grid>
+      </Scroll>
+    </Tab>
+    <Tab title="Notes">
+      <Column gap="8" padding="12" fillWidth="true">
+        <TextArea prompt="Notes" rows="5" wrapText="true"/>
+        <PasswordField prompt="PIN" columns="6"/>
+        <Slider min="0" max="10" value="3"/>
+        <ProgressBar progress="${progress}" prefWidth="200"/>
+        <Slot content="${banner}"/>
+      </Column>
+    </Tab>
+    <Tab title="Static">
+      <Stack alignment="CENTER" padding="0 0 0 0">
+        <Label text="\#1 nothing bound here" wrapText="true"/>
+      </Stack>
+    </Tab>
+  </Tabs>
+  <Row slot="bottom" gap="12" margin="2">
+    <Label text="v1.0"/>
+    <ComboBox items="A, B, C" value="B"/>
+  </Row>
+</Border>
