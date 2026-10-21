@@ -63,6 +63,7 @@ class JxmlTemplateTest {
         assertEquals("Ada", grid.getChildren().get(1).getProps().get("value"));
         assertEquals(Integer.valueOf(1), grid.getChildren().get(1).getProps().get("column"));
         assertArrayEquals(new String[] {"Fortaleza", "Recife"}, (String[]) grid.getChildren().get(3).getProps().get("options"));
+        assertEquals("Fortaleza", grid.getChildren().get(6).getProps().get("value")); // ${customer.city()}
         JXElement notes = tabs.getChildren().get(0);
         assertEquals(Double.valueOf(0.25), notes.getChildren().get(3).getProps().get("progress"));
         assertEquals("hand-written", notes.getChildren().get(4).getProps().get("value"));

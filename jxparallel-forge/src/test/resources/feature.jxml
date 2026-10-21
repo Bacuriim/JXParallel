@@ -17,6 +17,7 @@
           <ComboBox items="${cities}" prompt="Choose" row="1" column="1"/>
           <Label text="Since" row="2" column="0"/>
           <DatePicker prompt="Date" row="2" column="1"/>
+          <Label text="${customer.city()}" row="2" column="2"/>
           <Label text="Rating" row="3" column="0"/>
           <Spinner value="4" min="0" max="5" row="3" column="1"/>
           <CheckBox text="Active" selected="true" row="4" column="1"/>

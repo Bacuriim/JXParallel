@@ -19,7 +19,8 @@ import com.jxparallel.ui.JXProps;
  * calling them directly. Reusable and thread safe; reflective lookups are cached per controller class.
  *
  * <p>Binding rules, the same in the compiler: {@code ${a.b}} calls {@code getA().getB()} on the
- * controller; {@code #save} calls the controller's public no-argument method {@code save()};
+ * controller, and {@code ${a.b()}} calls {@code getA().b()} (record components);
+ * {@code #save} calls the controller's public no-argument method {@code save()};
  * a value starting with a backslash is a literal without it ({@code \#1}).
  */
 public final class JxmlTemplate implements JxmlView<Object> {
@@ -213,8 +214,10 @@ public final class JxmlTemplate implements JxmlView<Object> {
             }
             String[] path = value.substring(2, value.length() - 1).trim().split("\\.", -1);
             for (String segment : path) {
-                if (!isIdentifier(segment)) {
-                    throw new JxmlException(source, line, "bad binding " + value + "; expected ${name} or ${a.b}");
+                String name = segment.endsWith("()") ? segment.substring(0, segment.length() - 2) : segment;
+                if (!isIdentifier(name)) {
+                    throw new JxmlException(source, line, "bad binding " + value
+                            + "; expected ${name}, ${a.b} or, for records, ${a.b()}");
                 }
             }
             return new Prop(attr, Kind.BINDING, null, path, null, line);
@@ -347,7 +350,14 @@ public final class JxmlTemplate implements JxmlView<Object> {
         }
     }
 
-    static String getter(String property) {
-        return "get" + Character.toUpperCase(property.charAt(0)) + property.substring(1);
+    /**
+     * The method a binding segment calls: {@code name} is the bean getter {@code getName()};
+     * {@code name()} is called as written, which is how records (Java 16+) expose their components.
+     */
+    static String getter(String segment) {
+        if (segment.endsWith("()")) {
+            return segment.substring(0, segment.length() - 2);
+        }
+        return "get" + Character.toUpperCase(segment.charAt(0)) + segment.substring(1);
     }
 }

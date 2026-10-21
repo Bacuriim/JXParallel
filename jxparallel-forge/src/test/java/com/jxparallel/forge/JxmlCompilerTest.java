@@ -108,6 +108,43 @@ class JxmlCompilerTest {
         assertTrue(java.contains("c::sav) // typo.jxml:2"), java);
     }
 
+    /** On Java 16+: a record as the bound bean, generated code compiled for the running release. */
+    @Test
+    void recordsBindThroughTheirAccessors() throws Exception {
+        int feature = javaFeature();
+        org.junit.jupiter.api.Assumptions.assumeTrue(feature >= 16, "records need Java 16+");
+        Path src = dir.resolve("rec");
+        Files.createDirectories(src);
+        Files.write(src.resolve("Customer.java"),
+                "package rec; public record Customer(String name, int age) {}".getBytes(StandardCharsets.UTF_8));
+        Files.write(src.resolve("Ctrl.java"), ("package rec; public class Ctrl {"
+                + " public Customer getCustomer() { return new Customer(\"Ada\", 36); } }").getBytes(StandardCharsets.UTF_8));
+        String xml = "<Column controller=\"rec.Ctrl\"><Label text=\"${customer.name()}\"/>"
+                + "<Spinner value=\"${customer.age()}\"/></Column>";
+        JxmlTemplate template = JxmlTemplate.read(new java.io.ByteArrayInputStream(xml.getBytes(StandardCharsets.UTF_8)), "rec.jxml");
+        Files.write(src.resolve("RecView.java"),
+                JxmlCompiler.compile(template, new JxmlCompiler.Options("rec", "RecView", true)).getBytes(StandardCharsets.UTF_8));
+        String classpath = location(JxmlView.class) + File.pathSeparator + location(JXElement.class);
+        ByteArrayOutputStream errors = new ByteArrayOutputStream();
+        int status = ToolProvider.getSystemJavaCompiler().run(null, null, errors, "--release", String.valueOf(feature),
+                "-classpath", classpath, "-d", dir.toString(),
+                src.resolve("Customer.java").toString(), src.resolve("Ctrl.java").toString(), src.resolve("RecView.java").toString());
+        assertEquals(0, status, new String(errors.toByteArray(), StandardCharsets.UTF_8));
+        URLClassLoader loader = new URLClassLoader(new URL[] {dir.toUri().toURL()}, getClass().getClassLoader());
+        Object ctrl = loader.loadClass("rec.Ctrl").getDeclaredConstructor().newInstance();
+        @SuppressWarnings("unchecked")
+        JxmlView<Object> view = (JxmlView<Object>) loader.loadClass("rec.RecView").getDeclaredConstructor().newInstance();
+        JXElement compiled = view.build(ctrl);
+        assertNull(JxmlTrees.diff(template.build(ctrl), compiled));
+        assertEquals("Ada", compiled.getChildren().get(0).getProps().get("value"));
+        assertEquals("36", compiled.getChildren().get(1).getProps().get("value"));
+    }
+
+    private static int javaFeature() {
+        String v = System.getProperty("java.specification.version");
+        return v.startsWith("1.") ? Integer.parseInt(v.substring(2)) : Integer.parseInt(v);
+    }
+
     @Test
     void classNamesFollowTheFileName() {
         assertEquals("OrderListView", JxmlCompiler.className("order-list.jxml", "View"));

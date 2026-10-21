@@ -1,0 +1,59 @@
+<project xmlns="http://maven.apache.org/POM/4.0.0"
+         xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+         xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 https://maven.apache.org/xsd/maven-4.0.0.xsd">
+    <modelVersion>4.0.0</modelVersion>
+    <parent>
+        <groupId>com.jxparallel</groupId>
+        <artifactId>jxparallel-parent</artifactId>
+        <version>0.1.0-SNAPSHOT</version>
+    </parent>
+
+    <artifactId>jxforge-maven-plugin</artifactId>
+    <packaging>maven-plugin</packaging>
+    <name>JXForge Maven Plugin</name>
+    <description>Compiles src/main/jxml into Java sources before compilation (goal jxforge:generate).</description>
+
+    <properties>
+        <maven.api.version>3.9.6</maven.api.version>
+        <plugin.tools.version>3.13.1</plugin.tools.version>
+    </properties>
+
+    <dependencies>
+        <dependency>
+            <groupId>com.jxparallel</groupId>
+            <artifactId>jxparallel-forge</artifactId>
+            <version>${project.version}</version>
+        </dependency>
+        <dependency>
+            <groupId>org.apache.maven</groupId>
+            <artifactId>maven-plugin-api</artifactId>
+            <version>${maven.api.version}</version>
+            <scope>provided</scope>
+        </dependency>
+        <dependency>
+            <groupId>org.apache.maven</groupId>
+            <artifactId>maven-core</artifactId>
+            <version>${maven.api.version}</version>
+            <scope>provided</scope>
+        </dependency>
+        <dependency>
+            <groupId>org.apache.maven.plugin-tools</groupId>
+            <artifactId>maven-plugin-annotations</artifactId>
+            <version>${plugin.tools.version}</version>
+            <scope>provided</scope>
+        </dependency>
+    </dependencies>
+
+    <build>
+        <plugins>
+            <plugin>
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-plugin-plugin</artifactId>
+                <version>${plugin.tools.version}</version>
+                <configuration>
+                    <goalPrefix>jxforge</goalPrefix>
+                </configuration>
+            </plugin>
+        </plugins>
+    </build>
+</project>

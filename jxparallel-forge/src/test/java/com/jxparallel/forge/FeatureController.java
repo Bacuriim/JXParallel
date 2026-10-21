@@ -60,5 +60,10 @@ public class FeatureController {
         public String getName() {
             return "Ada";
         }
+
+        /** Accessor in record style ({@code ${customer.city()}}). */
+        public String city() {
+            return "Fortaleza";
+        }
     }
 }
