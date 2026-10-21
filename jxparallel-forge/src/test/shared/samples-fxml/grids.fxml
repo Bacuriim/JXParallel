@@ -1,0 +1,36 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!-- GridPane (and every attribute it gives its children), ScrollPane, AnchorPane, Pane, FlowPane, TilePane, styleClass through an included style. -->
+<?import javafx.scene.control.*?>
+<?import javafx.scene.layout.*?>
+<VBox xmlns="http://javafx.com/javafx" xmlns:fx="http://javafx.com/fxml"
+      fx:controller="com.jxparallel.forge.samples.SampleController" spacing="4">
+  <ScrollPane fitToWidth="true" fitToHeight="false">
+    <GridPane hgap="8" vgap="6" alignment="TOP_LEFT" padding="4">
+      <Label text="Name" GridPane.rowIndex="0" GridPane.columnIndex="0" GridPane.halignment="RIGHT" GridPane.valignment="CENTER"
+             styleClass="note"/>
+      <TextField text="Ada" promptText="Full name" prefColumnCount="20" GridPane.rowIndex="0" GridPane.columnIndex="1"
+                 GridPane.columnSpan="2" GridPane.hgrow="ALWAYS"/>
+      <TextArea text="notes" promptText="Notes" wrapText="true" prefColumnCount="30" prefRowCount="4" GridPane.rowIndex="1"
+                GridPane.columnIndex="1" GridPane.rowSpan="2" GridPane.vgrow="SOMETIMES"/>
+      <fx:include source="parts/header.fxml" GridPane.rowIndex="3" GridPane.columnIndex="0" fx:id="headerInclude"/>
+    </GridPane>
+  </ScrollPane>
+  <fx:include source="parts/styles.jxml"/>
+  <AnchorPane prefWidth="200" prefHeight="80">
+    <Button text="TL" AnchorPane.topAnchor="4" AnchorPane.leftAnchor="4"/>
+    <Button text="BR" AnchorPane.rightAnchor="4" AnchorPane.bottomAnchor="4"/>
+  </AnchorPane>
+  <Pane prefWidth="120" prefHeight="60" padding="2">
+    <Label text="at" layoutX="10" layoutY="12"/>
+  </Pane>
+  <FlowPane hgap="4" vgap="4" alignment="TOP_LEFT" orientation="HORIZONTAL" prefWrapLength="200" columnHalignment="LEFT"
+            rowValignment="CENTER" padding="2">
+    <Button text="One"/>
+    <Button text="Two"/>
+  </FlowPane>
+  <TilePane hgap="4" vgap="4" alignment="TOP_LEFT" orientation="HORIZONTAL" prefColumns="2" prefRows="2" prefTileWidth="60"
+            prefTileHeight="24" tileAlignment="CENTER" padding="2">
+    <Label text="a"/>
+    <Label text="b"/>
+  </TilePane>
+</VBox>
