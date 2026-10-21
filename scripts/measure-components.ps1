@@ -215,12 +215,12 @@ foreach ($jvmName in $Jvms) {
     $index = 0
     foreach ($comp in $selected) {
         $index++
-        $modes = @($Modes | Where-Object { $_ -ne "javafx" -or $comp.fx })
+        $compModes = @($Modes | Where-Object { $_ -ne "javafx" -or $comp.fx }) # not $modes: PowerShell names are case-insensitive and that would overwrite the parameter
         $have = @($rows | Where-Object { $_.component -eq $comp.name })
-        $expected = $modes.Count * $Runs + 1
+        $expected = $compModes.Count * $Runs + 1
         if ($have.Count -ge $expected -and -not $Force) { Write-Host "[$jvmName $index/$($selected.Count)] $($comp.name): done, skipped"; continue }
         foreach ($r in $have) { [void]$rows.Remove($r) }
-        Write-Host "[$jvmName $index/$($selected.Count)] $($comp.name) (n=$($comp.n), $($modes -join '/'))..."
+        Write-Host "[$jvmName $index/$($selected.Count)] $($comp.name) (n=$($comp.n), $($compModes -join '/'))..."
         $dead = @{}
         $verify = Invoke-Case $jvm $comp "verify" 0
         $verify | Add-Member -NotePropertyName jvm -NotePropertyValue $jvmName -Force
@@ -228,7 +228,7 @@ foreach ($jvmName in $Jvms) {
         if ($verify.status -ne "ok") { Write-Warning "$($comp.name): the three ways of building it do NOT agree (verify failed); measuring anyway" }
         for ($r = 1; $r -le $Runs; $r++) {
             $rot = @()
-            for ($i = 0; $i -lt $modes.Count; $i++) { $rot += $modes[($i + $r - 1) % $modes.Count] }  # the first mode changes every run
+            for ($i = 0; $i -lt $compModes.Count; $i++) { $rot += $compModes[($i + $r - 1) % $compModes.Count] }  # the first mode changes every run
             foreach ($mode in $rot) {
                 if ($dead.ContainsKey($mode)) { continue }
                 $row = Invoke-Case $jvm $comp $mode $r
