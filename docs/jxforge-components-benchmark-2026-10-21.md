@@ -1,5 +1,12 @@
 # JXML components one by one, against JavaFX: time, memory, CPU and classes
 
+> **This is the first series, before the optimizations.** Two causes written below were corrected
+> afterwards: the `Tree` and `TreeTable` update was slow because the screen **built** 10,000 items on
+> every update (the flattening was a smaller part), and the paint of text inputs was dominated by the
+> per-pixel blend of wide translucent boxes, not only by the nodes outside the window. The same series
+> measured again after the changes, with before and after tables:
+> [jxforge-optimizations-2026-10-21.md](jxforge-optimizations-2026-10-21.md).
+
 Each JXML component was measured alone, in four modes, with the JavaFX control it corresponds to
 built in plain Java (no FXML) as the reference. 84 components were measured (94 were generated; the 10 that are pure renames of another tag
 were skipped); **43 have a JavaFX equivalent** and are compared, 41 have none and are reported in absolute numbers.

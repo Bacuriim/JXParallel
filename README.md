@@ -45,9 +45,9 @@ JXParallel is a Java UI runtime made of three parts that you can use together or
 
 ## Why you would use it
 
-- **Fast to build and to show.** Compiled JXML builds a screen 17 to 20 times faster than the JavaFX
-  controls do, and is ready to paint 80 times faster once warm (median of 43 components, Java 17).
-- **Small.** About 39 times less memory retained per widget, half the classes loaded, 7 times less
+- **Fast to build and to show.** Compiled JXML builds a screen 19 to 20 times faster than the JavaFX
+  controls do, and is ready to paint 86 times faster once warm (geometric mean of 43 components, Java 17).
+- **Small.** About 47 times less memory retained per widget, half the classes loaded, 8 times less
   CPU over a run, in the same measurements.
 - **Never frozen.** Heavy work and FXML loading run on a worker pool; the UI thread only paints.
 - **Checked at build time.** A misspelled `${customer.nmae}` is a compile error that points at the
@@ -253,22 +253,22 @@ components, 4 modes (JavaFX controls, interpreted JXML, cached template, compile
 5 runs each in a fresh JVM, with a fingerprint that checks that every mode did the same work. Fixed
 512 MB heap, Intel Core i5-12400F. The medians are in the repository.
 
-<p align="center"><img src="docs/assets/charts/headline-java17.svg" alt="Compiled JXML against JavaFX on Java 17: build, ready to paint, update, paint, allocation, memory, classes and CPU" width="760"></p>
+<p align="center"><img src="docs/assets/charts/headline-java17-after.svg" alt="Compiled JXML against JavaFX on Java 17: build, ready to paint, update, paint, allocation, memory, classes and CPU" width="760"></p>
 
 Compiled JXML against the JavaFX controls, geometric mean over the 43 components that have a JavaFX
 counterpart, Java 17:
 
 | | JXML is |
 |---|---:|
-| Build the screen, cold / warm | **19.6x / 16.7x** faster |
-| Native nodes ready to paint, cold / warm | **4.9x / 79.6x** faster |
-| Change one prop of every instance | **4.4x** faster |
-| Memory allocated: build / ready to paint | **15x / 78x** less |
-| Memory retained per instance | **39x** less |
+| Build the screen, cold / warm | **20x / 19x** faster |
+| Native nodes ready to paint, cold / warm | **5.0x / 86x** faster |
+| Change one prop of every instance | **4.9x** faster |
+| Memory allocated: build / ready to paint / update | **20x / 107x / 2.7x** less |
+| Memory retained per instance | **47x** less |
 | Classes loaded | **2.1x** fewer |
-| CPU of the whole process | **7.3x** less |
+| CPU of the whole process | **7.9x** less |
 
-On Java 8 32-bit, building and getting ready to paint are 37x and 161x faster once warm.
+On Java 8 32-bit, building and getting ready to paint are 43x and 173x faster once warm.
 JXML vs interpreting the file, on 20 form screens: compiled builds 30 to 40x faster warm.
 
 ### Where it is not ahead
@@ -276,14 +276,17 @@ JXML vs interpreting the file, on 20 form screens: compiled builds 30 to 40x fas
 Rebuilding an immutable element is not free, and this is measured, not hidden:
 
 - **Tiny updates** (a `Slider` value, a `ScrollBar`, a `Separator`) cost more allocation than one
-  JavaFX setter. The model rebuilds and reconciles the element; the gap is being closed, not
-  removed.
-- **Tree and TreeTable updates** were the worst case (building every item on each update); they now
-  allocate a fraction of that, and `<For memo="true">` removes the rebuild for a model that stays
-  the same.
-- **Painting is indicative.** The software painter and JavaFX's Prism are different pipelines, and
-  the GPU is not measured.
+  JavaFX setter (0.08x to 0.5x). The model rebuilds and reconciles the element; the gap was
+  narrowed, not removed.
+- **Painting text fields and tabs** is behind JavaFX in the benchmark (0.6x to 0.8x), and the paint
+  numbers are indicative: the software painter and JavaFX's Prism are different pipelines, and the
+  GPU is not measured.
+- **`Image`** allocates more than `ImageView` when it is created and updated.
 - **JavaFX draws more** (CSS, skins, LCD text); part of every gap comes from that.
+
+`Tree` and `TreeTable` updates used to be the worst case (every item was built on each update); with
+`<For memo="true">` they now match JavaFX. What was behind and what changed:
+[docs/jxforge-optimizations-2026-10-21.md](docs/jxforge-optimizations-2026-10-21.md).
 
 Reports: [every component against JavaFX](docs/jxforge-components-benchmark-2026-10-21.md),
 [20 form screens](docs/jxforge-benchmark-2026-10-21.md),
@@ -561,6 +564,7 @@ Roadmap: [docs/roadmap.md](docs/roadmap.md). Changes: [CHANGELOG.md](CHANGELOG.m
 | JXForge reference | [docs/jxforge.md](docs/jxforge.md) |
 | JXForge 1.0 widget checklist | [docs/jxforge-1.0.md](docs/jxforge-1.0.md) |
 | Every component against JavaFX | [docs/jxforge-components-benchmark-2026-10-21.md](docs/jxforge-components-benchmark-2026-10-21.md) |
+| What was behind JavaFX, and what changed | [docs/jxforge-optimizations-2026-10-21.md](docs/jxforge-optimizations-2026-10-21.md) |
 | 20 form screens: interpreted, cached, compiled | [docs/jxforge-benchmark-2026-10-21.md](docs/jxforge-benchmark-2026-10-21.md) |
 | Native UI architecture | [docs/native-ui.md](docs/native-ui.md) |
 | Configuration reference | [docs/configuration.md](docs/configuration.md) |
