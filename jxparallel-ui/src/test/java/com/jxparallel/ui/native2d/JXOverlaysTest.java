@@ -172,7 +172,7 @@ class JXOverlaysTest {
         assertTrue(popup.contains(below.getX() + 2, below.getY() + 2), "the list covers the button under the select");
         List<String> log = lines(record(root));
         int buttonLabel = lastIndexOf(log, "text \"Below\"");
-        int listBorder = lastIndexOf(log, "fillRect " + String.format(Locale.ROOT, "%.2f", (float) popup.x));
+        int listBorder = lastIndexOf(log, "fillRoundRect " + String.format(Locale.ROOT, "%.2f", (float) popup.x));
         assertTrue(buttonLabel >= 0 && listBorder > buttonLabel, "the list is painted after the button it covers");
         // the covered button does not get the press
         assertSame(root.getChildren().get(0), root.hitTest(below.getX() + 2, below.getY() + 2));
@@ -390,9 +390,10 @@ class JXOverlaysTest {
         assertEquals(timeCell(host, 0, 0)[0], timeCell(host, 0, 6)[0], "six hours to a row");
         List<String> log = lines(record(root));
         assertTrue(firstIndexOf(log, "text \"13\"") >= 0 && firstIndexOf(log, "text \"45\"") >= 0);
-        assertTrue(lastIndexOf(log, "fillRect " + String.format(Locale.ROOT, "%.2f", (float) timeCell(host, 0, 9)[0]) + " "
-                + String.format(Locale.ROOT, "%.2f", (float) timeCell(host, 0, 9)[1]) + " 32.00 26.00 ff0096c9") >= 0,
-                "the cell of the current hour is filled with the selection color");
+        assertTrue(lastIndexOf(log, "fillRoundRect " + String.format(Locale.ROOT, "%.2f", (float) timeCell(host, 0, 9)[0] + 2) + " "
+                + String.format(Locale.ROOT, "%.2f", (float) timeCell(host, 0, 9)[1]) + " 28.00 26.00 4.00 "
+                + Integer.toHexString(JXTheme.LIGHT.primary)) >= 0,
+                "the cell of the current hour is filled with the primary color");
     }
 
     @Test
@@ -481,7 +482,7 @@ class JXOverlaysTest {
         assertTrue(popup.field[1] > popup.cells[39][1] + popup.cells[39][3] - 1, "the hex field is below the swatches");
         List<String> log = lines(record(root));
         for (int[] cell : popup.cells) {
-            assertTrue(firstIndexOf(log, "fillRect " + String.format(Locale.ROOT, "%.2f %.2f 22.00 22.00 %s", (float) cell[0],
+            assertTrue(firstIndexOf(log, "fillRoundRect " + String.format(Locale.ROOT, "%.2f %.2f 22.00 22.00 2.00 %s", (float) cell[0],
                     (float) cell[1], Integer.toHexString(cell[5]))) >= 0, "swatch " + Integer.toHexString(cell[5]));
         }
         assertTrue(firstIndexOf(log, "strokeRoundRect") >= 0, "a ring around the swatch of the current color");
@@ -784,7 +785,9 @@ class JXOverlaysTest {
         assertEquals(2, popup.panels.size());
         assertSame(find, popup.panels.get(1).container);
         List<String> log = lines(record(root));
-        assertEquals(2, log.stream().filter(line -> line.startsWith("strokeRoundRect ")).count(), "an outline for each panel");
+        String container = " " + Integer.toHexString(JXTheme.LIGHT.surfaceContainer);
+        assertEquals(2, log.stream().filter(line -> line.startsWith("fillRoundRect ") && line.endsWith(container)).count(),
+                "a raised surface for each panel");
         int[] next = center(find.getChildren().get(0));
         click(root, next[0], next[1]);
         assertEquals(Arrays.asList("Next"), calls);
@@ -828,12 +831,12 @@ class JXOverlaysTest {
     void anOpenDialogIsDrawnLastOverAScrimAndItsContentAfterTheScrim() {
         JXNativeNode root = mount(e("stack", p(), button("Behind"), dialog(true, true)));
         List<String> log = lines(record(root));
-        int scrim = lastIndexOf(log, "fillRect 0.00 0.00 400.00 300.00 66000000");
+        int scrim = lastIndexOf(log, "fillRect 0.00 0.00 400.00 300.00 52000000");
         assertTrue(scrim > lastIndexOf(log, "text \"Behind\""), "the scrim covers what is behind");
         assertTrue(firstIndexOf(log, "text \"Delete it?\"") > scrim, "the dialog is drawn over the scrim");
         assertTrue(lastIndexOf(log, "text \"Delete\"") > scrim);
         String closed = record(mount(e("stack", p(), button("Behind"), dialog(false, true))));
-        assertFalse(closed.contains("66000000") || closed.contains("Delete it?"));
+        assertFalse(closed.contains("52000000") || closed.contains("Delete it?"));
     }
 
     @Test
@@ -925,8 +928,8 @@ class JXOverlaysTest {
         JXNativeNode r = right.getChildren().get(1);
         assertEquals(W, r.getX() + r.getWidth());
         List<String> log = lines(record(left));
-        assertTrue(lastIndexOf(log, "fillRect 0.00 0.00 400.00 300.00 66000000") > lastIndexOf(log, "text \"Behind\""));
-        assertTrue(firstIndexOf(log, "text \"Home\"") > lastIndexOf(log, "fillRect 0.00 0.00 400.00 300.00 66000000"));
+        assertTrue(lastIndexOf(log, "fillRect 0.00 0.00 400.00 300.00 52000000") > lastIndexOf(log, "text \"Behind\""));
+        assertTrue(firstIndexOf(log, "text \"Home\"") > lastIndexOf(log, "fillRect 0.00 0.00 400.00 300.00 52000000"));
         assertEquals(0, mount(e("stack", p(), button("Behind"), drawer(false, "left"))).getChildren().get(1).getWidth());
     }
 
@@ -1041,8 +1044,8 @@ class JXOverlaysTest {
         JXSoftwareFrame frame = new JXSoftwareFrame(false);
         frame.paint(root, W, H, 1f);
         int[] px = Arrays.copyOf(frame.pixels(), W * H);
-        assertEquals(0xFFB6B6B6, px[popup.y * W + popup.x + 20], "the border of the list, over the button below");
-        assertEquals(0xFFFFFFFF, px[(popup.y + 3) * W + popup.x + popup.w - 6], "the white of a row, right of its text");
+        assertEquals(JXTheme.LIGHT.surfaceContainer, px[(popup.y + 1) * W + popup.x + 20], "the surface of the list, over the button below");
+        assertEquals(JXTheme.LIGHT.surfaceContainer, px[(popup.y + 3) * W + popup.x + popup.w - 6], "the surface of a row, right of its text");
     }
 
     @Test

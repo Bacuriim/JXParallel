@@ -10,9 +10,6 @@ import com.jxparallel.ui.text.JXTextEngine;
  * translucent rings below the face (not every painter has a blur), the scrim is a translucent rectangle.
  */
 final class JXOverlayPaint {
-    static final int SCRIM = 0x66000000;
-    private static final int SNACK_FACE = 0xFF322F35;
-    private static final int SNACK_TEXT = 0xFFF5EFF7;
 
     private JXOverlayPaint() {
     }
@@ -22,21 +19,21 @@ final class JXOverlayPaint {
         JXPainter p = paint.painter();
         switch (node.getType()) {
             case "select":
-                list(p, node);
+                list(p, paint.theme(), node);
                 break;
             case "datepicker": {
                 JXOverlays.Popup po = JXOverlays.popup(node);
                 if (po != null && po.calendar != null) {
-                    ring(p, po.x, po.y, po.w, po.h, 0);
+                    JXPaint.elevation(p, po.x, po.y, po.w, po.h, JXCalendar.RADIUS, 2);
                     JXCalendar.paint(p, po.calendar, paint);
                 }
                 break;
             }
             case "timepicker":
-                time(p, node);
+                time(p, paint.theme(), node);
                 break;
             case "colorpicker":
-                colors(p, node);
+                colors(p, paint.theme(), node);
                 break;
             case "menubutton":
             case "contextmenu":
@@ -57,17 +54,15 @@ final class JXOverlayPaint {
         }
     }
 
-    /** The soft darker rings of a raised surface, kept outside its bounds by 2 px. */
+    /** The soft elevation shadow of a raised surface (level 2: menus, popups, snack bars), under its face. */
     static void ring(JXPainter p, float x, float y, float w, float h, float r) {
-        p.fillRoundRect(x - 2, y - 1, w + 4, h + 4, r + 2, 0x0F000000);
-        p.fillRoundRect(x - 1, y, w + 2, h + 2, r + 1, 0x18000000);
+        JXPaint.elevation(p, x, y, w, h, r, 2);
     }
 
-    /** The classic (Modena) popup: a gray line around white. */
-    private static void box(JXPainter p, int x, int y, int w, int h) {
-        ring(p, x, y, w, h, 0);
-        p.fillRect(x, y, w, h, JXPaint.OUTER_BORDER);
-        p.fillRect(x + 1, y + 1, w - 2, h - 2, 0xFFFFFFFF);
+    /** The surface of a popup: surfaceContainer, 4 px corners, soft elevation. */
+    private static void box(JXPainter p, JXTheme t, int x, int y, int w, int h) {
+        ring(p, x, y, w, h, 4);
+        p.fillRoundRect(x, y, w, h, 4, t.surfaceContainer);
     }
 
     private static void centered(JXPainter p, String label, int[] cell, int color) {
@@ -79,12 +74,12 @@ final class JXOverlayPaint {
 
     // ---- popups ----------------------------------------------------------------------------------
 
-    private static void list(JXPainter p, JXNativeNode node) {
+    private static void list(JXPainter p, JXTheme t, JXNativeNode node) {
         JXOverlays.Popup po = JXOverlays.popup(node);
         if (po == null) {
             return;
         }
-        box(p, po.x, po.y, po.w, po.h);
+        box(p, t, po.x, po.y, po.w, po.h);
         String value = JXPaint.text(node, "value");
         JXTextEngine engine = JXTextEngine.get(false);
         float size = JXTextEngine.DEFAULT_SIZE;
@@ -92,58 +87,58 @@ final class JXOverlayPaint {
             int[] c = po.cells[i];
             boolean chosen = po.labels[i].equals(value);
             if (chosen) {
-                p.fillRect(c[0], c[1], c[2], c[3], JXPaint.SELECTION);
+                p.fillRect(c[0] + 2, c[1], c[2] - 4, c[3], t.secondaryContainer);
             }
             p.text(po.labels[i], c[0] + JXNativeNode.PAD_X, c[1] + engine.baseline(c[3], size), size, false,
-                    chosen ? 0xFFFFFFFF : JXPaint.TEXT);
+                    chosen ? t.onPrimaryContainer : t.onSurface);
         }
     }
 
-    private static void time(JXPainter p, JXNativeNode node) {
+    private static void time(JXPainter p, JXTheme t, JXNativeNode node) {
         JXOverlays.Popup po = JXOverlays.popup(node);
         if (po == null) {
             return;
         }
-        box(p, po.x, po.y, po.w, po.h);
+        box(p, t, po.x, po.y, po.w, po.h);
         for (int i = 0; i < po.cells.length; i++) {
             int[] c = po.cells[i];
             boolean current = JXOverlays.timeCurrent(node, c);
             if (current) {
-                p.fillRect(c[0], c[1], c[2], c[3], JXPaint.SELECTION);
+                p.fillRoundRect(c[0] + 2, c[1], c[2] - 4, c[3], 4, t.primary);
             }
-            centered(p, po.labels[i], c, current ? 0xFFFFFFFF : JXPaint.TEXT);
+            centered(p, po.labels[i], c, current ? t.onPrimary : t.onSurface);
         }
     }
 
-    private static void colors(JXPainter p, JXNativeNode node) {
+    private static void colors(JXPainter p, JXTheme t, JXNativeNode node) {
         JXOverlays.Popup po = JXOverlays.popup(node);
         if (po == null) {
             return;
         }
-        box(p, po.x, po.y, po.w, po.h);
+        box(p, t, po.x, po.y, po.w, po.h);
         int current = JXOverlays.colorOf(JXPaint.text(node, "value"));
         for (int[] c : po.cells) {
-            p.fillRect(c[0] - 1, c[1] - 1, c[2] + 2, c[3] + 2, JXPaint.BOX_BORDER);
-            p.fillRect(c[0], c[1], c[2], c[3], c[5]);
+            p.fillRoundRect(c[0] - 1, c[1] - 1, c[2] + 2, c[3] + 2, 3, t.outlineVariant);
+            p.fillRoundRect(c[0], c[1], c[2], c[3], 2, c[5]);
             if (current != 0 && c[5] == current) {
-                p.strokeRoundRect(c[0] - 2, c[1] - 2, c[2] + 4, c[3] + 4, 0, 2, JXPaint.FOCUS);
+                p.strokeRoundRect(c[0] - 2, c[1] - 2, c[2] + 4, c[3] + 4, 4, 2, t.primary);
             }
         }
         int[] f = po.field;
-        p.fillRect(f[0], f[1], f[2], f[3], JXPaint.BOX_BORDER);
-        p.fillRect(f[0] + 1, f[1] + 1, f[2] - 2, f[3] - 2, 0xFFFFFFFF);
+        p.fillRoundRect(f[0], f[1], f[2], f[3], 4, t.surface);
+        p.strokeRoundRect(f[0], f[1], f[2], f[3], 4, 1, t.outline);
         String draft = JXOverlays.hexDraft(node);
         JXTextEngine engine = JXTextEngine.get(false);
         float size = JXTextEngine.DEFAULT_SIZE;
         float baseline = f[1] + engine.baseline(f[3], size);
         if (draft.isEmpty()) {
-            p.text("#RRGGBB", f[0] + JXNativeNode.FIELD_PAD_X, baseline, size, false, JXPaint.PROMPT);
+            p.text("#RRGGBB", f[0] + JXNativeNode.FIELD_PAD_X, baseline, size, false, t.onSurfaceVariant);
         } else {
             boolean complete = JXOverlays.validHex(draft);
-            p.text(draft, f[0] + JXNativeNode.FIELD_PAD_X, baseline, size, false, complete ? JXPaint.TEXT : JXTheme.LIGHT.error);
+            p.text(draft, f[0] + JXNativeNode.FIELD_PAD_X, baseline, size, false, complete ? t.onSurface : t.error);
             if (Boolean.TRUE.equals(node.getProperty("focused")) && !complete) {
                 float cx = f[0] + JXNativeNode.FIELD_PAD_X + engine.width(draft, size);
-                p.fillRect((float) Math.floor(cx), f[1] + (f[3] - engine.lineHeight(size)) / 2, 1, engine.lineHeight(size), JXPaint.TEXT);
+                p.fillRect((float) Math.floor(cx), f[1] + (f[3] - engine.lineHeight(size)) / 2, 1, engine.lineHeight(size), t.primary);
             }
         }
     }
@@ -160,8 +155,7 @@ final class JXOverlayPaint {
         float size = JXTextEngine.DEFAULT_SIZE;
         for (JXOverlays.Panel panel : po.panels) {
             ring(p, panel.x, panel.y, panel.w, panel.h, 4);
-            p.fillRoundRect(panel.x, panel.y, panel.w, panel.h, 4, t.surface);
-            p.strokeRoundRect(panel.x, panel.y, panel.w, panel.h, 4, 1, JXTheme.withAlpha(t.outline, 0x66));
+            p.fillRoundRect(panel.x, panel.y, panel.w, panel.h, 4, t.surfaceContainer);
             List<JXNativeNode> rows = panel.container.getChildren();
             for (int i = 0; i < rows.size(); i++) {
                 JXNativeNode row = rows.get(i);
@@ -170,13 +164,13 @@ final class JXOverlayPaint {
                 float w = row.getWidth();
                 float h = row.getHeight();
                 if (JXOverlays.separator(row)) {
-                    p.fillRect(x + 8, y + h / 2, w - 16, 1, JXTheme.withAlpha(t.outline, 0x66));
+                    p.fillRect(x + 8, y + h / 2, w - 16, 1, t.outlineVariant);
                     continue;
                 }
                 boolean disabled = Boolean.TRUE.equals(row.getProperty("disabled"));
-                int color = disabled ? JXTheme.withAlpha(t.onSurface, 0x66) : t.onSurface;
+                int color = disabled ? JXTheme.withAlpha(t.onSurface, JXTheme.DISABLED_CONTENT) : t.onSurface;
                 if (i == panel.container.openChild && "menu".equals(row.getType())) {
-                    p.fillRect(x, y, w, h, t.tonal());
+                    p.fillRect(x, y, w, h, JXTheme.withAlpha(t.onSurface, JXTheme.PRESSED));
                 }
                 float baseline = y + engine.baseline(h, size);
                 p.text(JXOverlays.label(row), x + JXOverlays.MENU_TEXT, baseline, size, false, color);
@@ -187,7 +181,7 @@ final class JXOverlayPaint {
                     p.fillTriangle(ax - 4, cy - 4, ax - 4, cy + 4, ax + 1, cy, color);
                 } else if (!accelerator.isEmpty()) {
                     p.text(accelerator, x + w - JXOverlays.MENU_TEXT - engine.width(accelerator, size), baseline, size, false,
-                            JXTheme.withAlpha(color, disabled ? 0x66 : 0xAA));
+                            disabled ? color : t.onSurfaceVariant);
                 }
             }
         }
@@ -197,14 +191,14 @@ final class JXOverlayPaint {
 
     private static void dialog(JXPaint paint, JXPainter p, JXNativeNode node, JXNativeNode root) {
         JXTheme t = paint.theme();
-        p.fillRect(root.getX(), root.getY(), root.getWidth(), root.getHeight(), SCRIM);
+        p.fillRect(root.getX(), root.getY(), root.getWidth(), root.getHeight(), t.scrim);
         float x = node.getX();
         float y = node.getY();
         float w = node.getWidth();
         float h = node.getHeight();
-        ring(p, x, y, w, h, 12);
+        JXPaint.elevation(p, x, y, w, h, 12, 3);
         Object background = node.getProperty("background");
-        p.fillRoundRect(x, y, w, h, 12, background instanceof Integer ? (Integer) background : t.surface);
+        p.fillRoundRect(x, y, w, h, 12, background instanceof Integer ? (Integer) background : t.surfaceContainerHigh);
         Object border = node.getProperty("borderColor");
         if (border instanceof Integer) {
             p.strokeRoundRect(x, y, w, h, 12, (float) JXPaint.number(node, "borderWidth", 1), (Integer) border);
@@ -214,16 +208,16 @@ final class JXOverlayPaint {
 
     private static void drawer(JXPaint paint, JXPainter p, JXNativeNode node, JXNativeNode root) {
         JXTheme t = paint.theme();
-        p.fillRect(root.getX(), root.getY(), root.getWidth(), root.getHeight(), SCRIM);
+        p.fillRect(root.getX(), root.getY(), root.getWidth(), root.getHeight(), t.scrim);
         float x = node.getX();
         float y = node.getY();
         float w = node.getWidth();
         float h = node.getHeight();
         boolean right = "right".equalsIgnoreCase(JXPaint.text(node, "side"));
-        ring(p, x, y, w, h, 0);
+        JXPaint.elevation(p, x, y, w, h, 0, 3);
         Object background = node.getProperty("background");
-        p.fillRect(x, y, w, h, background instanceof Integer ? (Integer) background : t.surface);
-        p.fillRect(right ? x : x + w - 1, y, 1, h, JXTheme.withAlpha(t.outline, 0x66));
+        p.fillRect(x, y, w, h, background instanceof Integer ? (Integer) background : t.surfaceContainerLow);
+        p.fillRect(right ? x : x + w - 1, y, 1, h, t.outlineVariant);
         content(paint, node);
     }
 
@@ -240,16 +234,19 @@ final class JXOverlayPaint {
         float y = node.getY();
         float w = node.getWidth();
         float h = node.getHeight();
+        JXTheme t = paint.theme();
         ring(p, x, y, w, h, 4);
-        p.fillRoundRect(x, y, w, h, 4, SNACK_FACE);
+        p.fillRoundRect(x, y, w, h, 4, t.inverseSurface);
         JXTextEngine engine = JXTextEngine.get(false);
         float size = JXTextEngine.DEFAULT_SIZE;
         float baseline = y + engine.baseline(h, size);
         p.clip(x, y, w, h);
-        p.text(JXPaint.text(node, "message"), x + JXOverlays.SNACK_PAD, baseline, size, false, SNACK_TEXT);
+        p.text(JXPaint.text(node, "message"), x + JXOverlays.SNACK_PAD, baseline, size, false, t.inverseOnSurface);
         String action = JXPaint.text(node, "action");
         if (!action.isEmpty()) {
-            p.text(action, x + w - JXOverlays.SNACK_PAD - engine.width(action, size), baseline, size, true, JXTheme.DARK.primary);
+            // the inverse primary: the primary of the other theme
+            p.text(action, x + w - JXOverlays.SNACK_PAD - engine.width(action, size), baseline, size, true,
+                    t.dark ? JXTheme.LIGHT.primary : JXTheme.DARK.primary);
         }
         p.restore();
     }

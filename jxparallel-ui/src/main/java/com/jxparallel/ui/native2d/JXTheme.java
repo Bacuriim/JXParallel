@@ -26,6 +26,35 @@ public final class JXTheme {
     public final int outline;
     public final int error;
 
+    // ---- roles derived from the six tokens (Material 3), not tokens of JXML themselves ----------
+
+    /** State layer alphas of Material 3: hover 8%, focus 10%, pressed 10%, dragged 16%. */
+    public static final int HOVER = 0x14;
+    public static final int FOCUS = 0x1A;
+    public static final int PRESSED = 0x1A;
+    public static final int DRAGGED = 0x29;
+    /** Disabled: content at 38%, containers at 12% of the on-surface color. */
+    public static final int DISABLED_CONTENT = 0x61;
+    public static final int DISABLED_CONTAINER = 0x1F;
+
+    /** True when the surface is dark: the roles that depend on the direction of elevation are mixed the other way. */
+    public final boolean dark;
+    public final int primaryContainer;
+    public final int onPrimaryContainer;
+    public final int secondaryContainer;
+    public final int surfaceVariant;
+    public final int onSurfaceVariant;
+    public final int outlineVariant;
+    public final int surfaceContainerLow;
+    public final int surfaceContainer;
+    public final int surfaceContainerHigh;
+    public final int surfaceContainerHighest;
+    public final int inverseSurface;
+    public final int inverseOnSurface;
+    /** Shadow and scrim colors (with their alpha). */
+    public final int shadow;
+    public final int scrim;
+
     private JXTheme(int primary, int onPrimary, int surface, int onSurface, int outline, int error) {
         this.primary = primary;
         this.onPrimary = onPrimary;
@@ -33,6 +62,27 @@ public final class JXTheme {
         this.onSurface = onSurface;
         this.outline = outline;
         this.error = error;
+        this.dark = luminance(surface) < 0.5f;
+        float d = dark ? 1.35f : 1f; // the primary tint of a raised surface is stronger on dark ones
+        this.primaryContainer = mix(primary, surface, dark ? 0.66f : 0.80f);
+        this.onPrimaryContainer = mix(primary, onSurface, dark ? 0.35f : 0.60f);
+        this.secondaryContainer = mix(primary, surface, dark ? 0.74f : 0.86f);
+        this.surfaceVariant = mix(outline, surface, dark ? 0.78f : 0.87f);
+        this.onSurfaceVariant = mix(onSurface, outline, 0.45f);
+        this.outlineVariant = mix(outline, surface, dark ? 0.62f : 0.58f);
+        this.surfaceContainerLow = mix(primary, surface, 1 - 0.02f * d);
+        this.surfaceContainer = mix(primary, surface, 1 - 0.04f * d);
+        this.surfaceContainerHigh = mix(primary, surface, 1 - 0.06f * d);
+        this.surfaceContainerHighest = mix(primary, surface, 1 - 0.08f * d);
+        this.inverseSurface = mix(onSurface, surface, 0.06f);
+        this.inverseOnSurface = mix(surface, onSurface, 0.04f);
+        this.shadow = 0xFF000000;
+        this.scrim = 0x52000000;
+    }
+
+    /** Perceived brightness of an ARGB color, 0 (black) to 1 (white). */
+    static float luminance(int argb) {
+        return (0.299f * ((argb >>> 16) & 0xFF) + 0.587f * ((argb >>> 8) & 0xFF) + 0.114f * (argb & 0xFF)) / 255f;
     }
 
     /** The theme of this name ({@code "dark"}), else the light one. */

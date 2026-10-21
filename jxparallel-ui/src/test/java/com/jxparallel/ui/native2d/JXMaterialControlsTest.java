@@ -158,12 +158,70 @@ class JXMaterialControlsTest {
     }
 
     @Test
-    void aButtonWithoutAVariantKeepsTheClassicLook() {
+    void aButtonWithoutAVariantIsTonalAndTheDefaultButtonFilledAndNothingHasAGradient() {
+        JXTheme t = JXTheme.LIGHT;
         String classic = record(mount(button(null, p()), 80, 30));
-        assertTrue(classic.contains("gradient"));
-        for (String variant : new String[] {"filled", "tonal", "outlined", "text", "elevated", "fab"}) {
-            assertFalse(record(mount(button(variant, p()), 80, 40)).contains("gradient"), variant);
+        assertTrue(has(classic, "fillRoundRect", Integer.toHexString(t.secondaryContainer)), classic);
+        String isDefault = record(mount(e("button", p().set("label", "").set("defaultButton", Boolean.TRUE)), 80, 30));
+        assertTrue(has(isDefault, "fillRoundRect", Integer.toHexString(t.primary)), isDefault);
+        for (String variant : new String[] {null, "filled", "tonal", "outlined", "text", "elevated", "fab"}) {
+            assertFalse(record(mount(button(variant, p()), 80, 40)).contains("gradient"), String.valueOf(variant));
         }
+    }
+
+    @Test
+    void aDisabledButtonPaintsAContainerAt12PercentAndNothingFaded() {
+        JXTheme t = JXTheme.LIGHT;
+        String container = Integer.toHexString(JXTheme.withAlpha(t.onSurface, JXTheme.DISABLED_CONTAINER));
+        for (String variant : new String[] {"filled", "tonal", "elevated"}) {
+            JXProps.Builder props = p().set("label", "").set("variant", variant).set("disabled", Boolean.TRUE);
+            String log = record(mount(e("button", props), 80, 42));
+            assertTrue(has(log, "fillRoundRect", container), variant + "\n" + log);
+            assertFalse(log.contains("layer"), "the button is not drawn through a faded layer: " + variant);
+        }
+    }
+
+    @Test
+    void theLightAndTheDarkThemeDeriveTheirMaterialRolesFromTheSixTokens() {
+        for (JXTheme t : new JXTheme[] {JXTheme.LIGHT, JXTheme.DARK}) {
+            assertEquals(t == JXTheme.DARK, t.dark);
+            assertEquals(JXTheme.mix(t.primary, t.surface, t.dark ? 0.66f : 0.80f), t.primaryContainer);
+            assertNotEquals(t.primary, t.primaryContainer);
+            assertNotEquals(t.surface, t.surfaceVariant);
+            assertNotEquals(t.surface, t.surfaceContainer);
+            assertNotEquals(t.surfaceContainer, t.surfaceContainerHigh);
+            assertNotEquals(t.outline, t.outlineVariant);
+            // the variant of the outline is closer to the surface, the variant of the text closer to the outline
+            assertTrue(distance(t.outlineVariant, t.surface) < distance(t.outline, t.surface));
+            assertTrue(distance(t.onSurfaceVariant, t.outline) < distance(t.onSurface, t.outline));
+            // the containers rise away from the surface in steps
+            assertTrue(distance(t.surfaceContainerLow, t.surface) < distance(t.surfaceContainer, t.surface));
+            assertTrue(distance(t.surfaceContainer, t.surface) < distance(t.surfaceContainerHigh, t.surface));
+            assertTrue(distance(t.surfaceContainerHigh, t.surface) < distance(t.surfaceContainerHighest, t.surface));
+            assertTrue(distance(t.secondaryContainer, t.surface) < distance(t.primaryContainer, t.surface) + 1);
+            assertEquals(0xFF, t.inverseSurface >>> 24);
+            assertTrue(distance(t.inverseSurface, t.onSurface) < distance(t.inverseSurface, t.surface), "the inverse surface is the text color");
+            assertEquals(0x14, JXTheme.HOVER);
+            assertEquals(0x1A, JXTheme.FOCUS);
+            assertEquals(0x1A, JXTheme.PRESSED);
+            assertEquals(0x29, JXTheme.DRAGGED);
+        }
+        // on a dark surface the text roles are light and the raised surfaces lighter than the surface
+        assertTrue(JXTheme.luminance(JXTheme.DARK.surfaceContainerHigh) > JXTheme.luminance(JXTheme.DARK.surface));
+        assertTrue(JXTheme.luminance(JXTheme.DARK.onSurfaceVariant) > 0.5f);
+        assertTrue(JXTheme.luminance(JXTheme.LIGHT.onSurfaceVariant) < 0.5f);
+        assertNotEquals(JXTheme.LIGHT.secondaryContainer, JXTheme.DARK.secondaryContainer);
+        assertNotEquals(JXTheme.LIGHT.onPrimaryContainer, JXTheme.DARK.onPrimaryContainer);
+        assertEquals(6, JXTheme.tokens().size(), "the roles above are derived, not tokens of JXML");
+    }
+
+    private static double distance(int a, int b) {
+        double sum = 0;
+        for (int shift = 0; shift <= 16; shift += 8) {
+            double d = ((a >>> shift) & 0xFF) - ((b >>> shift) & 0xFF);
+            sum += d * d;
+        }
+        return Math.sqrt(sum);
     }
 
     @Test
@@ -173,10 +231,10 @@ class JXMaterialControlsTest {
         String text = record(mount(button("text", p()), 80, 36));
         assertEquals("", text, "a text button draws nothing but its label");
         JXTheme t = JXTheme.LIGHT;
-        assertTrue(has(record(mount(button("tonal", p()), 80, 36)), "fillRoundRect", Integer.toHexString(t.tonal())));
+        assertTrue(has(record(mount(button("tonal", p()), 80, 36)), "fillRoundRect", Integer.toHexString(t.secondaryContainer)));
         String elevated = record(mount(button("elevated", p()), 80, 42));
-        assertTrue(has(elevated, "fillRoundRect", Integer.toHexString(t.elevated())));
-        assertTrue(has(elevated, "fillRoundRect", "f000000") || elevated.contains("f000000"), "a soft ring below the face");
+        assertTrue(has(elevated, "fillRoundRect", Integer.toHexString(t.surfaceContainerLow)));
+        assertTrue(has(elevated, "fillRoundRect", "a000000"), "a soft shadow below the face");
         java.util.Set<String> looks = new java.util.HashSet<String>();
         for (String variant : new String[] {"filled", "tonal", "outlined", "text", "elevated", "fab"}) {
             assertTrue(looks.add(record(mount(button(variant, p()), 80, 42))), variant);
@@ -240,8 +298,9 @@ class JXMaterialControlsTest {
         String selectedChoice = record(mount(e("chip", p().set("label", "").set("kind", "choice").set("selected", Boolean.TRUE)), 80, 32));
         assertTrue(has(selectedChoice, "fillRoundRect", "ff1565c0"), selectedChoice);
         String selectedFilter = record(mount(e("chip", p().set("label", "").set("kind", "filter").set("selected", Boolean.TRUE)), 80, 32));
-        assertTrue(has(selectedFilter, "fillRoundRect", Integer.toHexString(JXTheme.LIGHT.tonal())), selectedFilter);
-        assertTrue(has(record(mount(e("chip", p().set("label", "")), 80, 32)), "strokeRoundRect", "ff79747e"));
+        assertTrue(has(selectedFilter, "fillRoundRect", Integer.toHexString(JXTheme.LIGHT.secondaryContainer)), selectedFilter);
+        assertTrue(has(record(mount(e("chip", p().set("label", "")), 80, 32)), "strokeRoundRect",
+                Integer.toHexString(JXTheme.LIGHT.outlineVariant)));
     }
 
     @Test
@@ -371,7 +430,8 @@ class JXMaterialControlsTest {
         int[] px = pixels(bar, 200, 13);
         int thumb = px[6 * 200 + 5];
         int track = px[6 * 200 + 150];
-        assertEquals(0xFF79747E, thumb);
+        assertEquals(JXTheme.LIGHT.onSurfaceVariant, thumb);
+        assertEquals(JXTheme.LIGHT.surfaceVariant, track);
         assertNotEquals(thumb, track);
         assertNotEquals(px[0], track, "the track shows against the background");
     }
@@ -503,7 +563,7 @@ class JXMaterialControlsTest {
         JXNativeNode plain = tabs(false, 1);
         assertTrue(JXControlLayout.tabbarEdges(closable)[3] > JXControlLayout.tabbarEdges(plain)[3]);
         String log = record(plain);
-        assertTrue(has(log, "fillRect", "ff1565c0"), "the indicator under the selected tab");
+        assertTrue(has(log, "fillRoundRect", "ff1565c0"), "the indicator under the selected tab");
         assertEquals(0, count(log, "line"), "no close icons");
         assertTrue(count(record(closable), "line") > 0);
         float[] edges = JXControlLayout.tabbarEdges(plain);
@@ -522,8 +582,8 @@ class JXMaterialControlsTest {
         assertTrue(has(log, "fillRect", "ff1c1b1f"), "the dark surface");
         assertTrue(log.contains("ffe6e1e5"), "the text takes onSurface");
         String plain = record(mount(e("column", p(), e("#text", p().set("value", "Hi"))), 100, 40));
-        assertFalse(plain.contains("ff1c1b1f"));
-        assertTrue(plain.contains("ff333333"), "no theme: the classic text color");
+        assertFalse(plain.contains("ffe6e1e5"));
+        assertTrue(plain.contains("ff1c1b1f"), "no theme: the text takes the light onSurface");
         String inherited = record(mount(e("column", p().set("theme", "dark"), e("row", p(), e("#text", p().set("value", "x")))), 100, 40));
         assertTrue(inherited.contains("ffe6e1e5"));
         assertEquals("dark", "dark");
