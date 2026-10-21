@@ -58,6 +58,8 @@ public final class JXWindow implements AutoCloseable {
     /* Display thread state. */
     private JXNativeNode root;
     private JXNativeNode focusedNode;
+    /** The node the primary button was pressed on, while it is held (it receives the drag). */
+    private JXNativeNode dragNode;
     private Runnable onFirstPaint;
     private Runnable onFrame;
     private volatile Runnable onClosed;
@@ -508,6 +510,9 @@ public final class JXWindow implements AutoCloseable {
             if (inputListener != null) {
                 deliver(JXInputEvent.pointer(JXInputEvent.Kind.MOVE, px, py, lastButton < 0 ? 0 : lastButton, currentModifiers(h),
                         0, buttonsDown != 0, path(px, py)));
+            } else if (dragNode != null && buttonsDown != 0) {
+                dragNode.dispatchDrag(new JXPointerEvent((int) px, (int) py, GLFW.GLFW_MOUSE_BUTTON_LEFT));
+                requestRender();
             }
         });
         GLFW.glfwSetCursorEnterCallback(handle, (h, entered) -> {
@@ -536,6 +541,7 @@ public final class JXWindow implements AutoCloseable {
                 lastPressY = py[0];
             } else {
                 buttonsDown &= ~(1 << button);
+                dragNode = null;
             }
             if (inputListener != null) {
                 deliver(JXInputEvent.pointer(action == GLFW.GLFW_PRESS ? JXInputEvent.Kind.PRESS : JXInputEvent.Kind.RELEASE,
@@ -548,6 +554,7 @@ public final class JXWindow implements AutoCloseable {
             JXNativeNode hit = root.hitTest((int) px[0], (int) py[0]);
             if (hit != null) {
                 focusedNode = hit;
+                dragNode = hit; // a scroll bar's thumb or a split pane's divider follows the pointer until the release
                 hit.dispatchPointer(new JXPointerEvent((int) px[0], (int) py[0], glfwButton));
                 requestRender();
             }

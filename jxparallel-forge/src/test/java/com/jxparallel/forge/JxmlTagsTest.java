@@ -286,6 +286,14 @@ class JxmlTagsTest {
             case "Expanded":
             case "Flexible":
                 return "<Column>\n<" + tag + " " + extra + "><Label/></" + tag + ">\n</Column>";
+            case "Icon":
+                return "<Column>\n<Icon name=\"add\" " + extra + "/>\n</Column>";
+            case "IconButton":
+                return "<Column>\n<IconButton icon=\"add\" " + extra + "/>\n</Column>";
+            case "Fab":
+                return "<Column>\n<Fab icon=\"add\" " + extra + "/>\n</Column>";
+            case "Badge":
+                return "<Column>\n<Badge " + extra + "><Label/></Badge>\n</Column>";
             default:
                 return "<Column>\n<" + tag + " " + extra + "/>\n</Column>";
         }

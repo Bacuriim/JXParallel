@@ -47,6 +47,35 @@ public final class JXControlLayout {
     static final int BUTTON_BAR_MIN = 75;
     static final int BUTTON_BAR_GAP = 10;
     static final double GOLDEN = 0.618033987;
+    /** Switch: a 40 x 22 track, and the gap before its label. */
+    static final int SWITCH_W = 40;
+    static final int SWITCH_H = 22;
+    static final int SWITCH_GAP = 8;
+    /** Icon size when none is written. */
+    static final int ICON = 24;
+    /** Chip: height, side padding, icon square and the gap between its parts. */
+    static final int CHIP_H = 32;
+    static final int CHIP_PAD = 12;
+    static final int CHIP_ICON = 18;
+    static final int CHIP_GAP = 6;
+    /** Badge: height of the count pill, diameter of the dot, and the size of an avatar when none is written. */
+    static final int BADGE_H = 16;
+    static final int BADGE_DOT = 8;
+    static final int AVATAR = 40;
+    /** The soft ring of an elevated button or a floating button, kept inside the node: this many pixels on each side. */
+    static final int SHADOW = 3;
+    /** Stepper: circle diameter and the narrowest slot of one step. */
+    static final int STEP_D = 24;
+    static final int STEP_MIN = 72;
+    /** Scroll bar: the shortest thumb. Split pane: divider thickness and the narrowest pane a drag leaves. */
+    static final int SB_THUMB_MIN = 24;
+    static final int DIVIDER = 6;
+    static final int MIN_PANE = 20;
+    /** Tab bar: height, side padding of a title, narrowest tab and the close icon's width. */
+    public static final int TABBAR_H = 40;
+    static final int TABBAR_PAD = 16;
+    static final int TABBAR_MIN = 64;
+    static final int TABBAR_CLOSE = 20;
     private static final double MAX = JXBoxLayout.MAX;
 
     private JXControlLayout() {
@@ -75,6 +104,15 @@ public final class JXControlLayout {
             case "image":
             case "indicator":
             case "calendar":
+            case "switch":
+            case "icon":
+            case "chip":
+            case "badge":
+            case "avatar":
+            case "stepper":
+            case "scrollbar":
+            case "splitpane":
+            case "tabbar":
                 return true;
             default:
                 return false;
@@ -92,7 +130,7 @@ public final class JXControlLayout {
             case "button":
             case "toggle": {
                 // Labeled with an optional graphic left of the text (gap 4), inside the button padding
-                float[] pad = JXPaint.insetsOr(node, JXNativeNode.PAD_Y, JXNativeNode.PAD_X);
+                float[] pad = buttonPad(node);
                 String label = JXPaint.text(node, "label");
                 JXNativeNode graphic = first(node);
                 double tw = label.isEmpty() ? 0 : text.width(label, size);
@@ -212,6 +250,60 @@ public final class JXControlLayout {
                 double w = Math.max(nav, content == null ? 0 : JXBoxLayout.prefAreaWidth(content));
                 double h = PAGE_NAV + (content == null ? 0 : JXBoxLayout.prefAreaHeight(content));
                 return new double[] {64, w, MAX, PAGE_NAV, h, MAX};
+            }
+            case "switch": {
+                String label = JXPaint.text(node, "label");
+                return labeled(node, label.isEmpty() ? 0 : text.width(label, size),
+                        SWITCH_W + (label.isEmpty() ? 0 : SWITCH_GAP), Math.max(SWITCH_H, line));
+            }
+            case "icon": {
+                double s = iconSize(node);
+                return new double[] {s, s, s, s, s, s};
+            }
+            case "chip": {
+                double w = chipParts(node)[6];
+                return new double[] {w, w, w, CHIP_H, CHIP_H, CHIP_H};
+            }
+            case "badge": {
+                JXNativeNode child = first(node);
+                float[] badge = badgeSize(node);
+                double w = Math.max(JXBoxLayout.prefAreaWidth(child), badge[0]);
+                double h = Math.max(JXBoxLayout.prefAreaHeight(child), badge[1]);
+                return new double[] {w, w, w, h, h, h};
+            }
+            case "avatar": {
+                double s = JXPaint.number(node, "size", AVATAR);
+                return new double[] {s, s, s, s, s, s};
+            }
+            case "stepper": {
+                int n = stepCount(node);
+                double slot = stepSlot(node);
+                double h = STEP_D + (stepTitles(node).length > 0 ? 8 + line : 0) + 4;
+                return new double[] {n * STEP_MIN, n * slot, MAX, h, h, h};
+            }
+            case "scrollbar":
+                return node.vertical() ? new double[] {SCROLL_BAR, SCROLL_BAR, SCROLL_BAR, 2 * SB_THUMB_MIN, 100, MAX}
+                        : new double[] {2 * SB_THUMB_MIN, 100, MAX, SCROLL_BAR, SCROLL_BAR, SCROLL_BAR};
+            case "splitpane": {
+                boolean vertical = node.vertical();
+                double gaps = Math.max(0, node.getChildren().size() - 1) * DIVIDER;
+                double minAlong = gaps;
+                double prefAlong = gaps;
+                double minCross = 0;
+                double prefCross = 0;
+                for (JXNativeNode child : node.getChildren()) {
+                    minAlong += vertical ? JXBoxLayout.minAreaHeight(child) : JXBoxLayout.minAreaWidth(child);
+                    prefAlong += vertical ? JXBoxLayout.prefAreaHeight(child) : JXBoxLayout.prefAreaWidth(child);
+                    minCross = Math.max(minCross, vertical ? JXBoxLayout.minAreaWidth(child) : JXBoxLayout.minAreaHeight(child));
+                    prefCross = Math.max(prefCross, vertical ? JXBoxLayout.prefAreaWidth(child) : JXBoxLayout.prefAreaHeight(child));
+                }
+                return vertical ? new double[] {minCross, prefCross, MAX, minAlong, prefAlong, MAX}
+                        : new double[] {minAlong, prefAlong, MAX, minCross, prefCross, MAX};
+            }
+            case "tabbar": {
+                float[] edges = tabbarEdges(node);
+                double w = edges[edges.length - 1];
+                return new double[] {w, w, MAX, TABBAR_H, TABBAR_H, TABBAR_H};
             }
             default:
                 throw new IllegalStateException("not a control: " + type); // handles(type) is false
@@ -417,6 +509,24 @@ public final class JXControlLayout {
                 }
                 break;
             }
+            case "badge": {
+                JXNativeNode child = first(node);
+                if (child != null) {
+                    // the child keeps its own size in the top left corner; the badge is drawn over its top right
+                    JXBoxLayout.layoutInArea(node, child, 0, 0, w, h, false, false, 'L', 'T');
+                }
+                break;
+            }
+            case "splitpane": {
+                float[][] rects = splitRects(node);
+                List<JXNativeNode> panes = node.getChildren();
+                for (int i = 0; i < panes.size(); i++) {
+                    float[] r = rects[i];
+                    panes.get(i).layout(Math.round(r[0]), Math.round(r[1]), Math.round(r[0] + r[2]) - Math.round(r[0]),
+                            Math.round(r[1] + r[3]) - Math.round(r[1]));
+                }
+                break;
+            }
             default:
                 break;
         }
@@ -427,7 +537,7 @@ public final class JXControlLayout {
      * Without a graphic the text is centred on its own.
      */
     static float[] buttonContent(JXNativeNode node) {
-        float[] pad = JXPaint.insetsOr(node, JXNativeNode.PAD_Y, JXNativeNode.PAD_X);
+        float[] pad = buttonPad(node);
         String label = JXPaint.text(node, "label");
         float size = JXPaint.fontSize(node);
         JXTextEngine engine = JXTextEngine.get(JXPaint.bold(node));
@@ -802,6 +912,248 @@ public final class JXControlLayout {
         }
         out[buttons - 1] = new float[] {left + PAGE_ARROW + shown * PAGE_BUTTON, top, PAGE_ARROW, 25, -2};
         return out;
+    }
+
+    // ---- buttons with a variant --------------------------------------------------------------
+
+    /** The look of a button: filled, tonal, outlined, text, elevated or fab; empty for the classic one. */
+    static String variant(JXNativeNode node) {
+        Object v = node.getProperty("variant");
+        return "button".equals(node.getType()) && v instanceof String ? (String) v : "";
+    }
+
+    /** Pixels kept free around the face of a button that draws a soft ring (elevated, fab). */
+    static float shadow(JXNativeNode node) {
+        String v = variant(node);
+        return "elevated".equals(v) || "fab".equals(v) ? SHADOW : 0;
+    }
+
+    /**
+     * The padding of a button: the written one, else the classic Modena one (4 by 8) or, with a variant,
+     * 9 by 16; plus the room of the ring around an elevated or floating button.
+     */
+    static float[] buttonPad(JXNativeNode node) {
+        boolean variant = !variant(node).isEmpty();
+        float[] pad = JXPaint.insetsOr(node, variant ? 9 : JXNativeNode.PAD_Y, variant ? 16 : JXNativeNode.PAD_X);
+        float ring = shadow(node);
+        return ring == 0 ? pad : new float[] {pad[0] + ring, pad[1] + ring, pad[2] + ring, pad[3] + ring};
+    }
+
+    // ---- icon, chip, badge -------------------------------------------------------------------
+
+    static double iconSize(JXNativeNode node) {
+        double s = JXPaint.number(node, "size", ICON);
+        return s > 0 ? s : ICON;
+    }
+
+    /** The leading icon of a chip: its {@code icon}, or a check mark on a selected filter chip; null for none. */
+    static String chipLeading(JXNativeNode node) {
+        String icon = JXPaint.text(node, "icon");
+        if (!icon.isEmpty()) {
+            return icon;
+        }
+        return "filter".equals(JXPaint.text(node, "kind")) && Boolean.TRUE.equals(node.getProperty("selected")) ? "check" : null;
+    }
+
+    /**
+     * Where the parts of a chip are, relative to its left edge: leading icon x and width (0 when none), text x and
+     * width, close icon x and width (0 when none), and the chip's width.
+     */
+    public static float[] chipParts(JXNativeNode node) {
+        JXTextEngine engine = JXTextEngine.get(JXPaint.bold(node));
+        String label = JXPaint.text(node, "label");
+        float x = CHIP_PAD;
+        float leadX = x;
+        float leadW = 0;
+        if (chipLeading(node) != null) {
+            leadW = CHIP_ICON;
+            x += CHIP_ICON + (label.isEmpty() ? 0 : CHIP_GAP);
+        }
+        float textX = x;
+        float textW = label.isEmpty() ? 0 : engine.width(label, JXPaint.fontSize(node));
+        x += textW;
+        float closeX = x;
+        float closeW = 0;
+        if (Boolean.TRUE.equals(node.getProperty("closable"))) {
+            closeX = x + (leadW > 0 || textW > 0 ? CHIP_GAP : 0);
+            closeW = CHIP_ICON;
+            x = closeX + CHIP_ICON;
+        }
+        return new float[] {leadX, leadW, textX, textW, closeX, closeW, (float) Math.ceil(x + CHIP_PAD)};
+    }
+
+    /** Whether window x lies on the close icon of a chip (with a few pixels of slack to either side). */
+    public static boolean chipCloseAt(JXNativeNode node, double windowX) {
+        float[] parts = chipParts(node);
+        return parts[5] > 0 && windowX >= node.getX() + parts[4] - 4 && windowX <= node.getX() + parts[4] + parts[5] + 4;
+    }
+
+    /** What a badge shows: null for nothing, {@code ""} for a dot, else the text (a count above {@code max} reads {@code max+}). */
+    static String badgeText(JXNativeNode node) {
+        if (Boolean.TRUE.equals(node.getProperty("dot"))) {
+            return "";
+        }
+        String text = JXPaint.text(node, "text");
+        if (!text.isEmpty()) {
+            return text;
+        }
+        double count = JXPaint.number(node, "count", 0);
+        if (count < 1) {
+            return null;
+        }
+        int max = (int) JXPaint.number(node, "max", 99);
+        return count > max ? max + "+" : String.valueOf((int) count);
+    }
+
+    /** Width and height of a badge's mark, 0 by 0 when it shows nothing. */
+    static float[] badgeSize(JXNativeNode node) {
+        String text = badgeText(node);
+        if (text == null) {
+            return new float[] {0, 0};
+        }
+        if (text.isEmpty()) {
+            return new float[] {BADGE_DOT, BADGE_DOT};
+        }
+        float tw = JXTextEngine.get(false).width(text, 11);
+        return new float[] {Math.max(BADGE_H, (float) Math.ceil(tw) + 8), BADGE_H};
+    }
+
+    // ---- stepper -----------------------------------------------------------------------------
+
+    static String[] stepTitles(JXNativeNode node) {
+        return JXPaint.strings(node.getProperty("titles"));
+    }
+
+    /** The number of steps: the titles written, else {@code steps}. */
+    public static int stepCount(JXNativeNode node) {
+        int titles = stepTitles(node).length;
+        return titles > 0 ? titles : Math.max(0, (int) JXPaint.number(node, "steps", 0));
+    }
+
+    /** The width of one step: wide enough for its title. */
+    static double stepSlot(JXNativeNode node) {
+        double widest = 0;
+        JXTextEngine engine = JXTextEngine.get(false);
+        for (String title : stepTitles(node)) {
+            widest = Math.max(widest, engine.width(title, JXTextEngine.DEFAULT_SIZE) + 16);
+        }
+        return Math.max(STEP_MIN, Math.ceil(widest));
+    }
+
+    // ---- scroll bar --------------------------------------------------------------------------
+
+    /**
+     * Track start and length, then thumb start and length, along the bar's axis in window coordinates
+     * (y when vertical, else x). The thumb is the share {@code visibleAmount} has of the range plus itself, at
+     * least {@link #SB_THUMB_MIN}, placed by {@code value} between {@code min} and {@code max}.
+     */
+    public static float[] scrollBarGeometry(JXNativeNode node) {
+        boolean vertical = node.vertical();
+        float start = vertical ? node.getY() : node.getX();
+        float length = vertical ? node.getHeight() : node.getWidth();
+        double min = JXPaint.number(node, "min", 0);
+        double max = JXPaint.number(node, "max", 100);
+        double range = Math.max(0, max - min);
+        double visible = Math.max(0, JXPaint.number(node, "visibleAmount", 10));
+        double share = range + visible <= 0 ? 1 : visible / (range + visible);
+        float thumb = (float) Math.min(length, Math.max(SB_THUMB_MIN, length * share));
+        double fraction = range <= 0 ? 0 : Math.max(0, Math.min(1, (JXPaint.number(node, "value", min) - min) / range));
+        return new float[] {start, length, start + (float) ((length - thumb) * fraction), thumb};
+    }
+
+    // ---- split pane --------------------------------------------------------------------------
+
+    /**
+     * The positions of the dividers, as fractions of the room the panes share (the length less the dividers):
+     * the written {@code dividerPositions}, the missing ones spread evenly, each kept between its neighbours.
+     */
+    public static double[] splitPositions(JXNativeNode node) {
+        int n = Math.max(0, node.getChildren().size() - 1);
+        double[] written = doubles(node.getProperty("dividerPositions"));
+        double[] out = new double[n];
+        double previous = 0;
+        for (int i = 0; i < n; i++) {
+            double v = i < written.length ? written[i] : (i + 1) / (double) (n + 1);
+            out[i] = Math.max(previous, Math.min(1, v));
+            previous = out[i];
+        }
+        return out;
+    }
+
+    /** The room the panes of a split pane share along its axis. */
+    public static float splitRoom(JXNativeNode node) {
+        float length = node.vertical() ? node.getHeight() : node.getWidth();
+        return Math.max(0, length - Math.max(0, node.getChildren().size() - 1) * DIVIDER);
+    }
+
+    /**
+     * Rectangles (x, y, width, height, window coordinates) of the panes, then of the dividers, in order.
+     * Divider i starts after pane i, which ends {@code position i} of the shared room from the start.
+     */
+    public static float[][] splitRects(JXNativeNode node) {
+        int panes = node.getChildren().size();
+        int dividers = Math.max(0, panes - 1);
+        double[] positions = splitPositions(node);
+        float room = splitRoom(node);
+        boolean vertical = node.vertical();
+        float[][] out = new float[panes + dividers][];
+        float x = node.getX();
+        float y = node.getY();
+        float w = node.getWidth();
+        float h = node.getHeight();
+        float cursor = 0;
+        for (int i = 0; i < panes; i++) {
+            float end = i < dividers ? (float) (positions[i] * room) : room;
+            float from = cursor + i * DIVIDER;
+            float len = Math.max(0, end - cursor);
+            out[i] = vertical ? new float[] {x, y + from, w, len} : new float[] {x + from, y, len, h};
+            if (i < dividers) {
+                float at = end + i * DIVIDER;
+                out[panes + i] = vertical ? new float[] {x, y + at, w, DIVIDER} : new float[] {x + at, y, DIVIDER, h};
+            }
+            cursor = end;
+        }
+        return out;
+    }
+
+    // ---- tab bar -----------------------------------------------------------------------------
+
+    /** Left edge of each tab of a tab bar, relative to the bar, and the right edge of the last. */
+    public static float[] tabbarEdges(JXNativeNode node) {
+        String[] titles = JXPaint.strings(node.getProperty("titles"));
+        boolean closable = Boolean.TRUE.equals(node.getProperty("closable"));
+        float[] out = new float[titles.length + 1];
+        JXTextEngine engine = JXTextEngine.get(false);
+        float x = 0;
+        for (int i = 0; i < titles.length; i++) {
+            out[i] = x;
+            float w = engine.width(titles[i], JXTextEngine.DEFAULT_SIZE) + 2 * TABBAR_PAD + (closable ? TABBAR_CLOSE : 0);
+            x += (float) Math.ceil(Math.max(TABBAR_MIN, w));
+        }
+        out[titles.length] = x;
+        return out;
+    }
+
+    /** The tab under window (x, y), or -1; {@code closeHit[0]} tells whether the point is on its close icon. */
+    public static int tabbarAt(JXNativeNode node, double windowX, double windowY, boolean[] closeHit) {
+        double rx = windowX - node.getX();
+        double ry = windowY - node.getY();
+        if (closeHit != null && closeHit.length > 0) {
+            closeHit[0] = false;
+        }
+        if (ry < 0 || ry >= node.getHeight()) {
+            return -1;
+        }
+        float[] edges = tabbarEdges(node);
+        for (int i = 0; i + 1 < edges.length; i++) {
+            if (rx >= edges[i] && rx < edges[i + 1]) {
+                if (closeHit != null && closeHit.length > 0) {
+                    closeHit[0] = Boolean.TRUE.equals(node.getProperty("closable")) && rx >= edges[i + 1] - TABBAR_PAD / 2 - TABBAR_CLOSE;
+                }
+                return i;
+            }
+        }
+        return -1;
     }
 
     // ---- helpers -----------------------------------------------------------------------------

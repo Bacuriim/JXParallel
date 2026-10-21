@@ -17,10 +17,13 @@ import java.util.Map;
 import org.junit.jupiter.api.Test;
 
 import com.jxparallel.forge.JxmlSchema;
+import com.jxparallel.forge.JxmlThemes;
 import com.jxparallel.forge.JxmlTemplate;
 import com.jxparallel.forge.samples.SampleController;
 import com.jxparallel.ui.JXElement;
 import com.jxparallel.ui.native2d.JXControlLayout;
+import com.jxparallel.ui.native2d.JXIcons;
+import com.jxparallel.ui.native2d.JXTheme;
 import com.jxparallel.ui.native2d.JXNativeNode;
 import com.jxparallel.ui.native2d.JXPointerEvent;
 
@@ -50,12 +53,8 @@ class ForgeTagsMountTest {
     }
 
     private static JxmlTemplate template(String name) throws Exception {
-        InputStream in = ForgeTagsMountTest.class.getResourceAsStream("/samples/" + name + ".jxml");
-        try {
-            return JxmlTemplate.read(in, name + ".jxml");
-        } finally {
-            in.close();
-        }
+        // by resource, so the includes of a sample (samples/parts/...) are found next to it
+        return JxmlTemplate.readResource(ForgeTagsMountTest.class.getClassLoader(), "samples/" + name + ".jxml");
     }
 
     private static JXNativeNode mount(JXElement element) {
@@ -142,6 +141,8 @@ class ForgeTagsMountTest {
             "row", 2, 1});
         stubs.put("AppBar", new Object[] {"<AppBar title=\"t\"><Button text=\"b\"/></AppBar>", "row", 2, 1});
         stubs.put("NavigationBar", new Object[] {"<NavigationBar><Button text=\"a\"/><Button text=\"b\"/></NavigationBar>", "row", 2, 1});
+        stubs.put("IconButton", new Object[] {"<IconButton icon=\"add\"/>", "button", 1, 0});
+        stubs.put("Fab", new Object[] {"<Fab icon=\"add\" text=\"New\"/>", "button", 1, 0});
         stubs.put("Scaffold", new Object[] {"<Scaffold><AppBar title=\"t\"/><Label text=\"body\"/>"
             + "<BottomAppBar><Label text=\"s\"/></BottomAppBar></Scaffold>", "border", 3, 2});
         return stubs;
@@ -404,4 +405,109 @@ class ForgeTagsMountTest {
         assertEquals(Integer.valueOf(0xFFFFEEDD), styled.getProperty("background"));
         assertTrue(styled.getWidth() > 0 && styled.getHeight() > 0, "hidden keeps its place in the layout");
     }
-}
+
+    // ---- Material controls, themes and includes ---------------------------------------------------------
+
+    private static JXNativeNode tall(String sample, SampleController c) throws Exception {
+        JXNativeNode node = JXNativeNode.createBackendNode(template(sample).build(c));
+        node.layoutForBackend(WIDTH, 3000); // room for every row: nothing is squeezed
+        return node;
+    }
+
+    private static List<JXNativeNode> all(JXNativeNode root, String type) {
+        Map<String, List<JXNativeNode>> byType = new LinkedHashMap<String, List<JXNativeNode>>();
+        collect(root, byType);
+        List<JXNativeNode> found = byType.get(type);
+        assertNotNull(found, type);
+        return found;
+    }
+
+    private static void click(JXNativeNode root, JXNativeNode node, int dx, int dy) {
+        JXNativeNode hit = root.hitTest(node.getX() + dx, node.getY() + dy);
+        assertNotNull(hit);
+        hit.dispatchPointer(new JXPointerEvent(node.getX() + dx, node.getY() + dy, 0));
+    }
+
+    @Test
+    void theRenderersTokensAndIconsAreTheOnesJxmlNames() {
+        for (String theme : JxmlThemes.THEMES) {
+            for (String token : JxmlThemes.TOKENS) {
+                assertEquals(JXTheme.named(theme).token(token), JxmlThemes.color(theme, token), theme + " " + token);
+            }
+        }
+        assertEquals(JxmlThemes.TOKENS, JXTheme.tokens());
+        assertEquals(JxmlThemes.ICONS, JXIcons.names());
+    }
+
+    @Test
+    void theMaterialSampleMountsWithSizesAndItsControlsAnswerToTheMouse() throws Exception {
+        SampleController c = new SampleController();
+        JXNativeNode root = tall("material", c);
+        for (String type : new String[] {"switch", "icon", "chip", "badge", "avatar", "stepper", "scrollbar", "splitpane", "tabbar"}) {
+            for (JXNativeNode node : all(root, type)) {
+                assertTrue(node.getWidth() > 0 && node.getHeight() > 0, type + " has a size");
+            }
+        }
+        // a switch
+        JXNativeNode sw = all(root, "switch").get(0);
+        click(root, sw, 3, 3);
+        assertTrue(c.agree);
+        // a filter chip: the body selects, the close icon only closes
+        JXNativeNode chip = all(root, "chip").get(1);
+        float[] parts = JXControlLayout.chipParts(chip);
+        c.agree = false;
+        click(root, chip, 3, chip.getHeight() / 2);
+        assertTrue(c.agree);
+        assertTrue(c.calls.isEmpty());
+        click(root, chip, (int) (parts[4] + parts[5] / 2), chip.getHeight() / 2);
+        assertEquals(Arrays.asList("save"), c.calls);
+        // a tab bar: another tab, then a close icon
+        JXNativeNode bar = all(root, "tabbar").get(0);
+        float[] edges = JXControlLayout.tabbarEdges(bar);
+        click(root, bar, (int) (edges[0] + 4), 10);
+        assertEquals(0, c.tabIndex);
+        click(root, bar, (int) (edges[2] - 6), 10);
+        assertEquals(Arrays.asList(Integer.valueOf(1)), c.closed);
+        // a scroll bar: grab the thumb and drag
+        JXNativeNode scrollbar = all(root, "scrollbar").get(0);
+        float[] g = JXControlLayout.scrollBarGeometry(scrollbar);
+        c.scroll = 20;
+        scrollbar.dispatchPointer(new JXPointerEvent((int) (g[2] + 2), scrollbar.getY() + 3, 0));
+        scrollbar.dispatchDrag(new JXPointerEvent((int) (g[2] + 2 + 50), scrollbar.getY() + 3, 0));
+        assertTrue(c.scroll > 20, "the thumb followed the pointer: " + c.scroll);
+        // a split pane: grab the first divider and drag it
+        JXNativeNode split = all(root, "splitpane").get(0);
+        float[] divider = JXControlLayout.splitRects(split)[3];
+        split.dispatchPointer(new JXPointerEvent((int) (divider[0] + 2), split.getY() + 5, 0));
+        split.dispatchDrag(new JXPointerEvent((int) (divider[0] + 2 + 40), split.getY() + 5, 0));
+        assertEquals(2, c.positions.length);
+        assertTrue(c.positions[0] > 0.3 && c.positions[1] == 0.7, Arrays.toString(c.positions));
+    }
+
+    @Test
+    void thePanesOfASplitPaneAndTheChildOfABadgeAreLaidOutInOrder() throws Exception {
+        JXNativeNode root = tall("material", new SampleController());
+        JXNativeNode split = all(root, "splitpane").get(0);
+        JXNativeNode a = split.getChildren().get(0);
+        JXNativeNode b = split.getChildren().get(1);
+        JXNativeNode d = split.getChildren().get(2);
+        assertTrue(a.getX() + a.getWidth() < b.getX() && b.getX() + b.getWidth() < d.getX(), "dividers between the panes");
+        JXNativeNode stacked = all(root, "splitpane").get(1);
+        assertTrue(stacked.getChildren().get(0).getY() < stacked.getChildren().get(1).getY());
+        JXNativeNode badge = all(root, "badge").get(0);
+        assertEquals(badge.getX(), badge.getChildren().get(0).getX());
+        assertTrue(badge.getWidth() >= badge.getChildren().get(0).getWidth());
+    }
+
+    @Test
+    void aDarkRootCarriesItsThemeAndAStyledScreenKeepsItsPartsInPlace() throws Exception {
+        SampleController c = new SampleController();
+        JXNativeNode root = tall("includes", c);
+        assertEquals("dark", root.getProperty("theme"));
+        JXNativeNode header = root.getChildren().get(0);
+        assertEquals("row", header.getType());
+        assertEquals("always", header.getProperty("hgrow"));
+        assertEquals(2, header.getChildren().size());
+        assertEquals(Integer.valueOf(0xFF90CAF9), header.getChildren().get(0).getProperty("textFill"));
+        assertTrue(header.getChildren().get(1).getWidth() == 16 && header.getChildren().get(1).getHeight() == 16, "the icon of a part");
+    }}

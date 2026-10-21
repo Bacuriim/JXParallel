@@ -40,6 +40,48 @@ public class SampleController {
         }
     }
 
+    public int unread = 3;
+    public double scroll = 20;
+    public double[] positions = {0.3, 0.7};
+    public int tabIndex = 1;
+    public final List<Integer> closed = new ArrayList<Integer>();
+
+    public int getUnread() {
+        return unread;
+    }
+
+    public double getScroll() {
+        return scroll;
+    }
+
+    public void setScroll(double value) {
+        scroll = value;
+    }
+
+    public double[] getPositions() {
+        return positions;
+    }
+
+    public void setPositions(double[] value) {
+        positions = value;
+    }
+
+    public int getTabIndex() {
+        return tabIndex;
+    }
+
+    public void setTabIndex(int value) {
+        tabIndex = value;
+    }
+
+    public String[] getTabTitles() {
+        return new String[] {"Inbox", "Sent", "Drafts"};
+    }
+
+    public void closeTab(int index) {
+        closed.add(Integer.valueOf(index));
+    }
+
     public String getTitle() {
         return "Sample";
     }

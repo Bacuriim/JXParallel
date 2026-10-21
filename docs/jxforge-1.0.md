@@ -47,19 +47,19 @@ compiler build the same tree for it, and a test covers it. Everything else is `t
 | Fixed size | SizedBox | Modifier.size | prefWidth / prefHeight | `prefWidth` / `prefHeight`; `SizedBox` | `stack` | 3 | done |
 | Expand / flex | Expanded / Flexible | Modifier.weight | hgrow / vgrow | `hgrow` / `vgrow`; `Expanded`, `Flexible` | - | 3 | done |
 | Spacer | Spacer | Spacer | Region with grow | `Spacer` | `pane` | 3 | done |
-| Split pane | - | - | SplitPane | `SplitPane` | - | 4 | todo |
+| Split pane | - | - | SplitPane | `SplitPane` | `splitpane` | 4 | done |
 | Static text | Text | Text | Label / Text | `Label` | `#text` | 1 | done |
 | Rich text | RichText / Text.rich | buildAnnotatedString | TextFlow | `TextFlow` | `textflow` | 2 | done |
 | Image | Image | Image | ImageView | `Image` (pixels from Java; no file decoding) | `image` | 2 | done |
-| Icon | Icon | Icon | Glyph / Label graphic | `Icon` | - | 4 | todo |
-| Circle avatar | CircleAvatar | Image + clip | - | `Avatar` | - | 4 | todo |
-| Badge | Badge | Badge / BadgedBox | - | `Badge` | - | 4 | todo |
+| Icon | Icon | Icon | Glyph / Label graphic | `Icon` | `icon` | 4 | done |
+| Circle avatar | CircleAvatar | Image + clip | - | `Avatar` | `avatar` | 4 | done |
+| Badge | Badge | Badge / BadgedBox | - | `Badge` | `badge` | 4 | done |
 | Opacity | Opacity | Modifier.alpha | opacity | `opacity` attribute on any tag; `Opacity` | `stack` | 3 | done |
 | Visibility | Visibility | if (visible) | visible | `<If>`, or the `hidden` attribute on any tag; `Visibility` | `stack` | 3 | done |
 | Button | ElevatedButton / TextButton | Button / TextButton | Button | `Button` | `button` | 1 | done |
-| Button variants | Elevated, Filled, Tonal, Outlined, Text | Filled, Tonal, Outlined, Text, Elevated | - | `Button` with `variant` | `button` | 4 | todo |
-| Icon button | IconButton | IconButton | Button with graphic | `IconButton` | `button` | 4 | todo |
-| Floating action button | FloatingActionButton | FloatingActionButton | - | `Fab` | - | 4 | todo |
+| Button variants | Elevated, Filled, Tonal, Outlined, Text | Filled, Tonal, Outlined, Text, Elevated | - | `Button` with `variant` | `button` | 4 | done |
+| Icon button | IconButton | IconButton | Button with graphic | `IconButton` | `button` | 4 | done |
+| Floating action button | FloatingActionButton | FloatingActionButton | - | `Fab` | `button` | 4 | done |
 | Toggle button | ToggleButtons | SegmentedButton | ToggleButton | `ToggleButton` | `toggle` | 2 | done |
 | Toggle group | ToggleButtons (selection) | SingleChoiceSegmentedButtonRow | ToggleGroup | `group` and `value` on `ToggleButton` / `RadioButton` | `toggle`, `radio` | 5 | done |
 | Link | - | ClickableText | Hyperlink | `Hyperlink` | `hyperlink` | 2 | done |
@@ -68,10 +68,10 @@ compiler build the same tree for it, and a test covers it. Everything else is `t
 | Password field | TextField(obscureText) | OutlinedTextField + PasswordVisualTransformation | PasswordField | `PasswordField` | `password` | 1 | done |
 | Text area | TextField(maxLines) | TextField(minLines) | TextArea | `TextArea` | `textarea` | 1 | done |
 | Check box | Checkbox | Checkbox | CheckBox | `CheckBox` | `checkbox` | 1 | done |
-| Switch | Switch | Switch | - | `Switch` | - | 4 | todo |
+| Switch | Switch | Switch | - | `Switch` | `switch` | 4 | done |
 | Radio button | Radio | RadioButton | RadioButton | `RadioButton` (alone, or with `group`) | `radio` | 2 | done |
 | Slider | Slider | Slider | Slider | `Slider` | `slider` | 1 | done |
-| Scroll bar | Scrollbar | VerticalScrollbar | ScrollBar | `ScrollBar` | - | 4 | todo |
+| Scroll bar | Scrollbar | VerticalScrollbar | ScrollBar | `ScrollBar` | `scrollbar` | 4 | done |
 | Combo box | DropdownButton | ExposedDropdownMenuBox | ComboBox | `ComboBox` | `select` | 1 | done |
 | Choice box | DropdownButton | ExposedDropdownMenuBox | ChoiceBox | `ChoiceBox` (as `ComboBox`) | `select` | 3 | done |
 | Dropdown menu | DropdownMenu / PopupMenuButton | DropdownMenu | MenuButton | `ComboBox` / `MenuButton` | `select`, `popup` | 4 | todo |
@@ -82,7 +82,7 @@ compiler build the same tree for it, and a test covers it. Everything else is `t
 | Progress bar | LinearProgressIndicator | LinearProgressIndicator | ProgressBar | `ProgressBar` | `progress` | 1 | done |
 | Progress circle | CircularProgressIndicator | CircularProgressIndicator | ProgressIndicator | `ProgressIndicator` | `indicator` | 2 | done |
 | Divider | Divider | Divider | Separator | `Separator` (`Divider`) | `separator` | 1 | done |
-| Chip | Chip / FilterChip / ChoiceChip | AssistChip / FilterChip / InputChip | - | `Chip` | - | 4 | todo |
+| Chip | Chip / FilterChip / ChoiceChip | AssistChip / FilterChip / InputChip | - | `Chip` | `chip` | 4 | done |
 | Card | Card | Card / ElevatedCard | - | `Card` (no shadow) | `column` | 3 | done |
 | List (virtual) | ListView | LazyColumn / LazyRow | ListView | `ListView` | `list` | 2 | done |
 | Grid (virtual) | GridView | LazyVerticalGrid | - | `Tile` + `<For>` (the `list` element has no columns) | `tile` | 3 | done |
@@ -91,11 +91,11 @@ compiler build the same tree for it, and a test covers it. Everything else is `t
 | Tree | - | - | TreeView | `Tree` | - | 4 | todo |
 | Tree table | - | - | TreeTableView | `TreeTable` | - | 4 | todo |
 | Tab pane | TabBarView | HorizontalPager | TabPane / Tab | `Tabs` / `Tab` | `tabs` | 1 | done |
-| Tab bar | TabBar | TabRow | TabPane header | `TabBar` | `tabs` | 4 | todo |
+| Tab bar | TabBar | TabRow | TabPane header | `TabBar` | `tabbar` | 4 | done |
 | Accordion | ExpansionPanelList | - | Accordion | `Accordion` | `accordion` | 2 | done |
 | Titled pane | ExpansionTile | - | TitledPane | `TitledPane` | `titled` | 2 | done |
 | Pagination | PageView + indicator | HorizontalPager | Pagination | `Pagination` | `pagination` | 2 | done |
-| Stepper | Stepper | - | - | `Stepper` | - | 4 | todo |
+| Stepper | Stepper | - | - | `Stepper` | `stepper` | 4 | done |
 | Scaffold | Scaffold | Scaffold | BorderPane | `Scaffold` (as `Border`) | `border` | 3 | done |
 | Top bar | AppBar | TopAppBar | ToolBar | `AppBar` | `row` | 3 | done |
 | Tool bar | - | - | ToolBar | `ToolBar` | `row` | 3 | done |
@@ -126,8 +126,8 @@ compiler build the same tree for it, and a test covers it. Everything else is `t
 | Change events | `onChange="#setName"` on inputs, checkbox, slider, combo box, spinner, date picker | 5 | done |
 | Two-way binding | `text="@{customer.name}"` | 5 | done |
 | Nested loops, shadowed loop variables | `<For>` inside `<For>` | 5 | done |
-| Styles and themes | shared style tokens | 5 | todo |
-| Reusable screen parts | include another `.jxml` | 5 | todo |
+| Styles and themes | `<Style name="primary" background="primary"/>`, `style="primary"`, `theme="dark"` on the root | 5 | done |
+| Reusable screen parts | `<Include src="parts/header.jxml"/>` | 5 | done |
 | Development mode | the interpreter reloading on file save | 5 | todo |
 
 ## What phase 1 delivers
@@ -162,3 +162,9 @@ Limits of the renderer that rows marked `done` carry (see "Not done yet" in [jxf
 `ListView` and `TableView` report no selection or scroll events (a row's `onAction` and the
 application's `first` do that), `Pagination` and `TitledPane` change only when the application changes
 their props, and `Tooltip` has no hover trigger.
+
+## What phase 3A delivers
+
+The rows above marked done in this phase: Switch, Icon (31 built-in vector icons), Button variants, IconButton, Fab, Chip, Badge, Avatar, Stepper, ScrollBar, SplitPane, TabBar, and the language features Styles and themes and Reusable screen parts. Each has a schema entry, a native element in the renderer (switch, icon, chip, adge, vatar, stepper, scrollbar, splitpane, 	abbar; IconButton and Fab are composites of utton and icon) drawn only through the existing JXPainter primitives, a sample in jxparallel-forge/src/test/shared/samples (material.jxml, includes.jxml, parts/), tests in the forge, the renderer (JXMaterialControlsTest) and the mount tests, and documentation in [jxforge.md](jxforge.md).
+
+Limits: dragging a scroll bar thumb or a divider with a real mouse needs the window to pass the move events (JXWindow does when it has no input listener; a host with its own listener calls JXNativeNode.dispatchDrag); the headless tests drive dispatchPointer and dispatchDrag directly. The renderer draws a shadow as a soft darker ring, because not every painter has a blur. Dark theme re-colors the new controls, the themed root surface and the default text of Label; the classic Modena controls keep their look.

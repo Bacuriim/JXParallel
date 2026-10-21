@@ -21,6 +21,7 @@ final class JxmlComposites {
 
     /** The primitive nodes a composite stands for; any other node is returned as it is. */
     static JxmlParser.Node expand(JxmlParser.Node node, String source) {
+        source = node.source; // an included file's elements report their own file
         JxmlSchema.Tag tag = JxmlSchema.tag(node.tag);
         if (tag == null || !tag.composite) {
             return node;
@@ -28,6 +29,11 @@ final class JxmlComposites {
         for (String name : node.attrs.keySet()) {
             if (!"controller".equals(name) && tag.attr(name) == null) {
                 throw new JxmlException(source, node.line, "<" + tag.name + "> has no attribute " + name);
+            }
+        }
+        for (String name : tag.required) {
+            if (!node.attrs.containsKey(name)) {
+                throw new JxmlException(source, node.line, "<" + tag.name + "> needs " + name + "=\"...\"");
             }
         }
         if (tag.alias != null) {
@@ -58,6 +64,10 @@ final class JxmlComposites {
                 return navigationBar(node, source);
             case "Scaffold":
                 return scaffold(node, source);
+            case "IconButton":
+                return iconButton(node, source);
+            case "Fab":
+                return fab(node, source);
             default:
                 throw new IllegalStateException("no expansion for <" + tag.name + ">");
         }
@@ -272,6 +282,60 @@ final class JxmlComposites {
         return border;
     }
 
+    /** The attributes of {@code node} except the ones the expansion uses itself. */
+    private static void copyExcept(JxmlParser.Node node, JxmlParser.Node out, String... used) {
+        java.util.List<String> skip = java.util.Arrays.asList(used);
+        for (Map.Entry<String, String> entry : node.attrs.entrySet()) {
+            if (!skip.contains(entry.getKey())) {
+                out.attrs.put(entry.getKey(), entry.getValue());
+            }
+        }
+    }
+
+    private static JxmlParser.Node icon(JxmlParser.Node at, String name, String size, String color) {
+        JxmlParser.Node icon = node("Icon", at);
+        icon.attrs.put("name", name);
+        icon.attrs.put("size", size);
+        if (color != null) {
+            icon.attrs.put("color", color);
+        }
+        icon.attrs.put("mouseTransparent", "true"); // a click on the icon is a click on the button
+        return icon;
+    }
+
+    /** {@code <IconButton icon size color variant>}: a round button with the icon as its graphic. */
+    private static JxmlParser.Node iconButton(JxmlParser.Node node, String source) {
+        noChildren(node, source);
+        String variant = node.attrs.containsKey("variant") ? node.attrs.get("variant") : "text";
+        if ("fab".equals(variant)) {
+            throw new JxmlException(source, node.line, "<IconButton> variant fab is what <Fab> is; use <Fab>");
+        }
+        JxmlParser.Node button = node("Button", node);
+        copyExcept(node, button, "icon", "size", "color", "variant");
+        button.attrs.put("variant", variant);
+        button.attrs.put("round", "true");
+        putIfAbsent(button, "padding", "8");
+        String color = node.attrs.containsKey("color") ? node.attrs.get("color") : "filled".equals(variant) ? "onPrimary" : "onSurface";
+        button.children.add(icon(node, node.attrs.get("icon"), node.attrs.containsKey("size") ? node.attrs.get("size") : "24", color));
+        return button;
+    }
+
+    /** {@code <Fab icon text>}: a floating button, round with only an icon, a pill with a text. */
+    private static JxmlParser.Node fab(JxmlParser.Node node, String source) {
+        noChildren(node, source);
+        if (!node.attrs.containsKey("icon") && !node.attrs.containsKey("text")) {
+            throw new JxmlException(source, node.line, "<Fab> needs icon=\"...\", text=\"...\" or both");
+        }
+        JxmlParser.Node button = node("Button", node);
+        copyExcept(node, button, "icon");
+        button.attrs.put("variant", "fab");
+        putIfAbsent(button, "padding", node.attrs.containsKey("text") ? "16 20" : "16");
+        if (node.attrs.containsKey("icon")) {
+            button.children.add(icon(node, node.attrs.get("icon"), "24", "onPrimary"));
+        }
+        return button;
+    }
+
     private static void noChildren(JxmlParser.Node node, String source) {
         if (!node.children.isEmpty()) {
             throw new JxmlException(source, node.line, "<" + node.tag + "> takes no children");
@@ -285,6 +349,6 @@ final class JxmlComposites {
     }
 
     private static JxmlParser.Node node(String tag, JxmlParser.Node at) {
-        return new JxmlParser.Node(tag, at.line);
+        return new JxmlParser.Node(tag, at.line, at.source);
     }
 }

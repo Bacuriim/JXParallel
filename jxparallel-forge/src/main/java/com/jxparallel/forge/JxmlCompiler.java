@@ -128,7 +128,7 @@ public final class JxmlCompiler {
             String name = "K" + (nextConstant++);
             String body = construct(e, key, true, "            ");
             fields.append("    private static final JXElement ").append(name).append(" = ").append(body)
-                    .append("; // ").append(where(e.line)).append('\n');
+                    .append("; // ").append(where(e.source, e.line)).append('\n');
             return name;
         }
         return construct(e, key, constantContext, indent);
@@ -143,7 +143,7 @@ public final class JxmlCompiler {
         StringBuilder m = new StringBuilder();
         m.append("    private static JXElement ").append(name).append('(')
                 .append(constantContext ? "" : "final " + controllerType + " c" + scopeParameters()).append(") { // ")
-                .append(where(e.line)).append('\n');
+                .append(where(e.source, e.line)).append('\n');
         if (dynamic(e)) {
             m.append("        final java.util.List<JXElement> k = new java.util.ArrayList<JXElement>();\n");
             emit(e.children, null, m, "        ");
@@ -179,7 +179,7 @@ public final class JxmlCompiler {
                 Local local = new Local(n.var, n.var + "_" + (nextVariable++), type);
                 out.append(indent).append("for (").append(type).append(' ').append(local.javaName)
                         .append(" : JxmlRuntime.<").append(type).append(">items(").append(items).append(")) { // ")
-                        .append(where(n.line)).append('\n');
+                        .append(where(n.source, n.line)).append('\n');
                 scope.add(local);
                 JxmlTemplate.Prop keyProp = n.prop("key");
                 emit(n.children, keyProp == null ? null : reference(keyProp), out, indent + "    ");
@@ -187,7 +187,7 @@ public final class JxmlCompiler {
                 out.append(indent).append("}\n");
             } else if ("If".equals(n.tag.name)) {
                 out.append(indent).append("if (").append(value(n.prop("test"), n.tag)).append(".booleanValue()) { // ")
-                        .append(where(n.line)).append('\n');
+                        .append(where(n.source, n.line)).append('\n');
                 emit(n.children, null, out, indent + "    ");
                 if (n.otherwise.isEmpty()) {
                     out.append(indent).append("}\n");
@@ -222,7 +222,7 @@ public final class JxmlCompiler {
     /** {@code listed}: the children are in the list {@code k}, which an enclosing statement block filled. */
     private String inline(JxmlTemplate.Element e, String key, boolean constantContext, String indent, boolean listed) {
         if (JxmlTemplate.isSlot(e.tag)) {
-            return value(e.props.get(0), e.tag) + " /* " + where(e.line) + " */";
+            return value(e.props.get(0), e.tag) + " /* " + where(e.source, e.line) + " */";
         }
         boolean tabs = e.tag.children == JxmlSchema.Children.TABS;
         StringBuilder props = new StringBuilder("JXProps.builder()");
@@ -238,7 +238,7 @@ public final class JxmlCompiler {
                 continue;
             }
             props.append('\n').append(indent).append(".set(").append(quote(p.attr.prop)).append(", ")
-                    .append(value).append(") // ").append(where(p.line));
+                    .append(value).append(") // ").append(where(p.source, p.line));
         }
         if (key != null) {
             props.append('\n').append(indent).append(".set(\"key\", ").append(key).append(')');
@@ -297,9 +297,9 @@ public final class JxmlCompiler {
             case CHANGE:
                 List<String> args = arguments(p);
                 args.add("v");
-                return consumer(tag) + " v -> c." + p.method + "(" + String.join(", ", args) + ")";
+                return consumer(p.attr.valueType) + " v -> c." + p.method + "(" + String.join(", ", args) + ")";
             case SETTER:
-                return consumer(tag) + " v -> " + reference(p) + "." + p.method + "(v)";
+                return consumer(p.attr.valueType) + " v -> " + reference(p) + "." + p.method + "(v)";
             case BINDING:
                 String call = reference(p);
                 switch (p.attr.type) {
@@ -342,8 +342,8 @@ public final class JxmlCompiler {
     }
 
     /** The cast that gives a lambda the type of the value its input passes. */
-    private static String consumer(JxmlSchema.Tag tag) {
-        String type = tag.changeType == AttrType.BOOLEAN ? "Boolean" : tag.changeType == AttrType.DOUBLE ? "Double" : "String";
+    private static String consumer(AttrType valueType) {
+        String type = valueType == AttrType.BOOLEAN ? "Boolean" : valueType == AttrType.DOUBLE ? "Double" : valueType == AttrType.INT ? "Integer" : valueType == AttrType.DOUBLES ? "double[]" : "String";
         return "(java.util.function.Consumer<" + type + ">)";
     }
 
@@ -405,8 +405,8 @@ public final class JxmlCompiler {
         return Double.toString(d);
     }
 
-    private String where(int line) {
-        String file = template.source;
+    private static String where(String file, int line) {
+        // (the file of the element, which is not the template's own for an included part)
         int slash = Math.max(file.lastIndexOf('/'), file.lastIndexOf('\\'));
         return file.substring(slash + 1) + ":" + line;
     }

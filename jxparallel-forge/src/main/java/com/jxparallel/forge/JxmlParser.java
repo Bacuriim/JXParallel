@@ -22,12 +22,15 @@ final class JxmlParser {
     static final class Node {
         final String tag;
         final int line;
+        /** The file this element was read from: errors and generated comments name it, also for an included file. */
+        final String source;
         final Map<String, String> attrs = new LinkedHashMap<String, String>();
         final List<Node> children = new ArrayList<Node>();
 
-        Node(String tag, int line) {
+        Node(String tag, int line, String source) {
             this.tag = tag;
             this.line = line;
+            this.source = source;
         }
     }
 
@@ -57,7 +60,7 @@ final class JxmlParser {
 
                 @Override
                 public void startElement(String uri, String localName, String qName, Attributes attributes) {
-                    Node node = new Node(qName, locator == null ? 0 : locator.getLineNumber());
+                    Node node = new Node(qName, locator == null ? 0 : locator.getLineNumber(), source);
                     for (int i = 0; i < attributes.getLength(); i++) {
                         String name = attributes.getQName(i);
                         if (!name.equals("xmlns") && !name.startsWith("xmlns:")) {

@@ -173,7 +173,7 @@ inside a `Border`), and these, which the renderer reads from any node:
 | `TableRow` | `tablerow` | `selected`, `odd`, `listFocused`; children are `TableCell`s |
 | `TableCell` | `cell` | like `ListItem`, with the table's cell look |
 | `Label` | `#text` | `text`, `wrapText`, `bold`, `fontSize`, `textFill` |
-| `Button` | `button` | `text`, `onAction`, `disabled`, `defaultButton` |
+| `Button` | `button` | `text`, `onAction`, `disabled`, `defaultButton`, `variant`, `round`, `padding`, `textFill`; an optional child is the graphic left of the text |
 | `TextField`, `PasswordField` | `input`, `password` | `text`, `prompt`, `columns` |
 | `TextArea` | `textarea` | `text`, `prompt`, `wrapText`, `columns`, `rows` |
 | `CheckBox` | `checkbox` | `text`, `selected` |
@@ -183,9 +183,18 @@ inside a `Border`), and these, which the renderer reads from any node:
 | `Separator` | `separator` | `orientation` |
 | `ProgressBar` | `progress` | `progress` |
 | `Slider` | `slider` | `min`, `max`, `value` |
+| `Switch` | `switch` | `text`, `selected`, `disabled`; `onChange` (Boolean) |
+| `Icon` | `icon` | `name` (required), `size`, `color` |
+| `Chip` | `chip` | `text`, `kind`, `icon`, `selected`, `closable`, `onClose`, `disabled`; `onChange` (Boolean) |
+| `Badge` | `badge` | `count`, `text`, `dot`, `max`, `color`; one child |
+| `Avatar` | `avatar` | `size`, `initials`, `pixels`, `imageWidth`, `imageHeight`, `color`, `textFill` |
+| `Stepper` | `stepper` | `titles`, `steps`, `current` |
+| `ScrollBar` | `scrollbar` | `min`, `max`, `value`, `visibleAmount`, `orientation`; `onChange` (Double) |
+| `SplitPane` | `splitpane` | `orientation`, `dividerPositions`; `onChange` (double[]); children are the panes |
+| `TabBar` | `tabbar` | `titles`, `selected`, `closable`, `onClose` (Integer); `onChange` (Integer) |
 | `Slot` | what the binding returns | `content` |
 | `For`, `If`, `Else` | none: they stand for elements | `items`, `var`, `type`, `key`, `from`, `limit`; `test` |
-| Composites | none: they are rewritten (see [Composites](#composites)) | `Padding`, `Center`, `Align`, `SizedBox`, `Expanded`, `Flexible`, `Spacer`, `Box`, `Container`, `Card`, `ListTile`, `Divider`, `Visibility`, `Opacity`, `Wrap`, `Positioned`, `ChoiceBox`, `Scaffold`, `AppBar`, `BottomAppBar`, `BottomBar`, `ToolBar`, `NavigationBar`, `NavigationRail` |
+| Composites | none: they are rewritten (see [Composites](#composites)) | `Padding`, `Center`, `Align`, `SizedBox`, `Expanded`, `Flexible`, `Spacer`, `Box`, `Container`, `Card`, `ListTile`, `Divider`, `Visibility`, `Opacity`, `Wrap`, `Positioned`, `ChoiceBox`, `Scaffold`, `AppBar`, `BottomAppBar`, `BottomBar`, `ToolBar`, `NavigationBar`, `NavigationRail`, `IconButton`, `Fab` |
 
 `TextField`, `PasswordField`, `TextArea`, `CheckBox`, `ComboBox`, `Spinner`, `DatePicker` and
 `Slider` also accept `onChange` (see [Input changes](#input-changes)); `ToggleButton` and `RadioButton` accept
@@ -263,6 +272,10 @@ node keeps showing its `value` prop until the screen is built again with the new
 | `Spinner` | `double` | Up / Down arrows, within `min` and `max` |
 | `ComboBox` | `String`, the option | Up / Down arrows |
 | `DatePicker` | `String`, ISO `yyyy-MM-dd` | Up / Down (day), Page Up / Page Down (month) |
+| `Switch`, `Chip` | `boolean` | click (and space for `Switch`) |
+| `ScrollBar` | `double` | click on the track, drag of the thumb |
+| `SplitPane` | `double[]`, all the divider positions | drag of a divider; `@{positions}` needs a setter taking a `double[]` |
+| `TabBar` | `int`, the tab | click on another tab; `onClose` gets the index of the tab whose close icon was clicked |
 
 Popups of the combo box and date picker are not drawn yet, so these two change with the keyboard.
 
@@ -375,6 +388,94 @@ and the compiler never see it. The rewritten tags keep the line of the composite
 Attributes written on a composite that its expansion does not give a tag are errors (`<Center> has no attribute gap`),
 and a value that is wrong is reported for the tag it ends up on, at the composite's line.
 
+## Material controls
+
+These tags are drawn by the renderer with the colors of the theme (see [Styles and themes](#styles-and-themes)); each is one native element and
+every painter draws it, because it uses only the primitives of `JXPainter`.
+
+- `Switch`: a 40 x 22 track and a thumb, `selected` on or off, `text` is an optional label. A click or the space bar reports the new
+  Boolean through `onChange` (or `@{flag}`), like `CheckBox`.
+- `Icon`: `name` is one of `menu close add remove check search arrow-back arrow-forward arrow-up arrow-down chevron-left chevron-right
+  chevron-up chevron-down more-vert more-horiz edit delete settings home info warning error star favorite refresh person mail calendar
+  visibility lock`. They are lines, ovals, arcs and triangles drawn on a 24 x 24 grid and scaled to `size` (24 by default); no font, file or
+  network. `color` defaults to `onSurface`. An unknown name is a `JxmlException` listing these names, and `name` cannot be bound.
+- `Button variant`: `filled`, `tonal`, `outlined`, `text` or `elevated` (and `fab`, which `Fab` writes). Without `variant` the button is
+  the classic one, unchanged. `round="true"` makes the ends round. Hover and pressed tint the face. `elevated` and `fab` draw a soft darker
+  ring below the face (two translucent rings, because not every painter has a blur), kept inside the button's bounds, which are 3 px larger
+  on each side for it. A child of the button (an `Icon`) is its graphic.
+- `IconButton icon size color variant`: a `Button` (`variant` `text` unless written, `round`, padding 8) whose graphic is an `Icon` that does
+  not take the click, so the button gets it. `Fab icon text`: a `Button variant="fab"` with an icon, a text or both (padding 16, or 16 20 with a
+  text).
+- `Chip`: `kind` is `assist` (outlined, 8 px corners), `filter` (outlined pill; selected: tinted, with a check mark as leading icon),
+  `choice` (outlined, 4 px corners; selected: filled with the primary color) or `input` (tinted face). `icon` is a leading icon, `closable="true"`
+  adds a close icon. A click on the chip runs `onAction` and reports the new `selected` through `onChange`; a click on the close icon runs only
+  `onClose`.
+- `Badge`: one child; the mark sits at its top right, inside the badge's bounds. `count` (at most `max`, 99 by default, then `99+`; 0 or less shows
+  nothing), `text`, or `dot="true"`; `color` defaults to `error`.
+- `Avatar`: a circle of `size` (40): `initials` on `color` (a tint of the primary color), or `pixels` with `imageWidth` / `imageHeight` (as
+  `Image`), cut to a circle with a soft edge.
+- `Stepper`: `titles` (or `steps`, a count) and `current`: the circles before `current` are filled with a check mark, `current` is filled with its
+  number, the later ones are outlined; lines join them.
+- `ScrollBar`: `value` between `min` and `max`; the thumb is `visibleAmount` of the range plus itself, at least 24 px. A click on the track puts the
+  middle of the thumb under the pointer; a press on the thumb grabs it and the drag follows the pointer; both report the new Double through `onChange`.
+- `SplitPane`: the children are the panes, `orientation="horizontal"` (side by side, the default) or `vertical` (stacked). `dividerPositions` are
+  fractions (0 to 1) of the room the panes share, one less than the panes, the missing ones spread evenly. Dragging a divider reports all the positions as
+  a `double[]` through `onChange` (so `@{positions}` needs `setPositions(double[])`), the divider kept at least 20 px from its neighbours.
+- `TabBar`: only the strip of tab headers (the content is the application's: show it with `<If>` on `selected`). A click on another tab reports its index
+  (Integer) through `onChange` or `@{tab}`; with `closable="true"` every tab has a close icon and `onClose="#closeTab"` calls `closeTab(int index)`. `Tabs` is
+  unchanged.
+
+A drag needs the pointer moves after the press: the renderer's window delivers them to `JXNativeNode.dispatchDrag` when it has no input listener; a host
+with its own listener calls that method.
+
+## Styles and themes
+
+A file may start with `<Style>` elements, direct children of its root, which are not elements of the screen:
+
+```xml
+<Column controller="com.acme.HomeController" theme="dark" gap="8">
+  <Style name="title" textFill="primary" bold="true" fontSize="16"/>
+  <Style name="danger" background="error" textFill="onPrimary"/>
+  <Label text="Orders" style="title"/>
+  <Button text="Delete" style="danger" background="#00FF00"/>   <!-- the element's own attribute wins -->
+  <Card style="title danger"/>                                   <!-- several styles: a later one wins -->
+</Column>
+```
+
+- A style holds attributes (any attribute of any tag, but no handler and no binding: it is resolved when the file is read). `style="a b"` applies
+  them in order. The order of strength is: the attribute written on the element, then the styles (later over earlier), then the defaults of the tag or of
+  a composite (a style beats the white of a `Card`).
+- A style attribute the tag does not have is skipped (one style serves labels and boxes); an attribute no tag has, a handler, a binding, a duplicate name in
+  a file or an unknown `style` name is a `JxmlException` with the line.
+- The theme: `theme="light"` or `"dark"` on the root. The six tokens `primary onPrimary surface onSurface outline error` are accepted wherever a color is
+  written, as a literal (`background="surface"`), and become the color of the file's theme when it is read, so the interpreter and the compiler build the same
+  props. The root also gets the prop `theme`, which the renderer inherits down the tree: it paints the themed root with `surface`, draws `Label` text in
+  `onSurface` and the Material controls above in the theme's colors. The classic controls (`Button` without `variant`, `CheckBox`, `TextField` ...) keep their Modena look.
+- Tokens, light / dark: primary `#1565C0` / `#90CAF9`, onPrimary `#FFFFFF` / `#0D2B4A`, surface `#FFFFFF` / `#1C1B1F`, onSurface `#1C1B1F` / `#E6E1E5`, outline
+  `#79747E` / `#938F99`, error `#B3261C` / `#F2B8B5`. `JxmlThemes` (here) and `JXTheme` (the renderer) hold the same table; a test compares them.
+
+## Reusable screen parts
+
+```xml
+<Column controller="com.acme.HomeController">
+  <Include src="parts/header.jxml" hgrow="always"/>
+  <Include src="parts/footer.jxml"/>
+</Column>
+```
+
+- `src` is a path relative to the folder of the file that includes it (`../shared/x.jxml` works); it is read when the including file is read, by the
+  interpreter and by the compiler alike, and the part's root element takes the place of the `<Include>` in the tree. Attributes written on the `<Include>`
+  (placement such as `slot`, `hgrow`, `row`) are given to the part's root and win over its own. `src` cannot be bound.
+- Bindings and handlers of a part resolve against the controller of the file that includes it, and inside a `<For>` they can use its loop variable. A part
+  needs no `controller`; one that has a root `controller` must name the same class as the including file (an error says so), and is also a view of its own.
+- A part uses the styles of the file that includes it and may define its own `<Style>`s (the including file's definition of a name wins). A part's `theme` is ignored.
+- A cycle is a `JxmlException` with the chain of files; a missing file, an escape above the source folder and a part with a mistake are errors at the include's line
+  or, for the mistake, at the line in the part's own file (the generated code's comments name the part too).
+- Where the files are found: `JxmlTemplate.read(File)` (next to the file), `JxmlTemplate.readResource(classLoader, "screens/main.jxml")` (resources, next to the
+  resource) and `JxmlTemplate.read(stream, name, JxmlLoader)`; a file read with `read(stream, name)` cannot include. The compiler's directory mode (`JXForge`, the
+  Maven plugin) reads parts from the source folder; a file that is included by another and has no root `controller` gets no class, and a file that includes
+  others is regenerated whenever any `.jxml` in the folder is newer than its class.
+
 ## Mixing JXML and Java
 
 The compiler only reads `.jxml` files; classes written by hand are ordinary Java that `javac`
@@ -393,7 +494,7 @@ JXML screen with `new XView().build(controller)`, and JXML places a Java compone
 
 ## Not done yet
 
-- The widgets of the [1.0 checklist](jxforge-1.0.md) that are not tags yet (group 4 and the language features).
+- The widgets of the [1.0 checklist](jxforge-1.0.md) that are not tags yet (the `todo` rows of group 4).
 - Events the renderer does not report, so no attribute exists for them: selection and scrolling of lists and
   tables (use a row's `onAction` and the application's `first`), clicks on the buttons of a `Pagination`, and the
   hover that would show a `Tooltip`. A `TitledPane` collapses when the application changes `expanded`

@@ -29,13 +29,20 @@ final class ViewCompiler {
     }
 
     static JxmlTemplate read(String xml, String source) {
-        return JxmlTemplate.read(new ByteArrayInputStream(xml.getBytes(StandardCharsets.UTF_8)), source);
+        // includes of a sample are found next to the samples, whatever name the text was given
+        return JxmlTemplate.read(new ByteArrayInputStream(xml.getBytes(StandardCharsets.UTF_8)), source,
+                JxmlLoader.directory(new File("src/test/shared/samples")));
     }
 
     /** The interpreter, then the generated class with hoisting and without. */
     @SuppressWarnings("unchecked")
     List<JxmlView<Object>> views(String xml, String source) throws Exception {
-        JxmlTemplate template = read(xml, source);
+        return views(read(xml, source));
+    }
+
+    /** The interpreter, then the generated class with hoisting and without, of a template already read. */
+    @SuppressWarnings("unchecked")
+    List<JxmlView<Object>> views(JxmlTemplate template) throws Exception {
         List<JxmlView<Object>> out = new ArrayList<JxmlView<Object>>();
         out.add(template);
         for (boolean hoist : new boolean[] {true, false}) {

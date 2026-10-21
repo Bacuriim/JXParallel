@@ -59,7 +59,9 @@ public final class JXNativeNode {
             "columnWidths", "constrained", "titles", "selected", "closingPolicy", "closable", "pageCount", "current",
             "maxPageIndicatorCount", "fitToWidth", "fitToHeight", "hbarPolicy", "vbarPolicy", "side", "fitWidth",
             "fitHeight", "preserveRatio", "imageWidth", "imageHeight", "prefColumnCount", "fixedHeight", "wrapText",
-            "progress", "fillGraphic"};
+            "progress", "fillGraphic",
+            // Material controls: icon and avatar size, chip parts, badge content, steps, split positions, button look
+            "size", "icon", "kind", "closable", "count", "text", "dot", "steps", "dividerPositions", "variant", "round"};
 
     private static final java.util.Set<String> LAYOUT_KEY_SET =
             new java.util.HashSet<String>(java.util.Arrays.asList(LAYOUT_KEYS));
@@ -92,6 +94,12 @@ public final class JXNativeNode {
     private final int kind;
     /** Where typing goes in a text input (see {@link JXChangeEvents}); -1 is the end. */
     int caret = -1;
+    /** A press on a scroll bar grabbed its thumb; the drag that follows moves it (see {@link JXChangeEvents#drag}). */
+    boolean dragThumb;
+    /** Distance from the start of the grabbed thumb or divider to the pointer, along the axis. */
+    float dragOffset;
+    /** The divider of a split pane a press grabbed, or -1. */
+    int dragDivider = -1;
     /** This node is a titled pane's content. */
     private boolean titledContent;
     private Map<String, Object> props;
@@ -585,6 +593,9 @@ public final class JXNativeNode {
         if (Boolean.TRUE.equals(props.get("disabled"))) {
             return; // like JavaFX: disabled nodes get no mouse events
         }
+        if (JXChangeEvents.close(this, event)) {
+            return; // the close icon of a chip or a tab is not a click on the chip or the bar
+        }
         // Controls set onAction (JXButton, JXControls.button); onClick is for hand-built elements.
         Object handler = props.containsKey("onClick") ? props.get("onClick") : props.get("onAction");
         if (handler instanceof JXNativeEventHandler) {
@@ -593,6 +604,18 @@ public final class JXNativeNode {
             ((Runnable) handler).run();
         }
         JXChangeEvents.pointer(this, event);
+    }
+
+    /**
+     * The pointer moved with the primary button held, after a press on this node (see {@link #dispatchPointer}):
+     * a scroll bar's thumb or a split pane's divider follows it, reported through {@code onChange}. A window
+     * with an input listener delivers raw events instead, and the host calls this itself.
+     */
+    public void dispatchDrag(JXPointerEvent event) {
+        if (Boolean.TRUE.equals(props.get("disabled"))) {
+            return;
+        }
+        JXChangeEvents.drag(this, event);
     }
 
     @SuppressWarnings("unchecked")
@@ -1103,7 +1126,7 @@ public final class JXNativeNode {
             return !Objects.equals(props.get("value"), next.get("value"));
         }
         if ("button".equals(type) || "toggle".equals(type) || "checkbox".equals(type) || "titled".equals(type)
-                || "radio".equals(type) || "hyperlink".equals(type)) {
+                || "radio".equals(type) || "hyperlink".equals(type) || "switch".equals(type) || "chip".equals(type)) {
             return !Objects.equals(props.get("label"), next.get("label"));
         }
         if ("cell".equals(type)) {

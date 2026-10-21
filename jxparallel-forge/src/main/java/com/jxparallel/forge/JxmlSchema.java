@@ -20,12 +20,22 @@ public final class JxmlSchema {
         public final String prop;
         public final AttrType type;
         public final boolean bindable;
+        /** For a STRING written as a literal: the only values allowed (checked when the file is read), or null for any. */
+        public final java.util.List<String> choices;
+        /** For a CHANGE attribute: the type of the value the handler gets (STRING, BOOLEAN, DOUBLE, INT or DOUBLES). */
+        public final AttrType valueType;
 
         Attr(String name, String prop, AttrType type, boolean bindable) {
+            this(name, prop, type, bindable, null, null);
+        }
+
+        Attr(String name, String prop, AttrType type, boolean bindable, java.util.List<String> choices, AttrType valueType) {
             this.name = name;
             this.prop = prop;
             this.type = type;
             this.bindable = bindable;
+            this.choices = choices;
+            this.valueType = valueType;
         }
     }
 
@@ -58,10 +68,13 @@ public final class JxmlSchema {
         public final boolean virtual;
         /** The built props go through {@code JxmlRuntime.finish}, which derives some of them from others. */
         public final boolean finish;
+        /** Attributes that must be written. */
+        public final java.util.List<String> required;
 
         Tag(String name, String nativeType, Children children, Map<String, Attr> attrs, Map<String, Object> defaults,
             boolean control, String changeAttr, AttrType changeType, boolean composite, String alias,
-            Map<String, String> aliasAttrs, boolean virtual, boolean finish) {
+            Map<String, String> aliasAttrs, boolean virtual, boolean finish, java.util.List<String> required) {
+            this.required = Collections.unmodifiableList(required);
             this.composite = composite;
             this.alias = alias;
             this.aliasAttrs = Collections.unmodifiableMap(aliasAttrs);
@@ -87,8 +100,15 @@ public final class JxmlSchema {
     /** Placement and sizing, valid on every tag: read by the parent's layout. */
     static final Map<String, Attr> LAYOUT = new LinkedHashMap<String, Attr>();
     private static final Map<String, Tag> TAGS = new LinkedHashMap<String, Tag>();
+    /** The looks of a Button; {@code fab} is what a Fab expands to. */
+    static final java.util.List<String> VARIANTS = Collections.unmodifiableList(
+            java.util.Arrays.asList("filled", "tonal", "outlined", "text", "elevated", "fab"));
+    static final java.util.List<String> ORIENTATIONS = Collections.unmodifiableList(java.util.Arrays.asList("horizontal", "vertical"));
+    static final java.util.List<String> CHIP_KINDS = Collections.unmodifiableList(
+            java.util.Arrays.asList("assist", "filter", "choice", "input"));
 
     static {
+        layout("theme", "theme", AttrType.STRING, false); // root only: light or dark, inherited by the renderer
         layout("key", "key", AttrType.STRING, false);
         layout("margin", "margin", AttrType.INSETS, false);
         layout("hgrow", "hgrow", AttrType.STRING, false);
@@ -173,9 +193,12 @@ public final class JxmlSchema {
                 .attr("textFill", "textFill", AttrType.COLOR, true)
                 .def("value", "")
                 .done();
-        tag("Button", "button", Children.NONE)
+        tag("Button", "button", Children.ONE) // an optional child is its graphic, left of the text
                 .attr("text", "label", AttrType.STRING, true).attr("onAction", "onAction", AttrType.HANDLER, false)
                 .attr("disabled", "disabled", AttrType.BOOLEAN, true).attr("defaultButton", "defaultButton", AttrType.BOOLEAN, false)
+                .choice("variant", "variant", VARIANTS)
+                .attr("round", "round", AttrType.BOOLEAN, false).attr("padding", "padding", AttrType.INSETS, false)
+                .attr("textFill", "textFill", AttrType.COLOR, true)
                 .def("label", "")
                 .done();
         tag("TextField", "input", Children.NONE)
@@ -233,6 +256,76 @@ public final class JxmlSchema {
                 .attr("value", "value", AttrType.DOUBLE, true)
                 .def("min", Double.valueOf(0)).def("max", Double.valueOf(100)).def("value", Double.valueOf(0))
                 .change("value", AttrType.DOUBLE)
+                .done();
+
+        // Material-style controls drawn by the renderer (JXControlLayout, JXPaint) with the theme's tokens.
+        tag("Switch", "switch", Children.NONE)
+                .attr("text", "label", AttrType.STRING, true).attr("selected", "checked", AttrType.BOOLEAN, true)
+                .attr("disabled", "disabled", AttrType.BOOLEAN, true)
+                .def("label", "").def("checked", Boolean.FALSE)
+                .change("selected", AttrType.BOOLEAN)
+                .done();
+        tag("Icon", "icon", Children.NONE).required("name")
+                .choice("name", "name", JxmlThemes.ICONS)
+                .attr("size", "size", AttrType.DOUBLE, true).attr("color", "color", AttrType.COLOR, true)
+                .def("size", Double.valueOf(24))
+                .done();
+        tag("Chip", "chip", Children.NONE)
+                .attr("text", "label", AttrType.STRING, true).choice("kind", "kind", CHIP_KINDS)
+                .choice("icon", "icon", JxmlThemes.ICONS)
+                .attr("selected", "selected", AttrType.BOOLEAN, true).attr("closable", "closable", AttrType.BOOLEAN, false)
+                .attr("onClose", "onClose", AttrType.HANDLER, false).attr("disabled", "disabled", AttrType.BOOLEAN, true)
+                .def("label", "").def("kind", "assist").def("selected", Boolean.FALSE)
+                .change("selected", AttrType.BOOLEAN)
+                .done();
+        tag("Badge", "badge", Children.ONE)
+                .attr("count", "count", AttrType.INT, true).attr("text", "text", AttrType.STRING, true)
+                .attr("dot", "dot", AttrType.BOOLEAN, true).attr("max", "max", AttrType.INT, false)
+                .attr("color", "badgeColor", AttrType.COLOR, true)
+                .done();
+        tag("Avatar", "avatar", Children.NONE)
+                .attr("size", "size", AttrType.DOUBLE, true).attr("initials", "initials", AttrType.STRING, true)
+                .attr("pixels", "pixels", AttrType.PIXELS, true)
+                .attr("imageWidth", "imageWidth", AttrType.DOUBLE, true).attr("imageHeight", "imageHeight", AttrType.DOUBLE, true)
+                .attr("color", "fill", AttrType.COLOR, true).attr("textFill", "textFill", AttrType.COLOR, true)
+                .def("size", Double.valueOf(40))
+                .done();
+        tag("Stepper", "stepper", Children.NONE)
+                .attr("titles", "titles", AttrType.STRINGS, true).attr("steps", "steps", AttrType.INT, true)
+                .attr("current", "current", AttrType.INT, true)
+                .def("current", Integer.valueOf(0))
+                .done();
+        tag("ScrollBar", "scrollbar", Children.NONE)
+                .attr("min", "min", AttrType.DOUBLE, false).attr("max", "max", AttrType.DOUBLE, false)
+                .attr("value", "value", AttrType.DOUBLE, true).attr("visibleAmount", "visibleAmount", AttrType.DOUBLE, false)
+                .choice("orientation", "orientation", ORIENTATIONS)
+                .def("min", Double.valueOf(0)).def("max", Double.valueOf(100)).def("value", Double.valueOf(0))
+                .def("visibleAmount", Double.valueOf(10)).def("orientation", "horizontal")
+                .change("value", AttrType.DOUBLE)
+                .done();
+        tag("SplitPane", "splitpane", Children.MANY)
+                .choice("orientation", "orientation", ORIENTATIONS)
+                .attr("dividerPositions", "dividerPositions", AttrType.DOUBLES, true)
+                .def("orientation", "horizontal")
+                .change("dividerPositions", AttrType.DOUBLES)
+                .done();
+        tag("TabBar", "tabbar", Children.NONE)
+                .attr("titles", "titles", AttrType.STRINGS, true).attr("selected", "selected", AttrType.INT, true)
+                .attr("closable", "closable", AttrType.BOOLEAN, false)
+                .handler("onClose", AttrType.INT)
+                .def("titles", new String[0]).def("selected", Integer.valueOf(0)).def("closable", Boolean.FALSE)
+                .change("selected", AttrType.INT)
+                .done();
+        // composites that become a Button with an Icon (JxmlComposites)
+        tag("IconButton", null, Children.NONE).composite()
+                .choice("icon", "icon", JxmlThemes.ICONS).required("icon")
+                .attr("size", "size", AttrType.DOUBLE, false).attr("color", "color", AttrType.COLOR, false)
+                .choice("variant", "variant", VARIANTS)
+                .attr("disabled", "disabled", AttrType.BOOLEAN, true)
+                .done();
+        tag("Fab", null, Children.NONE).composite()
+                .choice("icon", "icon", JxmlThemes.ICONS).attr("text", "text", AttrType.STRING, true)
+                .attr("disabled", "disabled", AttrType.BOOLEAN, true)
                 .done();
 
         // Containers the renderer already lays out (JXFlowLayout, JXBoxLayout).
@@ -445,6 +538,7 @@ public final class JxmlSchema {
         private boolean finish;
         private String changeAttr;
         private AttrType changeType;
+        private final java.util.List<String> required = new java.util.ArrayList<String>();
 
         TagBuilder(String name, String nativeType, Children children) {
             this.name = name;
@@ -454,6 +548,23 @@ public final class JxmlSchema {
 
         TagBuilder attr(String attr, String prop, AttrType type, boolean bindable) {
             attrs.put(attr, new Attr(attr, prop, type, bindable));
+            return this;
+        }
+
+        /** A STRING attribute written as a literal that must be one of {@code values}. */
+        TagBuilder choice(String attr, String prop, java.util.List<String> values) {
+            attrs.put(attr, new Attr(attr, prop, AttrType.STRING, false, values, null));
+            return this;
+        }
+
+        /** A handler that gets a value of {@code valueType}: {@code onClose="#closeTab"} calls {@code closeTab(int)}. */
+        TagBuilder handler(String attr, AttrType valueType) {
+            attrs.put(attr, new Attr(attr, attr, AttrType.CHANGE, false, null, valueType));
+            return this;
+        }
+
+        TagBuilder required(String... names) {
+            required.addAll(java.util.Arrays.asList(names));
             return this;
         }
 
@@ -484,7 +595,7 @@ public final class JxmlSchema {
 
         /** Adds onChange, which gets the new value of attr as a type; @{...} binds attr two ways. */
         TagBuilder change(String attr, AttrType type) {
-            attrs.put("onChange", new Attr("onChange", "onChange", AttrType.CHANGE, false));
+            attrs.put("onChange", new Attr("onChange", "onChange", AttrType.CHANGE, false, null, type));
             changeAttr = attr;
             changeType = type;
             return this;
@@ -492,7 +603,7 @@ public final class JxmlSchema {
 
         void done() {
             TAGS.put(name, new Tag(name, nativeType, children, attrs, defaults, control, changeAttr, changeType,
-                    composite, alias, aliasAttrs, virtual, finish));
+                    composite, alias, aliasAttrs, virtual, finish, required));
         }
     }
 }

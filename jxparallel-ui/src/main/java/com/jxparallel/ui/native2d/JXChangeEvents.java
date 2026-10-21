@@ -38,13 +38,51 @@ final class JXChangeEvents {
                 ? (Consumer<Object>) handler : null;
     }
 
+    /**
+     * A press on the close icon of a chip (its {@code onClose} runs) or of a tab of a tab bar (its {@code onClose},
+     * a Consumer, gets the tab's index). True when the press was one: it is then not a click on the chip or the bar.
+     */
+    @SuppressWarnings("unchecked")
+    static boolean close(JXNativeNode node, JXPointerEvent event) {
+        if ("chip".equals(node.getType()) && JXControlLayout.chipCloseAt(node, event.getX())) {
+            Object onClose = node.getProperty("onClose");
+            if (onClose instanceof Runnable) {
+                ((Runnable) onClose).run();
+            }
+            return true;
+        }
+        if ("tabbar".equals(node.getType())) {
+            boolean[] closeHit = new boolean[1];
+            int tab = JXControlLayout.tabbarAt(node, event.getX(), event.getY(), closeHit);
+            if (tab >= 0 && closeHit[0]) {
+                Object onClose = node.getProperty("onClose");
+                if (onClose instanceof Consumer) {
+                    ((Consumer<Object>) onClose).accept(Integer.valueOf(tab));
+                }
+                return true;
+            }
+        }
+        return false;
+    }
+
     static void pointer(JXNativeNode node, JXPointerEvent event) {
         Consumer<Object> onChange = handler(node);
         if (onChange == null) {
             return;
         }
-        if ("checkbox".equals(node.getType())) {
+        if ("checkbox".equals(node.getType()) || "switch".equals(node.getType())) {
             onChange.accept(Boolean.valueOf(!Boolean.TRUE.equals(node.getProperty("checked"))));
+        } else if ("chip".equals(node.getType())) {
+            onChange.accept(Boolean.valueOf(!Boolean.TRUE.equals(node.getProperty("selected"))));
+        } else if ("tabbar".equals(node.getType())) {
+            int tab = JXControlLayout.tabbarAt(node, event.getX(), event.getY(), null);
+            if (tab >= 0 && tab != (int) JXPaint.number(node, "selected", 0)) {
+                onChange.accept(Integer.valueOf(tab));
+            }
+        } else if ("scrollbar".equals(node.getType())) {
+            pressBar(node, event, onChange);
+        } else if ("splitpane".equals(node.getType())) {
+            pressDivider(node, event);
         } else if ("slider".equals(node.getType())) {
             double min = JXPaint.number(node, "min", 0.0);
             double max = JXPaint.number(node, "max", 100.0);
@@ -68,6 +106,7 @@ final class JXChangeEvents {
                 edit(node, event, onChange);
                 break;
             case "checkbox":
+            case "switch":
                 if (event.getKeyChar() == ' ') {
                     onChange.accept(Boolean.valueOf(!Boolean.TRUE.equals(node.getProperty("checked"))));
                 }
@@ -83,6 +122,90 @@ final class JXChangeEvents {
                 break;
             default:
                 break;
+        }
+    }
+
+    // ---- scroll bar and split pane -----------------------------------------------------------
+
+    /** The pointer's position along the axis of a scroll bar or split pane, in window pixels. */
+    private static float along(JXNativeNode node, JXPointerEvent event) {
+        return node.vertical() ? event.getY() : event.getX();
+    }
+
+    /** The value a scroll bar has when its thumb starts at {@code thumbStart} (the thumb is at most the track). */
+    private static double barValue(JXNativeNode node, float[] g, float thumbStart) {
+        double min = JXPaint.number(node, "min", 0);
+        double max = JXPaint.number(node, "max", 100);
+        float room = g[1] - g[3];
+        double fraction = room <= 0 ? 0 : Math.max(0, Math.min(1, (thumbStart - g[0]) / room));
+        return min + fraction * Math.max(0, max - min);
+    }
+
+    /** A press on the thumb grabs it; one on the track puts the middle of the thumb under the pointer. */
+    private static void pressBar(JXNativeNode node, JXPointerEvent event, Consumer<Object> onChange) {
+        float[] g = JXControlLayout.scrollBarGeometry(node);
+        float at = along(node, event);
+        node.dragThumb = at >= g[2] && at <= g[2] + g[3];
+        if (node.dragThumb) {
+            node.dragOffset = at - g[2];
+            return;
+        }
+        report(node, barValue(node, g, at - g[3] / 2), onChange);
+    }
+
+    private static void report(JXNativeNode node, double value, Consumer<Object> onChange) {
+        if (value != JXPaint.number(node, "value", Double.NaN)) {
+            onChange.accept(Double.valueOf(value));
+        }
+    }
+
+    /** A press on a divider of a split pane grabs it. */
+    private static void pressDivider(JXNativeNode node, JXPointerEvent event) {
+        float[][] rects = JXControlLayout.splitRects(node);
+        int panes = node.getChildren().size();
+        node.dragDivider = -1;
+        for (int i = panes; i < rects.length; i++) {
+            float[] r = rects[i];
+            boolean on = event.getX() >= r[0] - 2 && event.getX() < r[0] + r[2] + 2 && event.getY() >= r[1] - 2
+                    && event.getY() < r[1] + r[3] + 2;
+            if (on) {
+                node.dragDivider = i - panes;
+                node.dragOffset = along(node, event) - (node.vertical() ? r[1] : r[0]);
+                return;
+            }
+        }
+    }
+
+    /**
+     * The pointer moved with the button held after a press that grabbed a scroll bar's thumb (its {@code onChange}
+     * gets the new value, a Double) or a divider (it gets the positions of all the dividers as a double[], with the
+     * grabbed one moved, kept between its neighbours and at least {@link JXControlLayout#MIN_PANE} pixels from them).
+     */
+    static void drag(JXNativeNode node, JXPointerEvent event) {
+        Consumer<Object> onChange = handler(node);
+        if (onChange == null) {
+            return;
+        }
+        if ("scrollbar".equals(node.getType()) && node.dragThumb) {
+            float[] g = JXControlLayout.scrollBarGeometry(node);
+            report(node, barValue(node, g, along(node, event) - node.dragOffset), onChange);
+        } else if ("splitpane".equals(node.getType()) && node.dragDivider >= 0) {
+            int i = node.dragDivider;
+            double[] positions = JXControlLayout.splitPositions(node);
+            float room = JXControlLayout.splitRoom(node);
+            if (i >= positions.length || room <= 0) {
+                return;
+            }
+            float origin = node.vertical() ? node.getY() : node.getX();
+            double start = along(node, event) - node.dragOffset - origin - i * JXControlLayout.DIVIDER;
+            double min = (i == 0 ? 0 : positions[i - 1]) + JXControlLayout.MIN_PANE / (double) room;
+            double max = (i == positions.length - 1 ? 1 : positions[i + 1]) - JXControlLayout.MIN_PANE / (double) room;
+            double next = max < min ? positions[i] : Math.max(min, Math.min(max, start / room));
+            if (Math.abs(next - positions[i]) > 1e-9) {
+                double[] out = positions.clone();
+                out[i] = next;
+                onChange.accept(out);
+            }
         }
     }
 
