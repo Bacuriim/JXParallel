@@ -313,11 +313,7 @@ public final class JxmlTemplate implements JxmlView<Object> {
             throw new JxmlException(source, p.line, p.attr.name + " needs a controller");
         }
         Class<?> type = target.getClass();
-        Map<String, Method> byName = methods.get(type);
-        if (byName == null) {
-            byName = new ConcurrentHashMap<String, Method>();
-            methods.put(type, byName);
-        }
+        Map<String, Method> byName = methods.computeIfAbsent(type, k -> new ConcurrentHashMap<String, Method>());
         Method m = byName.get(name);
         if (m == null) {
             try {

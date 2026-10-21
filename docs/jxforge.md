@@ -83,6 +83,10 @@ window.setContent(screen);
 | `classSuffix` | `View` | `order-list.jxml` becomes `OrderListView` |
 | `hoistConstants` | `true` | build subtrees without bindings once, when the class loads |
 
+Maven only runs a plugin from the repository, so inside this repository's own build (where the
+plugin is built in the same reactor) `jxparallel-examples-native` calls the command line below
+through `exec-maven-plugin`; its profile `jxforge-plugin` uses the plugin after `mvn install`.
+
 Without Maven, the same compiler runs from the command line:
 
 ```powershell

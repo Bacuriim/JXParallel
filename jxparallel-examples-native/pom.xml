@@ -40,35 +40,129 @@
                 <directory>src/main/jxml</directory>
             </resource>
         </resources>
+        <!-- Maven cannot run a plugin built in the same reactor before it is installed, so the
+             default build calls the JXForge command line on the reactor's classes; the profile
+             jxforge-plugin uses jxforge-maven-plugin instead (run mvn install once first). -->
         <plugins>
             <plugin>
-                <groupId>com.jxparallel</groupId>
-                <artifactId>jxforge-maven-plugin</artifactId>
-                <version>${project.version}</version>
+                <groupId>org.codehaus.mojo</groupId>
+                <artifactId>exec-maven-plugin</artifactId>
+                <version>3.5.0</version>
                 <executions>
                     <execution>
                         <id>views</id>
+                        <phase>generate-sources</phase>
                         <goals>
-                            <goal>generate</goal>
+                            <goal>java</goal>
                         </goals>
                         <configuration>
-                            <packageName>com.jxparallel.examples.nativeui.forgebench.gen</packageName>
+                            <arguments>
+                                <argument>--src</argument>
+                                <argument>${project.basedir}/src/main/jxml</argument>
+                                <argument>--out</argument>
+                                <argument>${project.build.directory}/generated-sources/jxforge</argument>
+                                <argument>--package</argument>
+                                <argument>com.jxparallel.examples.nativeui.forgebench.gen</argument>
+                            </arguments>
                         </configuration>
                     </execution>
                     <!-- the same screens without constant hoisting, to measure what hoisting adds -->
                     <execution>
                         <id>views-plain</id>
+                        <phase>generate-sources</phase>
                         <goals>
-                            <goal>generate</goal>
+                            <goal>java</goal>
                         </goals>
                         <configuration>
-                            <packageName>com.jxparallel.examples.nativeui.forgebench.plain</packageName>
-                            <outputDirectory>${project.build.directory}/generated-sources/jxforge-plain</outputDirectory>
-                            <hoistConstants>false</hoistConstants>
+                            <arguments>
+                                <argument>--src</argument>
+                                <argument>${project.basedir}/src/main/jxml</argument>
+                                <argument>--out</argument>
+                                <argument>${project.build.directory}/generated-sources/jxforge-plain</argument>
+                                <argument>--package</argument>
+                                <argument>com.jxparallel.examples.nativeui.forgebench.plain</argument>
+                                <argument>--no-hoist</argument>
+                            </arguments>
+                        </configuration>
+                    </execution>
+                </executions>
+                <configuration>
+                    <mainClass>com.jxparallel.forge.JXForge</mainClass>
+                    <classpathScope>compile</classpathScope>
+                    <blockSystemExit>true</blockSystemExit>
+                </configuration>
+            </plugin>
+            <plugin>
+                <groupId>org.codehaus.mojo</groupId>
+                <artifactId>build-helper-maven-plugin</artifactId>
+                <version>3.6.0</version>
+                <executions>
+                    <execution>
+                        <id>add-jxforge-sources</id>
+                        <phase>generate-sources</phase>
+                        <goals>
+                            <goal>add-source</goal>
+                        </goals>
+                        <configuration>
+                            <sources>
+                                <source>${project.build.directory}/generated-sources/jxforge</source>
+                                <source>${project.build.directory}/generated-sources/jxforge-plain</source>
+                            </sources>
                         </configuration>
                     </execution>
                 </executions>
             </plugin>
         </plugins>
     </build>
+
+    <profiles>
+        <profile>
+            <id>jxforge-plugin</id>
+            <build>
+                <plugins>
+                    <plugin>
+                        <groupId>org.codehaus.mojo</groupId>
+                        <artifactId>exec-maven-plugin</artifactId>
+                        <executions>
+                            <execution>
+                                <id>views</id>
+                                <phase>none</phase>
+                            </execution>
+                            <execution>
+                                <id>views-plain</id>
+                                <phase>none</phase>
+                            </execution>
+                        </executions>
+                    </plugin>
+                    <plugin>
+                        <groupId>com.jxparallel</groupId>
+                        <artifactId>jxforge-maven-plugin</artifactId>
+                        <version>${project.version}</version>
+                        <executions>
+                            <execution>
+                                <id>views</id>
+                                <goals>
+                                    <goal>generate</goal>
+                                </goals>
+                                <configuration>
+                                    <packageName>com.jxparallel.examples.nativeui.forgebench.gen</packageName>
+                                </configuration>
+                            </execution>
+                            <execution>
+                                <id>views-plain</id>
+                                <goals>
+                                    <goal>generate</goal>
+                                </goals>
+                                <configuration>
+                                    <packageName>com.jxparallel.examples.nativeui.forgebench.plain</packageName>
+                                    <outputDirectory>${project.build.directory}/generated-sources/jxforge-plain</outputDirectory>
+                                    <hoistConstants>false</hoistConstants>
+                                </configuration>
+                            </execution>
+                        </executions>
+                    </plugin>
+                </plugins>
+            </build>
+        </profile>
+    </profiles>
 </project>
