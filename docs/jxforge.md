@@ -177,9 +177,22 @@ inside a `Border`), and these, which the renderer reads from any node:
 | `TextField`, `PasswordField` | `input`, `password` | `text`, `prompt`, `columns` |
 | `TextArea` | `textarea` | `text`, `prompt`, `wrapText`, `columns`, `rows` |
 | `CheckBox` | `checkbox` | `text`, `selected` |
-| `ComboBox` | `select` | `items` (a list or `A, B, C`), `value`, `prompt` |
+| `ComboBox` | `select` | `items` (a list or `A, B, C`), `value`, `prompt`, `showing`, `onShowing` |
 | `Spinner` | `spinner` | `value`, `min`, `max` |
-| `DatePicker` | `datepicker` | `value`, `prompt` |
+| `DatePicker` | `datepicker` | `value`, `prompt`, `showing`, `onShowing` |
+| `TimePicker` | `timepicker` | `value` (`HH:mm`), `prompt`, `hour24`, `minuteStep`, `disabled`, `showing`, `onShowing` |
+| `ColorPicker` | `colorpicker` | `value` (`#RRGGBB`), `prompt`, `disabled`, `showing`, `onShowing` |
+| `MenuButton` | `menubutton` | `text`, `disabled`, `showing`, `onShowing`; children are `MenuItem`s and `Menu`s |
+| `ContextMenu` | `contextmenu` | `disabled`, `showing`, `onShowing`; children are `MenuItem`s and `Menu`s; takes no room |
+| `MenuBar` | `menubar` | children are `Menu`s |
+| `Menu` | `menu` | `text`, `disabled`; children are `MenuItem`s and `Menu`s (a submenu) |
+| `MenuItem` | `menuitem` | `text`, `accelerator`, `disabled`, `onAction`, `separator` |
+| `Modal` | `dialog` | `dismissible`, `padding`, `gap`, `alignment`, `fillWidth`, `showing`, `onShowing`; a column over a scrim; takes no room |
+| `Drawer` | `drawer` | `side` (`left`, `right`), `padding`, `gap`, `alignment`, `fillWidth`, `showing`, `onShowing`; a column over a scrim; takes no room |
+| `SnackBar` | `snackbar` | `message`, `action`, `onAction`, `duration`, `showing`, `onShowing`; takes no room |
+| `Tree` | `list` | `rowHeight`, `first`, `rows`; children are `TreeItem`s |
+| `TreeTable` | `table` | `rowHeight`, `first`, `rows`, `columns`, `columnWidths`, `constrained`; children are `TreeItem`s |
+| `TreeItem` | `cell` | `text`, `expanded`, `selected`, `listFocused`, `values`, `onAction`, `onToggle`; children are `TreeItem`s |
 | `Separator` | `separator` | `orientation` |
 | `ProgressBar` | `progress` | `progress` |
 | `Slider` | `slider` | `min`, `max`, `value` |
@@ -194,11 +207,14 @@ inside a `Border`), and these, which the renderer reads from any node:
 | `TabBar` | `tabbar` | `titles`, `selected`, `closable`, `onClose` (Integer); `onChange` (Integer) |
 | `Slot` | what the binding returns | `content` |
 | `For`, `If`, `Else` | none: they stand for elements | `items`, `var`, `type`, `key`, `from`, `limit`; `test` |
-| Composites | none: they are rewritten (see [Composites](#composites)) | `Padding`, `Center`, `Align`, `SizedBox`, `Expanded`, `Flexible`, `Spacer`, `Box`, `Container`, `Card`, `ListTile`, `Divider`, `Visibility`, `Opacity`, `Wrap`, `Positioned`, `ChoiceBox`, `Scaffold`, `AppBar`, `BottomAppBar`, `BottomBar`, `ToolBar`, `NavigationBar`, `NavigationRail`, `IconButton`, `Fab` |
+| Composites | none: they are rewritten (see [Composites](#composites)) | `Padding`, `Center`, `Align`, `SizedBox`, `Expanded`, `Flexible`, `Spacer`, `Box`, `Container`, `Card`, `ListTile`, `Divider`, `Visibility`, `Opacity`, `Wrap`, `Positioned`, `ChoiceBox`, `Scaffold`, `AppBar`, `BottomAppBar`, `BottomBar`, `ToolBar`, `NavigationBar`, `NavigationRail`, `IconButton`, `Fab`, `Dialog`, `AlertDialog`, `MenuSeparator` |
 
-`TextField`, `PasswordField`, `TextArea`, `CheckBox`, `ComboBox`, `Spinner`, `DatePicker` and
+`TextField`, `PasswordField`, `TextArea`, `CheckBox`, `ComboBox`, `Spinner`, `DatePicker`, `TimePicker`, `ColorPicker` and
 `Slider` also accept `onChange` (see [Input changes](#input-changes)); `ToggleButton` and `RadioButton` accept
-it with `group` (see [Groups](#groups)).
+it with `group` (see [Groups](#groups)). Tags that open over the window take `showing` and `onShowing` (see [Overlays](#overlays)).
+A `MenuItem` stands only inside a `MenuButton`, `ContextMenu` or `Menu`, a `Menu` inside a `MenuBar`, `MenuButton`,
+`ContextMenu` or `Menu`, a `TreeItem` inside a `Tree`, `TreeTable` or `TreeItem`; those parents take only those children
+(loops and conditions around them are fine), and a mistake is a `JxmlException` at the line of the wrong tag.
 
 The table lives in one place, `JxmlSchema`, read by both the interpreter and the compiler. Prop
 names and value types are the ones the native renderer reads; a number written as text would be
@@ -270,14 +286,14 @@ node keeps showing its `value` prop until the screen is built again with the new
 | `CheckBox` | `boolean` | click, or space |
 | `Slider` | `double` | click on the track |
 | `Spinner` | `double` | Up / Down arrows, within `min` and `max` |
-| `ComboBox` | `String`, the option | Up / Down arrows |
-| `DatePicker` | `String`, ISO `yyyy-MM-dd` | Up / Down (day), Page Up / Page Down (month) |
+| `ComboBox` | `String`, the option | Up / Down arrows, a press on an option of the open list |
+| `DatePicker` | `String`, ISO `yyyy-MM-dd` | Up / Down (day), Page Up / Page Down (month), a press on a day of the open calendar |
+| `TimePicker` | `String`, `HH:mm` | Up / Down (the `minuteStep`), Page Up / Page Down (an hour), a press on an hour, a minute or AM / PM of the open popup |
+| `ColorPicker` | `String`, `#RRGGBB` | a press on a swatch of the open popup, or hex digits typed in it once the text reads `#RRGGBB` |
 | `Switch`, `Chip` | `boolean` | click (and space for `Switch`) |
 | `ScrollBar` | `double` | click on the track, drag of the thumb |
 | `SplitPane` | `double[]`, all the divider positions | drag of a divider; `@{positions}` needs a setter taking a `double[]` |
 | `TabBar` | `int`, the tab | click on another tab; `onClose` gets the index of the tab whose close icon was clicked |
-
-Popups of the combo box and date picker are not drawn yet, so these two change with the keyboard.
 
 ```xml
 <TextField text="${note}" onChange="#setNote"/>           <!-- controller.setNote(String) -->
@@ -384,6 +400,9 @@ and the compiler never see it. The rewritten tags keep the line of the composite
 | `NavigationBar` | `Row gap="0" padding="4" alignment="CENTER"`; each child gets `hgrow="always"` so they share the width |
 | `ListTile title subtitle onAction` | `Row gap="12" padding="8 12" alignment="CENTER_LEFT"` with the `onAction`: the child with `slot="leading"`, then a `Column` (`hgrow="always"`, `mouseTransparent`) of a `Label` of the title and, if written, a smaller grey one of the subtitle, then the child with `slot="trailing"` |
 | `Scaffold` | `Border`: an `AppBar` child goes to `top`, a `BottomAppBar` or `BottomBar` to `bottom`, the one other child to `center`; a child that writes `slot` keeps it |
+| `Dialog title showing onShowing dismissible` | a `Modal` (`padding="24" gap="16" alignment="TOP_LEFT" minWidth="280"` unless written) of a bold `Label` of the title (size 18), the children, then the children with `slot="actions"` in a `ButtonBar` |
+| `AlertDialog title message confirmText cancelText onConfirm onCancel` | a `Modal` of the title, the message (a wrapping `Label`, at most 320 wide) and a `ButtonBar` of the cancel `Button` (only when `cancelText` is written, its `onAction` is `onCancel`) and the confirm `Button` (`confirmText`, OK when not written; `defaultButton`, its `onAction` is `onConfirm`) |
+| `MenuSeparator` | `MenuItem separator="true"` |
 
 Attributes written on a composite that its expansion does not give a tag are errors (`<Center> has no attribute gap`),
 and a value that is wrong is reported for the tag it ends up on, at the composite's line.
@@ -427,6 +446,141 @@ every painter draws it, because it uses only the primitives of `JXPainter`.
 
 A drag needs the pointer moves after the press: the renderer's window delivers them to `JXNativeNode.dispatchDrag` when it has no input listener; a host
 with its own listener calls that method.
+
+## Overlays
+
+Everything that opens over the window goes through one mechanism in the renderer (`JXOverlays`, `JXOverlayPaint`):
+
+| Tag | Native element | What opens | Where |
+|---|---|---|---|
+| `ComboBox` | `select` | the list of `items` (at most ten rows, scrolled to the chosen one) | below the control, or above when there is no room |
+| `DatePicker` | `datepicker` | a calendar of the month of `value` (today when empty) with arrows to the other months | below |
+| `TimePicker` | `timepicker` | the hours (24, or 12 and AM / PM without `hour24`) and the minutes (every `minuteStep`, a divisor of 60; 5 when not written or not one) | below |
+| `ColorPicker` | `colorpicker` | 40 swatches and a hex field | below |
+| `MenuButton` | `menubutton` | the panel of its items and submenus | below the button |
+| `ContextMenu` | `contextmenu` | the panel of its items and submenus | at the pointer of a secondary press on its parent |
+| `MenuBar` | `menubar` | the panel of the pressed `Menu`'s items and submenus | below its title |
+| `Dialog`, `AlertDialog`, `Modal` | `dialog` | a column of content, over a scrim | the middle of the window |
+| `Drawer` | `drawer` | a column the height of the window, over a scrim | the left or right edge |
+| `SnackBar` | `snackbar` | `message` and an `action` | bottom center, 16 px from the edge; no scrim |
+
+```xml
+<Stack controller="com.acme.OrdersController">
+  <Column padding="8">
+    <ComboBox items="${cities}" value="${city}" showing="${cityOpen}" onShowing="#setCityOpen" onChange="#setCity"/>
+    <Button text="Delete" onAction="#askDelete"/>
+  </Column>
+  <AlertDialog title="Delete?" message="This cannot be undone." confirmText="Delete" cancelText="Cancel"
+               showing="${deleting}" onShowing="#setDeleting" onConfirm="#delete" onCancel="#keep"/>
+  <SnackBar message="Deleted" action="Undo" onAction="#undo" duration="4000" showing="${deleted}" onShowing="#setDeleted"/>
+</Stack>
+```
+
+- **State.** `showing` is the open state and `onShowing` the handler (`#setCityOpen` calls `setCityOpen(boolean)`) that gets the
+  state the user asked for: a press on the control (open or close), a choice in a popup, a press outside, Escape, a snack bar's
+  timeout. With `showing` written, the application holds the state and the node only asks, as inputs do with `onChange`: nothing
+  closes until the application renders again with `showing` false. Without it, the node keeps its own state: a `MenuButton`,
+  `ContextMenu` or `MenuBar` written without `showing` opens and closes by itself. `ComboBox`, `DatePicker`, `TimePicker`, `ColorPicker`, `Modal`, `Drawer` and
+  `SnackBar` default `showing` to false, so they are controlled; `MenuButton`, `ContextMenu` and `MenuBar` have no default.
+  `showing` cannot be bound two ways (`@{...}`): `onShowing` is a separate handler.
+- **Where it is written.** An overlay is placed over the window, not by its parent: put `Dialog`, `Drawer`, `SnackBar` and
+  `ContextMenu` anywhere (a `Stack` at the root is the usual place); they take no room where they are written (size 0 by 0, and
+  a `Column` still counts its `gap` for them), and a `ContextMenu` opens on the secondary press on its *parent*, the deepest
+  parent under the pointer when several nest.
+- **Drawing.** The open overlays are drawn after the whole tree, in tree order (a later one is above an earlier one), with
+  the theme at their place. They use only the `JXPainter` primitives, so Skia, NanoVG and the software painter draw them.
+  The scrim is `#66000000` over the whole window.
+- **The pointer.** `JXNativeNode.hitPath` and `hitTest` find an open overlay before anything else. The window gives presses to
+  `JXNativeNode.routePointer(event)`, which: sends a press on an open popup, menu or dialog there; closes the topmost open popup
+  or menu on a press outside it (and goes no further, so the press does not click what is under it); asks a dialog or drawer to
+  close on a press on its scrim (a `Modal` with `dismissible="false"` ignores it); opens a `ContextMenu` on a secondary press;
+  and otherwise gives the press to the deepest node. A snack bar takes only the presses on it. A host that handles its own input
+  (`JXWindow.setInputListener`) calls `routePointer` and `routeKey` itself.
+- **Keys.** `JXNativeNode.routeKey(event, focused)`: Escape closes the topmost open overlay (a snack bar only when it is the
+  only one); Enter presses the `defaultButton` of an open dialog, and closes an open popup of the focused control; every other
+  key goes to the focused node. With a color picker open, `#` and hex digits are typed in its hex field (Backspace removes
+  one) and each complete `#RRGGBB` goes to `onChange`.
+- **Dialog.** `Dialog` is a `Modal` (a column: use `padding`, `gap`, `alignment`, `prefWidth`... on it as on a `Column`)
+  with the title, the content and the buttons; `AlertDialog` adds the usual two buttons. Each button has its own `onAction`.
+  The dialog is as wide as its content (at least 280 as a `Dialog`) and at most the window less 24 px on each side.
+- **Menus.** A `MenuItem` runs its `onAction` and closes the menu; a disabled one and a `MenuSeparator` do nothing and the menu
+  stays open; a `Menu` inside a `Menu` opens a submenu to the right of its row (to the left when there is no room); a
+  `MenuBar` opens the menu of the pressed title, another title switches, the same title closes. `accelerator` is only text
+  (`Ctrl+O`): nothing binds the key.
+- **Snack bar.** `duration` (milliseconds) is read by the node: `JXNativeNode.tickOverlays()` (the window calls it every turn
+  of its loop while one waits) asks the snack bar to close through `onShowing` when it has been showing that long. The
+  application hides it by setting `showing` false. `action` and `onAction` make a button at the right end; the message is not
+  a button.
+- **For code.** `JXNativeNode.getPopupBounds()` and `getPopupCells()` give the rectangles of what a node has open (the
+  mount tests press on them).
+
+The JavaFX bridge (`jxparallel-fx`) sends `select` and `datepicker` with `showing` and draws their popups as separate
+elements, so a `select` or `datepicker` opens its own popup only with the prop `overlay`, which `ComboBox` and `DatePicker`
+write.
+
+## Trees
+
+```xml
+<Tree rowHeight="22" first="${top}" rows="20">
+  <TreeItem text="src" expanded="${srcOpen}" selected="${srcSelected}" onAction="#selectSrc" onToggle="#toggleSrc">
+    <TreeItem text="main"/>
+    <For items="${files}" var="f" type="com.acme.File" key="${f.id}">
+      <TreeItem text="${f.name}" onAction="#select(f)"/>
+    </For>
+  </TreeItem>
+  <TreeItem text="README.md"/>
+</Tree>
+
+<TreeTable rowHeight="24" columns="Name, Size" columnWidths="-1, 80" constrained="true">
+  <TreeItem text="docs" expanded="true" values="12 KB"><TreeItem text="guide.md" values="4 KB"/></TreeItem>
+</TreeTable>
+```
+
+- **The model** is the nested `TreeItem`s, with `<For>` and `<If>` anywhere between them (and `key` on a `<For>` as in any loop);
+  the application's own state (`expanded`, `selected`) is read from the controller as for any other tag. An item is a *leaf*
+  when it has no `TreeItem` child. A `TreeItem` outside a `Tree`, `TreeTable` or `TreeItem`, and any other tag inside them, is
+  a `JxmlException`.
+- **The rows.** `JxmlRuntime.tree` (shared by the interpreter and the generated code) flattens the *visible* items in order:
+  an item's children follow it only when it is `expanded`. The result is a `list` of `cell`s (a `Tree`) or a `table` of
+  `tablerow`s of `cell`s (a `TreeTable`), as a `ListView` or `TableView` is built, with `itemCount` (all the visible items),
+  `first`, `scrollY` (`first * rowHeight`) and `cellHeight` / `rowHeight` (24 when not written, greater than 0): the same
+  geometry and the same virtual rows, so scrolling is the application's `first`, and the renderer lays out only the `rows`
+  (30 when not written) rows from `first`. Every row gets `odd` from its place among the visible items.
+- **A row** has `indent` (its depth: 16 px each) and `disclosure`: `expanded` or `collapsed` draw an arrow, `leaf` draws none but
+  keeps its room. A press on the arrow runs the item's `onToggle` (the application changes `expanded`); a press anywhere else on
+  the row runs its `onAction` (the application changes `selected`). An item without `onToggle` selects on the arrow too.
+- **`TreeTable`.** The first cell of a row is the tree (text, indent, arrow); `values` (a list, or `A, B`) are the texts of
+  the next columns. `columns`, `columnWidths` and `constrained` are those of `TableView`. `onAction` is on every cell of the row,
+  `onToggle` only on the first. `values` in a `Tree` is an error at the line of the `Tree`.
+- **Keys.** An item with a `key` (the `key` of a `<For>`, or `key="..."`) keeps its node when the window scrolls, if every row of
+  the window has one: the renderer matches rows by key only when all of them have it.
+- **Limits.** Every item is built on each render; only the window reaches the renderer (the build is not windowed, as a
+  `ListView`'s is). There is no `children="${...}"` attribute for a recursive model: nest the items, put a `<For>` at each level,
+  or flatten the model yourself into a `ListView` of rows with a depth.
+
+## Development mode
+
+`JxmlLiveView` (in `jxparallel-forge`) reads a `.jxml` file with the interpreter and reads it again when the file, or a file it
+includes, is saved. The application asks it for the screen every time it renders; a save only has to trigger a render.
+
+```java
+JxmlLiveView live = JxmlLiveView.open(new File("src/main/jxml/customers.jxml"))
+        .onError(e -> System.err.println(e.getMessage()))               // "customers.jxml:7: unknown tag <Buton>"
+        .onReload(() -> window.invokeLater(() -> window.setContent(live.build(controller))))
+        .start();
+window.setContent(live.build(controller));   // JxmlLiveView is a JxmlView<Object>, like the generated classes
+```
+
+- It watches the folder of the file and of each include with a `WatchService` on a daemon thread, and reads after 80 ms without
+  another event (a save is several events). `reload()` reads at once, on the calling thread, and returns whether the new screen
+  was taken; `close()` stops the thread.
+- A file that cannot be read (half written, a wrong tag or attribute, a missing include) keeps the last good screen:
+  `build` goes on using it, `lastError()` holds the `JxmlException` with the file and line, and the `onError` listeners get it.
+  The next good save replaces the screen and clears the error. `open` throws on the first read, since there is nothing to keep yet.
+- Thread safe. Listeners run on the watcher thread (or the thread that called `reload`); a window's `invokeLater` brings the work
+  back to the display thread. `window.setContent` reconciles in place, so the nodes, the focus and the scroll positions that stay
+  are kept.
+- Controller methods are found by reflection each time; a change to the controller class is not reloaded, only to the files.
 
 ## Styles and themes
 
@@ -494,7 +648,6 @@ JXML screen with `new XView().build(controller)`, and JXML places a Java compone
 
 ## Not done yet
 
-- The widgets of the [1.0 checklist](jxforge-1.0.md) that are not tags yet (the `todo` rows of group 4).
 - Events the renderer does not report, so no attribute exists for them: selection and scrolling of lists and
   tables (use a row's `onAction` and the application's `first`), clicks on the buttons of a `Pagination`, and the
   hover that would show a `Tooltip`. A `TitledPane` collapses when the application changes `expanded`
@@ -502,9 +655,10 @@ JXML screen with `new XView().build(controller)`, and JXML places a Java compone
 - Loading an image file for `Image`: it takes the pixels an application decoded.
 - Shadows (for `Card`) and the Material look of the bars: they are rows with a background.
 - A `ListView` with columns, and rows of different heights.
-- Selection in text inputs, and popups for the combo box and date picker.
+- Selection in text inputs.
+- Keyboard navigation and hover in the popups and menus (see [Overlays](#overlays)), and a recursive model for `Tree`
+  (see [Trees](#trees)).
 - `<For>` over a `Map`, and the loop index as a variable.
-- Development mode: the interpreter watching the files and rebuilding the screen on save.
 - An XSD for autocompletion in IDEs.
 - Compiling existing `.fxml` files with the same compiler, so a JavaFX application moving to the
   native UI gets compiled screens without rewriting them.

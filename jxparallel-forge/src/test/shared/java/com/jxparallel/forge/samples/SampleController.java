@@ -40,6 +40,98 @@ public class SampleController {
         }
     }
 
+    /** Which overlays the samples have open: the popup of the combo box, the menu button's menu, the dialog, drawer and snack bar. */
+    public boolean comboOpen = true;
+    public boolean dateOpen;
+    public boolean timeOpen;
+    public boolean colorOpen;
+    public boolean menuOpen = true;
+    public boolean contextOpen = true;
+    public boolean dialogOpen = true;
+    public boolean drawerOpen = true;
+    public boolean snackOpen = true;
+
+    public boolean getComboOpen() {
+        return comboOpen;
+    }
+
+    public boolean getDateOpen() {
+        return dateOpen;
+    }
+
+    public boolean getTimeOpen() {
+        return timeOpen;
+    }
+
+    public boolean getColorOpen() {
+        return colorOpen;
+    }
+
+    public boolean getMenuOpen() {
+        return menuOpen;
+    }
+
+    public boolean getContextOpen() {
+        return contextOpen;
+    }
+
+    public boolean getDialogOpen() {
+        return dialogOpen;
+    }
+
+    public boolean getDrawerOpen() {
+        return drawerOpen;
+    }
+
+    public boolean getSnackOpen() {
+        return snackOpen;
+    }
+
+    public String time = "09:30";
+    public String accent = "#E91E63";
+    public final List<Node> folders = new ArrayList<Node>();
+
+    {
+        Node main = new Node(1, "main", false, new Node(2, "java", false), new Node(3, "resources", false));
+        Node src = new Node(10, "src", true, main, new Node(4, "test", false));
+        folders.add(src);
+        folders.add(new Node(20, "docs", false, new Node(21, "guide.md", false)));
+        folders.add(new Node(30, "README.md", false));
+    }
+
+    public List<Node> getFolders() {
+        return folders;
+    }
+
+    public String getTime() {
+        return time;
+    }
+
+    public void setTime(String value) {
+        time = value;
+    }
+
+    public String getAccent() {
+        return accent;
+    }
+
+    public void setAccent(String value) {
+        accent = value;
+    }
+
+    /** The handler of every {@code onShowing}: the overlay asked to open or close. */
+    public void setOpen(boolean value) {
+        calls.add("showing " + value);
+    }
+
+    public void toggle(Node node) {
+        calls.add("toggle " + node.getName());
+    }
+
+    public void pick(Node node) {
+        calls.add("pick " + node.getName());
+    }
+
     public int unread = 3;
     public double scroll = 20;
     public double[] positions = {0.3, 0.7};
@@ -246,6 +338,37 @@ public class SampleController {
 
     public void setChoice(String value) {
         choice = value;
+    }
+
+    /** One node of the trees: a name and the nodes under it. */
+    public static class Node {
+        private final Integer id;
+        private final String name;
+        private final boolean expanded;
+        private final List<Node> children;
+
+        Node(int id, String name, boolean expanded, Node... children) {
+            this.id = Integer.valueOf(id);
+            this.name = name;
+            this.expanded = expanded;
+            this.children = Arrays.asList(children);
+        }
+
+        public Integer getId() {
+            return id;
+        }
+
+        public String getName() {
+            return name;
+        }
+
+        public boolean getExpanded() {
+            return expanded;
+        }
+
+        public List<Node> getChildren() {
+            return children;
+        }
     }
 
     /** One row of the lists and tables. */

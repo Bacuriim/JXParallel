@@ -116,6 +116,110 @@ public final class JxmlRuntime {
         }
     }
 
+    /** Props of a tree item that are only the model's, and not the row's. */
+    private static final java.util.Set<String> ITEM_ONLY = new java.util.HashSet<String>(
+            java.util.Arrays.asList("expanded", "values", "indent", "disclosure"));
+
+    /**
+     * A {@code Tree} or {@code TreeTable} as the renderer takes it. {@code items} are the built {@code TreeItem}s, each with
+     * its own items as children (the interpreter and the generated code build them with the loops and conditions of the
+     * file). The visible ones are flattened in order, an item's children right after it when it is {@code expanded}; the
+     * element is a {@code list} of {@code cell} rows (a {@code Tree}) or a {@code table} of {@code tablerow}s of {@code cell}s
+     * (a {@code TreeTable}), of which only the window of {@code rows} from {@code first} is given, with the {@code itemCount}
+     * and {@code scrollY} of the whole, as a virtual list does. A row has {@code indent} (its depth) and a
+     * {@code disclosure}: {@code expanded}, {@code collapsed} or {@code leaf} (no children).
+     *
+     * <p>All the items are built, as JavaFX builds its tree model; only the rows of the window reach the renderer.
+     */
+    public static JXElement tree(String tag, JXProps props, JXElement... items) {
+        boolean table = "TreeTable".equals(tag);
+        String heightProp = table ? "rowHeight" : "cellHeight";
+        double height = ((Number) props.get(heightProp)).doubleValue();
+        if (!(height > 0)) {
+            throw new IllegalArgumentException("rowHeight must be greater than 0, not " + height);
+        }
+        java.util.List<Object[]> visible = new java.util.ArrayList<Object[]>();
+        flatten(java.util.Arrays.asList(items), 0, visible);
+        int total = visible.size();
+        int first = Math.max(0, Math.min(Math.max(0, total - 1), ((Number) props.get("first")).intValue()));
+        int limit = props.get("rows") == null ? JxmlTemplate.DEFAULT_ROWS : Math.max(0, ((Number) props.get("rows")).intValue());
+        JXProps.Builder out = JXProps.builder();
+        for (java.util.Map.Entry<String, Object> entry : props.asMap().entrySet()) {
+            if (!"rows".equals(entry.getKey())) {
+                out.set(entry.getKey(), entry.getValue());
+            }
+        }
+        out.set("itemCount", Integer.valueOf(total)).set("first", Integer.valueOf(first))
+                .set("scrollY", Double.valueOf(first * height));
+        java.util.List<JXElement> rows = new java.util.ArrayList<JXElement>();
+        for (int i = first; i < total && i - first < limit; i++) {
+            Object[] row = visible.get(i);
+            rows.add(table ? tableRow((JXElement) row[0], i, row) : treeCell((JXElement) row[0], i, row, true));
+        }
+        return JXElement.of(table ? "table" : "list", out.build(), rows.toArray(new JXElement[0]));
+    }
+
+    /** {item, depth, hasChildren, expanded} of each visible item, depth first. */
+    private static void flatten(java.util.List<JXElement> items, int depth, java.util.List<Object[]> out) {
+        for (JXElement item : items) {
+            boolean has = !item.getChildren().isEmpty();
+            boolean expanded = has && Boolean.TRUE.equals(item.getProps().get("expanded"));
+            out.add(new Object[] {item, Integer.valueOf(depth), Boolean.valueOf(has), Boolean.valueOf(expanded)});
+            if (expanded) {
+                flatten(item.getChildren(), depth + 1, out);
+            }
+        }
+    }
+
+    private static String disclosure(Object[] row) {
+        return !((Boolean) row[2]).booleanValue() ? "leaf" : ((Boolean) row[3]).booleanValue() ? "expanded" : "collapsed";
+    }
+
+    /** The row of a tree item: a cell with its depth and arrow, and the item's other props. */
+    private static JXElement treeCell(JXElement item, int index, Object[] row, boolean list) {
+        if (list && item.getProps().get("values") != null) {
+            throw new IllegalArgumentException("a <TreeItem> has values only in a <TreeTable>; a <Tree> has one column, its text");
+        }
+        JXProps.Builder b = JXProps.builder();
+        for (java.util.Map.Entry<String, Object> entry : item.getProps().asMap().entrySet()) {
+            if (!ITEM_ONLY.contains(entry.getKey())) {
+                b.set(entry.getKey(), entry.getValue());
+            }
+        }
+        b.set("indent", Double.valueOf(((Integer) row[1]).intValue())).set("disclosure", disclosure(row));
+        if (item.getProps().get("odd") == null) {
+            b.set("odd", Boolean.valueOf(index % 2 == 1));
+        }
+        return JXElement.of("cell", b.build());
+    }
+
+    private static final double[] CELL_PADDING = {2, 3, 2, 3};
+
+    /** The row of a tree item in a tree table: its text with the arrow, then one cell for each of its {@code values}. */
+    private static JXElement tableRow(JXElement item, int index, Object[] row) {
+        JXProps.Builder r = JXProps.builder();
+        for (String name : new String[] {"key", "selected", "listFocused"}) {
+            r.set(name, item.getProps().get(name));
+        }
+        r.set("odd", Boolean.valueOf(index % 2 == 1));
+        Object action = item.getProps().get("onAction");
+        Object toggle = item.getProps().get("onToggle");
+        java.util.List<JXElement> cells = new java.util.ArrayList<JXElement>();
+        JXProps.Builder first = JXProps.builder().set("value", item.getProps().get("value"))
+                .set("indent", Double.valueOf(((Integer) row[1]).intValue())).set("disclosure", disclosure(row))
+                .set("tableCell", Boolean.TRUE).set("paintBackground", Boolean.FALSE).set("padding", CELL_PADDING)
+                .set("onAction", action).set("onToggle", toggle);
+        cells.add(JXElement.of("cell", first.build()));
+        Object values = item.getProps().get("values");
+        if (values instanceof String[]) {
+            for (String value : (String[]) values) {
+                cells.add(JXElement.of("cell", JXProps.builder().set("value", value).set("tableCell", Boolean.TRUE)
+                        .set("paintBackground", Boolean.FALSE).set("padding", CELL_PADDING).set("onAction", action).build()));
+            }
+        }
+        return JXElement.of("tablerow", r.build(), cells.toArray(new JXElement[0]));
+    }
+
     /** {@code first} kept within the items, and the scroll offset that puts that row at the top of the viewport. */
     private static void virtual(JXProps props, JXProps.Builder out, String heightProp) {
         int count = ((Number) props.get("itemCount")).intValue();

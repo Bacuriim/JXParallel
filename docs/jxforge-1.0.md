@@ -72,13 +72,13 @@ compiler build the same tree for it, and a test covers it. Everything else is `t
 | Radio button | Radio | RadioButton | RadioButton | `RadioButton` (alone, or with `group`) | `radio` | 2 | done |
 | Slider | Slider | Slider | Slider | `Slider` | `slider` | 1 | done |
 | Scroll bar | Scrollbar | VerticalScrollbar | ScrollBar | `ScrollBar` | `scrollbar` | 4 | done |
-| Combo box | DropdownButton | ExposedDropdownMenuBox | ComboBox | `ComboBox` | `select` | 1 | done |
+| Combo box | DropdownButton | ExposedDropdownMenuBox | ComboBox | `ComboBox` (the option list opens with `showing`) | `select` | 1 | done |
 | Choice box | DropdownButton | ExposedDropdownMenuBox | ChoiceBox | `ChoiceBox` (as `ComboBox`) | `select` | 3 | done |
-| Dropdown menu | DropdownMenu / PopupMenuButton | DropdownMenu | MenuButton | `ComboBox` / `MenuButton` | `select`, `popup` | 4 | todo |
+| Dropdown menu | DropdownMenu / PopupMenuButton | DropdownMenu | MenuButton | `ComboBox` / `MenuButton` | `select`, `menubutton` | 4 | done |
 | Spinner | - | - | Spinner | `Spinner` | `spinner` | 1 | done |
-| Date picker | showDatePicker | DatePicker | DatePicker | `DatePicker` | `datepicker` | 1 | done |
-| Time picker | showTimePicker | TimePicker | - | `TimePicker` | - | 4 | todo |
-| Color picker | - | - | ColorPicker | `ColorPicker` | - | 4 | todo |
+| Date picker | showDatePicker | DatePicker | DatePicker | `DatePicker` (the calendar opens with `showing`) | `datepicker` | 1 | done |
+| Time picker | showTimePicker | TimePicker | - | `TimePicker` | `timepicker` | 4 | done |
+| Color picker | - | - | ColorPicker | `ColorPicker` | `colorpicker` | 4 | done |
 | Progress bar | LinearProgressIndicator | LinearProgressIndicator | ProgressBar | `ProgressBar` | `progress` | 1 | done |
 | Progress circle | CircularProgressIndicator | CircularProgressIndicator | ProgressIndicator | `ProgressIndicator` | `indicator` | 2 | done |
 | Divider | Divider | Divider | Separator | `Separator` (`Divider`) | `separator` | 1 | done |
@@ -88,8 +88,8 @@ compiler build the same tree for it, and a test covers it. Everything else is `t
 | Grid (virtual) | GridView | LazyVerticalGrid | - | `Tile` + `<For>` (the `list` element has no columns) | `tile` | 3 | done |
 | List item | ListTile | ListItem | ListCell | `ListItem`, `ListTile` | `cell`, `row` | 3 | done |
 | Table | DataTable | - | TableView / TableColumn | `TableView`, `TableRow`, `TableCell` | `table`, `tablerow`, `cell` | 2 | done |
-| Tree | - | - | TreeView | `Tree` | - | 4 | todo |
-| Tree table | - | - | TreeTableView | `TreeTable` | - | 4 | todo |
+| Tree | - | - | TreeView | `Tree`, `TreeItem` | `list` of `cell` rows (with `indent` and `disclosure`) | 4 | done |
+| Tree table | - | - | TreeTableView | `TreeTable`, `TreeItem` | `table` of `tablerow`s of `cell`s | 4 | done |
 | Tab pane | TabBarView | HorizontalPager | TabPane / Tab | `Tabs` / `Tab` | `tabs` | 1 | done |
 | Tab bar | TabBar | TabRow | TabPane header | `TabBar` | `tabbar` | 4 | done |
 | Accordion | ExpansionPanelList | - | Accordion | `Accordion` | `accordion` | 2 | done |
@@ -102,12 +102,12 @@ compiler build the same tree for it, and a test covers it. Everything else is `t
 | Bottom bar | BottomAppBar | BottomAppBar | - | `BottomAppBar` (`BottomBar`) | `row` | 3 | done |
 | Bottom navigation | BottomNavigationBar / NavigationBar | NavigationBar | - | `NavigationBar` | `row` | 3 | done |
 | Navigation rail | NavigationRail | NavigationRail | - | `NavigationRail` | `column` | 3 | done |
-| Drawer | Drawer | ModalNavigationDrawer | - | `Drawer` | `popup` | 4 | todo |
-| Menu bar | MenuBar | - | MenuBar / Menu / MenuItem | `MenuBar` | - | 4 | todo |
-| Context menu | PopupMenuButton | DropdownMenu | ContextMenu | `ContextMenu` | `popup` | 4 | todo |
+| Drawer | Drawer | ModalNavigationDrawer | - | `Drawer` | `drawer` | 4 | done |
+| Menu bar | MenuBar | - | MenuBar / Menu / MenuItem | `MenuBar`, `Menu`, `MenuItem`, `MenuSeparator` | `menubar`, `menu`, `menuitem` | 4 | done |
+| Context menu | PopupMenuButton | DropdownMenu | ContextMenu | `ContextMenu` | `contextmenu` | 4 | done |
 | Tooltip | Tooltip | TooltipBox | Tooltip | `Tooltip` (drawn where it is placed; no hover trigger) | `tooltip` | 2 | done |
-| Dialog | Dialog / AlertDialog | AlertDialog / Dialog | Dialog / Alert | `Dialog` / `AlertDialog` | `popup` | 4 | todo |
-| Snack bar | SnackBar | Snackbar | - | `SnackBar` | `popup` | 4 | todo |
+| Dialog | Dialog / AlertDialog | AlertDialog / Dialog | Dialog / Alert | `Dialog` / `AlertDialog` (made of `Modal`) | `dialog` | 4 | done |
+| Snack bar | SnackBar | Snackbar | - | `SnackBar` | `snackbar` | 4 | done |
 | File chooser | file_picker (plugin) | ActivityResult | FileChooser | - | - | - | out of scope (OS dialog) |
 | Canvas | CustomPaint | Canvas | Canvas | - | - | - | out of scope (custom painters) |
 | Web view | WebView (plugin) | AndroidView | WebView | - | - | - | out of scope |
@@ -123,12 +123,12 @@ compiler build the same tree for it, and a test covers it. Everything else is `t
 | Loop window | `<For items="${orders}" var="o" from="${first}" limit="30">` builds 30 items from `first` | 5 | done |
 | Condition | `<If test="${admin}">` ... `<Else>` ... | 5 | done |
 | Negation | `test="${!admin}"` | 5 | done |
-| Change events | `onChange="#setName"` on inputs, checkbox, slider, combo box, spinner, date picker | 5 | done |
+| Change events | `onChange="#setName"` on inputs, checkbox, slider, combo box, spinner, date picker, time picker, color picker | 5 | done |
 | Two-way binding | `text="@{customer.name}"` | 5 | done |
 | Nested loops, shadowed loop variables | `<For>` inside `<For>` | 5 | done |
 | Styles and themes | `<Style name="primary" background="primary"/>`, `style="primary"`, `theme="dark"` on the root | 5 | done |
 | Reusable screen parts | `<Include src="parts/header.jxml"/>` | 5 | done |
-| Development mode | the interpreter reloading on file save | 5 | todo |
+| Development mode | the interpreter reloading on file save: `JxmlLiveView` | 5 | done |
 
 ## What phase 1 delivers
 
@@ -154,7 +154,7 @@ Rows moved to group 4:
 
 | Row | Reason |
 |---|---|
-| Dropdown menu (`MenuButton`) | no menu-button element exists, and the popups of `select` and `datepicker` are not drawn yet |
+| Dropdown menu (`MenuButton`) | no menu-button element exists, and the popups of `select` and `datepicker` are not drawn yet (phase 3B draws them) |
 | Tab bar | a header strip whose content lives elsewhere has no element: a `<Tab>` needs its content as a child, and the renderer reports no header clicks (`Tabs` is the tab pane, row "Tab pane") |
 | Stepper | the active and done look of a step depends on a bound step index, which a composite (expanded when the file is read) cannot compute; it needs a derived-props step like `ListView`'s, and a design for the step markers |
 
@@ -165,6 +165,35 @@ their props, and `Tooltip` has no hover trigger.
 
 ## What phase 3A delivers
 
-The rows above marked done in this phase: Switch, Icon (31 built-in vector icons), Button variants, IconButton, Fab, Chip, Badge, Avatar, Stepper, ScrollBar, SplitPane, TabBar, and the language features Styles and themes and Reusable screen parts. Each has a schema entry, a native element in the renderer (switch, icon, chip, adge, vatar, stepper, scrollbar, splitpane, 	abbar; IconButton and Fab are composites of utton and icon) drawn only through the existing JXPainter primitives, a sample in jxparallel-forge/src/test/shared/samples (material.jxml, includes.jxml, parts/), tests in the forge, the renderer (JXMaterialControlsTest) and the mount tests, and documentation in [jxforge.md](jxforge.md).
+The rows above marked done in this phase: Switch, Icon (31 built-in vector icons), Button variants, IconButton, Fab, Chip, Badge, Avatar, Stepper, ScrollBar, SplitPane, TabBar, and the language features Styles and themes and Reusable screen parts. Each has a schema entry, a native element in the renderer (switch, icon, chip, badge, avatar, stepper, scrollbar, splitpane, tabbar; IconButton and Fab are composites of button and icon) drawn only through the existing JXPainter primitives, a sample in jxparallel-forge/src/test/shared/samples (material.jxml, includes.jxml, parts/), tests in the forge, the renderer (JXMaterialControlsTest) and the mount tests, and documentation in [jxforge.md](jxforge.md).
 
 Limits: dragging a scroll bar thumb or a divider with a real mouse needs the window to pass the move events (JXWindow does when it has no input listener; a host with its own listener calls JXNativeNode.dispatchDrag); the headless tests drive dispatchPointer and dispatchDrag directly. The renderer draws a shadow as a soft darker ring, because not every painter has a blur. Dark theme re-colors the new controls, the themed root surface and the default text of Label; the classic Modena controls keep their look.
+
+## What phase 3B delivers
+
+The last rows: everything that opens over the window, the trees and the development mode. One mechanism serves the
+overlays (see "Overlays" in [jxforge.md](jxforge.md)): the popups of `ComboBox`, `DatePicker`, `TimePicker` and
+`ColorPicker`, the menus of `MenuButton`, `ContextMenu` and `MenuBar`, and the layers `Dialog` / `AlertDialog`,
+`Drawer` and `SnackBar`. They are drawn after everything else through the existing `JXPainter` primitives (no new
+primitive in any painter), take the pointer before everything else, and close on a press outside and on Escape.
+
+Each has a schema entry, a native element and its drawing in `jxparallel-ui` (`JXOverlays`, `JXOverlayPaint`), a sample in
+`jxparallel-forge/src/test/shared/samples` (`pickers.jxml`, `menus.jxml`, `layers.jxml`, `trees.jxml`), tests in the forge
+(`JxmlOverlaysTest`, `JxmlTagsTest`), the renderer (`JXOverlaysTest`) and the mount tests (`ForgeTagsMountTest`).
+
+Limits:
+
+- A `ComboBox` or `DatePicker` draws its popup only with the prop `overlay` (the tags write it): the JavaFX bridge sends
+  the same two elements with `showing` and draws their popups as elements of its own.
+- Keyboard navigation inside the popups is not there: Up / Down on the focused combo, date and time picker change the
+  value as before, Escape and Enter close; menus are used with the pointer. There is no hover highlight (the renderer
+  reports no hover).
+- The popup of a `ComboBox` shows at most ten options and scrolls to the chosen one; it has no scroll bar.
+- A `Tree` or `TreeTable` builds every item of its model on each render (like JavaFX's tree model) and gives the renderer
+  only the window of rows; it is virtual in the renderer, not in the build. The model is nested items (with `<For>` and
+  `<If>` inside them); there is no recursive `children="${...}"` attribute: a model of unbounded depth is a
+  loop per level, or a flat list of rows with their own depth in a `ListView`.
+- A `SnackBar`'s `duration` is carried by the node and the window's loop asks the tree about it once per turn
+  (`JXNativeNode.tickOverlays`); the snack bar asks to close through `onShowing`, the application hides it.
+- A dialog is centered and sized to its content (at most the window less a margin); it does not move or resize.
+- Development mode watches files with `java.nio.file.WatchService` (on macOS the JDK polls, so a save can take seconds).

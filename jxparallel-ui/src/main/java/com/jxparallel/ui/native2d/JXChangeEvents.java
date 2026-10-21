@@ -120,8 +120,72 @@ final class JXChangeEvents {
             case "datepicker":
                 pick(node, event, onChange);
                 break;
+            case "timepicker":
+                tick(node, event, onChange);
+                break;
+            case "colorpicker":
+                typeHex(node, event, onChange);
+                break;
             default:
                 break;
+        }
+    }
+
+    /**
+     * A press on the arrow of a tree row ({@code cell} with a {@code disclosure}) runs its {@code onToggle}. False when
+     * the press was elsewhere on the row, or the row has no handler: then it is a click on the row.
+     */
+    static boolean disclosure(JXNativeNode node, JXPointerEvent event) {
+        if (!JXControlLayout.disclosureAt(node, event.getX())) {
+            return false;
+        }
+        Object onToggle = node.getProperty("onToggle");
+        if (onToggle instanceof Runnable) {
+            ((Runnable) onToggle).run();
+            return true;
+        }
+        return false;
+    }
+
+    /** Up and Down move a time picker by its {@code minuteStep}, Page Up and Page Down by an hour; it wraps around the day. */
+    private static void tick(JXNativeNode node, JXKeyEvent event, Consumer<Object> onChange) {
+        int code = event.getKeyCode();
+        if (code != UP && code != DOWN && code != PAGE_UP && code != PAGE_DOWN) {
+            return;
+        }
+        int now = JXOverlays.parseTime(JXPaint.text(node, "value"));
+        if (now < 0) {
+            now = 0;
+        }
+        int step = (code == UP || code == DOWN) ? JXOverlays.minuteStep(node) : 60;
+        int sign = code == UP || code == PAGE_UP ? 1 : -1;
+        int next = ((now + sign * step) % 1440 + 1440) % 1440;
+        onChange.accept(JXOverlays.formatTime(next / 60, next % 60));
+    }
+
+    /**
+     * Typing in the hex field of an open color picker: {@code #} and hex digits are added to the text being typed,
+     * Backspace removes one; every time it reads {@code #RRGGBB} the color is reported through {@code onChange}.
+     */
+    private static void typeHex(JXNativeNode node, JXKeyEvent event, Consumer<Object> onChange) {
+        if (!JXOverlays.isOpen(node)) {
+            return;
+        }
+        String draft = JXOverlays.hexDraft(node);
+        char typed = event.getKeyChar();
+        int code = event.getKeyCode();
+        String next = draft;
+        if (code == BACKSPACE && !draft.isEmpty()) {
+            next = draft.substring(0, draft.length() - 1);
+        } else if (typed == '#' && draft.isEmpty() || Character.digit(typed, 16) >= 0 && typed < 128) {
+            String base = draft.isEmpty() && typed != '#' ? "#" : draft;
+            if (base.length() < 7) {
+                next = base + (typed == '#' ? "" : String.valueOf(Character.toUpperCase(typed)));
+            }
+        }
+        node.hexDraft = next;
+        if (!next.equals(draft) && JXOverlays.validHex(next)) {
+            onChange.accept(next);
         }
     }
 

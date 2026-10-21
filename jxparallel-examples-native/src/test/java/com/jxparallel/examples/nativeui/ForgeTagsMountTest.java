@@ -1,7 +1,9 @@
 package com.jxparallel.examples.nativeui;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertNotEquals;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
+import static org.junit.jupiter.api.Assertions.assertNull;
 import static org.junit.jupiter.api.Assertions.assertSame;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
@@ -16,6 +18,7 @@ import java.util.Map;
 
 import org.junit.jupiter.api.Test;
 
+import com.jxparallel.forge.JxmlLiveView;
 import com.jxparallel.forge.JxmlSchema;
 import com.jxparallel.forge.JxmlThemes;
 import com.jxparallel.forge.JxmlTemplate;
@@ -23,6 +26,7 @@ import com.jxparallel.forge.samples.SampleController;
 import com.jxparallel.ui.JXElement;
 import com.jxparallel.ui.native2d.JXControlLayout;
 import com.jxparallel.ui.native2d.JXIcons;
+import com.jxparallel.ui.native2d.JXKeyEvent;
 import com.jxparallel.ui.native2d.JXTheme;
 import com.jxparallel.ui.native2d.JXNativeNode;
 import com.jxparallel.ui.native2d.JXPointerEvent;
@@ -145,6 +149,10 @@ class ForgeTagsMountTest {
         stubs.put("Fab", new Object[] {"<Fab icon=\"add\" text=\"New\"/>", "button", 1, 0});
         stubs.put("Scaffold", new Object[] {"<Scaffold><AppBar title=\"t\"/><Label text=\"body\"/>"
             + "<BottomAppBar><Label text=\"s\"/></BottomAppBar></Scaffold>", "border", 3, 2});
+        // an open dialog is a column over the window: its title, its content and its row of buttons
+        stubs.put("Dialog", new Object[] {"<Dialog title=\"t\" showing=\"true\"><Label text=\"c\"/><Button slot=\"actions\" text=\"b\"/></Dialog>",
+            "dialog", 3, 2});
+        stubs.put("AlertDialog", new Object[] {"<AlertDialog title=\"t\" message=\"m\" showing=\"true\"/>", "dialog", 3, 2});
         return stubs;
     }
 
@@ -497,6 +505,339 @@ class ForgeTagsMountTest {
         JXNativeNode badge = all(root, "badge").get(0);
         assertEquals(badge.getX(), badge.getChildren().get(0).getX());
         assertTrue(badge.getWidth() >= badge.getChildren().get(0).getWidth());
+    }
+
+    // ---- overlays: popups, menus, layers ----------------------------------------------------------------
+
+    private static JXNativeNode mount(String sample, SampleController c, int width, int height) throws Exception {
+        JXNativeNode node = JXNativeNode.createBackendNode(template(sample).build(c));
+        node.layoutForBackend(width, height);
+        return node;
+    }
+
+    private static int[] middle(int[] rect) {
+        return new int[] {rect[0] + rect[2] / 2, rect[1] + rect[3] / 2};
+    }
+
+    private static JXNativeNode press(JXNativeNode root, int[] point) {
+        return root.routePointer(new JXPointerEvent(point[0], point[1], 0));
+    }
+
+    private static SampleController closed() {
+        SampleController c = new SampleController();
+        c.comboOpen = false;
+        c.menuOpen = false;
+        c.contextOpen = false;
+        c.dialogOpen = false;
+        c.drawerOpen = false;
+        c.snackOpen = false;
+        return c;
+    }
+
+    @Test
+    void theComboBoxOfThePickersSampleListsItsOptionsBelowItAndAPressOnOneChoosesIt() throws Exception {
+        SampleController c = closed();
+        c.comboOpen = true;
+        JXNativeNode root = mount("pickers", c, WIDTH, HEIGHT);
+        JXNativeNode combo = find(root, "select");
+        int[] popup = combo.getPopupBounds();
+        assertNotNull(popup);
+        assertEquals(combo.getY() + combo.getHeight(), popup[1], "right below the combo box");
+        int[][] rows = combo.getPopupCells();
+        assertEquals(2, rows.length, "Fortaleza and Recife");
+        assertTrue(rows[1][1] > rows[0][1] && rows[0][2] > 0 && rows[0][3] > 0);
+        assertSame(combo, press(root, middle(rows[0])));
+        assertEquals("Fortaleza", c.city, "onChange reached setCity");
+        assertEquals(Arrays.asList("showing false"), c.calls, "and the popup asked to close through onShowing");
+        // a press that is not on the popup closes it and reaches nothing under it
+        c.calls.clear();
+        assertNull(press(root, new int[] {WIDTH - 5, HEIGHT - 5}));
+        assertEquals(Arrays.asList("showing false"), c.calls);
+        // a closed combo box has no popup, and a press on it asks to open
+        JXNativeNode shut = find(mount("pickers", closed(), WIDTH, HEIGHT), "select");
+        assertNull(shut.getPopupBounds());
+    }
+
+    @Test
+    void theDateTimeAndColorPickersOpenTheirPopupsAndReportWhatIsPressed() throws Exception {
+        SampleController c = closed();
+        c.timeOpen = true;
+        JXNativeNode root = mount("pickers", c, WIDTH, HEIGHT);
+        JXNativeNode time = all(root, "timepicker").get(0);
+        int[][] cells = time.getPopupCells();
+        assertEquals(24 + 4, cells.length, "24 hours and the minutes of a 15 minute step");
+        press(root, middle(cells[14]));
+        assertEquals("14:30", c.time, "an hour keeps the minute of the value");
+        press(root, middle(cells[24 + 3]));
+        assertEquals("09:45", c.time, "a minute keeps the hour of the value shown (the screen was not built again)");
+        assertTrue(c.calls.isEmpty(), "the popup stays open for the next choice");
+        SampleController colors = closed();
+        colors.colorOpen = true;
+        JXNativeNode colorRoot = mount("pickers", colors, WIDTH, HEIGHT);
+        JXNativeNode color = all(colorRoot, "colorpicker").get(0);
+        assertEquals(40, color.getPopupCells().length);
+        press(colorRoot, middle(color.getPopupCells()[0]));
+        assertEquals("#000000", colors.accent);
+        SampleController dates = closed();
+        dates.dateOpen = true;
+        JXNativeNode dateRoot = mount("pickers", dates, WIDTH, HEIGHT);
+        JXNativeNode date = find(dateRoot, "datepicker");
+        int[] calendar = date.getPopupBounds();
+        assertNotNull(calendar);
+        assertEquals(date.getY() + date.getHeight(), calendar[1]);
+        assertTrue(calendar[2] > 0 && calendar[3] > calendar[2] / 2);
+        // the first day of the grid is a hit: a press on it reports an ISO date
+        press(dateRoot, new int[] {calendar[0] + 10, calendar[1] + calendar[3] - 10});
+        assertTrue(dates.date.matches("\\d{4}-\\d{2}-\\d{2}"), dates.date);
+        assertNotEquals("2026-10-21", dates.date);
+    }
+
+    @Test
+    void theMenusSampleHasAMenuBarAMenuButtonAndAContextMenuThatOpenAndRunTheirItems() throws Exception {
+        SampleController c = closed();
+        c.menuOpen = true;
+        JXNativeNode root = mount("menus", c, WIDTH, HEIGHT);
+        JXNativeNode bar = find(root, "menubar");
+        assertTrue(bar.getWidth() > 0 && bar.getHeight() > 0);
+        JXNativeNode file = bar.getChildren().get(0);
+        JXNativeNode edit = bar.getChildren().get(1);
+        assertTrue(file.getWidth() > 0 && edit.getX() > file.getX());
+        // the open menu button lists its items below it, in order
+        JXNativeNode button = all(root, "menubutton").get(0);
+        int[] panel = button.getPopupBounds();
+        assertNotNull(panel);
+        assertEquals(button.getY() + button.getHeight(), panel[1]);
+        int previous = panel[1];
+        for (JXNativeNode row : button.getChildren()) {
+            assertTrue(row.getWidth() > 0 && row.getHeight() > 0 && row.getY() >= previous);
+            previous = row.getY();
+        }
+        JXNativeNode open = button.getChildren().get(0);
+        assertSame(open, press(root, middle(new int[] {open.getX(), open.getY(), open.getWidth(), open.getHeight()})));
+        assertEquals(Arrays.asList("save", "showing false"), c.calls, "the item runs, then the menu asks to close (the sample holds showing)");
+        // a title of the bar opens its menu; its disabled item and its separator do nothing; a submenu opens to the right
+        c.calls.clear();
+        c.menuOpen = false;
+        root = mount("menus", c, WIDTH, HEIGHT);
+        bar = find(root, "menubar");
+        file = bar.getChildren().get(0);
+        press(root, new int[] {file.getX() + 3, file.getY() + 3});
+        root.layoutForBackend(WIDTH, HEIGHT);
+        assertNotNull(bar.getPopupBounds());
+        JXNativeNode export = file.getChildren().get(3);
+        press(root, new int[] {export.getX() + 3, export.getY() + 3});
+        root.layoutForBackend(WIDTH, HEIGHT);
+        JXNativeNode pdf = export.getChildren().get(0);
+        assertTrue(pdf.getWidth() > 0 && pdf.getX() >= export.getX() + export.getWidth() - 4, "the submenu is to the right of its row");
+        press(root, new int[] {pdf.getX() + 3, pdf.getY() + 3});
+        assertEquals(Arrays.asList("save"), c.calls);
+        root.layoutForBackend(WIDTH, HEIGHT);
+        assertNull(bar.getPopupBounds(), "a choice closes the menu");
+    }
+
+    @Test
+    void theContextMenuOpensOnASecondaryPressOnItsParentAndAsksThroughOnShowing() throws Exception {
+        SampleController c = closed();
+        JXNativeNode root = mount("menus", c, WIDTH, HEIGHT);
+        JXNativeNode context = find(root, "contextmenu");
+        assertEquals(0, context.getWidth() * context.getHeight(), "closed, it takes no room");
+        JXNativeNode stack = null;
+        for (JXNativeNode n : all(root, "stack")) {
+            if (n.getChildren().contains(context)) {
+                stack = n;
+            }
+        }
+        assertNotNull(stack);
+        root.routePointer(new JXPointerEvent(stack.getX() + 5, stack.getY() + 5, 1));
+        assertEquals(Arrays.asList("showing true"), c.calls, "the sample's showing is the application's: the press asks");
+        c.contextOpen = true;
+        root = mount("menus", c, WIDTH, HEIGHT);
+        context = find(root, "contextmenu");
+        assertTrue(context.getWidth() > 0 && context.getHeight() > 0, "open, it is its panel");
+        assertEquals(2, context.getChildren().size());
+        assertTrue(context.getChildren().get(1).getY() > context.getChildren().get(0).getY());
+    }
+
+    @Test
+    void theLayersSampleDrawsADialogADrawerAndASnackBarOverTheScreenAndTheyTakeThePointerFirst() throws Exception {
+        SampleController c = closed();
+        c.snackOpen = true;
+        JXNativeNode root = mount("layers", c, WIDTH, HEIGHT);
+        JXNativeNode snack = find(root, "snackbar");
+        assertTrue(snack.getWidth() > 0 && snack.getY() + snack.getHeight() < HEIGHT);
+        assertEquals((WIDTH - snack.getWidth()) / 2, snack.getX());
+        press(root, new int[] {snack.getX() + snack.getWidth() - 8, snack.getY() + 8});
+        assertEquals(Arrays.asList("save", "showing false"), c.calls, "the action, then the snack bar asked to close");
+        c.calls.clear();
+        c.dialogOpen = true;
+        root = mount("layers", c, WIDTH, HEIGHT);
+        JXNativeNode dialog = find(root, "dialog");
+        assertTrue(dialog.getWidth() >= 280 && dialog.getHeight() > 0);
+        assertEquals((WIDTH - dialog.getWidth()) / 2, dialog.getX());
+        JXNativeNode under = null;
+        for (JXNativeNode n : all(root, "button")) {
+            if ("Under".equals(n.getProperty("label"))) {
+                under = n;
+            }
+        }
+        assertNotNull(under);
+        assertNull(press(root, new int[] {under.getX() + 2, under.getY() + 2}), "the scrim takes the press that was on the button");
+        assertEquals(Arrays.asList("showing false"), c.calls, "and asks the dialog to close");
+        c.calls.clear();
+        JXNativeNode bar = dialog.getChildren().get(dialog.getChildren().size() - 1);
+        assertEquals("buttonbar", bar.getType());
+        JXNativeNode delete = bar.getChildren().get(1);
+        press(root, middle(new int[] {delete.getX(), delete.getY(), delete.getWidth(), delete.getHeight()}));
+        assertEquals(Arrays.asList("save"), c.calls);
+        c.calls.clear();
+        root.routeKey(new JXKeyEvent(257, '\0'), null);
+        assertEquals(Arrays.asList("save"), c.calls, "Enter presses the default button");
+        c.calls.clear();
+        root.routeKey(new JXKeyEvent(256, '\0'), null);
+        assertEquals(Arrays.asList("showing false"), c.calls, "Escape asks to close");
+        c.dialogOpen = false;
+        c.drawerOpen = true;
+        root = mount("layers", c, WIDTH, HEIGHT);
+        JXNativeNode drawer = find(root, "drawer");
+        assertEquals(WIDTH, drawer.getX() + drawer.getWidth(), "side=right");
+        assertEquals(HEIGHT, drawer.getHeight());
+        assertTrue(drawer.getChildren().get(1).getY() > drawer.getChildren().get(0).getY());
+    }
+
+    @Test
+    void theTreesSampleLaysOutOnlyTheRowsOfItsWindowWithTheirIndentation() throws Exception {
+        SampleController c = new SampleController();
+        c.top = 0;
+        JXNativeNode root = mount("trees", c, WIDTH, 1000);
+        JXNativeNode tree = all(root, "list").get(0);
+        // src (expanded), main (open), java, resources, test, then the folders: src, docs, README.md (docs closed)
+        assertEquals(12, tree.getChildren().size(), "visible rows: " + describe(tree));
+        assertEquals(12, ((Integer) tree.getProperty("itemCount")).intValue());
+        JXControlLayout.ScrollGeometry g = JXControlLayout.scrollGeometry(tree);
+        JXNativeNode previous = null;
+        for (JXNativeNode row : tree.getChildren()) {
+            assertEquals("cell", row.getType());
+            assertEquals(22, row.getHeight());
+            assertTrue(row.getWidth() > 0);
+            if (previous != null) {
+                assertEquals(previous.getY() + 22, row.getY());
+            }
+            previous = row;
+        }
+        assertEquals(Math.round(g.viewY), tree.getChildren().get(0).getY());
+        JXNativeNode src = tree.getChildren().get(0);
+        JXNativeNode main = tree.getChildren().get(1);
+        JXNativeNode java = tree.getChildren().get(2);
+        assertEquals("expanded", src.getProperty("disclosure"));
+        assertEquals("expanded", main.getProperty("disclosure"));
+        assertEquals("leaf", java.getProperty("disclosure"));
+        assertEquals(Double.valueOf(2), java.getProperty("indent"));
+        assertEquals(JXControlLayout.treeLeft(java), JXControlLayout.treeLeft(src) + 2 * JXControlLayout.TREE_INDENT, 0);
+        // a press on the arrow of src toggles it; a press on its text selects it
+        press(root, new int[] {src.getX() + 7 + 4, src.getY() + 5});
+        press(root, new int[] {src.getX() + 200, src.getY() + 5});
+        assertEquals(Arrays.asList("save", "save"), c.calls, "the toggle and the select handlers of the first item are both #save");
+        // a window: three rows from the second
+        c.top = 1;
+        c.calls.clear();
+        JXNativeNode scrolled = mount("trees", c, WIDTH, 1000);
+        JXNativeNode list = all(scrolled, "list").get(0);
+        assertEquals(1, ((Integer) list.getProperty("first")).intValue());
+        assertEquals(11, list.getChildren().size(), "the rows after the first");
+        assertEquals(Double.valueOf(22), list.getProperty("scrollY"));
+        JXControlLayout.ScrollGeometry gs = JXControlLayout.scrollGeometry(list);
+        assertEquals(22, gs.scrollY, 0);
+    }
+
+    private static String describe(JXNativeNode tree) {
+        StringBuilder s = new StringBuilder();
+        for (JXNativeNode row : tree.getChildren()) {
+            s.append(row.getProperty("value")).append(' ');
+        }
+        return s.toString();
+    }
+
+    @Test
+    void scrollingATreeWhoseItemsHaveKeysKeepsTheNodesOfTheRowsThatStay() throws Exception {
+        StringBuilder xml = new StringBuilder("<Tree controller=\"com.jxparallel.forge.samples.SampleController\" first=\"${top}\" "
+                + "rows=\"6\" rowHeight=\"20\" prefHeight=\"100\">");
+        for (int i = 0; i < 10; i++) {
+            xml.append("<TreeItem text=\"item").append(i).append("\" key=\"k").append(i).append("\"/>");
+        }
+        xml.append("</Tree>");
+        JxmlTemplate template = JxmlTemplate.read(new java.io.ByteArrayInputStream(xml.toString().getBytes("UTF-8")), "keyed.jxml");
+        SampleController c = new SampleController();
+        c.top = 2;
+        JXNativeNode root = JXNativeNode.createBackendNode(template.build(c));
+        root.layoutForBackend(WIDTH, 100);
+        List<JXNativeNode> rows = new ArrayList<JXNativeNode>(root.getChildren()); // items 2..7
+        assertEquals(6, rows.size());
+        c.top = 3;
+        assertTrue(root.reconcile(template.build(c)));
+        root.layoutForBackend(WIDTH, 100);
+        assertEquals(6, root.getChildren().size()); // items 3..8
+        for (int i = 1; i < 6; i++) {
+            assertSame(rows.get(i), root.getChildren().get(i - 1), "the node of item " + (2 + i) + " is reused, not rebuilt");
+        }
+        assertEquals(Math.round(JXControlLayout.scrollGeometry(root).viewY), root.getChildren().get(0).getY());
+        assertEquals(3, JXControlLayout.itemAt(root, JXControlLayout.scrollGeometry(root).viewY + 1));
+    }
+
+    @Test
+    void aLiveViewReplacesWhatIsMountedWhenTheFileIsSavedAndAMistakeKeepsTheScreen() throws Exception {
+        java.nio.file.Path file = java.nio.file.Files.createTempFile("live", ".jxml");
+        try {
+            java.nio.file.Files.write(file, "<Column><Label text=\"one\"/></Column>".getBytes("UTF-8"));
+            List<String> errors = new ArrayList<String>();
+            try (JxmlLiveView live = JxmlLiveView.open(file.toFile()).onError(e -> errors.add(e.getMessage()))) {
+                // what a window does: build the screen, mount it; on a reload, build again and reconcile in place
+                JXNativeNode root = mount(live.build(null));
+                assertEquals("one", root.getChildren().get(0).getProperty("value"));
+                java.nio.file.Files.write(file, "<Column><Label text=\"two\"/><Button text=\"new\"/></Column>".getBytes("UTF-8"));
+                assertTrue(live.reload());
+                assertTrue(root.reconcile(live.build(null)));
+                root.layoutForBackend(WIDTH, HEIGHT);
+                assertEquals(2, root.getChildren().size());
+                assertEquals("two", root.getChildren().get(0).getProperty("value"));
+                assertTrue(root.getChildren().get(1).getWidth() > 0);
+                java.nio.file.Files.write(file, "<Column><Label text=".getBytes("UTF-8"));
+                assertTrue(!live.reload());
+                assertEquals(1, errors.size());
+                assertTrue(root.reconcile(live.build(null)));
+                assertEquals(2, root.getChildren().size(), "the last good screen stays");
+            }
+        } finally {
+            java.nio.file.Files.deleteIfExists(file);
+        }
+    }
+
+    @Test
+    void theTreeTableOfTheTreesSampleHasItsColumnsAndRowsOfCells() throws Exception {
+        JXNativeNode root = mount("trees", new SampleController(), WIDTH, 1000);
+        JXNativeNode table = all(root, "table").get(0);
+        float[] widths = JXControlLayout.columnWidths(table);
+        assertEquals(2, widths.length);
+        assertTrue(widths[0] > 0 && widths[1] > 0);
+        assertEquals(4, ((Integer) table.getProperty("itemCount")).intValue(), "docs, guide.md, the item with the title, README.md");
+        assertEquals(4, table.getChildren().size());
+        JXNativeNode docs = table.getChildren().get(0);
+        assertEquals("tablerow", docs.getType());
+        assertEquals(2, docs.getChildren().size());
+        assertEquals("expanded", docs.getChildren().get(0).getProperty("disclosure"));
+        JXNativeNode guide = table.getChildren().get(1);
+        assertEquals(Double.valueOf(1), guide.getChildren().get(0).getProperty("indent"));
+        assertTrue(guide.getChildren().get(0).getWidth() > 0 && guide.getChildren().get(1).getWidth() > 0);
+        assertTrue(guide.getChildren().get(0).getX() < guide.getChildren().get(1).getX());
+        assertEquals(3, table.getChildren().get(2).getChildren().size(), "the item whose values are the two cities");
+        // a press on the arrow cell toggles, a press on the size cell selects the row
+        SampleController c = new SampleController();
+        root = mount("trees", c, WIDTH, 1000);
+        table = all(root, "table").get(0);
+        docs = table.getChildren().get(0);
+        JXNativeNode name = docs.getChildren().get(0);
+        press(root, new int[] {name.getX() + 2 + 4, name.getY() + 5});
+        press(root, new int[] {docs.getChildren().get(1).getX() + 3, docs.getChildren().get(1).getY() + 5});
+        assertEquals(Arrays.asList("save", "save"), c.calls);
     }
 
     @Test

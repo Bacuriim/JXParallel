@@ -294,6 +294,12 @@ class JxmlTagsTest {
                 return "<Column>\n<Fab icon=\"add\" " + extra + "/>\n</Column>";
             case "Badge":
                 return "<Column>\n<Badge " + extra + "><Label/></Badge>\n</Column>";
+            case "MenuItem":
+                return "<Column>\n<MenuButton><MenuItem " + extra + "/></MenuButton>\n</Column>";
+            case "Menu":
+                return "<Column>\n<MenuBar><Menu " + extra + "/></MenuBar>\n</Column>";
+            case "TreeItem":
+                return "<Column>\n<Tree><TreeItem " + extra + "/></Tree>\n</Column>";
             default:
                 return "<Column>\n<" + tag + " " + extra + "/>\n</Column>";
         }

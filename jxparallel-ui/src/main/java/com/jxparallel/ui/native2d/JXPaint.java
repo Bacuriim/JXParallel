@@ -1,5 +1,6 @@
 package com.jxparallel.ui.native2d;
 
+import java.util.ArrayList;
 import java.util.List;
 
 import com.jxparallel.ui.text.JXTextEngine;
@@ -43,11 +44,56 @@ final class JXPaint {
     /** The theme set by the nearest ancestor with a {@code theme} prop; null when none sets one. */
     private JXTheme theme;
 
-    private JXTheme theme() {
+    JXTheme theme() {
         return theme != null ? theme : JXTheme.LIGHT;
     }
 
+    /** How deep {@link #paint} is called from itself: 0 outside the outermost call, which draws the overlays last. */
+    private int depth;
+    /** The node the outermost {@link #paint} was given: the window, for the scrim of a dialog. */
+    private JXNativeNode overlayRoot;
+    /** Open overlays met while painting, with the theme at their place in the tree: {node, theme}. */
+    private final List<Object[]> deferred = new ArrayList<Object[]>();
+
+    /**
+     * Paints the node and everything below it. The open overlays met on the way (popups, menus, dialogs, drawers, snack
+     * bars: {@link JXOverlays}) are not drawn in their place but after the whole tree, in tree order, so that they are
+     * over everything.
+     */
     void paint(JXNativeNode node) {
+        boolean outermost = depth == 0;
+        if (outermost) {
+            deferred.clear(); // a frame object is reused by the next frame
+            overlayRoot = node;
+        }
+        depth++;
+        try {
+            paintNode(node);
+        } finally {
+            depth--;
+        }
+        if (outermost) {
+            paintOverlays();
+        }
+    }
+
+    private void paintOverlays() {
+        JXTheme saved = theme;
+        depth++; // what an overlay paints below itself is nested, not a frame of its own
+        try {
+            for (int i = 0; i < deferred.size(); i++) { // an overlay inside an overlay is added while this runs
+                Object[] entry = deferred.get(i);
+                theme = (JXTheme) entry[1];
+                JXOverlayPaint.paint(this, (JXNativeNode) entry[0], overlayRoot);
+            }
+        } finally {
+            depth--;
+            theme = saved;
+            deferred.clear();
+        }
+    }
+
+    private void paintNode(JXNativeNode node) {
         if (Boolean.TRUE.equals(node.getProperty("hidden"))) {
             return; // invisible but managed: keeps its place in the layout, like JavaFX
         }
@@ -64,6 +110,12 @@ final class JXPaint {
     }
 
     private void paintThemed(JXNativeNode node) {
+        if (node.floatingNode) {
+            if (JXOverlays.isOpen(node)) {
+                deferred.add(new Object[] {node, theme}); // drawn after the tree; it takes no room where it is written
+            }
+            return;
+        }
         double opacity = number(node, "opacity", 1.0);
         if (Boolean.TRUE.equals(node.getProperty("disabled"))) {
             opacity *= 0.4;
@@ -76,9 +128,17 @@ final class JXPaint {
         region(node);
         self(node);
         children(node);
+        if (node.overlayHost && JXOverlays.canOpen(node) && JXOverlays.isOpen(node)) {
+            deferred.add(new Object[] {node, theme}); // its popup or menu, over everything
+        }
         if (layered) {
             p.restore();
         }
+    }
+
+    /** What an overlay paints for a node of its content (a dialog's column, say). */
+    void paintNested(JXNativeNode node) {
+        paint(node);
     }
 
     /** CSS-like background and border of any node. */
@@ -104,8 +164,8 @@ final class JXPaint {
     }
 
     private void children(JXNativeNode node) {
-        if (node.collapsed()) {
-            return; // only the title bar of a collapsed pane shows
+        if (node.collapsed() || node.overlayContent) {
+            return; // only the title bar of a collapsed pane shows; the children of a menu are drawn with its panel
         }
         String type = node.getType();
         boolean clip = Boolean.TRUE.equals(node.getProperty("clip"));
@@ -570,8 +630,85 @@ final class JXPaint {
             case "calendar":
                 JXCalendar.paint(p, node, this);
                 break;
+            case "timepicker":
+                timePicker(node, x, y, w, h);
+                break;
+            case "colorpicker":
+                colorPicker(node, x, y, w, h);
+                break;
+            case "menubutton":
+                menuButton(node, x, y, w, h);
+                break;
+            case "menubar":
+                menuBar(node, x, y, w, h);
+                break;
             default:
                 break;
+        }
+    }
+
+    // ---- pickers, menu button and menu bar (the popups and panels are JXOverlayPaint's) ------------
+
+    private void timePicker(JXNativeNode node, float x, float y, float w, float h) {
+        field(node, x, y, w, h);
+        float bw = JXControlLayout.DATE_BUTTON;
+        String shown = JXOverlays.timeText(node);
+        p.clip(x + 1, y, w - bw - 1, h);
+        if (shown.isEmpty()) {
+            drawText(node, text(node, "prompt"), x + JXNativeNode.FIELD_PAD_X, y, h, PROMPT, false);
+        } else {
+            drawText(node, shown, x + JXNativeNode.FIELD_PAD_X, y, h, color(node, TEXT), false);
+        }
+        p.restore();
+        buttonBody(node, x + w - bw, y, bw, h, 0, Boolean.TRUE.equals(node.getProperty("showing")));
+        float cx = x + w - bw / 2;
+        float cy = y + h / 2;
+        p.strokeOval(cx - 5, cy - 5, 10, 10, 1.5f, ARROW);
+        p.line(cx, cy, cx, cy - 3, 1.2f, ARROW);
+        p.line(cx, cy, cx + 2.5f, cy + 1.5f, 1.2f, ARROW);
+    }
+
+    private void colorPicker(JXNativeNode node, float x, float y, float w, float h) {
+        field(node, x, y, w, h);
+        float bw = JXControlLayout.DATE_BUTTON;
+        String hex = JXOverlays.normalizeHex(text(node, "value"));
+        float s = JXControlLayout.COLOR_SWATCH;
+        float sx = x + JXNativeNode.FIELD_PAD_X;
+        float sy = y + (h - s) / 2;
+        p.fillRect(sx - 1, sy - 1, s + 2, s + 2, BOX_BORDER);
+        p.fillRect(sx, sy, s, s, hex == null ? 0xFFFFFFFF : JXOverlays.colorOf(hex));
+        float left = sx + s + JXNativeNode.FIELD_PAD_X;
+        p.clip(left, y + 1, x + w - bw - left, h - 2);
+        if (hex == null) {
+            drawText(node, text(node, "prompt"), left, y, h, PROMPT, false);
+        } else {
+            drawText(node, hex, left, y, h, color(node, TEXT), false);
+        }
+        p.restore();
+        buttonBody(node, x + w - bw, y, bw, h, 0, Boolean.TRUE.equals(node.getProperty("showing")));
+        downArrow(x + w - bw + (bw - 8) / 2, y + (h - 4) / 2, ARROW);
+    }
+
+    private void menuButton(JXNativeNode node, float x, float y, float w, float h) {
+        buttonBody(node, x, y, w, h, 3, JXOverlays.isOpen(node));
+        p.clip(x, y, w - JXControlLayout.MENU_ARROW, h);
+        drawText(node, text(node, "label"), x + JXNativeNode.PAD_X, y, h, color(node, TEXT), false);
+        p.restore();
+        downArrow(x + w - JXNativeNode.PAD_X - 8, y + Math.round((h - 4) / 2), ARROW);
+    }
+
+    private void menuBar(JXNativeNode node, float x, float y, float w, float h) {
+        JXTheme t = theme();
+        p.fillRect(x, y, w, h, t.surface);
+        p.fillRect(x, y + h - 1, w, 1, JXTheme.withAlpha(t.outline, 0x66));
+        List<JXNativeNode> headers = node.getChildren();
+        for (int i = 0; i < headers.size(); i++) {
+            JXNativeNode header = headers.get(i);
+            if (i == node.openChild) {
+                p.fillRoundRect(header.getX(), header.getY() + 2, header.getWidth(), header.getHeight() - 4, 4, t.tonal());
+            }
+            int color = Boolean.TRUE.equals(header.getProperty("disabled")) ? JXTheme.withAlpha(t.onSurface, 0x66) : t.onSurface;
+            drawText(header, JXOverlays.label(header), header.getX() + JXOverlays.BAR_PAD, y, h, color, false);
         }
     }
 
@@ -932,12 +1069,27 @@ final class JXPaint {
             p.fillRect(x + w - 1, y, 1, h, 0xFFEDEDED);
         }
         String value = text(node, "value");
+        float tree = (float) JXControlLayout.treeLeft(node);
+        if (tree > 0) { // a tree row: the arrow of a row that expands, after its indentation
+            String disclosure = text(node, "disclosure");
+            if (!"leaf".equals(disclosure)) {
+                float[] pad = insetsOr(node, 3, 7);
+                float ax = x + pad[3] + (float) number(node, "indent", 0) * JXControlLayout.TREE_INDENT + 4;
+                float cy = y + h / 2;
+                int arrow = selected && focusedList ? 0xFFFFFFFF : ARROW;
+                if ("expanded".equals(disclosure)) {
+                    p.fillTriangle(ax - 1, cy - 2, ax + 7, cy - 2, ax + 3, cy + 3, arrow);
+                } else {
+                    p.fillTriangle(ax, cy - 4, ax, cy + 4, ax + 5, cy, arrow);
+                }
+            }
+        }
         if (!value.isEmpty()) {
             float[] pad = insetsOr(node, 3, 7);
             float graphic = node.getChildren().isEmpty() ? 0 : node.getChildren().get(0).getWidth();
             int textColor = selected && focusedList ? 0xFFFFFFFF : color(node, TEXT);
             p.clip(x, y, w, h);
-            float left = x + pad[3] + (graphic > 0 ? graphic + 4 : 0);
+            float left = x + pad[3] + tree + (graphic > 0 ? graphic + 4 : 0);
             char align = alignmentH(node, 'L');
             if (align != 'L') {
                 float tw = JXTextEngine.get(bold(node)).width(value, fontSize(node));

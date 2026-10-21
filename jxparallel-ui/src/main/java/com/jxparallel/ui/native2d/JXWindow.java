@@ -147,6 +147,9 @@ public final class JXWindow implements AutoCloseable {
 
     private volatile Object externalLock;
 
+    /** A snack bar with a duration is open: the loop asks the overlays for its timeout at every turn (display thread). */
+    private boolean timedOverlay;
+
     public void setOnFirstPaint(Runnable callback) {
         onFirstPaint = callback;
     }
@@ -548,16 +551,17 @@ public final class JXWindow implements AutoCloseable {
                         px[0], py[0], button, JXKeys.modifiers(mods), clickCount, buttonsDown != 0, path(px[0], py[0])));
                 return;
             }
-            if (button != JXInputEvent.BUTTON_PRIMARY || action != GLFW.GLFW_PRESS || root == null) {
+            boolean secondary = button == JXInputEvent.BUTTON_SECONDARY; // opens a context menu
+            if (button != JXInputEvent.BUTTON_PRIMARY && !secondary || action != GLFW.GLFW_PRESS || root == null) {
                 return;
             }
-            JXNativeNode hit = root.hitTest((int) px[0], (int) py[0]);
-            if (hit != null) {
+            // the overlays first: a press outside an open popup or menu closes it, one inside a dialog stays in it
+            JXNativeNode hit = root.routePointer(new JXPointerEvent((int) px[0], (int) py[0], glfwButton));
+            if (hit != null && !secondary) {
                 focusedNode = hit;
                 dragNode = hit; // a scroll bar's thumb or a split pane's divider follows the pointer until the release
-                hit.dispatchPointer(new JXPointerEvent((int) px[0], (int) py[0], glfwButton));
-                requestRender();
             }
+            requestRender();
         });
         GLFW.glfwSetScrollCallback(handle, (h, dx, dy) -> {
             if (inputListener != null) {
@@ -570,8 +574,8 @@ public final class JXWindow implements AutoCloseable {
                         JXKeys.name(key), JXKeys.modifiers(mods)));
                 return;
             }
-            if (action != GLFW.GLFW_RELEASE && focusedNode != null) {
-                focusedNode.dispatchKey(new JXKeyEvent(key, '\0'));
+            if (action != GLFW.GLFW_RELEASE && root != null) {
+                root.routeKey(new JXKeyEvent(key, '\0'), focusedNode); // Escape and Enter belong to an open overlay first
                 requestRender();
             }
         });
@@ -617,7 +621,20 @@ public final class JXWindow implements AutoCloseable {
 
     /** Paints a frame if one was requested. Display thread only. */
     void frameIfRequested() {
-        if (window == MemoryUtil.NULL || !renderRequested.getAndSet(false)) {
+        if (window == MemoryUtil.NULL) {
+            return;
+        }
+        if (timedOverlay && root != null) {
+            // a snack bar waits for its duration: ask it at every turn of the loop; when none waits any more, draw the result
+            long wait = root.tickOverlays();
+            if (wait < 0) {
+                timedOverlay = false;
+                renderRequested.set(true);
+            } else {
+                JXDisplay.wakeAt(System.nanoTime() + wait * 1_000_000L);
+            }
+        }
+        if (!renderRequested.getAndSet(false)) {
             return;
         }
         int[] fbWidth = new int[1];
@@ -655,6 +672,7 @@ public final class JXWindow implements AutoCloseable {
         if (frameIntervalNanos == 0) {
             GLFW.glfwSwapBuffers(window);
         }
+        timedOverlay = root != null && lock == null && root.tickOverlays() >= 0;
         if (!firstPaintReported) {
             firstPaintReported = true;
             if (backend instanceof NanoVGBackend) {

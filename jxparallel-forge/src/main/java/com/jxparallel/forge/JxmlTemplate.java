@@ -205,7 +205,7 @@ public final class JxmlTemplate implements JxmlView<Object> {
         JxmlParser.Node node = JxmlParser.parse(input, source);
         String controller = node.attrs.remove("controller");
         String theme = JxmlPrepare.run(node, controller, loader);
-        return new JxmlTemplate(source, controller, resolve(node, source, null, null, theme));
+        return new JxmlTemplate(source, controller, resolve(node, source, null, null, null, theme));
     }
 
     /** Reads a file from the file system; its includes are found next to it. */
@@ -254,7 +254,12 @@ public final class JxmlTemplate implements JxmlView<Object> {
 
     // ---- resolution ------------------------------------------------------------------------------
 
-    private static Element resolve(JxmlParser.Node written, String source, JxmlSchema.Tag parent, Var vars, String theme) {
+    /**
+     * {@code parent} is the tag the node is a child of (a loop or condition included); {@code owner} the nearest tag
+     * above it that is an element, which is what a menu item or a tree item must stand inside.
+     */
+    private static Element resolve(JxmlParser.Node written, String source, JxmlSchema.Tag parent, JxmlSchema.Tag owner, Var vars,
+                                   String theme) {
         source = written.source; // an included file's elements report their own file
         JxmlParser.Node node = JxmlComposites.expand(written, source); // composites become primitive tags here, once
         JxmlSchema.Tag tag = JxmlSchema.tag(node.tag);
@@ -273,6 +278,9 @@ public final class JxmlTemplate implements JxmlView<Object> {
         }
         if (tag.children == JxmlSchema.Children.TAB && (parent == null || parent.children != JxmlSchema.Children.TABS)) {
             throw new JxmlException(source, node.line, "<Tab> is only allowed inside <Tabs>");
+        }
+        if (tag.parents != null && (owner == null || !tag.parents.contains(owner.name))) {
+            throw new JxmlException(source, node.line, "<" + tag.name + "> is only allowed inside " + names(tag.parents));
         }
         if (node.attrs.containsKey("controller")) {
             throw new JxmlException(source, node.line, "controller is only allowed on the root element");
@@ -331,7 +339,7 @@ public final class JxmlTemplate implements JxmlView<Object> {
             throw new JxmlException(source, node.line, "<" + tag.name + "> has both onChange and a @{...} binding; use one");
         }
         for (Prop p : props) {
-            if (tag.virtual && p.kind == Kind.LITERAL && p.literal instanceof Double && !(((Double) p.literal) > 0)
+            if ((tag.virtual || tag.tree) && p.kind == Kind.LITERAL && p.literal instanceof Double && !(((Double) p.literal) > 0)
                     && ("cellHeight".equals(p.attr.name) || "rowHeight".equals(p.attr.name))) {
                 throw new JxmlException(source, p.line, "<" + tag.name + "> " + p.attr.name + " must be greater than 0: "
                         + "the rows have a fixed height, which is how the list knows where to scroll");
@@ -346,6 +354,7 @@ public final class JxmlTemplate implements JxmlView<Object> {
         List<Element> children = new ArrayList<Element>();
         String[] titles = null;
         boolean[] closable = null;
+        JxmlSchema.Tag below = tag.control ? owner : tag; // a loop or condition does not change what its children stand inside
         switch (tag.children) {
             case NONE:
                 if (!node.children.isEmpty()) {
@@ -358,12 +367,12 @@ public final class JxmlTemplate implements JxmlView<Object> {
                     throw new JxmlException(source, node.line, "<" + tag.name + "> takes one child");
                 }
                 for (JxmlParser.Node child : node.children) {
-                    children.add(resolve(child, source, tag, vars, theme));
+                    children.add(resolve(child, source, tag, below, vars, theme));
                 }
                 break;
             case MANY:
             case TEMPLATE:
-                children = resolveAll(node.children, source, tag, inner, theme);
+                children = resolveAll(node.children, source, tag, below, inner, theme);
                 break;
             case TABS:
                 titles = new String[node.children.size()];
@@ -373,7 +382,7 @@ public final class JxmlTemplate implements JxmlView<Object> {
                     if (!"Tab".equals(tabNode.tag)) {
                         throw new JxmlException(source, tabNode.line, "<Tabs> takes only <Tab> children");
                     }
-                    Element tab = resolve(tabNode, source, tag, vars, theme);
+                    Element tab = resolve(tabNode, source, tag, below, vars, theme);
                     titles[i] = "";
                     closable[i] = true;
                     for (Prop p : tab.props) {
@@ -395,6 +404,12 @@ public final class JxmlTemplate implements JxmlView<Object> {
             default:
                 throw new IllegalStateException();
         }
+        if (tag.only != null) {
+            checkChildren(tag, children, source);
+        }
+        if ("Tree".equals(tag.name)) {
+            checkNoValues(children);
+        }
         if (var != null && node.attrs.containsKey("key")) {
             if (children.size() != 1 || children.get(0).tag.control || isSlot(children.get(0).tag)) {
                 throw new JxmlException(source, node.line,
@@ -406,6 +421,40 @@ public final class JxmlTemplate implements JxmlView<Object> {
         }
         return new Element(tag, source, node.line, Collections.unmodifiableList(props), Collections.unmodifiableList(children),
                 titles, closable, var, type, Collections.<Element>emptyList());
+    }
+
+    /** A tag that takes only some tags as children: loops and conditions are looked through, anything else is an error. */
+    private static void checkChildren(JxmlSchema.Tag tag, List<Element> children, String source) {
+        for (Element child : children) {
+            if (child.tag.control) {
+                checkChildren(tag, child.children, source);
+                checkChildren(tag, child.otherwise, source);
+            } else if (!tag.only.contains(child.tag.name)) {
+                throw new JxmlException(child.source, child.line, "<" + tag.name + "> takes only " + names(tag.only)
+                        + " as children, not <" + child.tag.name + ">");
+            }
+        }
+    }
+
+    /** A {@code Tree} has one column: {@code values} (the cells after the text) belong to a {@code TreeTable}. */
+    private static void checkNoValues(List<Element> items) {
+        for (Element item : items) {
+            Prop values = item.tag.control ? null : item.prop("values");
+            if (values != null) {
+                throw new JxmlException(item.source, values.line,
+                        "a <TreeItem> has values only in a <TreeTable>; a <Tree> has one column, its text");
+            }
+            checkNoValues(item.children);
+            checkNoValues(item.otherwise);
+        }
+    }
+
+    private static String names(List<String> tags) {
+        StringBuilder out = new StringBuilder();
+        for (int i = 0; i < tags.size(); i++) {
+            out.append(i == 0 ? "" : i == tags.size() - 1 ? " or " : ", ").append('<').append(tags.get(i)).append('>');
+        }
+        return out.toString();
     }
 
     /** Rows a virtual list builds when {@code rows} is not written: well above what a window shows. */
@@ -482,7 +531,8 @@ public final class JxmlTemplate implements JxmlView<Object> {
     }
 
     /** Children of a tag that takes many: an {@code <Else>} joins the {@code <If>} just before it. */
-    private static List<Element> resolveAll(List<JxmlParser.Node> nodes, String source, JxmlSchema.Tag parent, Var vars, String theme) {
+    private static List<Element> resolveAll(List<JxmlParser.Node> nodes, String source, JxmlSchema.Tag parent, JxmlSchema.Tag owner,
+                                            Var vars, String theme) {
         List<Element> out = new ArrayList<Element>();
         boolean openIf = false;
         for (JxmlParser.Node node : nodes) {
@@ -494,11 +544,11 @@ public final class JxmlTemplate implements JxmlView<Object> {
                     throw new JxmlException(source, node.line, "<Else> has no attribute " + node.attrs.keySet().iterator().next());
                 }
                 int last = out.size() - 1;
-                out.set(last, out.get(last).withOtherwise(resolveAll(node.children, source, JxmlSchema.tag("Else"), vars, theme)));
+                out.set(last, out.get(last).withOtherwise(resolveAll(node.children, source, JxmlSchema.tag("Else"), owner, vars, theme)));
                 openIf = false;
                 continue;
             }
-            Element e = resolve(node, source, parent, vars, theme);
+            Element e = resolve(node, source, parent, owner, vars, theme);
             out.add(e);
             openIf = "If".equals(e.tag.name);
         }
@@ -680,6 +730,13 @@ public final class JxmlTemplate implements JxmlView<Object> {
         if (e.tag.finish) {
             try {
                 finished = JxmlRuntime.finish(e.tag.name, finished);
+            } catch (IllegalArgumentException ex) {
+                throw new JxmlException(e.source, e.line, "<" + e.tag.name + "> " + ex.getMessage(), ex);
+            }
+        }
+        if (e.tag.tree) {
+            try {
+                return JxmlRuntime.tree(e.tag.name, finished, children);
             } catch (IllegalArgumentException ex) {
                 throw new JxmlException(e.source, e.line, "<" + e.tag.name + "> " + ex.getMessage(), ex);
             }

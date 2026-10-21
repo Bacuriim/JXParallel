@@ -76,6 +76,10 @@ public final class JXControlLayout {
     static final int TABBAR_PAD = 16;
     static final int TABBAR_MIN = 64;
     static final int TABBAR_CLOSE = 20;
+    /** Time picker: columns of the field. Color picker: the swatch in the field. Menu button: the room of its arrow. */
+    static final int TIME_COLUMNS = 8;
+    static final int COLOR_SWATCH = 14;
+    static final int MENU_ARROW = 18;
     private static final double MAX = JXBoxLayout.MAX;
 
     private JXControlLayout() {
@@ -113,6 +117,14 @@ public final class JXControlLayout {
             case "scrollbar":
             case "splitpane":
             case "tabbar":
+            case "timepicker":
+            case "colorpicker":
+            case "menubutton":
+            case "menubar":
+            case "menu":
+            case "menuitem":
+            case "contextmenu":
+            case "snackbar":
                 return true;
             default:
                 return false;
@@ -305,6 +317,32 @@ public final class JXControlLayout {
                 double w = edges[edges.length - 1];
                 return new double[] {w, w, MAX, TABBAR_H, TABBAR_H, TABBAR_H};
             }
+            case "timepicker": {
+                double h = line + 2 * JXNativeNode.PAD_Y;
+                double w = TIME_COLUMNS * text.width("W", size) + DATE_BUTTON;
+                return new double[] {50, w, w, h, h, h};
+            }
+            case "colorpicker": {
+                double h = line + 2 * JXNativeNode.PAD_Y;
+                double w = 7 * text.width("W", size) + COLOR_SWATCH + 3 * JXNativeNode.FIELD_PAD_X + DATE_BUTTON;
+                return new double[] {50, w, w, h, h, h};
+            }
+            case "menubutton": {
+                double w = text.width(JXPaint.text(node, "label"), size);
+                return labeled(node, w, 2 * JXNativeNode.PAD_X + MENU_ARROW, line + 2 * JXNativeNode.PAD_Y);
+            }
+            case "menubar": {
+                double w = 8;
+                for (JXNativeNode header : node.getChildren()) {
+                    w += JXOverlays.headerWidth(header);
+                }
+                return new double[] {w, w, MAX, JXOverlays.BAR_H, JXOverlays.BAR_H, JXOverlays.BAR_H};
+            }
+            case "menu":
+            case "menuitem": {
+                double[] s = JXOverlays.rowSize(node);
+                return new double[] {s[0], s[0], s[0], s[1], s[1], s[1]};
+            }
             default:
                 throw new IllegalStateException("not a control: " + type); // handles(type) is false
         }
@@ -324,13 +362,40 @@ public final class JXControlLayout {
         double gw = graphic == null ? 0 : graphic.prefWidth();
         double gh = graphic == null ? 0 : graphic.prefHeight();
         double tw = value.isEmpty() ? 0 : text.width(value, size);
-        double w = pad[1] + pad[3] + gw + (graphic != null && !value.isEmpty() ? 4 : 0) + tw;
+        double w = pad[1] + pad[3] + treeLeft(node) + gw + (graphic != null && !value.isEmpty() ? 4 : 0) + tw;
         double h = pad[0] + pad[2] + Math.max(value.isEmpty() && graphic != null ? 0 : line, gh);
         double fixed = JXPaint.number(node, "fixedHeight", -1);
         if (fixed > 0) {
             h = fixed;
         }
         return new double[] {pad[1] + pad[3], w, MAX, h, h, MAX};
+    }
+
+    /**
+     * A tree row is a {@code cell} with a {@code disclosure} ({@code expanded}, {@code collapsed} or {@code leaf}) and an
+     * {@code indent} (its depth): its content starts after {@code indent} steps and the room of the arrow.
+     */
+    public static final int TREE_INDENT = 16;
+    public static final int TREE_ARROW = 16;
+
+    public static boolean tree(JXNativeNode cell) {
+        return "cell".equals(cell.getType()) && cell.getProperty("disclosure") instanceof String
+                && !((String) cell.getProperty("disclosure")).isEmpty();
+    }
+
+    /** The width a tree row keeps free before its text: the indentation and the arrow; 0 for other cells. */
+    public static double treeLeft(JXNativeNode cell) {
+        return tree(cell) ? Math.max(0, JXPaint.number(cell, "indent", 0)) * TREE_INDENT + TREE_ARROW : 0;
+    }
+
+    /** Whether window x lies on the arrow of a tree row that has one (a row that expands or collapses). */
+    public static boolean disclosureAt(JXNativeNode cell, double windowX) {
+        if (!tree(cell) || "leaf".equals(cell.getProperty("disclosure"))) {
+            return false;
+        }
+        float[] pad = JXPaint.insetsOr(cell, 3, 7);
+        double left = cell.getX() + pad[3] + Math.max(0, JXPaint.number(cell, "indent", 0)) * TREE_INDENT;
+        return windowX >= left && windowX < left + TREE_ARROW;
     }
 
     static double[] imageSize(JXNativeNode node) {
@@ -514,6 +579,15 @@ public final class JXControlLayout {
                 if (child != null) {
                     // the child keeps its own size in the top left corner; the badge is drawn over its top right
                     JXBoxLayout.layoutInArea(node, child, 0, 0, w, h, false, false, 'L', 'T');
+                }
+                break;
+            }
+            case "menubar": {
+                double cx = x + 4;
+                for (JXNativeNode header : node.getChildren()) {
+                    int hw = (int) Math.ceil(JXOverlays.headerWidth(header));
+                    header.layout((int) Math.round(cx), y, hw, h);
+                    cx += hw;
                 }
                 break;
             }

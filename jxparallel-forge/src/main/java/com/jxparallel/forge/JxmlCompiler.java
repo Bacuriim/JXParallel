@@ -257,8 +257,9 @@ public final class JxmlCompiler {
         if (e.tag.finish) {
             built = "JxmlRuntime.finish(" + quote(e.tag.name) + ", " + built + ")";
         }
-        StringBuilder out = new StringBuilder("JXElement.of(").append(quote(e.tag.nativeType)).append(", ")
-                .append(built);
+        StringBuilder out = e.tag.tree
+                ? new StringBuilder("JxmlRuntime.tree(").append(quote(e.tag.name)).append(", ").append(built)
+                : new StringBuilder("JXElement.of(").append(quote(e.tag.nativeType)).append(", ").append(built);
         if (listed) {
             out.append(",\n").append(indent).append("k.toArray(new JXElement[0])");
         }

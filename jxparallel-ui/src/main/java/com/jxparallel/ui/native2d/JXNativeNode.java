@@ -61,7 +61,9 @@ public final class JXNativeNode {
             "fitHeight", "preserveRatio", "imageWidth", "imageHeight", "prefColumnCount", "fixedHeight", "wrapText",
             "progress", "fillGraphic",
             // Material controls: icon and avatar size, chip parts, badge content, steps, split positions, button look
-            "size", "icon", "kind", "closable", "count", "text", "dot", "steps", "dividerPositions", "variant", "round"};
+            "size", "icon", "kind", "closable", "count", "text", "dot", "steps", "dividerPositions", "variant", "round",
+            // overlays and trees: what widens a menu row, a snack bar or a tree cell
+            "indent", "disclosure", "accelerator", "separator", "hour24", "minuteStep", "message", "action", "side"};
 
     private static final java.util.Set<String> LAYOUT_KEY_SET =
             new java.util.HashSet<String>(java.util.Arrays.asList(LAYOUT_KEYS));
@@ -92,6 +94,12 @@ public final class JXNativeNode {
     private static final double[] TITLED_CONTENT_PADDING = {9.6, 9.6, 9.6, 9.6};
     private final String type;
     private final int kind;
+    /** What the overlay mechanism makes of this type, decided once (see {@link JXOverlays}): may open over the window. */
+    final boolean overlayHost;
+    /** Takes no room where it is written (dialog, drawer, snack bar, context menu). */
+    final boolean floatingNode;
+    /** Its children are the content of an overlay, placed by the overlay pass. */
+    final boolean overlayContent;
     /** Where typing goes in a text input (see {@link JXChangeEvents}); -1 is the end. */
     int caret = -1;
     /** A press on a scroll bar grabbed its thumb; the drag that follows moves it (see {@link JXChangeEvents#drag}). */
@@ -100,6 +108,23 @@ public final class JXNativeNode {
     float dragOffset;
     /** The divider of a split pane a press grabbed, or -1. */
     int dragDivider = -1;
+    /**
+     * State of an overlay widget that is the node's own, not the application's (see {@link JXOverlays}): open without
+     * a {@code showing} prop, the open child menu of a menu bar or menu, where a context menu was opened, the month a
+     * date picker shows, the hex text being typed in a color picker, and when a snack bar was first drawn.
+     */
+    boolean localOpen;
+    int openChild = -1;
+    int overlayX;
+    int overlayY;
+    int viewYear;
+    int viewMonth;
+    String viewValue;
+    String hexDraft;
+    String hexSeen;
+    long shownAt;
+    /** Geometry the overlay pass computed for this node's popup or menus, null while it is not open. */
+    Object overlayState;
     /** This node is a titled pane's content. */
     private boolean titledContent;
     private Map<String, Object> props;
@@ -157,6 +182,9 @@ public final class JXNativeNode {
         this.source = element;
         this.type = element.getType();
         this.kind = kindOf(type);
+        this.floatingNode = JXOverlays.floating(type);
+        this.overlayContent = JXOverlays.overlayContainer(type);
+        this.overlayHost = JXOverlays.popupHost(type) || floatingNode || "menubutton".equals(type) || "menubar".equals(type);
         setProps(element.getProps().asMap());
         for (JXElement child : element.getChildren()) {
             children.add(child(child));
@@ -314,6 +342,40 @@ public final class JXNativeNode {
     /** Sizes the root to the window, like a JavaFX Scene does with its root, then lays out the tree. */
     public void layoutForBackend(int width, int height) {
         layout(0, 0, width, height);
+        JXOverlays.layout(this, width, height); // popups, menus, dialogs: placed over the window, out of the flow
+    }
+
+    /**
+     * The pointer was pressed at the event's position: the one entry a window uses, which knows the overlays. A press
+     * outside the open popup, menu or dialog closes the topmost one and goes no further; a secondary press opens the
+     * {@code contextmenu} of the deepest parent under the pointer; anything else goes to the deepest node under the
+     * pointer, the nodes of an open overlay first. Returns that node (the one that has the focus now), or null when the
+     * overlays took the press.
+     */
+    public JXNativeNode routePointer(JXPointerEvent event) {
+        return JXOverlays.pointer(this, event);
+    }
+
+    /**
+     * A key went down while {@code focused} (may be null) has the focus: Escape closes the topmost open overlay, Enter
+     * runs the default button of an open dialog (or closes an open popup); otherwise the focused node gets the key.
+     */
+    public void routeKey(JXKeyEvent event, JXNativeNode focused) {
+        JXOverlays.key(this, event, focused);
+    }
+
+    /**
+     * Lets the snack bars that were shown for their {@code duration} (milliseconds) ask to close, through their
+     * {@code onShowing} handler. The application's loop (the window's, once per frame) calls it. Returns the
+     * milliseconds until the next one is due, or -1 when none is waiting.
+     */
+    public long tickOverlays() {
+        return JXOverlays.tick(this, JXOverlays.clock.getAsLong());
+    }
+
+    /** As {@link #tickOverlays()} at the given time (milliseconds), for hosts with their own clock and for tests. */
+    public long tickOverlays(long nowMillis) {
+        return JXOverlays.tick(this, nowMillis);
     }
 
     /**
@@ -421,6 +483,8 @@ public final class JXNativeNode {
             case "accordion":
                 return ACCORDION;
             case "popup":
+            case "dialog": // an overlay: a column of content that JXOverlays places over the window
+            case "drawer":
                 return COLUMN;
             default:
                 return JXControlLayout.handles(type) ? CONTROL : LEAF;
@@ -558,8 +622,61 @@ public final class JXNativeNode {
      * collapsed titled pane's content is not there.
      */
     public List<JXNativeNode> hitPath(int x, int y) {
+        List<JXNativeNode> overlay = JXOverlays.hitPath(this, x, y); // an open popup, menu or dialog is over everything
+        if (overlay != null) {
+            return overlay;
+        }
         List<JXNativeNode> path = new ArrayList<JXNativeNode>();
         collectHit(x, y, path);
+        return path;
+    }
+
+    /**
+     * The rectangle (x, y, width, height) of what this node has open over the window: the list of a select, the calendar
+     * of a date picker, the cells of a time or color picker, the first panel of a menu; null when it has nothing open (or
+     * is not an overlay host). The bounds of a dialog, drawer or snack bar are the node's own.
+     */
+    public int[] getPopupBounds() {
+        JXOverlays.Popup popup = JXOverlays.popup(this);
+        return popup == null ? null : new int[] {popup.x, popup.y, popup.w, popup.h};
+    }
+
+    /**
+     * The rectangles (x, y, width, height) of the choices of an open popup, in order: the rows of a select's list (the
+     * ones shown), the hour cells then the minute cells (then AM and PM) of a time picker, the swatches of a color
+     * picker. Empty when there are none.
+     */
+    public int[][] getPopupCells() {
+        JXOverlays.Popup popup = JXOverlays.popup(this);
+        if (popup == null) {
+            return new int[0][];
+        }
+        int[][] out = new int[popup.cells.length][];
+        for (int i = 0; i < out.length; i++) {
+            out[i] = Arrays.copyOf(popup.cells[i], 4);
+        }
+        return out;
+    }
+
+    /** {@link #hitPath} without the overlays: the ordinary tree only. */
+    List<JXNativeNode> hitPlain(int x, int y) {
+        List<JXNativeNode> path = new ArrayList<JXNativeNode>();
+        collectHit(x, y, path);
+        return path;
+    }
+
+    /** The nodes at (x, y) from this node down, taking its children as ordinary nodes (the content of an overlay). */
+    List<JXNativeNode> hitInside(int px, int py) {
+        List<JXNativeNode> path = new ArrayList<JXNativeNode>();
+        path.add(this);
+        for (int index = children.size() - 1; index >= 0; index--) {
+            if (children.get(index).collectHit(px, py, path)) {
+                return path;
+            }
+            while (path.size() > 1) {
+                path.remove(path.size() - 1);
+            }
+        }
         return path;
     }
 
@@ -567,13 +684,16 @@ public final class JXNativeNode {
         if (Boolean.TRUE.equals(props.get("hidden")) || Boolean.TRUE.equals(props.get("mouseTransparent"))) {
             return false;
         }
+        if (floatingNode) {
+            return false; // out of the flow: only the overlay pass reaches it, and only while it is open
+        }
         boolean inside = contains(px, py);
         if (!inside && Boolean.TRUE.equals(props.get("clip"))) {
             return false;
         }
         path.add(this);
         int size = path.size();
-        for (int index = collapsed() ? -1 : children.size() - 1; index >= 0; index--) {
+        for (int index = collapsed() || overlayContent ? -1 : children.size() - 1; index >= 0; index--) {
             if (children.get(index).collectHit(px, py, path)) {
                 return true;
             }
@@ -595,6 +715,12 @@ public final class JXNativeNode {
         }
         if (JXChangeEvents.close(this, event)) {
             return; // the close icon of a chip or a tab is not a click on the chip or the bar
+        }
+        if (JXOverlays.hostPointer(this, event)) {
+            return; // a popup host opens, closes or picks in its popup; a snack bar's action; a menu bar's header
+        }
+        if (JXChangeEvents.disclosure(this, event)) {
+            return; // the arrow of a tree row expands or collapses it; the rest of the row is a click on the row
         }
         // Controls set onAction (JXButton, JXControls.button); onClick is for hand-built elements.
         Object handler = props.containsKey("onClick") ? props.get("onClick") : props.get("onAction");
@@ -973,6 +1099,10 @@ public final class JXNativeNode {
 
     private double[] sizes() {
         double[] current = sizes;
+        if (current == null && floatingNode) {
+            current = new double[] {0, 0, 0, 0, 0, 0}; // a dialog, drawer, snack bar or context menu takes no room in its parent
+            sizes = current;
+        }
         if (current == null) {
             current = intrinsicSizes();
             if (overrides != null) {
@@ -1126,7 +1256,8 @@ public final class JXNativeNode {
             return !Objects.equals(props.get("value"), next.get("value"));
         }
         if ("button".equals(type) || "toggle".equals(type) || "checkbox".equals(type) || "titled".equals(type)
-                || "radio".equals(type) || "hyperlink".equals(type) || "switch".equals(type) || "chip".equals(type)) {
+                || "radio".equals(type) || "hyperlink".equals(type) || "switch".equals(type) || "chip".equals(type)
+                || "menubutton".equals(type) || "menu".equals(type) || "menuitem".equals(type)) {
             return !Objects.equals(props.get("label"), next.get("label"));
         }
         if ("cell".equals(type)) {

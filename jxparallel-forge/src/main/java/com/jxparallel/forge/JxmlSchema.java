@@ -70,10 +70,23 @@ public final class JxmlSchema {
         public final boolean finish;
         /** Attributes that must be written. */
         public final java.util.List<String> required;
+        /**
+         * Tree and TreeTable: the children are tree items (nested, with loops and conditions); the built props and the
+         * items go through {@code JxmlRuntime.tree}, which flattens the visible items into the rows the renderer draws.
+         */
+        public final boolean tree;
+        /** The tags allowed as children (loops and conditions only hold them), or null for any. */
+        public final java.util.List<String> only;
+        /** The tags this tag may stand directly inside (loops and conditions do not count), or null for any. */
+        public final java.util.List<String> parents;
 
         Tag(String name, String nativeType, Children children, Map<String, Attr> attrs, Map<String, Object> defaults,
             boolean control, String changeAttr, AttrType changeType, boolean composite, String alias,
-            Map<String, String> aliasAttrs, boolean virtual, boolean finish, java.util.List<String> required) {
+            Map<String, String> aliasAttrs, boolean virtual, boolean finish, java.util.List<String> required,
+            boolean tree, java.util.List<String> only, java.util.List<String> parents) {
+            this.tree = tree;
+            this.only = only == null ? null : Collections.unmodifiableList(only);
+            this.parents = parents == null ? null : Collections.unmodifiableList(parents);
             this.required = Collections.unmodifiableList(required);
             this.composite = composite;
             this.alias = alias;
@@ -106,6 +119,7 @@ public final class JxmlSchema {
     static final java.util.List<String> ORIENTATIONS = Collections.unmodifiableList(java.util.Arrays.asList("horizontal", "vertical"));
     static final java.util.List<String> CHIP_KINDS = Collections.unmodifiableList(
             java.util.Arrays.asList("assist", "filter", "choice", "input"));
+    static final java.util.List<String> SIDES = Collections.unmodifiableList(java.util.Arrays.asList("left", "right"));
 
     static {
         layout("theme", "theme", AttrType.STRING, false); // root only: light or dark, inherited by the renderer
@@ -230,6 +244,8 @@ public final class JxmlSchema {
                 .attr("value", "value", AttrType.STRING, true).attr("prompt", "prompt", AttrType.STRING, true)
                 .attr("items", "options", AttrType.STRINGS, true)
                 .def("value", "").def("prompt", "").def("options", new String[0]).def("showing", Boolean.FALSE)
+                .def("overlay", Boolean.TRUE) // the node draws its own popup over the window (JXOverlays)
+                .overlay()
                 .change("value", AttrType.STRING)
                 .done();
         tag("Spinner", "spinner", Children.NONE)
@@ -240,7 +256,8 @@ public final class JxmlSchema {
                 .done();
         tag("DatePicker", "datepicker", Children.NONE)
                 .attr("value", "value", AttrType.STRING, true).attr("prompt", "prompt", AttrType.STRING, true)
-                .def("value", "").def("prompt", "").def("showing", Boolean.FALSE)
+                .def("value", "").def("prompt", "").def("showing", Boolean.FALSE).def("overlay", Boolean.TRUE)
+                .overlay()
                 .change("value", AttrType.STRING)
                 .done();
         tag("Separator", "separator", Children.NONE)
@@ -316,6 +333,99 @@ public final class JxmlSchema {
                 .def("titles", new String[0]).def("selected", Integer.valueOf(0)).def("closable", Boolean.FALSE)
                 .change("selected", AttrType.INT)
                 .done();
+        // Overlays (JXOverlays in the renderer): popups of pickers, menus, and layers over the window.
+        tag("TimePicker", "timepicker", Children.NONE)
+                .attr("value", "value", AttrType.STRING, true).attr("prompt", "prompt", AttrType.STRING, true)
+                .attr("hour24", "hour24", AttrType.BOOLEAN, true).attr("minuteStep", "minuteStep", AttrType.INT, true)
+                .attr("disabled", "disabled", AttrType.BOOLEAN, true)
+                .def("value", "").def("prompt", "").def("hour24", Boolean.TRUE).def("minuteStep", Integer.valueOf(5))
+                .def("showing", Boolean.FALSE)
+                .overlay()
+                .change("value", AttrType.STRING)
+                .done();
+        tag("ColorPicker", "colorpicker", Children.NONE)
+                .attr("value", "value", AttrType.STRING, true).attr("prompt", "prompt", AttrType.STRING, true)
+                .attr("disabled", "disabled", AttrType.BOOLEAN, true)
+                .def("value", "").def("prompt", "").def("showing", Boolean.FALSE)
+                .overlay()
+                .change("value", AttrType.STRING)
+                .done();
+        tag("MenuButton", "menubutton", Children.MANY).only("MenuItem", "Menu")
+                .attr("text", "label", AttrType.STRING, true).attr("disabled", "disabled", AttrType.BOOLEAN, true)
+                .def("label", "")
+                .overlay()
+                .done();
+        tag("ContextMenu", "contextmenu", Children.MANY).only("MenuItem", "Menu")
+                .attr("disabled", "disabled", AttrType.BOOLEAN, true)
+                .overlay()
+                .done();
+        tag("MenuBar", "menubar", Children.MANY).only("Menu")
+                .done();
+        tag("Menu", "menu", Children.MANY).only("MenuItem", "Menu").parents("MenuBar", "MenuButton", "ContextMenu", "Menu")
+                .attr("text", "label", AttrType.STRING, true).attr("disabled", "disabled", AttrType.BOOLEAN, true)
+                .def("label", "")
+                .done();
+        tag("MenuItem", "menuitem", Children.NONE).parents("MenuButton", "ContextMenu", "Menu")
+                .attr("text", "label", AttrType.STRING, true).attr("accelerator", "accelerator", AttrType.STRING, true)
+                .attr("disabled", "disabled", AttrType.BOOLEAN, true).attr("onAction", "onAction", AttrType.HANDLER, false)
+                .attr("separator", "separator", AttrType.BOOLEAN, false)
+                .def("label", "")
+                .done();
+        tag("Modal", "dialog", Children.MANY)
+                .attr("dismissible", "dismissible", AttrType.BOOLEAN, true)
+                .attr("padding", "padding", AttrType.INSETS, false).attr("gap", "gap", AttrType.DOUBLE, true)
+                .attr("alignment", "alignment", AttrType.STRING, false).attr("fillWidth", "fillWidth", AttrType.BOOLEAN, false)
+                .def("showing", Boolean.FALSE).def("dismissible", Boolean.TRUE)
+                .overlay()
+                .done();
+        tag("Drawer", "drawer", Children.MANY)
+                .choice("side", "side", SIDES)
+                .attr("padding", "padding", AttrType.INSETS, false).attr("gap", "gap", AttrType.DOUBLE, true)
+                .attr("alignment", "alignment", AttrType.STRING, false).attr("fillWidth", "fillWidth", AttrType.BOOLEAN, false)
+                .def("showing", Boolean.FALSE).def("side", "left")
+                .overlay()
+                .done();
+        tag("SnackBar", "snackbar", Children.NONE)
+                .attr("message", "message", AttrType.STRING, true).attr("action", "action", AttrType.STRING, true)
+                .attr("onAction", "onAction", AttrType.HANDLER, false).attr("duration", "duration", AttrType.DOUBLE, true)
+                .def("message", "").def("showing", Boolean.FALSE)
+                .overlay()
+                .done();
+        tag("Dialog", null, Children.MANY).composite()
+                .attr("title", "title", AttrType.STRING, true).attr("dismissible", "dismissible", AttrType.BOOLEAN, true)
+                .overlay()
+                .done();
+        tag("AlertDialog", null, Children.NONE).composite()
+                .attr("title", "title", AttrType.STRING, true).attr("message", "message", AttrType.STRING, true)
+                .attr("confirmText", "confirmText", AttrType.STRING, true).attr("cancelText", "cancelText", AttrType.STRING, true)
+                .attr("onConfirm", "onConfirm", AttrType.HANDLER, false).attr("onCancel", "onCancel", AttrType.HANDLER, false)
+                .attr("dismissible", "dismissible", AttrType.BOOLEAN, true)
+                .overlay()
+                .done();
+        alias("MenuSeparator", "MenuItem", "separator", "true");
+
+        // Trees: nested items flattened into the rows of a list or a table (JxmlRuntime.tree).
+        tag("Tree", "list", Children.MANY).tree().only("TreeItem")
+                .attr("rowHeight", "cellHeight", AttrType.DOUBLE, true).attr("first", "first", AttrType.INT, true)
+                .attr("rows", "rows", AttrType.INT, true)
+                .def("first", Integer.valueOf(0)).def("cellHeight", Double.valueOf(24))
+                .done();
+        tag("TreeTable", "table", Children.MANY).tree().only("TreeItem")
+                .attr("rowHeight", "rowHeight", AttrType.DOUBLE, true).attr("first", "first", AttrType.INT, true)
+                .attr("rows", "rows", AttrType.INT, true)
+                .attr("columns", "columns", AttrType.STRINGS, true).attr("columnWidths", "columnWidths", AttrType.DOUBLES, true)
+                .attr("constrained", "constrained", AttrType.BOOLEAN, false)
+                .def("first", Integer.valueOf(0)).def("rowHeight", Double.valueOf(24)).def("columns", new String[0])
+                .def("constrained", Boolean.FALSE)
+                .done();
+        tag("TreeItem", "cell", Children.MANY).only("TreeItem").parents("Tree", "TreeTable", "TreeItem")
+                .attr("text", "value", AttrType.STRING, true).attr("expanded", "expanded", AttrType.BOOLEAN, true)
+                .attr("selected", "selected", AttrType.BOOLEAN, true).attr("listFocused", "listFocused", AttrType.BOOLEAN, true)
+                .attr("values", "values", AttrType.STRINGS, true)
+                .attr("onAction", "onAction", AttrType.HANDLER, false).attr("onToggle", "onToggle", AttrType.HANDLER, false)
+                .def("value", "").def("indent", Double.valueOf(0)).def("disclosure", "leaf")
+                .done();
+
         // composites that become a Button with an Icon (JxmlComposites)
         tag("IconButton", null, Children.NONE).composite()
                 .choice("icon", "icon", JxmlThemes.ICONS).required("icon")
@@ -539,11 +649,41 @@ public final class JxmlSchema {
         private String changeAttr;
         private AttrType changeType;
         private final java.util.List<String> required = new java.util.ArrayList<String>();
+        private boolean tree;
+        private java.util.List<String> only;
+        private java.util.List<String> parents;
 
         TagBuilder(String name, String nativeType, Children children) {
             this.name = name;
             this.nativeType = nativeType;
             this.children = children;
+        }
+
+        TagBuilder tree() {
+            tree = true;
+            return this;
+        }
+
+        /** The children are only these tags (or loops and conditions around them). */
+        TagBuilder only(String... tags) {
+            only = new java.util.ArrayList<String>(java.util.Arrays.asList(tags));
+            return this;
+        }
+
+        /** The tag stands only directly inside one of these. */
+        TagBuilder parents(String... tags) {
+            parents = new java.util.ArrayList<String>(java.util.Arrays.asList(tags));
+            return this;
+        }
+
+        /**
+         * An overlay's {@code showing} (written, or bound with ${...}) and the handler that gets the open state asked for.
+         * Without a {@code showing} default the node keeps its own state until the file writes one.
+         */
+        TagBuilder overlay() {
+            attr("showing", "showing", AttrType.BOOLEAN, true);
+            handler("onShowing", AttrType.BOOLEAN);
+            return this;
         }
 
         TagBuilder attr(String attr, String prop, AttrType type, boolean bindable) {
@@ -603,7 +743,7 @@ public final class JxmlSchema {
 
         void done() {
             TAGS.put(name, new Tag(name, nativeType, children, attrs, defaults, control, changeAttr, changeType,
-                    composite, alias, aliasAttrs, virtual, finish, required));
+                    composite, alias, aliasAttrs, virtual, finish, required, tree, only, parents));
         }
     }
 }

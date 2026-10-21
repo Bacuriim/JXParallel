@@ -68,6 +68,10 @@ final class JxmlComposites {
                 return iconButton(node, source);
             case "Fab":
                 return fab(node, source);
+            case "Dialog":
+                return dialog(node);
+            case "AlertDialog":
+                return alertDialog(node, source);
             default:
                 throw new IllegalStateException("no expansion for <" + tag.name + ">");
         }
@@ -334,6 +338,99 @@ final class JxmlComposites {
             button.children.add(icon(node, node.attrs.get("icon"), "24", "onPrimary"));
         }
         return button;
+    }
+
+    /** The {@code Modal} of a dialog: the attributes written (the ones the expansion uses itself left out), and a card's looks. */
+    private static JxmlParser.Node modal(JxmlParser.Node node, String... used) {
+        JxmlParser.Node modal = node("Modal", node);
+        copyExcept(node, modal, used);
+        putIfAbsent(modal, "padding", "24");
+        putIfAbsent(modal, "gap", "16");
+        putIfAbsent(modal, "alignment", "TOP_LEFT");
+        putIfAbsent(modal, "minWidth", "280");
+        return modal;
+    }
+
+    private static JxmlParser.Node heading(JxmlParser.Node at, String title) {
+        JxmlParser.Node label = node("Label", at);
+        label.attrs.put("text", title);
+        label.attrs.put("bold", "true");
+        label.attrs.put("fontSize", "18");
+        return label;
+    }
+
+    /**
+     * {@code <Dialog title showing onShowing dismissible>}: a {@code Modal} (a column over a scrim) with the title as a bold
+     * label, then the children, then the children with {@code slot="actions"} (the buttons) in a {@code ButtonBar}.
+     */
+    private static JxmlParser.Node dialog(JxmlParser.Node node) {
+        JxmlParser.Node modal = modal(node, "title");
+        if (node.attrs.containsKey("title")) {
+            modal.children.add(heading(node, node.attrs.get("title")));
+        }
+        JxmlParser.Node actions = null;
+        for (JxmlParser.Node child : node.children) {
+            if ("actions".equals(child.attrs.get("slot"))) {
+                JxmlParser.Node copy = node(child.tag, child);
+                copy.attrs.putAll(child.attrs);
+                copy.attrs.remove("slot");
+                copy.children.addAll(child.children);
+                if (actions == null) {
+                    actions = node("ButtonBar", node);
+                }
+                actions.children.add(copy);
+            } else {
+                modal.children.add(child);
+            }
+        }
+        if (actions != null) {
+            modal.children.add(actions);
+        }
+        return modal;
+    }
+
+    /**
+     * {@code <AlertDialog title message confirmText cancelText onConfirm onCancel>}: a {@code Modal} with the title, the
+     * message (wrapped) and a {@code ButtonBar} of the cancel button (when {@code cancelText} is written) and the confirm
+     * button ({@code confirmText}, OK when not written), which is the default button: Enter presses it.
+     */
+    private static JxmlParser.Node alertDialog(JxmlParser.Node node, String source) {
+        noChildren(node, source);
+        for (String handler : new String[] {"onConfirm", "onCancel"}) {
+            String value = node.attrs.get(handler);
+            if (value != null && !value.startsWith("#")) {
+                throw new JxmlException(source, node.line, handler + " must name a controller method, such as #save");
+            }
+        }
+        JxmlParser.Node modal = modal(node, "title", "message", "confirmText", "cancelText", "onConfirm", "onCancel");
+        if (node.attrs.containsKey("title")) {
+            modal.children.add(heading(node, node.attrs.get("title")));
+        }
+        if (node.attrs.containsKey("message")) {
+            JxmlParser.Node message = node("Label", node);
+            message.attrs.put("text", node.attrs.get("message"));
+            message.attrs.put("wrapText", "true");
+            message.attrs.put("maxWidth", "320");
+            modal.children.add(message);
+        }
+        JxmlParser.Node bar = node("ButtonBar", node);
+        if (node.attrs.containsKey("cancelText")) {
+            JxmlParser.Node cancel = node("Button", node);
+            cancel.attrs.put("text", node.attrs.get("cancelText"));
+            if (node.attrs.containsKey("onCancel")) {
+                cancel.attrs.put("onAction", node.attrs.get("onCancel"));
+            }
+            bar.children.add(cancel);
+        }
+        JxmlParser.Node confirm = node("Button", node);
+        confirm.attrs.put("text", node.attrs.containsKey("confirmText") ? node.attrs.get("confirmText") : "OK");
+        confirm.attrs.put("defaultButton", "true");
+        if (node.attrs.containsKey("onConfirm")) {
+            confirm.attrs.put("onAction", node.attrs.get("onConfirm"));
+        }
+        bar.children.add(confirm);
+        modal.children.add(bar);
+        return modal;
     }
 
     private static void noChildren(JxmlParser.Node node, String source) {
