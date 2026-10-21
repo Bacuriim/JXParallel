@@ -724,7 +724,7 @@ class FxmlTest {
         JXForge.Result second = JXForge.compileDirectory(src, out, "gen.views", "View", true);
         assertEquals(0, second.written.size());
         assertEquals(2, second.upToDate.size());
-        assertTrue(second.warnings.isEmpty());
+        assertEquals(first.warnings, second.warnings, "the warnings of up to date screens are replayed");
     }
 
     @Test

@@ -50,8 +50,11 @@ public class GenerateMojo extends AbstractMojo {
         try {
             JXForge.Result result = JXForge.compileDirectory(sourceDirectory, outputDirectory, packageName,
                     classSuffix, hoistConstants);
-            getLog().info(String.format("JXForge: %d written, %d up to date, %.1f ms (%s)", result.written.size(),
-                    result.upToDate.size(), result.nanos / 1e6, packageName));
+            for (String warning : result.warnings) {
+                getLog().warn(warning);
+            }
+            getLog().info(String.format("JXForge: %d written, %d up to date, %d removed, %.1f ms (%s)", result.written.size(),
+                    result.upToDate.size(), result.removed.size(), result.nanos / 1e6, packageName));
         } catch (JxmlException e) {
             throw new MojoFailureException(e.getMessage(), e);
         } catch (IOException e) {
