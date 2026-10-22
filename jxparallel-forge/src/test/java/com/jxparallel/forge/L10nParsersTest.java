@@ -13,6 +13,7 @@ import java.text.DateFormat;
 import java.text.NumberFormat;
 import java.text.SimpleDateFormat;
 import java.util.Arrays;
+import java.util.Collections;
 import java.util.Date;
 import java.util.List;
 import java.util.Locale;
@@ -533,6 +534,35 @@ class L10nParsersTest {
         assertTrue(warnings.get(0).contains("zh_Hans_CN") && warnings.get(0).contains("skipped"), warnings.get(0));
         assertTrue(new String(Files.readAllBytes(new File(res, "values-pt-rBR/strings.xml").toPath()), StandardCharsets.UTF_8)
                 .contains("<string name=\"hello\">E ai</string>"));
+    }
+
+    @Test
+    void exportTakesTheArgumentTypesFromTheDefaultLocaleBecauseOtherFilesDoNotDeclareThem() throws Exception {
+        File l10n = dir.resolve("typed").toFile();
+        Files.createDirectories(l10n.toPath());
+        Files.write(l10n.toPath().resolve("app_en.arb"), ("{\"@@locale\": \"en\",\n"
+                + "\"hello\": \"Hello {name}, {n} new\", \"@hello\": {\"placeholders\": {\"name\": {\"type\": \"String\"}, \"n\": {\"type\": \"int\"}}},\n"
+                + "\"files\": \"{count, plural, one{# file} other{{count} files}}\", \"@files\": {\"placeholders\": {\"count\": {\"type\": \"double\"}}}}")
+                .getBytes(StandardCharsets.UTF_8));
+        Files.write(l10n.toPath().resolve("app_pt.arb"), ("{\"@@locale\": \"pt\",\n\"hello\": \"Ola {name}, {n} novos\",\n"
+                + "\"files\": \"{count, plural, one{# arquivo} other{{count} arquivos}}\"}").getBytes(StandardCharsets.UTF_8));
+        File res = dir.resolve("typedres").toFile();
+        List<String> warnings = new java.util.ArrayList<String>();
+        JXForge.l10nToAndroid(l10n, res, warnings);
+        assertEquals(Collections.<String>emptyList(), warnings);
+        String values = new String(Files.readAllBytes(new File(res, "values/strings.xml").toPath()), StandardCharsets.UTF_8);
+        String pt = new String(Files.readAllBytes(new File(res, "values-pt/strings.xml").toPath()), StandardCharsets.UTF_8);
+        assertTrue(values.contains("Hello %1$s, %2$d new") && values.contains("<item quantity=\"one\">%1$f file</item>"), values);
+        assertTrue(pt.contains("Ola %1$s, %2$d novos") && pt.contains("<item quantity=\"one\">%1$f arquivo</item>"), pt);
+        // and the Android files load back, with the default locale's types in both
+        File back = dir.resolve("typedback").toFile();
+        JXForge.l10nFromAndroid(res, back, null);
+        JxmlCatalog original = JxmlCatalog.load(l10n);
+        JxmlCatalog again = JxmlCatalog.load(back);
+        for (String key : original.keys()) {
+            assertEquals(original.signature(key).types, again.signature(key).types, key);
+        }
+        assertEquals("Ola Ada, 3 novos", again.messages().format(new Locale("pt"), "hello", "Ada", 3));
     }
 
     private static void assertSameCatalog(JxmlCatalog expected, JxmlCatalog actual) {

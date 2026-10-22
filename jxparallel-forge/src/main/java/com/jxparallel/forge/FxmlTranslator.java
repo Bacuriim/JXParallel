@@ -1002,7 +1002,9 @@ final class FxmlTranslator {
             }
             if (!c.size.isEmpty()) {
                 run.warn(c.line, "<" + cls + "> number " + (i + 1) + " sets " + c.size + ": JXML sizes cells, so it is written on "
-                        + "the " + cells.size() + " cell(s) of " + place + " " + i);
+                        + "the " + cells.size() + " cell(s) of " + place + " " + i + ". A cell that does not fill its " + place
+                        + " in JavaFX (a Button, a CheckBox) becomes as large as the " + place + " here; set it on the cells that "
+                        + "should have it");
             }
         }
     }

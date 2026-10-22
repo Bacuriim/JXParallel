@@ -1047,7 +1047,13 @@ public final class JxmlCatalog {
             order.remove(count);
             order.add(0, count);
         }
+        // the types are the default locale's, as in the generated Strings: another locale's file rarely declares them
         Map<String, String> types = typesOf(e);
+        if (sig != null) {
+            for (int i = 0; i < sig.names.size(); i++) {
+                types.put(sig.names.get(i), sig.types.get(i));
+            }
+        }
         StringBuilder text = new StringBuilder();
         for (JxmlMessages.Part p : m.parts) {
             if (p instanceof JxmlMessages.Text) {
