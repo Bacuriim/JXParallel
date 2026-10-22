@@ -158,7 +158,10 @@ final class JXNanoVGPainter implements JXPainter {
         nvgFontSize(vg, size);
         nvgTextAlign(vg, NVG_ALIGN_LEFT | NVG_ALIGN_BASELINE);
         nvgFillColor(vg, rgba(color, argb));
-        nvgText(vg, x, baseline, value);
+        // fontstash cuts the fraction off a glyph's position (a cast to int), so the text lands up to a pixel above and to
+        // the left of where the software painter (which rounds) and Skia put it: give it the nearest whole pixel.
+        // Measured on the controls sheet, 32-bit Java 8: 1.99% of the pixels differed from the software painter, now 0.66%
+        nvgText(vg, Math.round(x), Math.round(baseline), value);
     }
 
     @Override

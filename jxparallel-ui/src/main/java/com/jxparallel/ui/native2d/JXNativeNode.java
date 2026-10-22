@@ -126,6 +126,13 @@ public final class JXNativeNode {
     long shownAt;
     /** Geometry the overlay pass computed for this node's popup or menus, null while it is not open. */
     Object overlayState;
+    /**
+     * The highlighted row of the open popup or menus (see {@link JXOverlays#hover} and {@link JXOverlays#key}): an
+     * Integer, the index of a cell of a list or grid popup; the row node of a menu; the LocalDate of a calendar's day.
+     * Null while nothing is, and whenever the overlay closes. {@code hotKey}: it was put there by the keyboard.
+     */
+    Object hot;
+    boolean hotKey;
     /** This node is a titled pane's content. */
     private boolean titledContent;
     private Map<String, Object> props;
@@ -378,8 +385,20 @@ public final class JXNativeNode {
     }
 
     /**
-     * A key went down while {@code focused} (may be null) has the focus: Escape closes the topmost open overlay, Enter
-     * runs the default button of an open dialog (or closes an open popup); otherwise the focused node gets the key.
+     * The pointer is at (x, y) without a button: the row of the topmost open popup or menu under it is the highlighted
+     * one (a row that is none clears the highlight the pointer set; one the keyboard set stays). True when what is
+     * highlighted changed, so the window draws again. {@code (-1, -1)} is a pointer that left the window.
+     */
+    public boolean routeHover(int x, int y) {
+        return JXOverlays.hover(this, x, y);
+    }
+
+    /**
+     * A key went down while {@code focused} (may be null) has the focus: Escape closes the topmost open overlay; in an
+     * open popup or menu Up, Down, Home, End (Page Up and Page Down) move the highlighted row, Enter picks it, Left and
+     * Right move in a grid and open and close the submenus of a menu and move along the titles of a menu bar; Enter runs
+     * the default button of an open dialog (or closes an open popup with no highlighted row); otherwise the focused node
+     * gets the key.
      */
     public void routeKey(JXKeyEvent event, JXNativeNode focused) {
         JXOverlays.key(this, event, focused);

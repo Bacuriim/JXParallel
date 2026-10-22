@@ -521,15 +521,23 @@ public final class JXWindow implements AutoCloseable {
         GLFW.glfwSetCursorPosCallback(handle, (h, px, py) -> {
             cursorX = px;
             cursorY = py;
-            if (inputListener != null) {
+            if (inputListener != null) { // a host with an input listener routes the overlays itself (JXNativeNode#routeHover)
                 deliver(JXInputEvent.pointer(JXInputEvent.Kind.MOVE, px, py, lastButton < 0 ? 0 : lastButton, currentModifiers(h),
                         0, buttonsDown != 0, path(px, py)));
-            } else if (dragNode != null && buttonsDown != 0) {
-                dragNode.dispatchDrag(new JXPointerEvent((int) px, (int) py, GLFW.GLFW_MOUSE_BUTTON_LEFT));
-                requestRender();
+            } else {
+                if (root != null && root.routeHover((int) Math.floor(px), (int) Math.floor(py))) {
+                    requestRender(); // the row of an open popup or menu under the pointer has its state layer
+                }
+                if (dragNode != null && buttonsDown != 0) {
+                    dragNode.dispatchDrag(new JXPointerEvent((int) px, (int) py, GLFW.GLFW_MOUSE_BUTTON_LEFT));
+                    requestRender();
+                }
             }
         });
         GLFW.glfwSetCursorEnterCallback(handle, (h, entered) -> {
+            if (!entered && inputListener == null && root != null && root.routeHover(-1, -1)) {
+                requestRender();
+            }
             if (!entered && inputListener != null) {
                 deliver(JXInputEvent.pointer(JXInputEvent.Kind.EXIT, cursorX, cursorY, 0, 0, 0, buttonsDown != 0,
                         new ArrayList<JXNativeNode>()));

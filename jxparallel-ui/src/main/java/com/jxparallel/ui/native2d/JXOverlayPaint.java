@@ -65,6 +65,15 @@ final class JXOverlayPaint {
         p.fillRoundRect(x, y, w, h, 4, t.surfaceContainer);
     }
 
+    /** The alpha of the state layer of the highlighted row: hover 8% for the pointer's, focus 12% for the keys'. */
+    private static int hotAlpha(JXNativeNode node) {
+        return node.hotKey ? JXTheme.FOCUS : JXTheme.HOVER;
+    }
+
+    private static int layer(JXTheme t, JXNativeNode node) {
+        return JXTheme.withAlpha(t.onSurface, hotAlpha(node));
+    }
+
     private static void centered(JXPainter p, String label, int[] cell, int color) {
         JXTextEngine engine = JXTextEngine.get(false);
         float size = JXTextEngine.DEFAULT_SIZE;
@@ -89,6 +98,9 @@ final class JXOverlayPaint {
             if (chosen) {
                 p.fillRect(c[0] + 2, c[1], c[2] - 4, c[3], t.secondaryContainer);
             }
+            if (node.hot instanceof Integer && ((Integer) node.hot).intValue() == c[5]) { // the pointer's or the keys' row
+                p.fillRect(c[0] + 2, c[1], c[2] - 4, c[3], layer(t, node));
+            }
             p.text(po.labels[i], c[0] + JXNativeNode.PAD_X, c[1] + engine.baseline(c[3], size), size, false,
                     chosen ? t.onPrimaryContainer : t.onSurface);
         }
@@ -106,6 +118,9 @@ final class JXOverlayPaint {
             if (current) {
                 p.fillRoundRect(c[0] + 2, c[1], c[2] - 4, c[3], 4, t.primary);
             }
+            if (node.hot instanceof Integer && ((Integer) node.hot).intValue() == i) {
+                p.fillRoundRect(c[0] + 2, c[1], c[2] - 4, c[3], 4, current ? JXTheme.withAlpha(t.onPrimary, hotAlpha(node)) : layer(t, node));
+            }
             centered(p, po.labels[i], c, current ? t.onPrimary : t.onSurface);
         }
     }
@@ -117,11 +132,14 @@ final class JXOverlayPaint {
         }
         box(p, t, po.x, po.y, po.w, po.h);
         int current = JXOverlays.colorOf(JXPaint.text(node, "value"));
-        for (int[] c : po.cells) {
+        for (int i = 0; i < po.cells.length; i++) {
+            int[] c = po.cells[i];
             p.fillRoundRect(c[0] - 1, c[1] - 1, c[2] + 2, c[3] + 2, 3, t.outlineVariant);
             p.fillRoundRect(c[0], c[1], c[2], c[3], 2, c[5]);
             if (current != 0 && c[5] == current) {
                 p.strokeRoundRect(c[0] - 2, c[1] - 2, c[2] + 4, c[3] + 4, 4, 2, t.primary);
+            } else if (node.hot instanceof Integer && ((Integer) node.hot).intValue() == i) {
+                p.strokeRoundRect(c[0] - 2, c[1] - 2, c[2] + 4, c[3] + 4, 4, 2, t.onSurfaceVariant); // a swatch is no row: a ring
             }
         }
         int[] f = po.field;
@@ -171,6 +189,8 @@ final class JXOverlayPaint {
                 int color = disabled ? JXTheme.withAlpha(t.onSurface, JXTheme.DISABLED_CONTENT) : t.onSurface;
                 if (i == panel.container.openChild && "menu".equals(row.getType())) {
                     p.fillRect(x, y, w, h, JXTheme.withAlpha(t.onSurface, JXTheme.PRESSED));
+                } else if (row == node.hot) { // the row under the pointer, or the one the keys reached (a stronger layer)
+                    p.fillRect(x, y, w, h, layer(t, node));
                 }
                 float baseline = y + engine.baseline(h, size);
                 p.text(JXOverlays.label(row), x + JXOverlays.MENU_TEXT, baseline, size, false, color);

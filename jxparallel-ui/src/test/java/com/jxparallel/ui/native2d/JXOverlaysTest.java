@@ -242,13 +242,16 @@ class JXOverlaysTest {
         JXNativeNode select = root.getChildren().get(0);
         press(root, ESCAPE, '\0', select);
         assertEquals(Arrays.<Object>asList(false), showings);
-        press(root, DOWN, '\0', select); // Down chooses the next option: the select's own key handling
+        press(root, DOWN, '\0', select); // Down moves the highlighted option of the open list (from the chosen one) ...
+        assertTrue(changes.isEmpty());
+        press(root, ENTER, '\0', select); // ... and Enter picks it and closes the list
         assertEquals(Arrays.<Object>asList("c"), changes);
-        press(root, ENTER, '\0', select);
         assertEquals(Arrays.<Object>asList(false, false), showings, "Enter closes an open popup");
+        press(root, ENTER, '\0', select); // nothing highlighted any more: Enter closes the open popup, as before
+        assertEquals(Arrays.<Object>asList(false, false, false), showings);
         JXNativeNode closed = mount(e("column", p().set("padding", 8.0), select(false, "a", "b", "c")));
         press(closed, ESCAPE, '\0', closed.getChildren().get(0));
-        assertEquals(2, showings.size(), "Escape with nothing open does nothing");
+        assertEquals(3, showings.size(), "Escape with nothing open does nothing");
     }
 
     @Test
