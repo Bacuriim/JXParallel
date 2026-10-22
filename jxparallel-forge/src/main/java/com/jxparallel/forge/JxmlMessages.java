@@ -44,9 +44,19 @@ public final class JxmlMessages {
 
     static final class Arg extends Part {
         final String name;
+        /** {@code number}, {@code date} or {@code time} for {@code {n, number, percent}}; null for a plain {@code {n}}. */
+        final String type;
+        /** The style after the type ({@code percent}, {@code short}, a pattern), or null. */
+        final String style;
 
         Arg(String name) {
+            this(name, null, null);
+        }
+
+        Arg(String name, String type, String style) {
             this.name = name;
+            this.type = type;
+            this.style = style;
         }
     }
 
@@ -54,15 +64,26 @@ public final class JxmlMessages {
     static final class Hash extends Part {
     }
 
-    /** A plural or a select with its cases by selector ({@code =0}, {@code one}, {@code male}, {@code other}). */
+    /**
+     * A plural, a selectordinal or a select with its cases by selector ({@code =0}, {@code one}, {@code male},
+     * {@code other}). {@code plural} is true for plural and selectordinal; {@code offset} is the plural's {@code offset:N}.
+     */
     static final class Choice extends Part {
         final String name;
         final boolean plural;
+        final boolean ordinal;
+        final int offset;
         final Map<String, Message> cases;
 
         Choice(String name, boolean plural, Map<String, Message> cases) {
+            this(name, plural, false, 0, cases);
+        }
+
+        Choice(String name, boolean plural, boolean ordinal, int offset, Map<String, Message> cases) {
             this.name = name;
             this.plural = plural;
+            this.ordinal = ordinal;
+            this.offset = offset;
             this.cases = cases;
         }
     }
@@ -109,9 +130,10 @@ public final class JxmlMessages {
     private static void collect(Message m, Map<String, String> out) {
         for (Part p : m.parts) {
             if (p instanceof Arg) {
-                String name = ((Arg) p).name;
-                if (!out.containsKey(name)) {
-                    out.put(name, "plain");
+                Arg a = (Arg) p;
+                String known = out.get(a.name);
+                if (known == null || "plain".equals(known)) {
+                    out.put(a.name, a.type == null ? "plain" : a.type);
                 }
             } else if (p instanceof Choice) {
                 Choice c = (Choice) p;
@@ -132,12 +154,23 @@ public final class JxmlMessages {
             if (p instanceof Text) {
                 quote(((Text) p).text, out, inPlural);
             } else if (p instanceof Arg) {
-                out.append('{').append(((Arg) p).name).append('}');
+                Arg a = (Arg) p;
+                out.append('{').append(a.name);
+                if (a.type != null) {
+                    out.append(", ").append(a.type);
+                    if (a.style != null) {
+                        out.append(", ").append(a.style);
+                    }
+                }
+                out.append('}');
             } else if (p instanceof Hash) {
                 out.append('#');
             } else {
                 Choice c = (Choice) p;
-                out.append('{').append(c.name).append(c.plural ? ", plural," : ", select,");
+                out.append('{').append(c.name).append(c.ordinal ? ", selectordinal," : c.plural ? ", plural," : ", select,");
+                if (c.offset != 0) {
+                    out.append(" offset:").append(c.offset);
+                }
                 for (Map.Entry<String, Message> e : c.cases.entrySet()) {
                     out.append(' ').append(e.getKey()).append('{');
                     write(e.getValue(), out, c.plural || inPlural);
@@ -292,7 +325,10 @@ public final class JxmlMessages {
             i++; // ,
             String type = until(",}");
             if ("number".equals(type) || "date".equals(type) || "time".equals(type)) {
-                if (s.charAt(i) == ',') { // a style, which does not change what is shown here
+                String style = null;
+                if (s.charAt(i) == ',') {
+                    i++;
+                    int start = i;
                     int depth = 0;
                     while (i < s.length() && (s.charAt(i) != '}' || depth > 0)) {
                         depth += s.charAt(i) == '{' ? 1 : s.charAt(i) == '}' ? -1 : 0;
@@ -301,18 +337,41 @@ public final class JxmlMessages {
                     if (i >= s.length()) {
                         throw error("missing }");
                     }
+                    style = s.substring(start, i).trim();
+                    checkStyle(type, style);
                 }
                 i++;
-                return new Arg(name);
+                return new Arg(name, type, style);
             }
-            boolean plural = "plural".equals(type);
+            boolean ordinal = "selectordinal".equals(type);
+            boolean plural = ordinal || "plural".equals(type);
             if (!plural && !"select".equals(type)) {
-                throw error("unsupported argument type \"" + type + "\" (use plural or select)");
+                throw error("unsupported argument type \"" + type + "\" (use plural, selectordinal, select, number, date or time)");
             }
             if (s.charAt(i) != ',') {
                 throw error("expected , after " + type);
             }
             i++;
+            int offset = 0;
+            skipSpaces();
+            if (s.startsWith("offset:", i)) {
+                if (ordinal) {
+                    throw error("offset belongs to plural, not selectordinal");
+                }
+                if (!plural) {
+                    throw error("offset belongs to plural, not select");
+                }
+                i += "offset:".length();
+                skipSpaces();
+                int start = i;
+                while (i < s.length() && Character.isDigit(s.charAt(i))) {
+                    i++;
+                }
+                if (start == i || i - start > 9) {
+                    throw error("offset: must be followed by a whole number");
+                }
+                offset = Integer.parseInt(s.substring(start, i));
+            }
             Map<String, Message> cases = new LinkedHashMap<String, Message>();
             while (true) {
                 skipSpaces();
@@ -333,7 +392,7 @@ public final class JxmlMessages {
                     throw error("expected a selector and {message} in the " + type);
                 }
                 if (plural && !isPluralSelector(selector)) {
-                    throw error("\"" + selector + "\" is not =N, zero, one, two, few, many or other (offset is not supported)");
+                    throw error("\"" + selector + "\" is not =N, zero, one, two, few, many or other");
                 }
                 if (cases.containsKey(selector)) {
                     throw error("selector " + selector + " twice in the " + type);
@@ -349,7 +408,22 @@ public final class JxmlMessages {
             if (!cases.containsKey("other")) {
                 throw error("the " + type + " on " + name + " has no 'other' case");
             }
-            return new Choice(name, plural, Collections.unmodifiableMap(cases));
+            return new Choice(name, plural, ordinal, offset, Collections.unmodifiableMap(cases));
+        }
+
+        private void checkStyle(String type, String style) {
+            if (style.isEmpty()) {
+                throw error("the " + type + " style is empty");
+            }
+            try {
+                if ("number".equals(type)) {
+                    numberFormat(style, Locale.ROOT);
+                } else {
+                    dateFormat(type, style, Locale.ROOT);
+                }
+            } catch (IllegalArgumentException e) {
+                throw error(e.getMessage());
+            }
         }
 
         private static boolean isPluralSelector(String s) {
@@ -363,30 +437,205 @@ public final class JxmlMessages {
     // ---- plural rules --------------------------------------------------------------------------------------
 
     /**
-     * The plural category of {@code n} in {@code locale}: {@code one}, {@code many} or {@code other} for en, pt, es and fr
-     * (pt and fr count 0 and 1 as {@code one}, except pt_PT; es and fr, and pt, say {@code many} for whole millions);
-     * {@code other} for every other language.
+     * The cardinal plural category of {@code n} in {@code locale}, by the rules of CLDR 42 (the operands are {@code i}, the
+     * integer part, and {@code v}, the number of visible fraction digits, so {@code 1} and {@code 1.0} are the same value
+     * and {@code 1.5} has a fraction):
+     * <ul>
+     * <li>{@code one}/{@code other}: en, de, nl, sv, nb, no, fi, et (i = 1, no fraction); tr, el, hu, bg (n = 1);
+     * pt (i = 0 or 1; pt_PT: i = 1, no fraction) and fr (i = 0 or 1); hi (i = 0 or n = 1);</li>
+     * <li>{@code one}/{@code many}/{@code other}: es and it (i = 1, no fraction; {@code many} for whole millions), and pt,
+     * fr (whole millions are {@code many});</li>
+     * <li>{@code one}/{@code few}/{@code many}/{@code other}: ru, uk, pl (whole numbers only; a fraction is {@code other});
+     * cs, sk ({@code one} 1, {@code few} 2 to 4, {@code many} for any fraction);</li>
+     * <li>{@code zero}/{@code one}/{@code two}/{@code few}/{@code many}/{@code other}: ar;</li>
+     * <li>{@code one}/{@code two}/{@code other}: he (CLDR 42: no {@code many});</li>
+     * <li>{@code other} always: ja, zh, ko, vi, th, id, ms, and every language not listed.</li>
+     * </ul>
+     * A negative number has the category of its absolute value.
      */
     public static String category(Locale locale, double n) {
         double abs = Math.abs(n);
         boolean whole = abs == Math.rint(abs) && !Double.isInfinite(abs);
-        long integer = (long) abs;
-        boolean millions = whole && integer != 0 && integer % 1000000L == 0;
+        long i = (long) abs;
+        boolean millions = whole && i != 0 && i % 1000000L == 0;
+        boolean fraction = !whole;
+        long mod10 = i % 10;
+        long mod100 = i % 100;
         switch (locale.getLanguage()) {
             case "en":
-                return whole && integer == 1 ? "one" : "other";
+            case "de":
+            case "nl":
+            case "sv":
+            case "nb":
+            case "no":
+            case "fi":
+            case "et":
+                return whole && i == 1 ? "one" : "other";
+            case "tr":
+            case "el":
+            case "hu":
+            case "bg":
+                return abs == 1 ? "one" : "other";
             case "es":
-                return whole && integer == 1 ? "one" : millions ? "many" : "other";
+            case "it":
+                return whole && i == 1 ? "one" : millions ? "many" : "other";
             case "pt":
                 if ("PT".equals(locale.getCountry())) {
-                    return whole && integer == 1 ? "one" : millions ? "many" : "other";
+                    return whole && i == 1 ? "one" : millions ? "many" : "other";
                 }
-                return integer <= 1 ? "one" : millions ? "many" : "other";
+                return i <= 1 ? "one" : millions ? "many" : "other";
             case "fr":
-                return integer <= 1 ? "one" : millions ? "many" : "other";
+                return i <= 1 ? "one" : millions ? "many" : "other";
+            case "hi":
+                return i == 0 || abs == 1 ? "one" : "other";
+            case "ru":
+            case "uk":
+                if (fraction) {
+                    return "other";
+                }
+                if (mod10 == 1 && mod100 != 11) {
+                    return "one";
+                }
+                if (mod10 >= 2 && mod10 <= 4 && !(mod100 >= 12 && mod100 <= 14)) {
+                    return "few";
+                }
+                return "many";
+            case "pl":
+                if (fraction) {
+                    return "other";
+                }
+                if (i == 1) {
+                    return "one";
+                }
+                if (mod10 >= 2 && mod10 <= 4 && !(mod100 >= 12 && mod100 <= 14)) {
+                    return "few";
+                }
+                return "many";
+            case "cs":
+            case "sk":
+                if (fraction) {
+                    return "many";
+                }
+                return i == 1 ? "one" : i >= 2 && i <= 4 ? "few" : "other";
+            case "ar":
+                if (fraction) {
+                    return "other";
+                }
+                return i == 0 ? "zero" : i == 1 ? "one" : i == 2 ? "two" : mod100 >= 3 && mod100 <= 10 ? "few"
+                        : mod100 >= 11 ? "many" : "other";
+            case "he":
+            case "iw": // the code Java 8 to 16 gives Hebrew
+                if (fraction) {
+                    return i == 0 ? "one" : "other";
+                }
+                return i == 1 ? "one" : i == 2 ? "two" : "other";
             default:
                 return "other";
         }
+    }
+
+    /**
+     * The ordinal category of {@code n} (for {@code selectordinal}): in English {@code one} for 1, 21, 101... except 11
+     * ({@code 1st}), {@code two} (2nd), {@code few} (3rd), {@code other} (4th, 11th, 12th, 13th, 1.5); {@code other} for
+     * every other language, which includes es, fr and pt (CLDR gives French {@code one} for 1; this follows the spec of
+     * the feature and keeps {@code other}).
+     */
+    public static String ordinalCategory(Locale locale, double n) {
+        double abs = Math.abs(n);
+        if ("en".equals(locale.getLanguage()) && abs == Math.rint(abs) && !Double.isInfinite(abs)) {
+            long i = (long) abs;
+            long mod10 = i % 10;
+            long mod100 = i % 100;
+            if (mod10 == 1 && mod100 != 11) {
+                return "one";
+            }
+            if (mod10 == 2 && mod100 != 12) {
+                return "two";
+            }
+            if (mod10 == 3 && mod100 != 13) {
+                return "few";
+            }
+        }
+        return "other";
+    }
+
+    // ---- number and date styles ----------------------------------------------------------------------------
+
+    /** The number format for a style: none, {@code integer}, {@code percent}, {@code currency} or a pattern with # or 0. */
+    static java.text.NumberFormat numberFormat(String style, Locale locale) {
+        if (style == null || "decimalPattern".equals(style)) {
+            return java.text.NumberFormat.getInstance(locale);
+        }
+        switch (style) {
+            case "integer":
+                return java.text.NumberFormat.getIntegerInstance(locale);
+            case "percent":
+            case "percentPattern":
+                return java.text.NumberFormat.getPercentInstance(locale);
+            case "currency":
+            case "simpleCurrency":
+                return java.text.NumberFormat.getCurrencyInstance(locale);
+            default:
+                if (style.indexOf('#') < 0 && style.indexOf('0') < 0) {
+                    throw new IllegalArgumentException("the number style \"" + style + "\" is not supported (use integer, percent, "
+                            + "currency, decimalPattern or a pattern such as #,##0.00)");
+                }
+                try {
+                    return new java.text.DecimalFormat(style, java.text.DecimalFormatSymbols.getInstance(locale));
+                } catch (IllegalArgumentException e) {
+                    throw new IllegalArgumentException("the number pattern \"" + style + "\" is malformed: " + e.getMessage());
+                }
+        }
+    }
+
+    /** The date or time format for a style: none (medium), short, medium, long, full, or a pattern such as dd/MM/yyyy. */
+    static DateFormat dateFormat(String type, String style, Locale locale) {
+        boolean time = "time".equals(type);
+        int named = -1;
+        if (style == null || "medium".equals(style)) {
+            named = DateFormat.MEDIUM;
+        } else if ("short".equals(style)) {
+            named = DateFormat.SHORT;
+        } else if ("long".equals(style)) {
+            named = DateFormat.LONG;
+        } else if ("full".equals(style)) {
+            named = DateFormat.FULL;
+        }
+        if (named >= 0) {
+            return time ? DateFormat.getTimeInstance(named, locale) : DateFormat.getDateInstance(named, locale);
+        }
+        boolean separated = false;
+        for (int k = 0; k < style.length(); k++) {
+            separated |= !Character.isLetter(style.charAt(k));
+        }
+        if (!separated) {
+            throw new IllegalArgumentException("the " + type + " style \"" + style + "\" is not supported (use short, medium, long, "
+                    + "full or a pattern with separators such as dd/MM/yyyy)");
+        }
+        try {
+            return new java.text.SimpleDateFormat(style, locale);
+        } catch (IllegalArgumentException e) {
+            throw new IllegalArgumentException("the " + type + " pattern \"" + style + "\" is malformed: " + e.getMessage());
+        }
+    }
+
+    private static String format(Arg a, Object value, Locale locale) {
+        if (a.type == null) {
+            return text(value, locale);
+        }
+        if (value == null) {
+            return "";
+        }
+        if ("number".equals(a.type)) {
+            if (!(value instanceof Number)) {
+                throw new IllegalArgumentException("the number on " + a.name + " needs a number, not " + describe(value));
+            }
+            return numberFormat(a.style, locale).format(value);
+        }
+        if (!(value instanceof Date)) {
+            throw new IllegalArgumentException("the " + a.type + " on " + a.name + " needs a date, not " + describe(value));
+        }
+        return dateFormat(a.type, a.style, locale).format((Date) value);
     }
 
     // ---- formatting ----------------------------------------------------------------------------------------
@@ -397,7 +646,7 @@ public final class JxmlMessages {
             if (p instanceof Text) {
                 out.append(((Text) p).text);
             } else if (p instanceof Arg) {
-                out.append(text(value(args, ((Arg) p).name), locale));
+                out.append(format((Arg) p, value(args, ((Arg) p).name), locale));
             } else if (p instanceof Hash) {
                 out.append(count == null ? "#" : number(count.doubleValue()));
             } else {
@@ -407,13 +656,15 @@ public final class JxmlMessages {
                 Double inner = count;
                 if (c.plural) {
                     if (!(value instanceof Number)) {
-                        throw new IllegalArgumentException("the plural on " + c.name + " needs a number, not " + describe(value));
+                        throw new IllegalArgumentException("the " + (c.ordinal ? "selectordinal" : "plural") + " on " + c.name
+                                + " needs a number, not " + describe(value));
                     }
                     double n = ((Number) value).doubleValue();
-                    inner = Double.valueOf(n);
+                    double shown = n - c.offset; // the category and the # count what is left after the offset; =N still tests n
+                    inner = Double.valueOf(shown);
                     chosen = n == Math.rint(n) ? c.cases.get("=" + (long) n) : null;
                     if (chosen == null) {
-                        chosen = c.cases.get(category(locale, n));
+                        chosen = c.cases.get(c.ordinal ? ordinalCategory(locale, shown) : category(locale, shown));
                     }
                 } else {
                     chosen = c.cases.get(String.valueOf(value));

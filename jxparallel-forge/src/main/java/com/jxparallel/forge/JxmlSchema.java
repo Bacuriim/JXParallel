@@ -182,7 +182,7 @@ public final class JxmlSchema {
                 .def("selected", Integer.valueOf(0)).def("retainChildren", Boolean.TRUE).def("closingPolicy", "SELECTED_TAB")
                 .done();
         tag("Tab", null, Children.TAB)
-                .attr("title", "title", AttrType.STRING, false).attr("closable", "closable", AttrType.BOOLEAN, false)
+                .attr("title", "title", AttrType.STRING, true).attr("closable", "closable", AttrType.BOOLEAN, false)
                 .done();
 
         // The language: loops and conditions. Their children are placed in the parent, in order.

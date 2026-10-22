@@ -8,6 +8,7 @@ import java.net.URL;
 import java.net.URLClassLoader;
 import java.util.ArrayList;
 import java.util.Collection;
+import java.util.Collections;
 import java.util.List;
 
 import org.gradle.api.DefaultTask;
@@ -74,7 +75,8 @@ public abstract class JXForgeGenerateTask extends DefaultTask {
         if (!getPackageName().isPresent()) {
             throw new GradleException("jxforge.packageName is required");
         }
-        if (!src.isDirectory()) {
+        // a source directory that is gone still has generated classes to remove when an earlier run left a manifest
+        if (!src.isDirectory() && !new File(out, ".jxforge-manifest").isFile()) {
             getLogger().info("JXForge: no {}, nothing to do", src);
             return;
         }
@@ -104,14 +106,21 @@ public abstract class JXForgeGenerateTask extends DefaultTask {
                         boolean.class);
                 result = m.invoke(null, src, out, getPackageName().get(), getClassSuffix().get(), getHoistConstants().get());
             }
-            for (Object warning : (Collection<?>) result.getClass().getField("warnings").get(result)) {
+            // the result of an older forge may lack warnings and removed: whatever is there is logged, the rest is skipped
+            for (Object warning : collection(result, "warnings")) {
                 getLogger().warn("{}", warning);
             }
-            int written = ((Collection<?>) result.getClass().getField("written").get(result)).size();
-            int upToDate = ((Collection<?>) result.getClass().getField("upToDate").get(result)).size();
-            long nanos = result.getClass().getField("nanos").getLong(result);
-            getLogger().lifecycle(String.format("JXForge: %d written, %d up to date, %.1f ms (%s)", written, upToDate,
-                    nanos / 1e6, getPackageName().get()));
+            Collection<?> removed = collection(result, "removed");
+            for (Object file : removed) {
+                getLogger().lifecycle("JXForge: removed {}", relative(out, file));
+            }
+            int written = collection(result, "written").size();
+            int upToDate = collection(result, "upToDate").size();
+            long nanos = number(result, "nanos");
+            String counts = hasField(result, "removed")
+                    ? String.format("%d written, %d up to date, %d removed", written, upToDate, removed.size())
+                    : String.format("%d written, %d up to date", written, upToDate);
+            getLogger().lifecycle(String.format("JXForge: %s, %.1f ms (%s)", counts, nanos / 1e6, getPackageName().get()));
         } catch (InvocationTargetException e) {
             Throwable cause = e.getCause();
             if (cause instanceof IOException) {
@@ -122,6 +131,43 @@ public abstract class JXForgeGenerateTask extends DefaultTask {
         } catch (ReflectiveOperationException | IOException e) {
             throw new GradleException("JXForge could not run: " + e, e);
         }
+    }
+
+    private static boolean hasField(Object result, String name) {
+        try {
+            result.getClass().getField(name);
+            return true;
+        } catch (NoSuchFieldException e) {
+            return false;
+        }
+    }
+
+    /** The collection in the public field {@code name} of the result; empty when this forge has no such field. */
+    private static Collection<?> collection(Object result, String name) throws IllegalAccessException {
+        try {
+            Object value = result.getClass().getField(name).get(result);
+            return value instanceof Collection ? (Collection<?>) value : Collections.emptyList();
+        } catch (NoSuchFieldException e) {
+            return Collections.emptyList();
+        }
+    }
+
+    private static long number(Object result, String name) throws IllegalAccessException {
+        try {
+            return result.getClass().getField(name).getLong(result);
+        } catch (NoSuchFieldException e) {
+            return 0;
+        }
+    }
+
+    /** The path of a removed file below the output directory, with {@code /}; the whole path when it is somewhere else. */
+    private static String relative(File out, Object file) {
+        String base = out.getAbsolutePath();
+        String path = ((File) file).getAbsolutePath();
+        if (path.startsWith(base + File.separator)) {
+            path = path.substring(base.length() + 1);
+        }
+        return path.replace(File.separatorChar, '/');
     }
 
     /** A loader that sees the JDK and nothing of Gradle, so the forge and Gradle never mix classes. */

@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<!-- MenuBar, Menu, MenuItem, SeparatorMenuItem (and a submenu), MenuButton. -->
+<!-- MenuBar, Menu, MenuItem, SeparatorMenuItem (and a submenu), MenuButton, a ContextMenu on a StackPane. -->
 <?import javafx.scene.control.*?>
 <?import javafx.scene.layout.*?>
 <VBox xmlns="http://javafx.com/javafx" xmlns:fx="http://javafx.com/fxml"
@@ -27,4 +27,16 @@
     </items>
     <MenuItem text="Quit"/>
   </MenuButton>
+  <StackPane>
+    <contextMenu>
+      <ContextMenu>
+        <items>
+          <MenuItem text="Cut" onAction="#save"/>
+          <SeparatorMenuItem/>
+        </items>
+        <MenuItem text="Paste"/>
+      </ContextMenu>
+    </contextMenu>
+    <Label text="Right click here"/>
+  </StackPane>
 </VBox>
