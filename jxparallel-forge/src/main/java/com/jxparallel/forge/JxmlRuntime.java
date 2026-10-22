@@ -80,9 +80,9 @@ public final class JxmlRuntime {
      */
     @SuppressWarnings("unchecked")
     public static JXProps finish(String tag, JXProps props) {
-        JXProps.Builder out = JXProps.builder();
-        for (java.util.Map.Entry<String, Object> entry : props.asMap().entrySet()) {
-            out.set(entry.getKey(), entry.getValue());
+        JXProps.Builder out = JXProps.builder(props.size() + 2);
+        for (int i = 0, n = props.size(); i < n; i++) { // by index: no entry objects
+            out.set(props.keyAt(i), props.valueAt(i));
         }
         switch (tag) {
             case "ListView":

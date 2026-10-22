@@ -2,6 +2,7 @@ package com.jxparallel.forge;
 
 import java.util.ArrayList;
 import java.util.IdentityHashMap;
+import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Locale;
 import java.util.Map;
@@ -259,10 +260,12 @@ public final class JxmlCompiler {
         }
         boolean tabs = e.tag.children == JxmlSchema.Children.TABS;
         int expected = e.defaults.size() + e.props.size() + (key == null ? 0 : 1);
-        StringBuilder props = new StringBuilder("JXProps.builder(").append(expected).append(')');
+        // The props in the order the interpreter's builder keeps them: a default first, replaced in its place by a prop
+        // of the same name. Names are then distinct, so (but for tabs, which finish a builder) one JXProps.of call
+        // makes them: its argument array is the props, no builder is made.
+        Map<String, String[]> pairs = new LinkedHashMap<String, String[]>();
         for (Map.Entry<String, Object> d : e.defaults.entrySet()) {
-            props.append('\n').append(indent).append(".set(").append(quote(d.getKey())).append(", ")
-                    .append(literal(d.getValue())).append(')');
+            pairs.put(d.getKey(), new String[] {literal(d.getValue()), null});
         }
         String selected = "JxmlValues.asInt(Integer.valueOf(0))";
         for (JxmlTemplate.Prop p : e.props) {
@@ -271,11 +274,36 @@ public final class JxmlCompiler {
                 selected = value;
                 continue;
             }
-            props.append('\n').append(indent).append(".set(").append(quote(p.attr.prop)).append(", ")
-                    .append(value).append(") // ").append(where(p.source, p.line));
+            pairs.put(p.attr.prop, new String[] {value, where(p.source, p.line)});
         }
         if (key != null) {
-            props.append('\n').append(indent).append(".set(\"key\", ").append(key).append(')');
+            pairs.put("key", new String[] {key, null});
+        }
+        StringBuilder props = new StringBuilder();
+        if (tabs) {
+            props.append("JXProps.builder(").append(expected).append(')');
+            for (Map.Entry<String, String[]> pair : pairs.entrySet()) {
+                props.append('\n').append(indent).append(".set(").append(quote(pair.getKey())).append(", ")
+                        .append(pair.getValue()[0]).append(')');
+                if (pair.getValue()[1] != null) {
+                    props.append(" // ").append(pair.getValue()[1]);
+                }
+            }
+        } else if (pairs.isEmpty()) {
+            props.append("JXProps.empty()");
+        } else {
+            props.append("JXProps.of(");
+            int left = pairs.size();
+            for (Map.Entry<String, String[]> pair : pairs.entrySet()) {
+                props.append('\n').append(indent).append(quote(pair.getKey())).append(", ").append(pair.getValue()[0]);
+                if (--left > 0) {
+                    props.append(',');
+                }
+                if (pair.getValue()[1] != null) {
+                    props.append(" // ").append(pair.getValue()[1]);
+                }
+            }
+            props.append('\n').append(indent).append(')');
         }
         List<String> children = new ArrayList<String>();
         if (!listed) {
@@ -287,7 +315,7 @@ public final class JxmlCompiler {
             return "JxmlRuntime.tabs(" + props + "\n" + indent + ", " + selected + ", " + literal(e.titles) + ", "
                     + literal(e.closable) + ",\n" + indent + "new JXElement[] {" + String.join(", ", children) + "})";
         }
-        String built = props + "\n" + indent + ".build()";
+        String built = props.toString();
         if (e.tag.finish) {
             built = "JxmlRuntime.finish(" + quote(e.tag.name) + ", " + built + ")";
         }

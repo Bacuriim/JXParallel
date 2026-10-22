@@ -105,7 +105,7 @@ class JxmlCompilerTest {
         String java = JxmlCompiler.compile(t, new JxmlCompiler.Options("gen", "TypoView", true));
         AssertionError e = org.junit.jupiter.api.Assertions.assertThrows(AssertionError.class, () -> javac(java, "TypoView"));
         assertTrue(e.getMessage().contains("sav"), e.getMessage());
-        assertTrue(java.contains("c::sav) // typo.jxml:2"), java);
+        assertTrue(java.matches("(?s).*c::sav,? // typo\\.jxml:2.*"), java); // the value is followed by its JXML line
     }
 
     /** On Java 16+: a record as the bound bean, generated code compiled for the running release. */

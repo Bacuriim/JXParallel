@@ -198,13 +198,18 @@ final class JXPaint {
         if (node.getChildren().isEmpty()) {
             return true;
         }
-        float[] reach = {top, bottom};
-        reach(node, reach);
-        return reach[1] + CULL_MARGIN < clipTop || reach[0] - CULL_MARGIN > clipBottom;
+        reachTop = top;
+        reachBottom = bottom;
+        reach(node);
+        return reachBottom + CULL_MARGIN < clipTop || reachTop - CULL_MARGIN > clipBottom;
     }
 
-    /** Widens {@code range} (top, bottom) to what the children of {@code node} paint, as {@link #children} paints them. */
-    private static void reach(JXNativeNode node, float[] range) {
+    /** What {@link #reach} has found so far (top, bottom): fields, so that a test of a node makes no array. */
+    private float reachTop;
+    private float reachBottom;
+
+    /** Widens {@code reachTop}/{@code reachBottom} to what the children of {@code node} paint, as {@link #children} paints them. */
+    private void reach(JXNativeNode node) {
         String type = node.getType();
         if (node.collapsed() || node.overlayContent || scrolls(type) || "textarea".equals(type)
                 || Boolean.TRUE.equals(node.getProperty("clip"))) {
@@ -216,9 +221,9 @@ final class JXPaint {
             if (kid.floatingNode) {
                 continue; // painted over the window by the overlay pass, not in place
             }
-            range[0] = Math.min(range[0], Math.min(kid.getY(), kid.getY() + kid.getHeight()));
-            range[1] = Math.max(range[1], Math.max(kid.getY(), kid.getY() + kid.getHeight()));
-            reach(kid, range);
+            reachTop = Math.min(reachTop, Math.min(kid.getY(), kid.getY() + kid.getHeight()));
+            reachBottom = Math.max(reachBottom, Math.max(kid.getY(), kid.getY() + kid.getHeight()));
+            reach(kid);
         }
     }
 
