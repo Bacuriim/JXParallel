@@ -536,7 +536,8 @@ class L10nTest {
     void aTranslationOnAnAttributeThatIsNotBindableTextIsAnError() throws Exception {
         assertMessage(fails(screen("<Row gap=\"%{greeting}\"/>"), sample()), 2, "gap", "cannot be a translation");
         assertMessage(fails(screen("<Label text=\"x\"/>\n<Row><Button text=\"a\" onAction=\"%{greeting}\"/></Row>"), sample()), 3);
-        assertMessage(fails(screen("<Tabs><Tab title=\"%{greeting}\"><Label text=\"x\"/></Tab></Tabs>"), sample()), 2, "title", "cannot be a translation");
+        // (a Tab title is a translation too; see L10nExtrasTest) but the closable flag is not text
+        assertMessage(fails(screen("<Tabs><Tab title=\"x\" closable=\"%{greeting}\"><Label text=\"x\"/></Tab></Tabs>"), sample()), 2, "closable", "cannot be a translation");
     }
 
     @Test

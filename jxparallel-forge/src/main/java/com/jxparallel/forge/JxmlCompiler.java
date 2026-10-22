@@ -284,7 +284,16 @@ public final class JxmlCompiler {
             }
         }
         if (tabs) {
-            return "JxmlRuntime.tabs(" + props + "\n" + indent + ", " + selected + ", " + literal(e.titles) + ", "
+            String titles = literal(e.titles);
+            if (!e.tabTitles().isEmpty()) { // a title that is a %{translation} or a ${binding} is read each time the screen is built
+                List<String> each = new ArrayList<String>();
+                for (int i = 0; i < e.titles.length; i++) {
+                    each.add(e.titleProps[i] == null ? quote(e.titles[i]) : value(e.titleProps[i], e.tag) + " /* "
+                            + where(e.titleProps[i].source, e.titleProps[i].line) + " */");
+                }
+                titles = "new String[] {" + String.join(", ", each) + "}";
+            }
+            return "JxmlRuntime.tabs(" + props + "\n" + indent + ", " + selected + ", " + titles + ", "
                     + literal(e.closable) + ",\n" + indent + "new JXElement[] {" + String.join(", ", children) + "})";
         }
         String built = props + "\n" + indent + ".build()";

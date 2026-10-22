@@ -550,9 +550,19 @@ public final class JXForge {
      * {@code warnings} (may be null) as {@code file:line: message}; what has no equivalent is a {@link JxmlException}.
      */
     public static String fxmlToJxml(File fxml, List<String> warnings) throws IOException {
+        return fxmlToJxml(fxml, warnings, null);
+    }
+
+    /**
+     * As above, with the translation files in {@code l10nDir} (null: none): a resource key {@code %key} is printed as
+     * {@code %{key}} and checked, so a key that the default locale lacks, or that takes arguments, is a
+     * {@link JxmlException} with the FXML line. Without a directory the keys are printed unchecked.
+     */
+    public static String fxmlToJxml(File fxml, List<String> warnings, File l10nDir) throws IOException {
+        JxmlCatalog catalog = l10nDir != null ? JxmlCatalog.load(l10nDir, false) : null;
         InputStream input = new FileInputStream(fxml);
         try {
-            return FxmlTranslator.print(FxmlTranslator.translate(input, fxml.getName(), warnings));
+            return FxmlTranslator.print(FxmlTranslator.translate(input, fxml.getName(), warnings, catalog));
         } finally {
             input.close();
         }
@@ -703,15 +713,25 @@ public final class JXForge {
             return;
         }
         if (args.length > 0 && "--fxml-to-jxml".equals(args[0])) {
-            if (args.length < 2 || args.length > 3) {
-                System.err.println("usage: JXForge --fxml-to-jxml <in.fxml> [<out.jxml>]   (prints to the console without <out>)");
+            List<String> positional = new ArrayList<String>();
+            File catalogDir = null;
+            for (int i = 1; i < args.length; i++) {
+                if ("--l10n".equals(args[i]) && i + 1 < args.length) {
+                    catalogDir = new File(args[++i]);
+                } else {
+                    positional.add(args[i]);
+                }
+            }
+            if (positional.isEmpty() || positional.size() > 2) {
+                System.err.println("usage: JXForge --fxml-to-jxml <in.fxml> [<out.jxml>] [--l10n <l10nDir>]\n"
+                        + "       (prints to the console without <out>; with --l10n a %key is checked against the translations)");
                 System.exit(2);
             }
             try {
                 List<String> warnings = new ArrayList<String>();
-                String jxml = fxmlToJxml(new File(args[1]), warnings);
-                if (args.length == 3) {
-                    java.nio.file.Files.write(new File(args[2]).toPath(), jxml.getBytes(StandardCharsets.UTF_8));
+                String jxml = fxmlToJxml(new File(positional.get(0)), warnings, catalogDir);
+                if (positional.size() == 2) {
+                    java.nio.file.Files.write(new File(positional.get(1)).toPath(), jxml.getBytes(StandardCharsets.UTF_8));
                 } else {
                     System.out.print(jxml);
                 }
@@ -754,7 +774,8 @@ public final class JXForge {
         if (packageName == null) {
             System.err.println("usage: JXForge --package <java.package> [--src dir] [--out dir] [--suffix View] [--no-hoist]\n"
                     + "       [--l10n src/main/l10n] [--l10n-strict]\n"
-                    + "       JXForge --l10n-init <l10nDir> <locale>...  |  JXForge --l10n-from-android <resDir> <l10nDir>");
+                    + "       JXForge --l10n-init <l10nDir> <locale>...  |  JXForge --l10n-from-android <resDir> <l10nDir>\n"
+                    + "       JXForge --l10n-to-android <l10nDir> <resDir>  |  JXForge --fxml-to-jxml <in.fxml> [<out.jxml>] [--l10n <l10nDir>]");
             System.exit(2);
         }
         try {
