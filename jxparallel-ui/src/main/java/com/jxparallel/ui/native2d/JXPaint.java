@@ -867,17 +867,6 @@ final class JXPaint {
     }
 
     /**
-     * The focus indicator of a check box or a radio button, which has its label {@link JXNativeNode#CHECK_GAP} px away:
-     * the ring (1.5 px, 0.5 px from the box) ends 2 px beyond it, so the label keeps 3 px, where the ring of
-     * {@link #focusRing} ends 3 px beyond and left 2.
-     */
-    private void compactFocusRing(JXNativeNode node, float x, float y, float w, float h, float r) {
-        if (Boolean.TRUE.equals(node.getProperty("focused"))) {
-            p.strokeRoundRect(x - 2, y - 2, w + 4, h + 4, r + 2, 1.5f, theme().primary);
-        }
-    }
-
-    /**
      * The outlined text field of Material 3: a 1 px outline with 4 px corners (the on-surface color under the pointer),
      * 2 px primary while it has the focus.
      */
@@ -1014,8 +1003,8 @@ final class JXPaint {
         boolean mixed = Boolean.TRUE.equals(node.getProperty("indeterminate"));
         boolean on = mixed || Boolean.TRUE.equals(node.getProperty("checked"));
         int layer = pointerLayer(node);
-        if (layer > 0) { // the state layer: a 20 px disc, 2 px beyond the box
-            p.fillOval(x + s / 2 - 10, top + s / 2 - 10, 20, 20, JXTheme.withAlpha(on ? t.primary : t.onSurface, layer));
+        if (layer > 0) { // the state layer: a 22 px disc, 3 px beyond the box
+            p.fillOval(x + s / 2 - 11, top + s / 2 - 11, 22, 22, JXTheme.withAlpha(on ? t.primary : t.onSurface, layer));
         }
         if (on) {
             p.fillRoundRect(x, top, s, s, 2, t.primary);
@@ -1028,7 +1017,7 @@ final class JXPaint {
         } else {
             p.strokeRoundRect(x, top, s, s, 2, 2, Boolean.TRUE.equals(node.getProperty("hover")) ? t.onSurface : t.onSurfaceVariant);
         }
-        compactFocusRing(node, x, top, s, s, 2);
+        focusRing(node, x, top, s, s, 2);
         drawText(node, text(node, "label"), x + JXNativeNode.CHECK_BOX + JXNativeNode.CHECK_GAP, y, h, color(node, t.onSurface),
                 Boolean.TRUE.equals(node.getProperty("underline")));
     }
@@ -1042,11 +1031,18 @@ final class JXPaint {
         if (layer > 0) { // a 20 px disc, 2 px beyond the circle: the label, 5 px away, keeps 3
             p.fillOval(x + s / 2 - 10, top + s / 2 - 10, 20, 20, JXTheme.withAlpha(on ? t.primary : t.onSurface, layer));
         }
-        p.strokeOval(x, top, s, s, 2, on ? t.primary : Boolean.TRUE.equals(node.getProperty("hover")) ? t.onSurface : t.onSurfaceVariant);
+        // Focused: the ring sits on the edge of the 16 px box and the circle and its dot shrink inside it, so that nothing
+        // passes the box and the label keeps all of its CHECK_GAP (the ring used to end 3 px beyond, 2 px from the label)
+        boolean focused = Boolean.TRUE.equals(node.getProperty("focused"));
+        float in = focused ? 2 : 0;
+        p.strokeOval(x + in, top + in, s - 2 * in, s - 2 * in, 2,
+                on ? t.primary : Boolean.TRUE.equals(node.getProperty("hover")) ? t.onSurface : t.onSurfaceVariant);
         if (on) {
-            p.fillOval(x + 4, top + 4, s - 8, s - 8, t.primary);
+            p.fillOval(x + in + 4, top + in + 4, s - 2 * in - 8, s - 2 * in - 8, t.primary);
         }
-        compactFocusRing(node, x, top, s, s, s / 2);
+        if (focused) {
+            p.strokeOval(x, top, s, s, 1.5f, t.primary);
+        }
         drawText(node, text(node, "label"), x + JXNativeNode.CHECK_BOX + JXNativeNode.CHECK_GAP, y, h, color(node, t.onSurface),
                 Boolean.TRUE.equals(node.getProperty("underline")));
     }

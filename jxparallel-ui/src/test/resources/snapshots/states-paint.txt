@@ -75,7 +75,7 @@ text "Dois" 138.00 119.95 12.00 false ff1c1b1f
 restore
 restore
 strokeRoundRect 130.00 80.00 110.00 195.00 4.00 1.00 ffc7c5c9
-fillOval 248.00 79.00 20.00 20.00 141c1b1f
+fillOval 247.00 78.00 22.00 22.00 141c1b1f
 strokeRoundRect 250.00 81.00 16.00 16.00 2.00 2.00 ff1c1b1f
 text "Hover" 271.00 92.95 12.00 false ff1c1b1f
 layer 0.38 0.00

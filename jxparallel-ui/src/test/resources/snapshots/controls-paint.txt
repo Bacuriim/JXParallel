@@ -33,8 +33,8 @@ text "Off" 176.00 60.95 12.00 false ff1c1b1f
 strokeOval 205.00 49.00 16.00 16.00 2.00 ff1565c0
 fillOval 209.00 53.00 8.00 8.00 ff1565c0
 text "Radio on" 226.00 60.95 12.00 false ff1c1b1f
-strokeOval 286.00 49.00 16.00 16.00 2.00 ff46434a
-strokeRoundRect 284.00 47.00 20.00 20.00 10.00 1.50 ff1565c0
+strokeOval 288.00 51.00 12.00 12.00 2.00 ff46434a
+strokeOval 286.00 49.00 16.00 16.00 1.50 ff1565c0
 text "Radio off" 307.00 60.95 12.00 false ff1c1b1f
 text "Link" 372.00 60.95 12.00 false ff1565c0
 text "Visited" 414.00 60.95 12.00 false ff64466e
