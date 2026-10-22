@@ -181,11 +181,34 @@ public final class JxmlValues {
         return value == null ? "" : String.valueOf(value);
     }
 
+    /** The boxed whole numbers 0 to 255 (sizes, positions, gaps): the same objects every time, none made per element. */
+    private static final Double[] SMALL = new Double[256];
+
+    static {
+        for (int i = 0; i < SMALL.length; i++) {
+            SMALL[i] = Double.valueOf(i);
+        }
+    }
+
+    private static Double box(double d) {
+        int i = (int) d;
+        if (i >= 0 && i < SMALL.length && Double.doubleToLongBits(d) == Double.doubleToLongBits(i)) { // not -0.0, not NaN
+            return SMALL[i];
+        }
+        return Double.valueOf(d);
+    }
+
     public static Double asDouble(Object value) {
-        return value instanceof Number ? Double.valueOf(((Number) value).doubleValue()) : Double.valueOf(asString(value));
+        if (value instanceof Double) {
+            return (Double) value; // already boxed, and immutable: no second box
+        }
+        return value instanceof Number ? box(((Number) value).doubleValue()) : box(Double.parseDouble(asString(value)));
     }
 
     public static Integer asInt(Object value) {
+        if (value instanceof Integer) {
+            return (Integer) value;
+        }
         return value instanceof Number ? Integer.valueOf(((Number) value).intValue()) : Integer.valueOf(asString(value));
     }
 

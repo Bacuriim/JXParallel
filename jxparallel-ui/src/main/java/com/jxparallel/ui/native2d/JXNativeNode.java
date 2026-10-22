@@ -488,8 +488,26 @@ public final class JXNativeNode {
     private int outcome(boolean relayout, boolean subtree, boolean placement) {
         if (relayout) {
             double[] old = sizes;
-            invalidateLayout();
-            boolean sameSize = old != null && Arrays.equals(old, sizes());
+            boolean sameSize;
+            if (old != null && old.length == 6) {
+                // the new sizes are written into the old array when the node kind allows it (sizes6): the old values
+                // are kept in locals for the comparison, and the relayout makes no array
+                double a = old[0];
+                double b = old[1];
+                double c = old[2];
+                double d = old[3];
+                double e = old[4];
+                double f = old[5];
+                spare = old;
+                invalidateLayout();
+                double[] now = sizes();
+                spare = null;
+                sameSize = now.length == 6 && same(a, now[0]) && same(b, now[1]) && same(c, now[2]) && same(d, now[3])
+                        && same(e, now[4]) && same(f, now[5]);
+            } else {
+                invalidateLayout();
+                sameSize = old != null && Arrays.equals(old, sizes());
+            }
             return placement || !sameSize ? RESIZED : SUBTREE;
         }
         if (subtree) {
@@ -637,6 +655,31 @@ public final class JXNativeNode {
     public void invalidateLayout() {
         layoutDirty = true;
         sizes = null;
+    }
+
+    /** The array of sizes this node had before {@link #outcome} asked for them again: written over by {@link #sizes6}. */
+    private double[] spare;
+
+    /** {min, pref, max} width then height as one array: the node's previous one when the relayout of {@link #outcome} left it. */
+    double[] sizes6(double minW, double prefW, double maxW, double minH, double prefH, double maxH) {
+        double[] out = spare;
+        if (out == null) {
+            out = new double[6];
+        } else {
+            spare = null;
+        }
+        out[0] = minW;
+        out[1] = prefW;
+        out[2] = maxW;
+        out[3] = minH;
+        out[4] = prefH;
+        out[5] = maxH;
+        return out;
+    }
+
+    /** Equal as {@code Arrays.equals} sees doubles (NaN equals NaN, 0.0 is not -0.0). */
+    private static boolean same(double a, double b) {
+        return Double.doubleToLongBits(a) == Double.doubleToLongBits(b);
     }
 
     public boolean contains(int px, int py) {
@@ -1248,23 +1291,23 @@ public final class JXNativeNode {
             return new double[] {w, w, w, h, h, h};
         }
         if ("progress".equals(type)) {
-            return new double[] {0, 100, 100, 0, 1.5 * size, 1.5 * size};
+            return sizes6(0, 100, 100, 0, 1.5 * size, 1.5 * size);
         }
         if ("slider".equals(type)) {
             double h = 14 * size / 12;
-            return new double[] {42, 140, MAX, h, h, h};
+            return sizes6(42, 140, MAX, h, h, h);
         }
         if ("separator".equals(type)) {
             if (vertical()) {
                 double w = SEPARATOR_THICKNESS_V;
-                return new double[] {w, w, w, SEPARATOR_MIN_LENGTH, SEPARATOR_MIN_LENGTH, MAX};
+                return sizes6(w, w, w, SEPARATOR_MIN_LENGTH, SEPARATOR_MIN_LENGTH, MAX);
             }
             double h = SEPARATOR_THICKNESS_H;
-            return new double[] {SEPARATOR_MIN_LENGTH, SEPARATOR_MIN_LENGTH, MAX, h, h, h};
+            return sizes6(SEPARATOR_MIN_LENGTH, SEPARATOR_MIN_LENGTH, MAX, h, h, h);
         }
         double w = padding[1] + padding[3];
         double h = padding[0] + padding[2];
-        return new double[] {w, w, MAX, h, h, MAX}; // like an empty Region: its padding
+        return sizes6(w, w, MAX, h, h, MAX); // like an empty Region: its padding
     }
 
     private double number(String name, double fallback) {
@@ -1273,7 +1316,7 @@ public final class JXNativeNode {
     }
 
     /** Labeled: max = pref; the width can shrink to an ellipsis, like JavaFX's Labeled. */
-    private static double[] labeled(double textWidth, double extraWidth, double height, boolean bold, float size) {
+    private double[] labeled(double textWidth, double extraWidth, double height, boolean bold, float size) {
         double ellipsis = ellipsisWidth;
         if (bold || size != JXTextEngine.DEFAULT_SIZE) {
             ellipsis = JXTextEngine.get(bold).width("...", size);
@@ -1282,7 +1325,7 @@ public final class JXNativeNode {
             ellipsisWidth = ellipsis;
         }
         double pref = textWidth + extraWidth;
-        return new double[] {Math.min(textWidth, ellipsis) + extraWidth, pref, pref, height, height, height};
+        return sizes6(Math.min(textWidth, ellipsis) + extraWidth, pref, pref, height, height, height);
     }
 
     private String string(String name) {

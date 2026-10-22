@@ -174,7 +174,7 @@ public final class JXControlLayout {
                 double h = Math.max(line + pad[0] + pad[2], sides[1]);
                 double columns = JXPaint.number(node, "prefColumnCount", JXNativeNode.FIELD_COLUMNS);
                 double extra = pad[1] + pad[3] + sides[0];
-                return new double[] {extra, columns * text.width("W", size) + extra, MAX, h, h, h};
+                return node.sizes6(extra, columns * text.width("W", size) + extra, MAX, h, h, h);
             }
             case "spinner": {
                 double h = line + 2 * JXNativeNode.PAD_Y;
@@ -189,7 +189,7 @@ public final class JXControlLayout {
             }
             case "image": {
                 double[] wh = imageSize(node);
-                return new double[] {wh[0], wh[0], wh[0], wh[1], wh[1], wh[1]};
+                return node.sizes6(wh[0], wh[0], wh[0], wh[1], wh[1], wh[1]);
             }
             case "indicator": {
                 boolean determinate = JXPaint.number(node, "progress", -1) >= 0;
@@ -208,7 +208,7 @@ public final class JXControlLayout {
                     w += c;
                 }
                 double h = rowHeight(node);
-                return new double[] {w, w, MAX, h, h, h};
+                return node.sizes6(w, w, MAX, h, h, h);
             }
             case "textflow": {
                 double w = 0;
@@ -234,10 +234,10 @@ public final class JXControlLayout {
                 JXNativeNode content = first(node);
                 double prefW = content == null ? 0 : JXBoxLayout.prefAreaWidth(content);
                 double prefH = content == null ? 0 : JXBoxLayout.prefAreaHeight(content);
-                return new double[] {36, prefW + 2, MAX, 36, prefH + 2, MAX};
+                return node.sizes6(36, prefW + 2, MAX, 36, prefH + 2, MAX);
             }
             case "list":
-                return new double[] {2, 400 * GOLDEN, MAX, 2, 400, MAX};
+                return node.sizes6(2, 400 * GOLDEN, MAX, 2, 400, MAX);
             case "table": {
                 double sum = 2;
                 double[] explicit = doubles(node.getProperty("columnWidths"));
@@ -245,7 +245,7 @@ public final class JXControlLayout {
                 for (int i = 0; i < columns; i++) {
                     sum += i < explicit.length && explicit[i] >= 0 ? explicit[i] : 80;
                 }
-                return new double[] {12, Math.max(sum, 400 * GOLDEN), MAX, 26, 400, MAX};
+                return node.sizes6(12, Math.max(sum, 400 * GOLDEN), MAX, 26, 400, MAX);
             }
             case "tabs": {
                 JXNativeNode content = first(node);
@@ -253,7 +253,7 @@ public final class JXControlLayout {
                 double headers = tabs[tabs.length - 1] + TAB_LEFT + 15;
                 double w = Math.max(headers, content == null ? 0 : JXBoxLayout.prefAreaWidth(content));
                 double h = TAB_HEADER + (content == null ? 0 : JXBoxLayout.prefAreaHeight(content));
-                return new double[] {0, w, MAX, 0, h, MAX};
+                return node.sizes6(0, w, MAX, 0, h, MAX);
             }
             case "pagination": {
                 JXNativeNode content = first(node);
@@ -294,8 +294,8 @@ public final class JXControlLayout {
                 return new double[] {n * STEP_MIN, n * slot, MAX, h, h, h};
             }
             case "scrollbar":
-                return node.vertical() ? new double[] {SCROLL_BAR, SCROLL_BAR, SCROLL_BAR, 2 * SB_THUMB_MIN, 100, MAX}
-                        : new double[] {2 * SB_THUMB_MIN, 100, MAX, SCROLL_BAR, SCROLL_BAR, SCROLL_BAR};
+                return node.vertical() ? node.sizes6(SCROLL_BAR, SCROLL_BAR, SCROLL_BAR, 2 * SB_THUMB_MIN, 100, MAX)
+                        : node.sizes6(2 * SB_THUMB_MIN, 100, MAX, SCROLL_BAR, SCROLL_BAR, SCROLL_BAR);
             case "splitpane": {
                 boolean vertical = node.vertical();
                 double gaps = Math.max(0, node.getChildren().size() - 1) * DIVIDER;
@@ -352,7 +352,7 @@ public final class JXControlLayout {
     private static double[] labeled(JXNativeNode node, double textWidth, double extraWidth, double height) {
         double ellipsis = JXTextEngine.get(JXPaint.bold(node)).width(JXTextLayout.ELLIPSIS, JXPaint.fontSize(node));
         double pref = textWidth + extraWidth;
-        return new double[] {Math.min(textWidth, ellipsis) + extraWidth, pref, pref, height, height, height};
+        return node.sizes6(Math.min(textWidth, ellipsis) + extraWidth, pref, pref, height, height, height);
     }
 
     private static double[] cellSizes(JXNativeNode node, JXTextEngine text, float size, double line) {
@@ -368,7 +368,7 @@ public final class JXControlLayout {
         if (fixed > 0) {
             h = fixed;
         }
-        return new double[] {pad[1] + pad[3], w, MAX, h, h, MAX};
+        return node.sizes6(pad[1] + pad[3], w, MAX, h, h, MAX);
     }
 
     /**
