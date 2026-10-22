@@ -94,7 +94,117 @@ java -cp jxparallel-forge.jar;jxparallel-core.jar com.jxparallel.forge.JXForge `
      --src src/main/jxml --out target/generated-sources/jxforge --package com.acme.views
 ```
 
-Files whose generated class is newer than the `.jxml` are skipped.
+### Gradle
+
+`jxforge-gradle-plugin` is a separate Gradle build (plugin id `com.jxparallel.jxforge`, Java 8 bytecode, run Gradle on JDK 11 or newer
+that your Gradle version supports); it calls the same `JXForge.compileDirectory`:
+
+```groovy
+plugins { id 'java'; id 'com.jxparallel.jxforge' }
+jxforge {
+    packageName = 'com.acme.views'          // required
+    // sourceDirectory = 'src/main/jxml', outputDirectory = 'build/generated/sources/jxforge',
+    // classSuffix = 'View', hoistConstants = true, l10nDirectory = 'src/main/l10n', l10nStrict = false
+}
+dependencies { implementation 'com.jxparallel:jxparallel-forge:0.1.0-SNAPSHOT' }
+```
+
+The task `jxforgeGenerate` runs before `compileJava`, is cacheable and up to date when nothing changed. Like the Maven plugin it does not add the
+forge runtime to your classpath: declare it as a dependency. See `jxforge-gradle-plugin/README.md`.
+
+### Only what changed is generated
+
+Every compile checks every screen, and regenerates only the ones whose **content** changed. `.jxforge-manifest` in the output directory records, for
+each screen, the SHA-256 of its own bytes and of every file it includes (transitively; for `.fxml` its `fx:include` parts), plus one fingerprint of
+the options (package, suffix, hoisting, forge version). So:
+
+- a `git checkout`, a copy, a `touch` or a wrong clock regenerate nothing; a changed package, suffix, hoisting or forge version regenerate everything;
+- changing an included part regenerates only the screens that include it, not the others;
+- a generated text equal to the file on disk is not written, so its modification time stays and `javac` does not recompile it;
+- the generated `.java` of a screen that was removed (or became a part, or moved because the package or suffix changed) is deleted, with its empty
+  package directory; the manifest is the only record of what JXForge owns, so a file it did not write is never deleted;
+- a missing, corrupt or older manifest means "regenerate everything", never an error;
+- a screen with an error fails the build with its file and line on **every** compile; the others are still generated and the failed one has no entry;
+- warnings (below) are stored with the screen and shown on every compile, also for the screens that are up to date.
+
+`JXForge.main` prints `W written, U up to date, R removed`.
+
+## FXML screens
+
+A `.fxml` file in the source directory is compiled like a `.jxml`: the same `XxxView`, the same compiler, the same tree. The FXML is read as plain XML
+(JXForge has no JavaFX in it), translated to the node tree of a `.jxml` with the FXML file and line on every node, and then goes the normal way, so an
+error points at the FXML line.
+
+| FXML | JXML |
+|---|---|
+| `fx:controller` | `controller` |
+| `VBox` (`spacing`), `HBox`, `StackPane`, `BorderPane` (`top`...`center` children become `slot`), `FlowPane`, `TilePane`, `Pane` | `Column` (`gap`), `Row`, `Stack`, `Border`, `Flow`, `Tile`, `Pane` |
+| `GridPane` with `GridPane.rowIndex`, `columnIndex`, spans, `hgrow`, `vgrow`, alignments | `Grid` with `row`, `column`, ... |
+| `AnchorPane` with `AnchorPane.topAnchor`... | `Anchor` with `top`, `right`, `bottom`, `left` |
+| `ScrollPane`, `SplitPane`, `TabPane`/`Tab`, `TitledPane`, `Accordion`, `ToolBar`, `ButtonBar` | `Scroll`, `SplitPane`, `Tabs`/`Tab`, `TitledPane`, `Accordion`, `ToolBar`, `ButtonBar` |
+| `Label`, `Button`, `TextField`, `PasswordField`, `TextArea`, `CheckBox`, `RadioButton`, `ToggleButton`, `ComboBox`, `ChoiceBox`, `Spinner`, `DatePicker`, `Slider`, `ProgressBar`, `ProgressIndicator`, `Separator`, `Hyperlink`, `ColorPicker`, `Pagination`, `ImageView`, `Text`/`TextFlow` | the tag of the same name (`ImageView` is `Image`, `Text` is `Label`) |
+| `ListView`, `TableView` (+ `TableColumn`), `TreeView`/`TreeItem`, `MenuBar`/`Menu`/`MenuItem` | `ListView`, `TableView`, `Tree`, `MenuBar`/`Menu`/`MenuItem` |
+| `<Insets>`, `padding="8"`, `<padding>`; `disable`, `promptText`, `visible="false"`, `id`, `styleClass`, `fx:include` | `padding`, `disabled`, `prompt`, `hidden`, `key`, `style`, `<Include>` |
+
+What has no equivalent is **refused with the file and line**, never translated partly: `fx:define`, `fx:script`, FXML `${}` expressions, `fx:reference`,
+`fx:copy`, `fx:factory`, `fx:value`, `fx:constant`, custom or unmapped classes, `stylesheets`, `columnConstraints`, `managed="false"`, `USE_PREF_SIZE`, and
+any attribute the target tag lacks (the message names the attribute and the tag). `onAction` is translated only where it means "clicked"
+(buttons, check and radio boxes, hyperlinks, menu items); on a `TextField` or `ComboBox` it means something else in JavaFX and is refused.
+
+The controllers need a look, and JXForge says what, as **warnings** (listed on every compile): each `fx:id` (JXML has no injected fields: the screen
+reads the controller with `${}`) and each handler (`#save` calls `save()` with no arguments, while JavaFX handlers often take an `ActionEvent`; `javac`
+fails on those). A `ListView` or `TableView` needs its `fx:id`, which becomes `items="${<id>}"` (the controller exposes `get<Id>()`); the cells of a
+table column show the row itself until you edit them. `styleClass` works if an included `.jxml` part defines the `<Style>`.
+
+To migrate by hand, `java -cp ... com.jxparallel.forge.JXForge --fxml-to-jxml screen.fxml [screen.jxml]` prints the translation as `.jxml`.
+The 20 form screens of the FXML benchmark (`jxparallel-examples/src/main/resources/fxmlbench`) all translate, compile and build their tree.
+
+## Translations
+
+Texts are kept in files, like Flutter (ARB and `gen-l10n`) and Android/Kotlin (`strings.xml`), in `src/main/l10n/` (`l10nDirectory`):
+
+```text
+src/main/l10n/app_en.arb        app_pt.arb        app_pt_BR.arb          (ARB, JSON)
+src/main/l10n/values/strings.xml    values-pt/strings.xml    values-pt-rBR/strings.xml   (Android)
+src/main/l10n/l10n.default      (optional: the tag of the default locale; otherwise en / the values folder)
+```
+
+```json
+{ "@@locale": "en",
+  "greeting": "Hello",
+  "welcome": "Welcome, {name}!",
+  "@welcome": { "placeholders": { "name": { "type": "String" } } },
+  "itemCount": "{count, plural, =0{No items} =1{One item} other{{count} items}}" }
+```
+
+In a screen, an attribute value of the form `%{key}` is a translation, with arguments that are `${...}` bindings, `'text'` or numbers:
+
+```xml
+<Label text="%{greeting}"/>
+<Label text="%{welcome(${user.name})}"/>
+<Button text="%{itemCount(${count})}"/>
+```
+
+The build generates `<package>.Strings`, a final class with one typed static method per key of the default locale (`greeting()`, `welcome(String name)`,
+`itemCount(int count)`; `double`/`num` are `double`, `DateTime` is `java.util.Date`), and the screens call it directly, so `javac` checks them.
+Keys with `.` or `-` give methods with `_` (`app.menu-save` is `app_menu_save()`). The locale is chosen at runtime, with the fallback `pt_BR` → `pt` →
+default: `Strings.setLocale(Locale)`, `Strings.locale()`, `Strings.supported()`, and `Strings.onLocaleChange(Runnable)` so the application rebuilds its screens.
+The message syntax is the ICU subset Flutter uses (`plural` with `=N` and `zero|one|two|few|many|other` by the rules of en, es, pt and fr, `select`, nesting,
+`#`, `'` quoting); Android `%1$s`/`%d` and `<plurals>` read into the same model (format flags and widths are dropped).
+
+Checked at build time, with the line of the attribute: a key a screen uses that the default locale lacks, the wrong number or kind of arguments (text where
+`int` is declared), a plural or select without `other`, a duplicate key, a placeholder that differs between locales. **A key that a locale lacks (or has
+extra) is a warning** listed on every compile and written to `l10n-missing.txt` (like Flutter's untranslated-messages file); with `l10nStrict` it is an error.
+A `%{}` is never hoisted as a constant (the text depends on the locale) and cannot be inside a `<For memo>`; `Tab title` is not bindable, so it cannot be
+translated. In `.fxml` the bundle syntax `%key` on a text attribute is the same as `%{key}`.
+
+```powershell
+java -cp ... com.jxparallel.forge.JXForge --l10n-init src/main/l10n en pt pt_BR              # sample ARB files
+java -cp ... com.jxparallel.forge.JXForge --l10n-from-android app/src/main/res src/main/l10n  # strings.xml -> ARB
+```
+
+The interpreter reads the same files (`JxmlTemplate.read(input, source, loader, catalog)`) and builds the identical tree; the translation files take part in
+the manifest above: a changed text regenerates only `Strings.java`, a changed key or signature regenerates the screens that use translations.
 
 ## Rules
 
@@ -674,8 +784,10 @@ JXML screen with `new XView().build(controller)`, and JXML places a Java compone
   (see [Trees](#trees)).
 - `<For>` over a `Map`, and the loop index as a variable.
 - An XSD for autocompletion in IDEs.
-- Compiling existing `.fxml` files with the same compiler, so a JavaFX application moving to the
-  native UI gets compiled screens without rewriting them.
-- Gradle plugin.
+- Translations: `<string-array>`, ICU `offset`, `selectordinal` and number/date styles, plural rules of other languages, a catalog in `JxmlLiveView`,
+  and `%key` in FXML `TableColumn` text, insets and include attributes. Converting back from ARB to `strings.xml`.
+- FXML: `ContextMenu`, `Tooltip`, `ColumnConstraints`, `fx:root`, and a catalog for `--fxml-to-jxml`.
+- The Gradle plugin logs the removed screens only once the forge jar it resolves is the new one.
+- A mobile backend (Android `Canvas` behind `JXPainter`): not started, see the README.
 
 Measurements: [jxforge-benchmark-2026-10-21.md](jxforge-benchmark-2026-10-21.md) (20 form screens: compiled, interpreted, FXML) and [jxforge-components-benchmark-2026-10-21.md](jxforge-components-benchmark-2026-10-21.md) (every component one by one, against JavaFX).
