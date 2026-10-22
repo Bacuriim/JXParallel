@@ -295,7 +295,8 @@ class FxmlTest {
         refused("<Label text=\"${name}\"/>", "expression", "text=\"${name}\"");
         refused("<Label text=\"$name\"/>", "reference", "$name");
         refused("<RadioButton toggleGroup=\"$group\"/>", "reference", "toggleGroup");
-        refused("<Label text=\"%title\"/>", "resource key", "%title");
+        refused("<Label textFill=\"%title\"/>", "resource key", "text attribute");
+        refused("<Label text=\"%bad key\"/>", "resource key", "not a key");
         refused("<ImageView image=\"@icon.png\"/>", "location", "@icon.png");
         refused("<ComboBox><items><FXCollections fx:factory=\"observableArrayList\"/></items></ComboBox>", "items", "ComboBox");
         refused("<MyWidget/>", "MyWidget");

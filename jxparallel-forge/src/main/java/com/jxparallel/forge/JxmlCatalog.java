@@ -1,0 +1,861 @@
+package com.jxparallel.forge;
+
+import java.io.File;
+import java.io.IOException;
+import java.nio.charset.StandardCharsets;
+import java.nio.file.Files;
+import java.security.MessageDigest;
+import java.security.NoSuchAlgorithmException;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.Collections;
+import java.util.HashMap;
+import java.util.HashSet;
+import java.util.LinkedHashMap;
+import java.util.LinkedHashSet;
+import java.util.List;
+import java.util.Map;
+import java.util.Set;
+import java.util.TreeMap;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
+
+import javax.xml.parsers.DocumentBuilder;
+import javax.xml.parsers.DocumentBuilderFactory;
+
+import org.w3c.dom.Document;
+import org.w3c.dom.Element;
+import org.w3c.dom.Node;
+import org.w3c.dom.NodeList;
+import org.xml.sax.SAXParseException;
+
+/**
+ * The translation files of an application read and checked: the build side of {@link JxmlMessages}.
+ *
+ * <p>A directory (default {@code src/main/l10n}) holds ARB files ({@code app_en.arb}, {@code app_pt_BR.arb}: JSON with
+ * ICU messages, as Flutter's {@code gen-l10n} reads them) and/or Android resource folders ({@code values/strings.xml},
+ * {@code values-pt/strings.xml}, {@code values-pt-rBR/strings.xml}, with {@code <string>} and {@code <plurals>}). Both
+ * become the same messages. The default locale is the text of a file {@code l10n.default}, else {@code en}; the Android
+ * {@code values} folder holds the default locale.
+ *
+ * <p>The default locale defines the keys and their arguments (a {@link Signature}); every other locale is compared with
+ * it. A key that is missing or extra is a warning (an error when {@code strict}); a placeholder that differs, a plural
+ * or select without {@code other}, a key defined twice and a file that does not parse are always errors.
+ */
+public final class JxmlCatalog {
+    /** What a screen may call: the arguments of a key as the default locale declares them. */
+    public static final class Signature {
+        public final String key;
+        /** The Java method of the generated {@code Strings} class. */
+        public final String method;
+        public final List<String> names;
+        /** {@code String}, {@code int}, {@code double}, {@code num} or {@code DateTime}, one per name. */
+        public final List<String> types;
+        /** {@code file:line} where the default locale defines it. */
+        public final String location;
+
+        Signature(String key, String method, List<String> names, List<String> types, String location) {
+            this.key = key;
+            this.method = method;
+            this.names = Collections.unmodifiableList(names);
+            this.types = Collections.unmodifiableList(types);
+            this.location = location;
+        }
+
+        /** The Java type of the argument {@code i} of the generated method. */
+        public String javaType(int i) {
+            return javaType(types.get(i));
+        }
+
+        static String javaType(String type) {
+            switch (type) {
+                case "int":
+                    return "int";
+                case "double":
+                case "num":
+                    return "double";
+                case "DateTime":
+                    return "java.util.Date";
+                default:
+                    return "String";
+            }
+        }
+
+        /** {@code name: String, count: int}. */
+        public String describe() {
+            StringBuilder out = new StringBuilder();
+            for (int i = 0; i < names.size(); i++) {
+                out.append(i == 0 ? "" : ", ").append(names.get(i)).append(": ").append(types.get(i));
+            }
+            return out.toString();
+        }
+    }
+
+    /** One message of one locale, with what its file declared about its arguments. */
+    private static final class Entry {
+        final String key;
+        final JxmlMessages.Message message;
+        /** Declared placeholders in order (ARB {@code placeholders}, Android positions), with their types. */
+        final Map<String, String> declared;
+        final String file;
+        final int line;
+
+        Entry(String key, JxmlMessages.Message message, Map<String, String> declared, String file, int line) {
+            this.key = key;
+            this.message = message;
+            this.declared = declared;
+            this.file = file;
+            this.line = line;
+        }
+
+        String where() {
+            return line > 0 ? file + ":" + line : file;
+        }
+    }
+
+    private static final List<String> TYPES = Arrays.asList("String", "int", "double", "num", "DateTime");
+    private static final Pattern KEY = Pattern.compile("[A-Za-z_][A-Za-z0-9_.\\-]*");
+    private static final Pattern VALUES = Pattern.compile("values(?:-([a-z]{2,3})(?:-r([A-Z]{2}))?)?");
+    private static final Set<String> RESERVED = new HashSet<String>(Arrays.asList("abstract", "assert", "boolean", "break",
+            "byte", "case", "catch", "char", "class", "const", "continue", "default", "do", "double", "else", "enum",
+            "extends", "final", "finally", "float", "for", "goto", "if", "implements", "import", "instanceof", "int",
+            "interface", "long", "native", "new", "package", "private", "protected", "public", "return", "short", "static",
+            "strictfp", "super", "switch", "synchronized", "this", "throw", "throws", "transient", "try", "void", "volatile",
+            "while", "true", "false", "null", "setLocale", "locale", "supported", "onLocaleChange", "offLocaleChange",
+            "toString", "hashCode", "equals", "getClass", "notify", "notifyAll", "wait", "clone", "finalize"));
+
+    private final File dir;
+    private String defaultTag = "en";
+    private final Map<String, Map<String, Entry>> locales = new TreeMap<String, Map<String, Entry>>();
+    private final Map<String, String> filesOfTag = new TreeMap<String, String>();
+    private final Map<String, Signature> signatures = new LinkedHashMap<String, Signature>();
+    private final Map<String, List<String>> missing = new TreeMap<String, List<String>>();
+    private final List<String[]> warnings = new ArrayList<String[]>(); // {file, line, message}
+    private final List<String[]> problems = new ArrayList<String[]>(); // {file, line, message}
+    private String digest;
+    private JxmlMessages messages;
+
+    private JxmlCatalog(File dir) {
+        this.dir = dir;
+    }
+
+    /** Reads and checks {@code dir}; warnings are kept ({@link #getWarnings}), errors throw a {@link JxmlException}. */
+    public static JxmlCatalog load(File dir) throws IOException {
+        return load(dir, false);
+    }
+
+    /** As {@link #load(File)}; with {@code strict} a missing or extra translation is an error too. */
+    public static JxmlCatalog load(File dir, boolean strict) throws IOException {
+        JxmlCatalog catalog = new JxmlCatalog(dir);
+        catalog.read();
+        catalog.check();
+        if (strict) {
+            catalog.problems.addAll(catalog.warnings);
+        }
+        catalog.fail();
+        return catalog;
+    }
+
+    // ---- the answers ---------------------------------------------------------------------------------------
+
+    /** The default locale's tag, such as {@code en}. */
+    public String getDefaultTag() {
+        return defaultTag;
+    }
+
+    /** The tags of the locales that have files, sorted, the default one included. */
+    public List<String> tags() {
+        return new ArrayList<String>(locales.keySet());
+    }
+
+    /** What the checks found that does not stop the build, as {@code file:line: message}. */
+    public List<String> getWarnings() {
+        List<String> out = new ArrayList<String>();
+        for (String[] w : warnings) {
+            out.add(render(w));
+        }
+        return out;
+    }
+
+    /** The key's signature, or null when the default locale does not define it. */
+    public Signature signature(String key) {
+        return signatures.get(key);
+    }
+
+    public List<String> keys() {
+        return new ArrayList<String>(signatures.keySet());
+    }
+
+    /** The tags of the locales that define {@code key}. */
+    public List<String> definedIn(String key) {
+        List<String> out = new ArrayList<String>();
+        for (Map.Entry<String, Map<String, Entry>> e : locales.entrySet()) {
+            if (e.getValue().containsKey(key)) {
+                out.add(e.getKey());
+            }
+        }
+        return out;
+    }
+
+    /** The files of {@code tag}, as shown in messages. */
+    public String fileOf(String tag) {
+        return filesOfTag.get(tag);
+    }
+
+    /** SHA-256 (hex) of the names and bytes of every file in the directory: changes with any translation. */
+    public String digest() {
+        return digest;
+    }
+
+    /**
+     * SHA-256 of what screens can see of the catalog: the keys and their signatures. It does not change with the text of a
+     * translation, so the screens need not be generated again for that.
+     */
+    public String apiDigest() {
+        StringBuilder text = new StringBuilder(defaultTag).append('\n');
+        for (Signature s : signatures.values()) {
+            text.append(s.key).append('\t').append(s.method).append('\t').append(s.describe()).append('\n');
+        }
+        return sha256(text.toString().getBytes(StandardCharsets.UTF_8));
+    }
+
+    /** The untranslated keys per locale, by tag; only the locales that lack some. */
+    public Map<String, List<String>> missing() {
+        return Collections.unmodifiableMap(missing);
+    }
+
+    /** The text of {@code l10n-missing.txt} (JSON), or null when every locale has every key. */
+    public String missingReport() {
+        if (missing.isEmpty()) {
+            return null;
+        }
+        StringBuilder out = new StringBuilder("{\n");
+        int n = 0;
+        for (Map.Entry<String, List<String>> e : missing.entrySet()) {
+            out.append("  ").append(JxmlJson.quote(e.getKey())).append(": [");
+            for (int i = 0; i < e.getValue().size(); i++) {
+                out.append(i == 0 ? "" : ", ").append(JxmlJson.quote(e.getValue().get(i)));
+            }
+            out.append(++n < missing.size() ? "],\n" : "]\n");
+        }
+        return out.append("}\n").toString();
+    }
+
+    /** The messages for the interpreter and for tests: the same tables the generated {@code Strings} holds. */
+    public synchronized JxmlMessages messages() {
+        if (messages == null) {
+            JxmlMessages m = new JxmlMessages(defaultTag);
+            for (Map.Entry<String, Map<String, Entry>> e : locales.entrySet()) {
+                for (Entry entry : e.getValue().values()) {
+                    m.add(e.getKey(), entry.key, entry.message);
+                }
+            }
+            for (Signature s : signatures.values()) {
+                m.signature(s.key, s.names.toArray(new String[0]));
+            }
+            messages = m;
+        }
+        return messages;
+    }
+
+    // ---- reading -------------------------------------------------------------------------------------------
+
+    private void problem(String file, int line, String message) {
+        problems.add(new String[] {file, String.valueOf(line), message});
+    }
+
+    private void warn(String file, int line, String message) {
+        warnings.add(new String[] {file, String.valueOf(line), message});
+    }
+
+    private static String render(String[] p) {
+        return "0".equals(p[1]) ? p[0] + ": " + p[2] : p[0] + ":" + p[1] + ": " + p[2];
+    }
+
+    private void fail() {
+        if (problems.isEmpty()) {
+            return;
+        }
+        String[] first = problems.get(0);
+        StringBuilder message = new StringBuilder(first[2]);
+        for (int i = 1; i < problems.size(); i++) {
+            message.append('\n').append(render(problems.get(i)));
+        }
+        throw new JxmlException(first[0], Integer.parseInt(first[1]), message.toString());
+    }
+
+    private String display(File file) {
+        return file.getPath().replace('\\', '/');
+    }
+
+    private void read() throws IOException {
+        List<File> files = new ArrayList<File>();
+        walk(dir, files);
+        MessageDigest hash = digestOf();
+        for (File file : files) {
+            String rel = dir.toURI().relativize(file.toURI()).getPath();
+            hash.update((rel + "\n").getBytes(StandardCharsets.UTF_8));
+            hash.update(Files.readAllBytes(file.toPath()));
+            hash.update((byte) 0);
+        }
+        digest = hex(hash.digest());
+        for (File file : files) {
+            if (file.getName().equals("l10n.default")) {
+                String text = new String(Files.readAllBytes(file.toPath()), StandardCharsets.UTF_8).trim();
+                if (text.isEmpty() || !text.matches("[A-Za-z]{2,3}([-_][A-Za-z0-9]{2,4})*")) {
+                    problem(display(file), 1, "l10n.default must hold a locale such as en or pt_BR");
+                } else {
+                    defaultTag = JxmlMessages.tag(text);
+                }
+            }
+        }
+        for (File file : files) {
+            String name = file.getName();
+            if (name.endsWith(".arb")) {
+                readArb(file);
+            } else if (name.equals("strings.xml") && VALUES.matcher(file.getParentFile().getName()).matches()) {
+                readAndroid(file);
+            }
+        }
+        if (!locales.containsKey(defaultTag)) {
+            problem(display(dir), 0, "the default locale " + defaultTag + " has no file (add app_" + defaultTag
+                    + ".arb or values/strings.xml, or name another default in a file l10n.default); found: " + locales.keySet());
+        }
+    }
+
+    private static void walk(File dir, List<File> out) {
+        File[] entries = dir.listFiles();
+        if (entries == null) {
+            return;
+        }
+        Arrays.sort(entries);
+        for (File entry : entries) {
+            if (entry.isDirectory()) {
+                walk(entry, out);
+            } else {
+                out.add(entry);
+            }
+        }
+    }
+
+    private void put(String tag, Entry entry) {
+        Map<String, Entry> table = locales.get(tag);
+        if (table == null) {
+            table = new LinkedHashMap<String, Entry>();
+            locales.put(tag, table);
+            filesOfTag.put(tag, entry.file);
+        }
+        Entry known = table.get(entry.key);
+        if (known != null) {
+            problem(entry.file, entry.line, "the key " + entry.key + " is defined twice for " + tag + " (also at " + known.where() + ")");
+            return;
+        }
+        table.put(entry.key, entry);
+    }
+
+    /** Whether {@code key} is written like a key: letters, digits, {@code _}, {@code .} and {@code -}, not starting with a digit. */
+    static boolean isKey(String key) {
+        return KEY.matcher(key).matches();
+    }
+
+    private boolean validKey(String file, int line, String key) {
+        if (!KEY.matcher(key).matches()) {
+            problem(file, line, "the key \"" + key + "\" must start with a letter and use letters, digits, _, . or -");
+            return false;
+        }
+        return true;
+    }
+
+    // ---- ARB -----------------------------------------------------------------------------------------------
+
+    private void readArb(File file) throws IOException {
+        String shown = display(file);
+        JxmlJson.Obj root;
+        try {
+            Object parsed = JxmlJson.parse(new String(Files.readAllBytes(file.toPath()), StandardCharsets.UTF_8), shown);
+            if (!(parsed instanceof JxmlJson.Obj)) {
+                problem(shown, 1, "an ARB file is a JSON object");
+                return;
+            }
+            root = (JxmlJson.Obj) parsed;
+        } catch (JxmlException e) {
+            problem(e.getSource(), e.getLine(), e.getMessage().substring((e.getSource() + ":" + e.getLine() + ": ").length()));
+            return;
+        }
+        String name = file.getName().substring(0, file.getName().length() - 4);
+        int underscore = name.indexOf('_');
+        String fromName = underscore < 0 ? null : JxmlMessages.tag(name.substring(underscore + 1));
+        Object at = root.get("@@locale");
+        String fromFile = at instanceof String ? JxmlMessages.tag((String) at) : null;
+        if (at != null && fromFile == null) {
+            problem(shown, root.line("@@locale"), "@@locale must be a string such as \"pt_BR\"");
+            return;
+        }
+        if (fromName != null && fromFile != null && !fromName.equals(fromFile)) {
+            problem(shown, root.line("@@locale"), "@@locale " + fromFile + " is not the locale " + fromName + " in the file name");
+            return;
+        }
+        String tag = fromFile != null ? fromFile : fromName;
+        if (tag == null) {
+            problem(shown, 1, "the locale is unknown: name the file like app_en.arb or write \"@@locale\": \"en\"");
+            return;
+        }
+        for (Map.Entry<String, Object> e : root.entrySet()) {
+            String key = e.getKey();
+            int line = root.line(key);
+            if (key.startsWith("@")) {
+                continue;
+            }
+            if (!(e.getValue() instanceof String)) {
+                problem(shown, line, key + " must be a string, the message");
+                continue;
+            }
+            if (!validKey(shown, line, key)) {
+                continue;
+            }
+            JxmlMessages.Message message;
+            try {
+                message = JxmlMessages.parse((String) e.getValue());
+            } catch (IllegalArgumentException ex) {
+                problem(shown, line, key + ": " + ex.getMessage());
+                continue;
+            }
+            Map<String, String> declared = new LinkedHashMap<String, String>();
+            Object meta = root.get("@" + key);
+            if (meta instanceof JxmlJson.Obj && ((JxmlJson.Obj) meta).get("placeholders") instanceof JxmlJson.Obj) {
+                JxmlJson.Obj placeholders = (JxmlJson.Obj) ((JxmlJson.Obj) meta).get("placeholders");
+                for (Map.Entry<String, Object> p : placeholders.entrySet()) {
+                    String type = "";
+                    if (p.getValue() instanceof JxmlJson.Obj && ((JxmlJson.Obj) p.getValue()).get("type") instanceof String) {
+                        type = (String) ((JxmlJson.Obj) p.getValue()).get("type");
+                    }
+                    if (!type.isEmpty() && !TYPES.contains(type)) {
+                        problem(shown, root.line("@" + key), key + ": the placeholder " + p.getKey() + " has type " + type
+                                + "; use one of " + TYPES);
+                        continue;
+                    }
+                    declared.put(p.getKey(), type.isEmpty() ? null : type);
+                }
+            }
+            put(tag, new Entry(key, message, declared, shown, line));
+        }
+    }
+
+    // ---- Android -------------------------------------------------------------------------------------------
+
+    private void readAndroid(File file) throws IOException {
+        String shown = display(file);
+        Matcher folder = VALUES.matcher(file.getParentFile().getName());
+        folder.matches();
+        String tag = folder.group(1) == null ? defaultTag : JxmlMessages.tag(folder.group(2) == null ? folder.group(1)
+                : folder.group(1) + "_" + folder.group(2));
+        String text = new String(Files.readAllBytes(file.toPath()), StandardCharsets.UTF_8);
+        Document doc;
+        try {
+            DocumentBuilderFactory factory = DocumentBuilderFactory.newInstance();
+            try {
+                factory.setFeature("http://apache.org/xml/features/disallow-doctype-decl", true);
+            } catch (Exception ignored) {
+                // a parser without the feature: the file is the project's own
+            }
+            DocumentBuilder builder = factory.newDocumentBuilder();
+            builder.setErrorHandler(null);
+            doc = builder.parse(new java.io.ByteArrayInputStream(text.getBytes(StandardCharsets.UTF_8)));
+        } catch (SAXParseException e) {
+            problem(shown, e.getLineNumber(), "bad XML: " + e.getMessage());
+            return;
+        } catch (Exception e) {
+            problem(shown, 1, "bad XML: " + e.getMessage());
+            return;
+        }
+        NodeList nodes = doc.getDocumentElement().getChildNodes();
+        for (int n = 0; n < nodes.getLength(); n++) {
+            Node node = nodes.item(n);
+            if (!(node instanceof Element)) {
+                continue;
+            }
+            Element element = (Element) node;
+            String name = element.getAttribute("name");
+            int line = lineOf(text, name);
+            if ("false".equals(element.getAttribute("translatable"))) {
+                continue;
+            }
+            try {
+                if (element.getTagName().equals("string")) {
+                    if (validKey(shown, line, name)) {
+                        Entry entry = androidString(name, element, shown, line);
+                        put(tag, entry);
+                    }
+                } else if (element.getTagName().equals("plurals")) {
+                    if (validKey(shown, line, name)) {
+                        put(tag, androidPlurals(name, element, shown, line));
+                    }
+                } else {
+                    warn(shown, line, "<" + element.getTagName() + (name.isEmpty() ? "" : " name=\"" + name
+                            + "\"") + "> is not supported and was skipped");
+                }
+            } catch (IllegalArgumentException e) {
+                problem(shown, line, name + ": " + e.getMessage());
+            }
+        }
+    }
+
+    private static int lineOf(String text, String name) {
+        int at = text.indexOf("name=\"" + name + "\"");
+        if (at < 0) {
+            return 1;
+        }
+        int line = 1;
+        for (int i = 0; i < at; i++) {
+            if (text.charAt(i) == '\n') {
+                line++;
+            }
+        }
+        return line;
+    }
+
+    private static final Pattern FORMAT = Pattern.compile("%(?:(\\d+)\\$)?[-#+ 0,(]*\\d*(?:\\.\\d+)?([a-zA-Z%])");
+
+    /** The positional arguments found while reading an Android string: position to type. */
+    private static JxmlMessages.Message androidMessage(String raw, Map<Integer, String> positions, String countName) {
+        String text = androidText(raw);
+        List<JxmlMessages.Part> parts = new ArrayList<JxmlMessages.Part>();
+        StringBuilder literal = new StringBuilder();
+        Matcher m = FORMAT.matcher(text);
+        int last = 0;
+        int next = 1;
+        while (m.find()) {
+            literal.append(text, last, m.start());
+            last = m.end();
+            char conv = m.group(2).charAt(0);
+            if (conv == '%') {
+                literal.append('%');
+                continue;
+            }
+            if (conv == 'n') {
+                literal.append('\n');
+                continue;
+            }
+            String type = conv == 'd' ? "int" : conv == 'f' ? "double" : conv == 's' || conv == 'S' ? "String" : null;
+            if (type == null) {
+                throw new IllegalArgumentException("the format " + m.group() + " is not supported (use %s, %d or %f)");
+            }
+            int position = m.group(1) == null ? next++ : Integer.parseInt(m.group(1));
+            String known = positions.get(position);
+            if (known != null && !known.equals(type) && !(position == 1 && countName != null)) {
+                throw new IllegalArgumentException("argument " + position + " is used as " + known + " and as " + type);
+            }
+            if (known == null || position != 1 || countName == null) {
+                positions.put(position, type);
+            }
+            if (literal.length() > 0) {
+                parts.add(new JxmlMessages.Text(literal.toString()));
+                literal.setLength(0);
+            }
+            parts.add(new JxmlMessages.Arg(position == 1 && countName != null ? countName : "arg" + position));
+        }
+        literal.append(text, last, text.length());
+        if (literal.length() > 0) {
+            parts.add(new JxmlMessages.Text(literal.toString()));
+        }
+        return new JxmlMessages.Message(parts);
+    }
+
+    private Entry androidString(String name, Element element, String file, int line) {
+        Map<Integer, String> positions = new TreeMap<Integer, String>();
+        JxmlMessages.Message message = androidMessage(element.getTextContent(), positions, null);
+        Map<String, String> declared = new LinkedHashMap<String, String>();
+        for (Map.Entry<Integer, String> p : positions.entrySet()) {
+            declared.put("arg" + p.getKey(), p.getValue());
+        }
+        return new Entry(name, message, declared, file, line);
+    }
+
+    private Entry androidPlurals(String name, Element element, String file, int line) {
+        Map<Integer, String> positions = new TreeMap<Integer, String>();
+        Map<String, JxmlMessages.Message> cases = new LinkedHashMap<String, JxmlMessages.Message>();
+        NodeList items = element.getElementsByTagName("item");
+        for (int i = 0; i < items.getLength(); i++) {
+            Element item = (Element) items.item(i);
+            String quantity = item.getAttribute("quantity");
+            if (!Arrays.asList("zero", "one", "two", "few", "many", "other").contains(quantity)) {
+                throw new IllegalArgumentException("quantity \"" + quantity + "\" is not zero, one, two, few, many or other");
+            }
+            cases.put(quantity, androidMessage(item.getTextContent(), positions, "count"));
+        }
+        if (!cases.containsKey("other")) {
+            throw new IllegalArgumentException("the plurals has no item with quantity=\"other\"");
+        }
+        List<JxmlMessages.Part> parts = new ArrayList<JxmlMessages.Part>();
+        parts.add(new JxmlMessages.Choice("count", true, cases));
+        Map<String, String> declared = new LinkedHashMap<String, String>();
+        declared.put("count", "double".equals(positions.get(1)) ? "double" : "int");
+        for (Map.Entry<Integer, String> p : positions.entrySet()) {
+            if (p.getKey() != 1) {
+                declared.put("arg" + p.getKey(), p.getValue());
+            }
+        }
+        return new Entry(name, new JxmlMessages.Message(parts), declared, file, line);
+    }
+
+    /** An Android string resource's value: quotes, escapes and white space as {@code aapt} reads them. */
+    static String androidText(String raw) {
+        StringBuilder out = new StringBuilder();
+        boolean quoted = false;
+        boolean pendingSpace = false; // white space outside quotes becomes one space, unless it is at an end
+        for (int i = 0; i < raw.length(); i++) {
+            char c = raw.charAt(i);
+            if (c == '"') {
+                quoted = !quoted;
+                continue;
+            }
+            if (!quoted && Character.isWhitespace(c)) {
+                pendingSpace = out.length() > 0;
+                continue;
+            }
+            if (pendingSpace) {
+                out.append(' ');
+                pendingSpace = false;
+            }
+            if (c == '\\' && i + 1 < raw.length()) {
+                char e = raw.charAt(++i);
+                if (e == 'u' && i + 4 < raw.length()) {
+                    try {
+                        out.append((char) Integer.parseInt(raw.substring(i + 1, i + 5), 16));
+                        i += 4;
+                    } catch (NumberFormatException ex) {
+                        throw new IllegalArgumentException("bad \\u escape");
+                    }
+                } else {
+                    out.append(e == 'n' ? '\n' : e == 't' ? '\t' : e);
+                }
+                continue;
+            }
+            out.append(c);
+        }
+        return out.toString();
+    }
+    // ---- checks --------------------------------------------------------------------------------------------
+
+    /** The type of each argument of an entry: the declared one, or what the message does with it. */
+    private static Map<String, String> typesOf(Entry e) {
+        Map<String, String> out = new LinkedHashMap<String, String>();
+        Map<String, String> used = e.message.args();
+        for (Map.Entry<String, String> d : e.declared.entrySet()) {
+            out.put(d.getKey(), d.getValue() != null ? d.getValue() : infer(used.get(d.getKey())));
+        }
+        for (Map.Entry<String, String> u : used.entrySet()) {
+            if (!out.containsKey(u.getKey())) {
+                out.put(u.getKey(), infer(u.getValue()));
+            }
+        }
+        return out;
+    }
+
+    private static String infer(String use) {
+        return "plural".equals(use) ? "int" : "String";
+    }
+
+    private void check() {
+        Map<String, Entry> base = locales.get(defaultTag);
+        if (base == null) {
+            return;
+        }
+        Map<String, String> methods = new HashMap<String, String>();
+        for (Entry e : base.values()) {
+            Map<String, String> types = typesOf(e);
+            Map<String, String> used = e.message.args();
+            for (Map.Entry<String, String> t : types.entrySet()) {
+                if ("plural".equals(used.get(t.getKey())) && !Arrays.asList("int", "double", "num").contains(t.getValue())) {
+                    problem(e.file, e.line, e.key + ": " + t.getKey() + " is a plural, so it must be int, double or num, not "
+                            + t.getValue());
+                }
+            }
+            String method = methodName(e.key);
+            String other = methods.put(method, e.key);
+            if (other != null) {
+                problem(e.file, e.line, "the keys " + other + " and " + e.key + " would both be the method " + method + "()");
+            }
+            signatures.put(e.key, new Signature(e.key, method, new ArrayList<String>(types.keySet()),
+                    new ArrayList<String>(types.values()), e.where()));
+        }
+        for (Map.Entry<String, Map<String, Entry>> locale : locales.entrySet()) {
+            String tag = locale.getKey();
+            if (tag.equals(defaultTag)) {
+                continue;
+            }
+            for (Entry e : locale.getValue().values()) {
+                Entry def = base.get(e.key);
+                if (def == null) {
+                    warn(e.file, e.line, tag + " has the key " + e.key + ", which the default locale " + defaultTag
+                            + " does not define");
+                    continue;
+                }
+                compare(tag, e, def);
+            }
+            List<String> lacking = new ArrayList<String>();
+            for (Entry def : base.values()) {
+                if (!locale.getValue().containsKey(def.key)) {
+                    lacking.add(def.key);
+                    warn(filesOfTag.get(tag), 0, tag + " has no translation for " + def.key + " (defined at "
+                            + def.where() + ")");
+                }
+            }
+            if (!lacking.isEmpty()) {
+                missing.put(tag, lacking);
+            }
+        }
+    }
+
+    private void compare(String tag, Entry e, Entry def) {
+        Map<String, String> mine = typesOf(e);
+        Map<String, String> theirs = typesOf(def);
+        Set<String> a = new LinkedHashSet<String>(mine.keySet());
+        Set<String> b = new LinkedHashSet<String>(theirs.keySet());
+        if (!a.equals(b)) {
+            problem(e.file, e.line, e.key + " in " + tag + " has the placeholders " + a + ", but " + defaultTag + " ("
+                    + def.where() + ") has " + b);
+            return;
+        }
+        Map<String, String> used = e.message.args();
+        for (String name : b) {
+            String declaredHere = e.declared.get(name);
+            String there = theirs.get(name);
+            if (declaredHere != null && !declaredHere.equals(there)) {
+                problem(e.file, e.line, e.key + ": the placeholder " + name + " is " + declaredHere + " in " + tag + " but "
+                        + there + " in " + defaultTag + " (" + def.where() + ")");
+            } else if ("plural".equals(used.get(name)) && !Arrays.asList("int", "double", "num").contains(there)) {
+                problem(e.file, e.line, e.key + ": " + name + " is a plural in " + tag + " but " + there + " in " + defaultTag);
+            }
+        }
+    }
+
+    /** Keys can have dots and dashes (as FXML bundle keys do); the Java method uses {@code _} for them. */
+    static String methodName(String key) {
+        StringBuilder out = new StringBuilder();
+        for (char ch : key.toCharArray()) {
+            out.append(ch >= 'a' && ch <= 'z' || ch >= 'A' && ch <= 'Z' || ch >= '0' && ch <= '9' || ch == '_' ? ch : '_');
+        }
+        if (out.length() == 0 || Character.isDigit(out.charAt(0))) {
+            out.insert(0, '_');
+        }
+        String name = out.toString();
+        return RESERVED.contains(name) ? name + "_" : name;
+    }
+
+    // ---- the generated class -------------------------------------------------------------------------------
+
+    /** The name of the generated class, in the package of the screens. */
+    public static final String STRINGS = "Strings";
+
+    /**
+     * The source of {@code Strings}: the tables as calls that fill a {@link JxmlMessages}, and one static method per key
+     * with the arguments as the default locale declares them. Equal catalogs give equal text.
+     */
+    public String generateStrings(String packageName) {
+        StringBuilder out = new StringBuilder("// Generated by JXForge from the l10n files in ").append(dir.getName().replace('\n', ' '))
+                .append(". Do not edit.\n");
+        if (packageName != null && !packageName.isEmpty()) {
+            out.append("package ").append(packageName).append(";\n\n");
+        }
+        out.append("import com.jxparallel.forge.JxmlMessages;\n\n")
+                .append("public final class ").append(STRINGS).append(" {\n")
+                .append("    private static final JxmlMessages M = new JxmlMessages(").append(JxmlCompiler.quote(defaultTag)).append(");\n\n");
+        List<String> calls = new ArrayList<String>();
+        for (Map.Entry<String, Map<String, Entry>> locale : locales.entrySet()) {
+            for (Entry e : locale.getValue().values()) {
+                calls.add("M.add(" + JxmlCompiler.quote(locale.getKey()) + ", " + JxmlCompiler.quote(e.key) + ", "
+                        + JxmlCompiler.quote(e.message.toIcu()) + ");");
+            }
+        }
+        for (Signature s : signatures.values()) {
+            StringBuilder names = new StringBuilder();
+            for (String n : s.names) {
+                names.append(", ").append(JxmlCompiler.quote(n));
+            }
+            calls.add("M.signature(" + JxmlCompiler.quote(s.key) + names + ");");
+        }
+        int chunks = (calls.size() + 249) / 250;
+        out.append("    static {\n");
+        for (int c = 0; c < chunks; c++) {
+            out.append("        l10n$").append(c).append("();\n");
+        }
+        out.append("    }\n");
+        for (int c = 0; c < chunks; c++) { // methods stay under the 64 KB limit of a class file
+            out.append("\n    private static void l10n$").append(c).append("() {\n");
+            for (int k = c * 250; k < Math.min(calls.size(), (c + 1) * 250); k++) {
+                out.append("        ").append(calls.get(k)).append('\n');
+            }
+            out.append("    }\n");
+        }
+        out.append("\n    private ").append(STRINGS).append("() {\n    }\n");
+        out.append("\n    /** The locales with texts, the default one included. */\n")
+                .append("    public static java.util.List<java.util.Locale> supported() {\n        return M.supported();\n    }\n")
+                .append("\n    /** The current locale: at first the best match for the system's. */\n")
+                .append("    public static java.util.Locale locale() {\n        return M.locale();\n    }\n")
+                .append("\n    /** Changes the locale and tells the listeners, so screens can be built again. */\n")
+                .append("    public static void setLocale(java.util.Locale locale) {\n        M.setLocale(locale);\n    }\n")
+                .append("\n    public static void onLocaleChange(Runnable listener) {\n        M.onLocaleChange(listener);\n    }\n")
+                .append("\n    public static void offLocaleChange(Runnable listener) {\n        M.offLocaleChange(listener);\n    }\n");
+        for (Signature s : signatures.values()) {
+            StringBuilder params = new StringBuilder();
+            StringBuilder args = new StringBuilder();
+            for (int i = 0; i < s.names.size(); i++) {
+                String javaName = JxmlCatalog.RESERVED.contains(s.names.get(i)) ? s.names.get(i) + "_" : s.names.get(i);
+                params.append(i == 0 ? "" : ", ").append(s.javaType(i)).append(' ').append(javaName);
+                args.append(", ").append(javaName);
+            }
+            out.append("\n    /** ").append(s.key.replace("*/", "")).append(" */\n")
+                    .append("    public static String ").append(s.method).append('(').append(params).append(") {\n")
+                    .append("        return M.format(").append(JxmlCompiler.quote(s.key)).append(args).append(");\n")
+                    .append("    }\n");
+        }
+        return out.append("}\n").toString();
+    }
+
+    // ---- ARB output ----------------------------------------------------------------------------------------
+
+    /** The ARB text of one locale: its messages, with a {@code placeholders} block for those with arguments. */
+    public String toArb(String tag) {
+        Map<String, Entry> table = locales.get(tag);
+        StringBuilder out = new StringBuilder("{\n  \"@@locale\": ").append(JxmlJson.quote(tag));
+        if (table != null) {
+            for (Entry e : table.values()) {
+                out.append(",\n  ").append(JxmlJson.quote(e.key)).append(": ").append(JxmlJson.quote(e.message.toIcu()));
+                Map<String, String> types = typesOf(e);
+                if (!types.isEmpty()) {
+                    out.append(",\n  ").append(JxmlJson.quote("@" + e.key)).append(": {\n    \"placeholders\": {");
+                    int n = 0;
+                    for (Map.Entry<String, String> t : types.entrySet()) {
+                        out.append(n++ == 0 ? "\n" : ",\n").append("      ").append(JxmlJson.quote(t.getKey()))
+                                .append(": {\"type\": ").append(JxmlJson.quote(t.getValue())).append('}');
+                    }
+                    out.append("\n    }\n  }");
+                }
+            }
+        }
+        return out.append("\n}\n").toString();
+    }
+
+    // ---- hashing -------------------------------------------------------------------------------------------
+
+    private static MessageDigest digestOf() {
+        try {
+            return MessageDigest.getInstance("SHA-256");
+        } catch (NoSuchAlgorithmException e) {
+            throw new IllegalStateException(e);
+        }
+    }
+
+    private static String hex(byte[] digest) {
+        StringBuilder hex = new StringBuilder();
+        for (byte b : digest) {
+            hex.append(Character.forDigit((b >> 4) & 15, 16)).append(Character.forDigit(b & 15, 16));
+        }
+        return hex.toString();
+    }
+
+    static String sha256(byte[] bytes) {
+        return hex(digestOf().digest(bytes));
+    }
+}

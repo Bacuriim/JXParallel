@@ -1,0 +1,5 @@
+{
+  "@@locale": "pt_BR",
+  "greeting": "Oi",
+  "itemCount": "{count, plural, =0{Nenhum item} one{{count} item} other{{count} itens}}"
+}

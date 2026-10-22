@@ -388,7 +388,9 @@ final class FxmlTranslator {
         if (name.startsWith("fx:")) {
             throw run.error(raw.line, name + " on <" + spec.fxml + "> has no JXML equivalent");
         }
-        String value1 = literal(run, raw, name, value); // an expression, reference or resource key is refused whatever the attribute
+        // %key is a key of the resource bundle: in JXML it is %{key}, resolved against the l10n files (text attributes only)
+        boolean resource = value.startsWith("%");
+        String value1 = resource ? value : literal(run, raw, name, value); // an expression or reference is refused whatever the attribute
         Attr attr;
         if (name.indexOf('.') > 0) {
             attr = STATIC.get(name);
@@ -411,7 +413,19 @@ final class FxmlTranslator {
                         + (name.equals("stylesheets") ? " (a stylesheet; use <Style> elements in JXML)" : ""));
             }
         }
-        String converted = convert(run, raw, spec, pending, name, attr, value1);
+        String converted;
+        if (resource) {
+            String key = value.substring(1);
+            if (attr.conv != Conv.TEXT) {
+                throw run.error(raw.line, "the resource key " + name + "=\"" + value + "\" is only translated in a text attribute");
+            }
+            if (!JxmlCatalog.isKey(key)) {
+                throw run.error(raw.line, "the resource key " + name + "=\"" + value + "\" is not a key (letters, digits, _, . and -)");
+            }
+            converted = "%{" + key + "}";
+        } else {
+            converted = convert(run, raw, spec, pending, name, attr, value1);
+        }
         if (converted == null) {
             return; // the default: not written
         }
@@ -435,7 +449,7 @@ final class FxmlTranslator {
         return literal(run, raw, name, value);
     }
 
-    /** The literal an attribute value stands for: {@code ${...}}, {@code $x}, {@code %key} and {@code @file} are errors. */
+    /** The literal an attribute value stands for: {@code ${...}}, {@code $x} and {@code @file} are errors (a {@code %key} is handled before). */
     private static String literal(Run run, JxmlParser.Node raw, String name, String value) {
         if (value.startsWith("\\")) {
             return value.substring(1); // the FXML escape: the rest is a literal
@@ -462,7 +476,7 @@ final class FxmlTranslator {
         String t = v.trim();
         switch (attr.conv) {
             case TEXT:
-                return v.startsWith("\\") || v.startsWith("${") || v.startsWith("@{") ? "\\" + v : v;
+                return v.startsWith("\\") || v.startsWith("${") || v.startsWith("@{") || v.startsWith("%{") ? "\\" + v : v;
             case KEEP:
             case NUM:
             case INT:

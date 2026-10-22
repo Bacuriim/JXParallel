@@ -89,7 +89,7 @@ public final class JxmlCompiler {
     }
 
     private String generate() {
-        if (template.controller == null && !template.root.constant()) {
+        if (template.controller == null && template.root.needsController()) {
             throw new JxmlException(template.source, template.root.line,
                     "bindings and handlers need controller=\"fully.qualified.Class\" on the root element");
         }
@@ -335,6 +335,12 @@ public final class JxmlCompiler {
                 return consumer(p.attr.valueType) + " v -> c." + p.method + "(" + String.join(", ", args) + ")";
             case SETTER:
                 return consumer(p.attr.valueType) + " v -> " + reference(p) + "." + p.method + "(v)";
+            case TRANSLATION:
+                List<String> texts = new ArrayList<String>();
+                for (JxmlTemplate.Translation t : p.translations) {
+                    texts.add(translation(t));
+                }
+                return p.attr.type == AttrType.STRINGS ? "new String[] {" + String.join(", ", texts) + "}" : texts.get(0);
             case BINDING:
                 String call = reference(p);
                 switch (p.attr.type) {
@@ -359,6 +365,41 @@ public final class JxmlCompiler {
             default:
                 throw new IllegalStateException();
         }
+    }
+
+    /** A call of the generated {@code Strings} class (same package), checked by javac, or a plain text of a list. */
+    private String translation(JxmlTemplate.Translation t) {
+        if (t.key == null) {
+            return quote(t.literal);
+        }
+        StringBuilder call = new StringBuilder(JxmlCatalog.STRINGS).append('.').append(t.signature.method).append('(');
+        for (int i = 0; i < t.args.size(); i++) {
+            JxmlTemplate.Arg a = t.args.get(i);
+            String type = t.signature.types.get(i);
+            String arg;
+            if (a.binding == null) {
+                arg = a.literal instanceof String ? quote((String) a.literal) : a.literal instanceof Integer
+                        ? a.literal.toString() : number((Double) a.literal);
+            } else {
+                String ref = reference(a.binding);
+                switch (type) {
+                    case "int":
+                        arg = "JxmlValues.asInt(" + ref + ").intValue()";
+                        break;
+                    case "double":
+                    case "num":
+                        arg = "JxmlValues.asDouble(" + ref + ").doubleValue()";
+                        break;
+                    case "DateTime":
+                        arg = "(java.util.Date) " + ref;
+                        break;
+                    default:
+                        arg = "JxmlValues.asString(" + ref + ")";
+                }
+            }
+            call.append(i == 0 ? "" : ", ").append(arg);
+        }
+        return call.append(')').toString();
     }
 
     /** The loop variables a handler passes, as the Java variables that hold them. */

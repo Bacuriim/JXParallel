@@ -28,6 +28,8 @@ public class JXForgePlugin implements Plugin<Project> {
         ext.getOutputDirectory().convention(project.getLayout().getBuildDirectory().dir("generated/sources/jxforge"));
         ext.getClassSuffix().convention("View");
         ext.getHoistConstants().convention(true);
+        ext.getL10nDirectory().convention(project.getLayout().getProjectDirectory().dir("src/main/l10n"));
+        ext.getL10nStrict().convention(false);
         ext.getForgeVersion().convention(ownVersion());
 
         // Resolved only when the task runs; the forge is not bundled in the plugin.
@@ -46,6 +48,9 @@ public class JXForgePlugin implements Plugin<Project> {
             t.getPackageName().set(ext.getPackageName());
             t.getClassSuffix().set(ext.getClassSuffix());
             t.getHoistConstants().set(ext.getHoistConstants());
+            t.getL10nDirectory().set(ext.getL10nDirectory());
+            t.getL10nFiles().from(project.provider(() -> project.fileTree(ext.getL10nDirectory())));
+            t.getL10nStrict().set(ext.getL10nStrict());
             t.getForgeClasspath().from(forge);
         });
 

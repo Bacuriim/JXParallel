@@ -41,6 +41,8 @@ public final class JXForge {
     public static final String MANIFEST = ".jxforge-manifest";
     private static final String FORMAT = "jxforge-manifest 1";
     private static final String MISSING = "missing";
+    /** The file in the output directory that lists the untranslated keys per locale (only when there are some). */
+    public static final String MISSING_REPORT = "l10n-missing.txt";
 
     /** What one run did. */
     public static final class Result {
@@ -66,18 +68,23 @@ public final class JXForge {
         String className;
         String output; // relative to the output directory, with /
         String own;
+        /** The digest of the translation keys the screen can see, or null when it uses no translation. */
+        String api;
         final Map<String, String> deps = new TreeMap<String, String>();
         final List<String> warnings = new ArrayList<String>();
 
         boolean sameKey(Entry other) {
             return className.equals(other.className) && output.equals(other.output) && own.equals(other.own)
-                    && deps.equals(other.deps);
+                    && deps.equals(other.deps) && (api == null ? other.api == null : api.equals(other.api));
         }
     }
 
     /** The manifest of a run: the options fingerprint and the screens, by relative source path. */
     private static final class Manifest {
         String options;
+        /** The digest of the l10n directory and the generated Strings file (relative to the output), or null. */
+        String l10n;
+        String l10nOutput;
         final Map<String, Entry> screens = new TreeMap<String, Entry>();
     }
 
@@ -86,16 +93,34 @@ public final class JXForge {
 
     public static Result compileDirectory(File src, File out, String packageName, String suffix, boolean hoist)
             throws IOException {
+        return compileDirectory(src, out, packageName, suffix, hoist, null);
+    }
+
+    /** As above, with the translation files in {@code l10nDir} (null, or a missing directory: none). */
+    public static Result compileDirectory(File src, File out, String packageName, String suffix, boolean hoist, File l10nDir)
+            throws IOException {
+        return compileDirectory(src, out, packageName, suffix, hoist, l10nDir, false);
+    }
+
+    /**
+     * As above; with {@code l10nStrict} a missing or extra translation fails the run instead of being a warning.
+     * The directory holds ARB and/or Android {@code strings.xml} files (see {@link JxmlCatalog}); the run writes
+     * {@code <package>/Strings.java} from them, and {@code l10n-missing.txt} when some locale lacks keys.
+     */
+    public static Result compileDirectory(File src, File out, String packageName, String suffix, boolean hoist, File l10nDir,
+                                          boolean l10nStrict) throws IOException {
         long start = System.nanoTime();
         Result result = new Result();
         List<File> files = new ArrayList<File>();
         collect(src, files);
         Set<String> included = new HashSet<String>();
         Set<String> withControllers = new HashSet<String>();
+        Set<String> translated = new HashSet<String>();
         Map<String, List<String>> direct = new HashMap<String, List<String>>();
         for (File file : files) {
-            scan(file, relative(src, file), included, withControllers, direct);
+            scan(file, relative(src, file), included, withControllers, direct, translated);
         }
+        JxmlCatalog catalog = l10nDir != null && l10nDir.isDirectory() ? JxmlCatalog.load(l10nDir, l10nStrict) : null;
         Map<String, String> hashes = new HashMap<String, String>();
         String options = sha256(packageName + "\n" + suffix + "\n" + hoist + "\n" + version());
         Manifest old = readManifest(new File(out, MANIFEST));
@@ -126,9 +151,13 @@ public final class JXForge {
             key.className = className;
             key.output = packagePath + className + ".java";
             key.own = hash(src, name, hashes);
+            boolean usesTexts = translated.contains(name);
             for (String dep : dependencies(name, direct)) {
                 key.deps.put(dep, hash(src, dep, hashes));
+                usesTexts |= translated.contains(dep);
             }
+            // a screen only names the methods of Strings, so a new text does not change it; a new, gone or changed key does
+            key.api = usesTexts ? (catalog == null ? "none" : catalog.apiDigest()) : null;
             outputs.put(name, key.output);
             outputPaths.add(key.output);
 
@@ -143,7 +172,7 @@ public final class JXForge {
                 JxmlTemplate template;
                 InputStream input = new FileInputStream(file);
                 try {
-                    template = JxmlTemplate.read(input, name, loader);
+                    template = JxmlTemplate.read(input, name, loader, catalog);
                 } finally {
                     input.close();
                 }
@@ -179,12 +208,67 @@ public final class JXForge {
                 prune(out, stale.getParentFile());
             }
         }
+        if (catalog != null) {
+            addWarnings(result, catalog.getWarnings());
+        }
+        texts(catalog, out, packageName, classes, old, sameOptions, now, result);
         writeManifest(new File(out, MANIFEST), now, old != null);
         result.nanos = System.nanoTime() - start;
         if (failure != null) {
             throw failure;
         }
         return result;
+    }
+
+    /** The generated {@code Strings} class and {@code l10n-missing.txt}, or the removal of what an earlier run wrote. */
+    private static void texts(JxmlCatalog catalog, File out, String packageName, Map<String, File> classes, Manifest old,
+                              boolean sameOptions, Manifest now, Result result) throws IOException {
+        File missing = new File(out, MISSING_REPORT);
+        if (catalog == null) {
+            if (old != null && old.l10nOutput != null) {
+                File stale = new File(out, old.l10nOutput.replace('/', File.separatorChar));
+                if (inside(out, stale) && stale.isFile() && stale.delete()) {
+                    result.removed.add(stale);
+                    prune(out, stale.getParentFile());
+                }
+                if (missing.isFile() && missing.delete()) {
+                    result.removed.add(missing);
+                }
+            }
+            return;
+        }
+        if (classes.containsKey(JxmlCatalog.STRINGS)) {
+            throw new JxmlException(classes.get(JxmlCatalog.STRINGS).getPath().replace('\\', '/'), 0, "the class "
+                    + JxmlCatalog.STRINGS + " is the generated translations; give the screen another name or suffix");
+        }
+        String packagePath = packageName.isEmpty() ? "" : packageName.replace('.', '/') + "/";
+        File target = new File(out, packagePath + JxmlCatalog.STRINGS + ".java");
+        now.l10n = catalog.digest();
+        now.l10nOutput = packagePath + JxmlCatalog.STRINGS + ".java";
+        if (sameOptions && old != null && now.l10n.equals(old.l10n) && now.l10nOutput.equals(old.l10nOutput) && target.isFile()) {
+            result.upToDate.add(target);
+        } else {
+            write(target, catalog.generateStrings(packageName).getBytes(StandardCharsets.UTF_8), result);
+        }
+        String report = catalog.missingReport();
+        if (report != null) {
+            write(missing, report.getBytes(StandardCharsets.UTF_8), result);
+        } else if (missing.isFile() && missing.delete()) {
+            result.removed.add(missing);
+        }
+    }
+
+    private static void write(File target, byte[] bytes, Result result) throws IOException {
+        if (target.isFile() && Arrays.equals(Files.readAllBytes(target.toPath()), bytes)) {
+            result.upToDate.add(target);
+            return;
+        }
+        File dir = target.getAbsoluteFile().getParentFile();
+        if (!dir.isDirectory() && !dir.mkdirs()) {
+            throw new IOException("Cannot create " + dir);
+        }
+        Files.write(target.toPath(), bytes);
+        result.written.add(target);
     }
 
     private static void addWarnings(Result result, List<String> warnings) {
@@ -268,7 +352,17 @@ public final class JXForge {
             manifest.options = lines[1].substring("options\t".length());
             String name = null;
             Entry entry = null;
-            for (int i = 2; i < lines.length; i++) {
+            int first = 2;
+            if (lines.length > 2 && lines[2].startsWith("l10n\t")) {
+                String[] parts = lines[2].split("\t", -1);
+                if (parts.length != 3) {
+                    return null;
+                }
+                manifest.l10n = parts[1];
+                manifest.l10nOutput = unescape(parts[2]);
+                first = 3;
+            }
+            for (int i = first; i < lines.length; i++) {
                 String[] parts = lines[i].split("\t", -1);
                 String tag = parts[0];
                 if (entry == null) {
@@ -283,6 +377,8 @@ public final class JXForge {
                     entry.output = unescape(parts[1]);
                 } else if ("own".equals(tag) && parts.length == 2) {
                     entry.own = parts[1];
+                } else if ("api".equals(tag) && parts.length == 2) {
+                    entry.api = parts[1];
                 } else if ("dep".equals(tag) && parts.length == 3) {
                     entry.deps.put(unescape(parts[1]), parts[2]);
                 } else if ("warn".equals(tag) && parts.length == 2) {
@@ -305,16 +401,22 @@ public final class JXForge {
 
     /** Writes the manifest unless the file already has exactly this text. */
     private static void writeManifest(File file, Manifest manifest, boolean hadOne) throws IOException {
-        if (manifest.screens.isEmpty() && !file.isFile() && !hadOne) {
+        if (manifest.screens.isEmpty() && manifest.l10n == null && !file.isFile() && !hadOne) {
             return; // nothing generated and nothing recorded: leave the directory as it is
         }
         StringBuilder text = new StringBuilder(FORMAT).append('\n').append("options\t").append(manifest.options).append('\n');
+        if (manifest.l10n != null) {
+            text.append("l10n\t").append(manifest.l10n).append('\t').append(escape(manifest.l10nOutput)).append('\n');
+        }
         for (Map.Entry<String, Entry> e : manifest.screens.entrySet()) {
             Entry entry = e.getValue();
             text.append("screen\t").append(escape(e.getKey())).append('\n');
             text.append("class\t").append(escape(entry.className)).append('\n');
             text.append("output\t").append(escape(entry.output)).append('\n');
             text.append("own\t").append(entry.own).append('\n');
+            if (entry.api != null) {
+                text.append("api\t").append(entry.api).append('\n');
+            }
             for (Map.Entry<String, String> dep : entry.deps.entrySet()) {
                 text.append("dep\t").append(escape(dep.getKey())).append('\t').append(dep.getValue()).append('\n');
             }
@@ -372,7 +474,7 @@ public final class JXForge {
 
     /** Notes, from the parsed root of a file, which files it includes and whether it has a controller. */
     private static void scan(File file, String name, Set<String> included, Set<String> withControllers,
-                             Map<String, List<String>> direct) {
+                             Map<String, List<String>> direct, Set<String> translated) {
         try {
             InputStream input = new FileInputStream(file);
             try {
@@ -382,6 +484,9 @@ public final class JXForge {
                 }
                 List<String> targets = new ArrayList<String>();
                 includes(root, name, targets);
+                if (translates(root)) {
+                    translated.add(name);
+                }
                 included.addAll(targets);
                 direct.put(name, targets);
             } finally {
@@ -390,6 +495,21 @@ public final class JXForge {
         } catch (JxmlException | IOException e) {
             // reported when the file itself is compiled
         }
+    }
+
+    /** Whether an attribute anywhere in the file is a translation: {@code %{key}} in JXML, {@code %key} in FXML. */
+    private static boolean translates(JxmlParser.Node node) {
+        for (String value : node.attrs.values()) {
+            if (value.startsWith("%")) {
+                return true;
+            }
+        }
+        for (JxmlParser.Node child : node.children) {
+            if (translates(child)) {
+                return true;
+            }
+        }
+        return false;
     }
 
     private static void includes(JxmlParser.Node node, String name, List<String> targets) {
@@ -438,7 +558,95 @@ public final class JXForge {
         }
     }
 
+    /**
+     * Creates {@code app_<locale>.arb} in {@code dir} for each locale, with one sample key; the first locale is the
+     * default (named in {@code l10n.default} unless it is {@code en}). Existing files are left alone.
+     *
+     * @return the files created
+     */
+    public static List<File> l10nInit(File dir, List<String> locales) throws IOException {
+        List<File> created = new ArrayList<File>();
+        if (!dir.isDirectory() && !dir.mkdirs()) {
+            throw new IOException("Cannot create " + dir);
+        }
+        for (int i = 0; i < locales.size(); i++) {
+            String tag = JxmlMessages.tag(locales.get(i));
+            File file = new File(dir, "app_" + tag + ".arb");
+            if (file.exists()) {
+                continue;
+            }
+            String text = "{\n  \"@@locale\": \"" + tag + "\",\n  \"helloWorld\": \"Hello World!\",\n  \"@helloWorld\": {\n"
+                    + "    \"description\": \"The conventional first message\"\n  }\n}\n";
+            Files.write(file.toPath(), text.getBytes(StandardCharsets.UTF_8));
+            created.add(file);
+        }
+        File marker = new File(dir, "l10n.default");
+        if (!locales.isEmpty() && !marker.exists() && !"en".equals(JxmlMessages.tag(locales.get(0)))) {
+            Files.write(marker.toPath(), (JxmlMessages.tag(locales.get(0)) + "\n").getBytes(StandardCharsets.UTF_8));
+            created.add(marker);
+        }
+        return created;
+    }
+
+    /**
+     * Converts the {@code values*}{@code /strings.xml} files under {@code resDir} (an Android {@code res} folder) into ARB
+     * files {@code app_<locale>.arb} in {@code l10nDir}; {@code <string>} and {@code <plurals>} are carried over, anything
+     * else is skipped (reported in {@code warnings}, may be null).
+     *
+     * @return the files written
+     */
+    public static List<File> l10nFromAndroid(File resDir, File l10nDir, List<String> warnings) throws IOException {
+        JxmlCatalog catalog = JxmlCatalog.load(resDir, false);
+        if (!l10nDir.isDirectory() && !l10nDir.mkdirs()) {
+            throw new IOException("Cannot create " + l10nDir);
+        }
+        List<File> written = new ArrayList<File>();
+        for (String tag : catalog.tags()) {
+            File file = new File(l10nDir, "app_" + tag + ".arb");
+            Files.write(file.toPath(), catalog.toArb(tag).getBytes(StandardCharsets.UTF_8));
+            written.add(file);
+        }
+        if (!"en".equals(catalog.getDefaultTag())) {
+            File marker = new File(l10nDir, "l10n.default");
+            Files.write(marker.toPath(), (catalog.getDefaultTag() + "\n").getBytes(StandardCharsets.UTF_8));
+            written.add(marker);
+        }
+        if (warnings != null) {
+            warnings.addAll(catalog.getWarnings());
+        }
+        return written;
+    }
+
     public static void main(String[] args) throws IOException {
+        if (args.length > 0 && "--l10n-init".equals(args[0])) {
+            if (args.length < 3) {
+                System.err.println("usage: JXForge --l10n-init <l10nDir> <locale>...   (the first locale is the default)");
+                System.exit(2);
+            }
+            for (File file : l10nInit(new File(args[1]), Arrays.asList(args).subList(2, args.length))) {
+                System.out.println("created " + file);
+            }
+            return;
+        }
+        if (args.length > 0 && "--l10n-from-android".equals(args[0])) {
+            if (args.length != 3) {
+                System.err.println("usage: JXForge --l10n-from-android <resDir> <l10nDir>");
+                System.exit(2);
+            }
+            try {
+                List<String> warnings = new ArrayList<String>();
+                for (File file : l10nFromAndroid(new File(args[1]), new File(args[2]), warnings)) {
+                    System.out.println("wrote " + file);
+                }
+                for (String warning : warnings) {
+                    System.err.println("warning: " + warning);
+                }
+            } catch (JxmlException e) {
+                System.err.println(e.getMessage());
+                System.exit(1);
+            }
+            return;
+        }
         if (args.length > 0 && "--fxml-to-jxml".equals(args[0])) {
             if (args.length < 2 || args.length > 3) {
                 System.err.println("usage: JXForge --fxml-to-jxml <in.fxml> [<out.jxml>]   (prints to the console without <out>)");
@@ -466,6 +674,8 @@ public final class JXForge {
         String packageName = null;
         String suffix = "View";
         boolean hoist = true;
+        String l10n = "src/main/l10n";
+        boolean strict = false;
         for (int i = 0; i < args.length; i++) {
             if ("--src".equals(args[i])) {
                 src = args[++i];
@@ -475,6 +685,10 @@ public final class JXForge {
                 packageName = args[++i];
             } else if ("--suffix".equals(args[i])) {
                 suffix = args[++i];
+            } else if ("--l10n".equals(args[i])) {
+                l10n = args[++i];
+            } else if ("--l10n-strict".equals(args[i])) {
+                strict = true;
             } else if ("--no-hoist".equals(args[i])) {
                 hoist = false;
             } else {
@@ -483,11 +697,13 @@ public final class JXForge {
             }
         }
         if (packageName == null) {
-            System.err.println("usage: JXForge --package <java.package> [--src dir] [--out dir] [--suffix View] [--no-hoist]");
+            System.err.println("usage: JXForge --package <java.package> [--src dir] [--out dir] [--suffix View] [--no-hoist]\n"
+                    + "       [--l10n src/main/l10n] [--l10n-strict]\n"
+                    + "       JXForge --l10n-init <l10nDir> <locale>...  |  JXForge --l10n-from-android <resDir> <l10nDir>");
             System.exit(2);
         }
         try {
-            Result r = compileDirectory(new File(src), new File(out), packageName, suffix, hoist);
+            Result r = compileDirectory(new File(src), new File(out), packageName, suffix, hoist, new File(l10n), strict);
             for (String warning : r.warnings) {
                 System.err.println("warning: " + warning);
             }

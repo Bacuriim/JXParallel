@@ -40,6 +40,18 @@ public abstract class JXForgeGenerateTask extends DefaultTask {
     @PathSensitive(PathSensitivity.RELATIVE)
     public abstract ConfigurableFileCollection getSources();
 
+    /** The translation directory itself; it may not exist. What is tracked as input is {@link #getL10nFiles()}. */
+    @Internal
+    public abstract DirectoryProperty getL10nDirectory();
+
+    /** The files under the translation directory (empty when it is missing). */
+    @InputFiles
+    @PathSensitive(PathSensitivity.RELATIVE)
+    public abstract ConfigurableFileCollection getL10nFiles();
+
+    @Input
+    public abstract Property<Boolean> getL10nStrict();
+
     @OutputDirectory
     public abstract DirectoryProperty getOutputDirectory();
 
@@ -76,10 +88,25 @@ public abstract class JXForgeGenerateTask extends DefaultTask {
         }
         try (URLClassLoader loader = new URLClassLoader(urls.toArray(new URL[0]), platformLoader())) {
             Class<?> forge = loader.loadClass("com.jxparallel.forge.JXForge");
-            Method m = forge.getMethod("compileDirectory", File.class, File.class, String.class, String.class,
-                    boolean.class);
-            Object result = m.invoke(null, src, out, getPackageName().get(), getClassSuffix().get(),
-                    getHoistConstants().get());
+            File l10n = getL10nDirectory().isPresent() ? getL10nDirectory().get().getAsFile() : null;
+            Object result;
+            try {
+                // the translations came with a later forge: with an older jar the five-argument method is all there is
+                Method m = forge.getMethod("compileDirectory", File.class, File.class, String.class, String.class,
+                        boolean.class, File.class, boolean.class);
+                result = m.invoke(null, src, out, getPackageName().get(), getClassSuffix().get(), getHoistConstants().get(),
+                        l10n, getL10nStrict().getOrElse(false));
+            } catch (NoSuchMethodException old) {
+                if (l10n != null && l10n.isDirectory()) {
+                    getLogger().warn("JXForge: {} is ignored, this version of the forge has no translations", l10n);
+                }
+                Method m = forge.getMethod("compileDirectory", File.class, File.class, String.class, String.class,
+                        boolean.class);
+                result = m.invoke(null, src, out, getPackageName().get(), getClassSuffix().get(), getHoistConstants().get());
+            }
+            for (Object warning : (Collection<?>) result.getClass().getField("warnings").get(result)) {
+                getLogger().warn("{}", warning);
+            }
             int written = ((Collection<?>) result.getClass().getField("written").get(result)).size();
             int upToDate = ((Collection<?>) result.getClass().getField("upToDate").get(result)).size();
             long nanos = result.getClass().getField("nanos").getLong(result);
