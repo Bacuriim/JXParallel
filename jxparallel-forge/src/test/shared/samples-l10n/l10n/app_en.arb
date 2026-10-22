@@ -1,0 +1,46 @@
+{
+  "@@locale": "en",
+  "appTitle": "My App",
+  "greeting": "Hello",
+  "@greeting": {
+    "description": "Said when the screen opens"
+  },
+  "welcome": "Welcome, {name}!",
+  "@welcome": {
+    "placeholders": {
+      "name": {"type": "String"}
+    }
+  },
+  "itemCount": "{count, plural, =0{No items} =1{One item} other{{count} items}}",
+  "@itemCount": {
+    "placeholders": {
+      "count": {"type": "int"}
+    }
+  },
+  "reply": "{gender, select, male{He replied} female{She replied} other{They replied}}",
+  "@reply": {
+    "placeholders": {
+      "gender": {"type": "String"}
+    }
+  },
+  "price": "Total: {amount}",
+  "@price": {
+    "placeholders": {
+      "amount": {"type": "double"}
+    }
+  },
+  "since": "Since {date}",
+  "@since": {
+    "placeholders": {
+      "date": {"type": "DateTime"}
+    }
+  },
+  "quoted": "Don't use '{' or '}' here, it''s \"odd\"",
+  "unread": "{count, plural, one{# unread message} other{# unread messages}}",
+  "@unread": {
+    "placeholders": {
+      "count": {"type": "int"}
+    }
+  },
+  "app.menu-save": "Save"
+}

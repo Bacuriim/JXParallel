@@ -32,6 +32,19 @@
 
     <build>
         <plugins>
+            <!-- JXForge fingerprints its version in the manifest of the generated sources (Implementation-Version). -->
+            <plugin>
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-jar-plugin</artifactId>
+                <version>3.4.1</version>
+                <configuration>
+                    <archive>
+                        <manifest>
+                            <addDefaultImplementationEntries>true</addDefaultImplementationEntries>
+                        </manifest>
+                    </archive>
+                </configuration>
+            </plugin>
             <!-- The sample screens and their controller live in src/test/shared, which the mount tests of
                  jxparallel-examples-native use too: one set of samples for the interpreter, the compiler and the renderer. -->
             <plugin>

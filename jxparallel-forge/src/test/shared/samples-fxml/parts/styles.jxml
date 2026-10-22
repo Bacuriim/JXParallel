@@ -1,0 +1,6 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!-- A JXML part included from FXML: it defines the style that styleClass="note" names, which FXML has no way to write. -->
+<Row>
+  <Style name="note" textFill="primary" bold="true"/>
+  <Label text="a JXML part" style="note"/>
+</Row>

@@ -1,0 +1,10 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="android_hello">Olá %1$s, você tem %2$d mensagens</string>
+    <string name="android_apostrophe">Não entre em pânico &amp; continue, 100%%</string>
+    <string name="android_price">Custo: %.2f</string>
+    <plurals name="android_files">
+        <item quantity="one">%d arquivo</item>
+        <item quantity="other">%d arquivos</item>
+    </plurals>
+</resources>

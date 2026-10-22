@@ -1,0 +1,27 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!-- ListView and TableView (the rows are the controller property named by fx:id), TreeView and TreeItem. -->
+<?import javafx.scene.control.*?>
+<?import javafx.scene.layout.*?>
+<VBox xmlns="http://javafx.com/javafx" xmlns:fx="http://javafx.com/fxml"
+      fx:controller="com.jxparallel.forge.samples.SampleController" spacing="4">
+  <ListView fx:id="rows" fixedCellSize="20" prefHeight="100"/>
+  <TableView fx:id="rows" fixedCellSize="22" prefHeight="120">
+    <columns>
+      <TableColumn text="Id" prefWidth="60"/>
+      <TableColumn text="Name"/>
+      <TableColumn text="Price" prefWidth="80"/>
+    </columns>
+  </TableView>
+  <TreeView prefHeight="100">
+    <root>
+      <TreeItem value="src" expanded="true">
+        <children>
+          <TreeItem value="main" expanded="false">
+            <TreeItem value="java"/>
+          </TreeItem>
+          <TreeItem value="test"/>
+        </children>
+      </TreeItem>
+    </root>
+  </TreeView>
+</VBox>

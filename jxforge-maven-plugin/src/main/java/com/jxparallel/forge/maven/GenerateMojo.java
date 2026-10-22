@@ -38,6 +38,18 @@ public class GenerateMojo extends AbstractMojo {
     @Parameter(defaultValue = "true")
     private boolean hoistConstants;
 
+    /**
+     * The translation files: ARB ({@code app_en.arb}, {@code app_pt_BR.arb}) and/or Android {@code values-xx/strings.xml}.
+     * Screens write {@code text="%{key}"}; a typed {@code Strings} class is generated next to them. A missing directory
+     * means no translations.
+     */
+    @Parameter(defaultValue = "${project.basedir}/src/main/l10n")
+    private File l10nDirectory;
+
+    /** A missing or extra translation in a locale other than the default fails the build instead of being a warning. */
+    @Parameter(defaultValue = "false")
+    private boolean l10nStrict;
+
     @Parameter(defaultValue = "${project}", readonly = true, required = true)
     private MavenProject project;
 
@@ -49,9 +61,12 @@ public class GenerateMojo extends AbstractMojo {
         }
         try {
             JXForge.Result result = JXForge.compileDirectory(sourceDirectory, outputDirectory, packageName,
-                    classSuffix, hoistConstants);
-            getLog().info(String.format("JXForge: %d written, %d up to date, %.1f ms (%s)", result.written.size(),
-                    result.upToDate.size(), result.nanos / 1e6, packageName));
+                    classSuffix, hoistConstants, l10nDirectory, l10nStrict);
+            for (String warning : result.warnings) {
+                getLog().warn(warning);
+            }
+            getLog().info(String.format("JXForge: %d written, %d up to date, %d removed, %.1f ms (%s)", result.written.size(),
+                    result.upToDate.size(), result.removed.size(), result.nanos / 1e6, packageName));
         } catch (JxmlException e) {
             throw new MojoFailureException(e.getMessage(), e);
         } catch (IOException e) {

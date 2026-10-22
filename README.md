@@ -188,11 +188,25 @@ A larger screen:
 | `<Slot content="${x}"/>` | places a component or element you built in Java |
 | `<Style>`, `style="..."`, `theme="dark"` | named styles with design tokens (`primary`, `surface`, `outline`, `error`...) and a dark theme |
 | `<Include src="..."/>` | reusable screen parts |
+| `text="%{welcome(${user.name})}"` | a translation from `src/main/l10n/app_pt_BR.arb` (Flutter ARB) or `values-pt/strings.xml` (Android), through a generated, typed `Strings` class |
 | `Padding`, `Center`, `SizedBox`, `Card`, `ListTile`, `AppBar`, `Scaffold`... | composites that expand into primitives once |
 
 The compiler and an interpreter that applies the same rules are tested against each other: both
 must build the identical element tree for every screen, with constant-subtree hoisting on and off.
 Use the interpreter for screens that only exist at runtime and the compiler for everything else.
+
+**Also in the toolchain:**
+
+- **Maven and Gradle.** `jxforge-maven-plugin` and `jxforge-gradle-plugin` (id `com.jxparallel.jxforge`) run
+  the same compiler.
+- **Incremental by content.** Every compile checks every screen and regenerates only those whose content,
+  includes or options changed (a manifest of SHA-256 hashes, not modification times); unchanged output is not
+  rewritten, so `javac` does not recompile it, and the Java of a removed screen is deleted.
+- **FXML too.** A `.fxml` file in the source directory compiles to the same kind of native screen through the
+  same compiler, with errors at the FXML line; what has no equivalent is refused, never half translated
+  (`--fxml-to-jxml` prints it as `.jxml` for migrating by hand). The 20 FXML screens of the benchmark all compile.
+- **Translations** in ARB or Android `strings.xml`, checked at build time (missing keys, wrong arguments,
+  placeholders that differ between languages), with plurals and `select`.
 
 Full reference: [docs/jxforge.md](docs/jxforge.md). Scope checklist:
 [docs/jxforge-1.0.md](docs/jxforge-1.0.md).
@@ -217,7 +231,7 @@ Out of scope for 1.0: animations and transitions, custom painters, WebView and O
 ## Native UI
 
 `jxparallel-ui` is a scene graph with its own layout (preferred sizes, grow priorities, grids,
-anchors, flow), controls with the Modena look and a Material look, focus, keyboard and pointer
+anchors, flow), controls in a Material 3 look (light and dark, compact density), focus, keyboard and pointer
 routing, overlays and a software fallback.
 
 ```mermaid
@@ -239,8 +253,17 @@ type are reused, only changed props are replaced, and a change stops climbing as
 size comes out the same. Elements the renderer already holds are skipped, and nodes outside the
 window are not painted.
 
-Skija publishes no 32-bit native libraries, so 32-bit JVMs use NanoVG. Both renderers draw the
-same shapes, colors and sizes:
+The look is Material 3 everywhere, in a compact density, light and dark; the colors are the six tokens
+of the theme (`primary`, `onPrimary`, `surface`, `onSurface`, `outline`, `error`) and every other role
+(containers, state layers, inverse surface) is derived from them:
+
+<p align="center">
+  <img src="docs/assets/material-controls-light.png" alt="The controls in the light theme" width="380">
+  <img src="docs/assets/material-controls-dark.png" alt="The controls in the dark theme" width="380">
+</p>
+
+Skija publishes no 32-bit native libraries, so 32-bit JVMs use NanoVG (not yet checked with the Material
+look on 32-bit). Both renderers draw the same shapes, colors and sizes (image from before the Material look):
 
 <p align="center"><img src="docs/assets/renderers-nanovg-vs-skia.png" alt="NanoVG on Java 8 32-bit and Skia on Java 17 64-bit" width="560"></p>
 
@@ -514,7 +537,8 @@ natives for Windows x64/x86 and Linux x64, and Skija on 64-bit.
 |---|---|---|
 | `jxparallel-core` | worker pool, tasks, configuration, properties, events, observable collections | no |
 | `jxparallel-ui` | native scene graph, controls, layouts, `JXWindow`, Skia, NanoVG and software renderers | no |
-| `jxparallel-forge`, `jxforge-maven-plugin` | JXForge: JXML compiler, interpreter, live view, Maven goal `jxforge:generate` | no |
+| `jxparallel-forge`, `jxforge-maven-plugin` | JXForge: JXML and FXML compiler, interpreter, live view, translations, Maven goal `jxforge:generate` | no |
+| `jxforge-gradle-plugin` | the same generation as a Gradle plugin (separate Gradle build, not in the Maven reactor) | no |
 | `jxparallel-javafx` | FX thread dispatch (`JXParallelFx`, `JXFxDispatcher`) and JavaFX control wrappers | yes |
 | `jxparallel-fxml` | `FXMLLoaderService` with parallel loading and cache | yes |
 | `jxparallel-fx` | JavaFX-compatible API that can run on the native renderer (`-Djx.backend=native`) | no |
@@ -543,7 +567,7 @@ JMH gate, ArchUnit, mutation testing): [docs/testing-strategy.md](docs/testing-s
 | Worker pool, tasks, backpressure, lifecycle | Tested; used by all benchmarks |
 | Properties, events, observable collections | Tested |
 | FX thread dispatch and parallel FXML loading | Tested; pre-parsed templates with `FXMLLoader` fallback |
-| Native window (Skia 64-bit, NanoVG 32-bit) | Working; Modena and Material looks |
+| Native window (Skia 64-bit, NanoVG 32-bit) | Working; Material 3 look everywhere, light and dark (NanoVG not yet checked with it on 32-bit) |
 | JXForge (JXML compiler, interpreter, Maven plugin, live view) | Implemented and tested; 91 widgets, loops, conditions, styles, themes, includes |
 | Incremental UI updates | Implemented: memoized render and in-place reconciliation |
 | Virtualized list, table, tree and tree table | Implemented |
@@ -551,8 +575,10 @@ JMH gate, ArchUnit, mutation testing): [docs/testing-strategy.md](docs/testing-s
 | JavaFX-compatible API in native mode | Implemented and tested headless; not yet run on a large real application |
 | CSS | Subset: selectors with specificity, pseudo-classes, looked-up colors, inline styles |
 | Accessibility | Tree model only; no screen-reader adapter |
-| FXML compiled by JXForge | Not yet; FXML is loaded by `FXMLLoaderService` |
-| Gradle plugin for JXForge | Not yet; use the Maven plugin or the command line |
+| FXML compiled by JXForge | Implemented: the controls and layouts of the catalog, refusals with file and line for the rest; controllers need adapting (`fx:id`, handlers without `ActionEvent`) |
+| Gradle plugin for JXForge | Implemented and tested with TestKit (Gradle 7.5, JDK 11) |
+| Translations (ARB, Android `strings.xml`) | Implemented: typed `Strings`, plurals, build-time checks, runtime locale switch |
+| Android and iOS | Not started. The painter is one interface (`JXPainter`), so a backend over the Android `Canvas` is the natural route; the window today is GLFW and OpenGL |
 
 Roadmap: [docs/roadmap.md](docs/roadmap.md). Changes: [CHANGELOG.md](CHANGELOG.md).
 
@@ -580,8 +606,12 @@ Roadmap: [docs/roadmap.md](docs/roadmap.md). Changes: [CHANGELOG.md](CHANGELOG.m
 an existing JavaFX application, so they need it.
 
 **Is `.jxml` a replacement for FXML?** It is a different language for the native renderer, with
-widget-style tags (`Column`, `Button`...) rather than JavaFX class names. FXML files keep loading
-through `FXMLLoaderService`.
+widget-style tags (`Column`, `Button`...) rather than JavaFX class names. FXML files can be compiled by
+JXForge to native screens (see above), or keep loading through `FXMLLoaderService` in a JavaFX application.
+
+**Can it run on a phone?** Not yet. Everything is drawn through one painter interface, so a backend over the
+Android `Canvas` (Java 8 bytecode runs on Android) is possible; the desktop window uses GLFW and OpenGL, and
+Skija has no Android build. iOS would need a native-image toolchain. None of it exists today.
 
 **Can I mix JXML screens and widgets written in Java?** Yes. A `<Slot content="${x}"/>` places a
 `JXElement` or component you built by hand, and a generated view is just a class that returns a

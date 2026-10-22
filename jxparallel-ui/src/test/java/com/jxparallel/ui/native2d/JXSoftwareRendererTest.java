@@ -60,9 +60,10 @@ class JXSoftwareRendererTest {
                 }
             }
         }
-        // edges of glyphs differ (whole-pixel glyph positions, FreeType vs Skia rasterization)
+        // edges of glyphs differ (whole-pixel glyph positions, FreeType vs Skia rasterization), and the blurred text and the
+        // smoothed image of the sheet that the software painter draws sharp (on the white surface they stand out more)
         double ratio = different / (double) (WIDTH * HEIGHT);
-        if (ratio > 0.01) {
+        if (ratio > 0.015) {
             BufferedImage out = new BufferedImage(WIDTH, HEIGHT, BufferedImage.TYPE_INT_ARGB);
             out.setRGB(0, 0, WIDTH, HEIGHT, actual, 0, WIDTH);
             Files.createDirectories(ACTUAL);

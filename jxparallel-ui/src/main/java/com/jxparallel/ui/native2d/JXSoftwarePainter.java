@@ -204,12 +204,14 @@ final class JXSoftwarePainter implements JXPainter {
 
     @Override
     public void strokeOval(float x, float y, float w, float h, float width, int argb) {
-        oval(x, y, w, h, width, argb, 0, 360);
+        float half = width / 2; // inside the bounds, like Skia
+        oval(x + half, y + half, w - width, h - width, width, argb, 0, 360);
     }
 
     @Override
     public void strokeArc(float x, float y, float w, float h, float startDegrees, float sweepDegrees, float width, int argb) {
-        oval(x, y, w, h, width, argb, startDegrees, sweepDegrees);
+        float half = width / 2;
+        oval(x + half, y + half, w - width, h - width, width, argb, startDegrees, sweepDegrees);
     }
 
     /** An ellipse filled, or its outline of {@code stroke} centred on the edge, optionally only an arc. */

@@ -28,6 +28,11 @@ final class JxmlPrepare {
 
     /** Prepares {@code root}; returns its {@code theme} (light or dark), or null when it writes none. */
     static String run(JxmlParser.Node root, String controller, JxmlLoader loader) {
+        return run(root, controller, loader, null);
+    }
+
+    /** As above; the warnings of included FXML files are added to {@code warnings} (may be null). */
+    static String run(JxmlParser.Node root, String controller, JxmlLoader loader, List<String> warnings) {
         String theme = root.attrs.get("theme");
         if (theme != null && !JxmlThemes.THEMES.contains(theme)) {
             throw new JxmlException(root.source, root.line, "theme=\"" + theme + "\" is not one of " + JxmlThemes.THEMES);
@@ -39,7 +44,7 @@ final class JxmlPrepare {
         collectStyles(root, styles);
         List<String> stack = new ArrayList<String>();
         stack.add(root.source);
-        includes(root, controller, loader, styles, stack);
+        includes(root, controller, loader, styles, stack, warnings);
         applyStyles(root, styles);
         return theme;
     }
@@ -47,20 +52,20 @@ final class JxmlPrepare {
     // ---- includes ----------------------------------------------------------------------------
 
     private static void includes(JxmlParser.Node node, String controller, JxmlLoader loader,
-                                 Map<String, JxmlParser.Node> styles, List<String> stack) {
+                                 Map<String, JxmlParser.Node> styles, List<String> stack, List<String> warnings) {
         for (int i = 0; i < node.children.size(); i++) {
             JxmlParser.Node child = node.children.get(i);
             if ("Include".equals(child.tag)) {
-                JxmlParser.Node part = load(child, controller, loader, styles, stack);
+                JxmlParser.Node part = load(child, controller, loader, styles, stack, warnings);
                 node.children.set(i, part);
             } else {
-                includes(child, controller, loader, styles, stack);
+                includes(child, controller, loader, styles, stack, warnings);
             }
         }
     }
 
     private static JxmlParser.Node load(JxmlParser.Node include, String controller, JxmlLoader loader,
-                                        Map<String, JxmlParser.Node> styles, List<String> stack) {
+                                        Map<String, JxmlParser.Node> styles, List<String> stack, List<String> warnings) {
         String src = include.attrs.get("src");
         if (src == null || src.trim().isEmpty()) {
             throw new JxmlException(include.source, include.line, "<Include> needs src=\"parts/name.jxml\", the file to include");
@@ -92,7 +97,7 @@ final class JxmlPrepare {
         try {
             InputStream in = loader.open(name);
             try {
-                part = JxmlParser.parse(in, name);
+                part = JxmlParser.parse(in, name, warnings);
             } finally {
                 in.close();
             }
@@ -117,7 +122,7 @@ final class JxmlPrepare {
             }
         }
         stack.add(name);
-        includes(part, controller, loader, styles, stack);
+        includes(part, controller, loader, styles, stack, warnings);
         stack.remove(stack.size() - 1);
         return part;
     }

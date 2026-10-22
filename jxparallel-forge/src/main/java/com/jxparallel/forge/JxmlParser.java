@@ -37,7 +37,26 @@ final class JxmlParser {
     private JxmlParser() {
     }
 
-    static Node parse(InputStream input, final String source) {
+    /** True for a file name that is FXML (JavaFX markup), which is translated to the JXML tree when read. */
+    static boolean isFxml(String source) {
+        return source != null && source.endsWith(".fxml");
+    }
+
+    /** Reads a JXML file; a name ending in {@code .fxml} is read as FXML and translated (its warnings are dropped). */
+    static Node parse(InputStream input, String source) {
+        return parse(input, source, null);
+    }
+
+    /** Like {@link #parse(InputStream, String)}; the warnings of an FXML translation are added to {@code warnings} (may be null). */
+    static Node parse(InputStream input, String source, List<String> warnings) {
+        if (isFxml(source)) {
+            return FxmlTranslator.translate(input, source, warnings);
+        }
+        return parseXml(input, source);
+    }
+
+    /** The XML of a file as written, with line numbers: JXML as it is, FXML before it is translated. */
+    static Node parseXml(InputStream input, final String source) {
         if (input == null) {
             throw new IllegalArgumentException("No input for " + source);
         }
