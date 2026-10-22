@@ -28,10 +28,10 @@ public final class JXTheme {
 
     // ---- roles derived from the six tokens (Material 3), not tokens of JXML themselves ----------
 
-    /** State layer alphas of Material 3: hover 8%, focus 10%, pressed 10%, dragged 16%. */
+    /** State layer alphas of Material 3: hover 8%, focus 12%, pressed 12%, dragged 16%. */
     public static final int HOVER = 0x14;
-    public static final int FOCUS = 0x1A;
-    public static final int PRESSED = 0x1A;
+    public static final int FOCUS = 0x1F;
+    public static final int PRESSED = 0x1F;
     public static final int DRAGGED = 0x29;
     /** Disabled: content at 38%, containers at 12% of the on-surface color. */
     public static final int DISABLED_CONTENT = 0x61;

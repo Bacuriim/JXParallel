@@ -46,6 +46,11 @@ class JXControlsSnapshotTest {
     }
 
     static JXElement controls() {
+        return controls(null);
+    }
+
+    /** The sheet in the named theme ({@code "dark"}), or in the default one for null. */
+    static JXElement controls(String theme) {
         JXElement buttons = e("row", p().set("gap", 8.0),
                 e("button", p().set("label", "Normal")),
                 e("button", p().set("label", "Hover").set("hover", true)),
@@ -85,8 +90,9 @@ class JXControlsSnapshotTest {
                 e("separator", p().set("orientation", "vertical").set("prefHeight", 40.0)),
                 e("#text", p().set("value", "Bold 14").set("bold", true).set("fontSize", 14.0).set("textFill", 0xFFC0392B)),
                 e("#text", p().set("value", "underline").set("underline", true)),
+                // an app-set pale background needs an app-set text color too: the theme's onSurface is light in the dark theme
                 e("#text", p().set("value", "styled").set("background", 0xFFFFF3CD).set("borderColor", 0xFFE0A800)
-                        .set("backgroundRadius", 4.0).set("borderRadius", 4.0).set("padding", new double[]{2, 6, 2, 6})));
+                        .set("textFill", 0xFF1C1B1F).set("backgroundRadius", 4.0).set("borderRadius", 4.0).set("padding", new double[]{2, 6, 2, 6})));
         JXElement[] cells = new JXElement[5];
         for (int i = 0; i < cells.length; i++) {
             cells[i] = e("cell", p().set("value", "Item " + i).set("odd", i % 2 == 1).set("selected", i == 1).set("listFocused", true));
@@ -133,8 +139,11 @@ class JXControlsSnapshotTest {
                 e("button", p().set("label", "Cancelar")));
         JXElement overlays = e("row", p().set("gap", 16.0).set("alignment", "TOP_LEFT"), calendar,
                 e("column", p().set("gap", 10.0), popup, tooltip, bar));
-        return e("column", p().set("gap", 10.0).set("padding", new double[]{10, 10, 10, 10}),
-                buttons, checks, fields, combos, progress, lists, misc, overlays);
+        JXProps.Builder sheet = p().set("gap", 10.0).set("padding", new double[]{10, 10, 10, 10});
+        if (theme != null) {
+            sheet.set("theme", theme);
+        }
+        return e("column", sheet, buttons, checks, fields, combos, progress, lists, misc, overlays);
     }
 
     @Test

@@ -5,6 +5,8 @@ import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
+import java.util.ArrayList;
+import java.util.List;
 
 import javax.imageio.ImageIO;
 
@@ -21,7 +23,7 @@ import static org.junit.jupiter.api.Assumptions.assumeTrue;
 
 /**
  * The software renderer: it paints the controls like the reviewed Skia image (within antialiasing
- * and glyph placement), and repainting only the damage gives exactly the pixels of a whole repaint.
+ * and glyph placement, the blurred text and the smoothed image left out), and repainting only the damage gives exactly the pixels of a whole repaint.
  */
 class JXSoftwareRendererTest {
     private static final Path GOLDEN = Paths.get("src/test/resources/snapshots");
@@ -47,9 +49,15 @@ class JXSoftwareRendererTest {
         int[] actual = frame.pixels();
         BufferedImage golden = ImageIO.read(GOLDEN.resolve("controls-skia.png").toFile());
         assertEquals(WIDTH, golden.getWidth());
+        List<int[]> unlike = new ArrayList<int[]>();
+        unlikeSkia(root, unlike);
+        assertEquals(2, unlike.size(), "the sheet has one blurred text and one smoothed image, and the test must know both");
         int different = 0;
         for (int y = 0; y < HEIGHT; y++) {
             for (int x = 0; x < WIDTH; x++) {
+                if (inside(unlike, x, y)) {
+                    continue;
+                }
                 int a = actual[y * WIDTH + x];
                 int b = golden.getRGB(x, y);
                 for (int shift = 0; shift <= 16; shift += 8) {
@@ -60,16 +68,44 @@ class JXSoftwareRendererTest {
                 }
             }
         }
-        // edges of glyphs differ (whole-pixel glyph positions, FreeType vs Skia rasterization), and the blurred text and the
-        // smoothed image of the sheet that the software painter draws sharp (on the white surface they stand out more)
+        // edges of glyphs differ (whole-pixel glyph positions, FreeType vs Skia rasterization): 1% of the pixels may
         double ratio = different / (double) (WIDTH * HEIGHT);
-        if (ratio > 0.015) {
+        if (ratio > 0.01) {
             BufferedImage out = new BufferedImage(WIDTH, HEIGHT, BufferedImage.TYPE_INT_ARGB);
             out.setRGB(0, 0, WIDTH, HEIGHT, actual, 0, WIDTH);
             Files.createDirectories(ACTUAL);
             ImageIO.write(out, "png", ACTUAL.resolve("controls-software.png").toFile());
             fail(String.format("%.3f%% of the pixels differ from the Skia image, render in %s", ratio * 100, ACTUAL));
         }
+    }
+
+    /**
+     * The boxes (x, y, right, bottom) of what Skia draws and the software painter does not: a blurred text (Skia blurs
+     * the layer; the software painter has no blur and draws the text sharp, and the blur spreads about three times its
+     * radius around the box) and an image (Skia smooths it when it scales it, the software painter takes the nearest
+     * pixel). They are left out of the comparison instead of letting the tolerance grow to absorb them.
+     */
+    static void unlikeSkia(JXNativeNode node, List<int[]> out) {
+        double blur = JXPaint.number(node, "blur", 0);
+        if (blur > 0) {
+            int margin = (int) Math.ceil(3 * blur) + 1;
+            out.add(new int[] {node.getX() - margin, node.getY() - margin, node.getX() + node.getWidth() + margin,
+                node.getY() + node.getHeight() + margin});
+        } else if ("image".equals(node.getType())) {
+            out.add(new int[] {node.getX() - 1, node.getY() - 1, node.getX() + node.getWidth() + 1, node.getY() + node.getHeight() + 1});
+        }
+        for (JXNativeNode child : node.getChildren()) {
+            unlikeSkia(child, out);
+        }
+    }
+
+    static boolean inside(List<int[]> boxes, int x, int y) {
+        for (int[] b : boxes) {
+            if (x >= b[0] && y >= b[1] && x < b[2] && y < b[3]) {
+                return true;
+            }
+        }
+        return false;
     }
 
     @Test

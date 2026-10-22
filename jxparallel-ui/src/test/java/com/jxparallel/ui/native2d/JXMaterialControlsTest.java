@@ -202,8 +202,8 @@ class JXMaterialControlsTest {
             assertEquals(0xFF, t.inverseSurface >>> 24);
             assertTrue(distance(t.inverseSurface, t.onSurface) < distance(t.inverseSurface, t.surface), "the inverse surface is the text color");
             assertEquals(0x14, JXTheme.HOVER);
-            assertEquals(0x1A, JXTheme.FOCUS);
-            assertEquals(0x1A, JXTheme.PRESSED);
+            assertEquals(0x1F, JXTheme.FOCUS, "12% of 255");
+            assertEquals(0x1F, JXTheme.PRESSED, "12% of 255");
             assertEquals(0x29, JXTheme.DRAGGED);
         }
         // on a dark surface the text roles are light and the raised surfaces lighter than the surface

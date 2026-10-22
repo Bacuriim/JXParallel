@@ -263,6 +263,9 @@ final class JXPaint {
         after(node);
     }
 
+    /** Corner radius of the border of a scroll pane, list or table. */
+    private static final float CONTAINER_RADIUS = 4;
+
     /** Parts drawn over the children: scroll bars, table header, focus rings. */
     private void after(JXNativeNode node) {
         String type = node.getType();
@@ -271,6 +274,12 @@ final class JXPaint {
         }
         if ("table".equals(type)) {
             tableHeader(node);
+        }
+        if (scrolls(type)) {
+            // the border of the container: rounded, over the rows (which are clipped to the 1 px inside it)
+            boolean focused = !"scroll".equals(type) && Boolean.TRUE.equals(node.getProperty("focused"));
+            p.strokeRoundRect(node.getX(), node.getY(), node.getWidth(), node.getHeight(), CONTAINER_RADIUS, 1,
+                    focused ? theme().primary : theme().outlineVariant);
         }
         if ("badge".equals(type)) {
             badgeMark(node);
@@ -298,6 +307,9 @@ final class JXPaint {
                 content = t.onPrimary;
                 break;
             case "tonal":
+                if (!disabled && Boolean.TRUE.equals(node.getProperty("hover")) && !Boolean.TRUE.equals(node.getProperty("pressed"))) {
+                    elevation(p, fx, fy, fw, fh, r, 1); // M3: a tonal button rises to level 1 under the pointer, back to 0 pressed
+                }
                 p.fillRoundRect(fx, fy, fw, fh, r, disabled ? disabledContainer(t) : t.secondaryContainer);
                 content = t.onPrimaryContainer;
                 break;
@@ -702,13 +714,9 @@ final class JXPaint {
                 titled(node, x, y, w, h);
                 break;
             case "scroll":
-                p.fillRect(x, y, w, h, theme().outlineVariant);
-                p.fillRect(x + 1, y + 1, w - 2, h - 2, theme().surface);
-                break;
             case "list":
             case "table":
-                p.fillRect(x, y, w, h, Boolean.TRUE.equals(node.getProperty("focused")) ? theme().primary : theme().outlineVariant);
-                p.fillRect(x + 1, y + 1, w - 2, h - 2, theme().surface);
+                p.fillRoundRect(x, y, w, h, CONTAINER_RADIUS, theme().surface); // the 1 px border is drawn over the rows: after()
                 break;
             case "cell":
                 cell(node, x, y, w, h);
@@ -859,6 +867,17 @@ final class JXPaint {
     }
 
     /**
+     * The focus indicator of a check box or a radio button, which has its label {@link JXNativeNode#CHECK_GAP} px away:
+     * the ring (1.5 px, 0.5 px from the box) ends 2 px beyond it, so the label keeps 3 px, where the ring of
+     * {@link #focusRing} ends 3 px beyond and left 2.
+     */
+    private void compactFocusRing(JXNativeNode node, float x, float y, float w, float h, float r) {
+        if (Boolean.TRUE.equals(node.getProperty("focused"))) {
+            p.strokeRoundRect(x - 2, y - 2, w + 4, h + 4, r + 2, 1.5f, theme().primary);
+        }
+    }
+
+    /**
      * The outlined text field of Material 3: a 1 px outline with 4 px corners (the on-surface color under the pointer),
      * 2 px primary while it has the focus.
      */
@@ -995,8 +1014,8 @@ final class JXPaint {
         boolean mixed = Boolean.TRUE.equals(node.getProperty("indeterminate"));
         boolean on = mixed || Boolean.TRUE.equals(node.getProperty("checked"));
         int layer = pointerLayer(node);
-        if (layer > 0) { // the state layer: a 22 px disc, 3 px beyond the box
-            p.fillOval(x + s / 2 - 11, top + s / 2 - 11, 22, 22, JXTheme.withAlpha(on ? t.primary : t.onSurface, layer));
+        if (layer > 0) { // the state layer: a 20 px disc, 2 px beyond the box
+            p.fillOval(x + s / 2 - 10, top + s / 2 - 10, 20, 20, JXTheme.withAlpha(on ? t.primary : t.onSurface, layer));
         }
         if (on) {
             p.fillRoundRect(x, top, s, s, 2, t.primary);
@@ -1009,7 +1028,7 @@ final class JXPaint {
         } else {
             p.strokeRoundRect(x, top, s, s, 2, 2, Boolean.TRUE.equals(node.getProperty("hover")) ? t.onSurface : t.onSurfaceVariant);
         }
-        focusRing(node, x, top, s, s, 2);
+        compactFocusRing(node, x, top, s, s, 2);
         drawText(node, text(node, "label"), x + JXNativeNode.CHECK_BOX + JXNativeNode.CHECK_GAP, y, h, color(node, t.onSurface),
                 Boolean.TRUE.equals(node.getProperty("underline")));
     }
@@ -1020,14 +1039,14 @@ final class JXPaint {
         float top = y + Math.round((h - s) / 2);
         boolean on = Boolean.TRUE.equals(node.getProperty("checked"));
         int layer = pointerLayer(node);
-        if (layer > 0) {
-            p.fillOval(x + s / 2 - 11, top + s / 2 - 11, 22, 22, JXTheme.withAlpha(on ? t.primary : t.onSurface, layer));
+        if (layer > 0) { // a 20 px disc, 2 px beyond the circle: the label, 5 px away, keeps 3
+            p.fillOval(x + s / 2 - 10, top + s / 2 - 10, 20, 20, JXTheme.withAlpha(on ? t.primary : t.onSurface, layer));
         }
         p.strokeOval(x, top, s, s, 2, on ? t.primary : Boolean.TRUE.equals(node.getProperty("hover")) ? t.onSurface : t.onSurfaceVariant);
         if (on) {
             p.fillOval(x + 4, top + 4, s - 8, s - 8, t.primary);
         }
-        focusRing(node, x, top, s, s, s / 2);
+        compactFocusRing(node, x, top, s, s, s / 2);
         drawText(node, text(node, "label"), x + JXNativeNode.CHECK_BOX + JXNativeNode.CHECK_GAP, y, h, color(node, t.onSurface),
                 Boolean.TRUE.equals(node.getProperty("underline")));
     }

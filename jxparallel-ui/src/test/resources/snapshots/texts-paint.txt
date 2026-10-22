@@ -122,8 +122,7 @@ text "wrapped right" 549.31 141.95 12.00 false ff1c1b1f
 text "aligned text" 561.68 158.95 12.00 false ff1c1b1f
 fillRoundRect 534.00 165.00 90.00 25.00 12.50 ffdee9f6
 text "a button lab..." 542.82 181.95 12.00 false ff19395f
-fillRect 534.00 192.00 120.00 60.00 ffc7c5c9
-fillRect 535.00 193.00 118.00 58.00 ffffffff
+fillRoundRect 534.00 192.00 120.00 60.00 4.00 ffffffff
 clip 535.00 217.00 118.00 34.00
 fillRect 572.00 217.00 1.00 24.00 80c7c5c9
 fillRect 604.00 217.00 1.00 24.00 80c7c5c9
@@ -142,3 +141,4 @@ text "42" 582.10 209.45 12.00 true ff1c1b1f
 restore
 fillRect 604.00 197.00 1.00 16.00 ffc7c5c9
 restore
+strokeRoundRect 534.00 192.00 120.00 60.00 4.00 1.00 ffc7c5c9

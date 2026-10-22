@@ -10,7 +10,8 @@ import com.jxparallel.ui.text.JXTextEngine;
  * {@code month} (1-12), {@code selectedYear}/{@code selectedMonth}/{@code selectedDay},
  * {@code todayYear}/{@code todayMonth}/{@code todayDay}, {@code firstDayOfWeek} (1 = Monday ... 7 =
  * Sunday), {@code weekdays} (seven short names from the first day of the week) and {@code title}
- * ("September 2026"); names come from the caller's locale.
+ * ("September 2026"); names come from the caller's locale. {@code hoverYear}/{@code hoverMonth}/{@code hoverDay}
+ * is the day that has the state layer {@code hoverLayer} (an alpha, 8% by default): the pointer's or the keys'.
  */
 public final class JXCalendar {
     static final int PAD = 6;
@@ -100,6 +101,10 @@ public final class JXCalendar {
         int todayY = (int) JXPaint.number(node, "todayYear", 0);
         int todayM = (int) JXPaint.number(node, "todayMonth", 0);
         int todayD = (int) JXPaint.number(node, "todayDay", 0);
+        int hovY = (int) JXPaint.number(node, "hoverYear", 0);
+        int hovM = (int) JXPaint.number(node, "hoverMonth", 0);
+        int hovD = (int) JXPaint.number(node, "hoverDay", 0);
+        int hovLayer = (int) JXPaint.number(node, "hoverLayer", JXTheme.HOVER);
         float gy = wy + WEEKDAYS;
         for (int i = 0; i < 42; i++) {
             LocalDate d = start.plusDays(i);
@@ -114,6 +119,10 @@ public final class JXCalendar {
                 p.fillOval(dx, ry + 0.5f, disc, disc, t.primary);
             } else if (today) {
                 p.strokeOval(dx, ry + 0.5f, disc, disc, 1, t.primary);
+            }
+            if (d.getYear() == hovY && d.getMonthValue() == hovM && d.getDayOfMonth() == hovD) {
+                // the day under the pointer or reached by the keys: the state layer, in the color of what is under it
+                p.fillOval(dx, ry + 0.5f, disc, disc, JXTheme.withAlpha(selected ? t.onPrimary : t.onSurface, hovLayer));
             }
             String label = String.valueOf(d.getDayOfMonth());
             float lw = engine.width(label, size);

@@ -49,8 +49,7 @@ text "" 668.00 27.95 12.00 false ff1c1b1f
 restore
 clip 661.00 11.00 88.00 58.00
 restore
-fillRect 10.00 80.00 110.00 195.00 ffc7c5c9
-fillRect 11.00 81.00 108.00 193.00 ffffffff
+fillRoundRect 10.00 80.00 110.00 195.00 4.00 ffffffff
 clip 11.00 81.00 108.00 193.00
 fillRect 11.00 81.00 108.00 23.00 141c1b1f
 clip 11.00 81.00 108.00 23.00
@@ -64,8 +63,8 @@ clip 11.00 127.00 108.00 23.00
 text "Opção 2" 18.00 142.95 12.00 false ff1c1b1f
 restore
 restore
-fillRect 130.00 80.00 110.00 195.00 ffc7c5c9
-fillRect 131.00 81.00 108.00 193.00 ffffffff
+strokeRoundRect 10.00 80.00 110.00 195.00 4.00 1.00 ffc7c5c9
+fillRoundRect 130.00 80.00 110.00 195.00 4.00 ffffffff
 clip 131.00 81.00 108.00 193.00
 fillRect 131.00 81.00 108.00 23.00 141c1b1f
 clip 131.00 81.00 108.00 23.00
@@ -75,14 +74,15 @@ clip 131.00 104.00 108.00 23.00
 text "Dois" 138.00 119.95 12.00 false ff1c1b1f
 restore
 restore
-fillOval 247.00 78.00 22.00 22.00 141c1b1f
+strokeRoundRect 130.00 80.00 110.00 195.00 4.00 1.00 ffc7c5c9
+fillOval 248.00 79.00 20.00 20.00 141c1b1f
 strokeRoundRect 250.00 81.00 16.00 16.00 2.00 2.00 ff1c1b1f
 text "Hover" 271.00 92.95 12.00 false ff1c1b1f
 layer 0.38 0.00
 strokeRoundRect 250.00 104.00 16.00 16.00 2.00 2.00 ff46434a
 text "Off disabled" 271.00 115.95 12.00 false ff1c1b1f
 restore
-fillOval 247.00 124.00 22.00 22.00 141c1b1f
+fillOval 248.00 125.00 20.00 20.00 141c1b1f
 strokeOval 250.00 127.00 16.00 16.00 2.00 ff1c1b1f
 text "Hover" 271.00 138.95 12.00 false ff1c1b1f
 text "Underline" 254.00 164.95 12.00 false ff008000
@@ -93,7 +93,7 @@ strokeOval 252.00 204.00 49.00 49.00 4.00 ffd0e0f2
 strokeArc 252.00 204.00 49.00 49.00 167.14 263.87 4.00 ff1565c0
 fillRoundRect 254.00 266.00 132.00 4.00 2.00 ffd0e0f2
 fillRoundRect 254.00 266.00 66.00 4.00 2.00 ff1565c0
-fillOval 308.00 256.00 24.00 24.00 1a1565c0
+fillOval 308.00 256.00 24.00 24.00 1f1565c0
 fillOval 313.00 261.00 14.00 14.00 ff1565c0
 fillRoundRect 400.00 80.00 80.00 30.00 0.00 ffeeeeff
 strokeRoundRect 400.00 80.00 80.00 30.00 6.00 2.00 ff3366cc
