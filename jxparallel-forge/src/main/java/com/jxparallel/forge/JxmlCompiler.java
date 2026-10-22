@@ -284,8 +284,10 @@ public final class JxmlCompiler {
             }
         }
         if (tabs) {
-            String titles = literal(e.titles);
-            if (!e.tabTitles().isEmpty()) { // a title that is a %{translation} or a ${binding} is read each time the screen is built
+            String titles = null;
+            if (e.tabTitles().isEmpty()) {
+                titles = literal(e.titles);
+            } else { // a title that is a %{translation} or a ${binding} is read each time the screen is built
                 List<String> each = new ArrayList<String>();
                 for (int i = 0; i < e.titles.length; i++) {
                     each.add(e.titleProps[i] == null ? quote(e.titles[i]) : value(e.titleProps[i], e.tag) + " /* "
