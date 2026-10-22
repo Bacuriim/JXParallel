@@ -4,8 +4,12 @@ package com.jxparallel.ui.native2d;
  * Drawing primitives both renderers implement, so every element is painted by one piece of code
  * ({@link JXPaint}) and Skia (64-bit) and NanoVG (32-bit) draw the same shapes. Colors are ARGB.
  * Coordinates are window pixels. Not thread safe: one painter per frame, on the display thread.
+ * It is the extension point of the renderer: a backend for another platform (Android's Canvas, say)
+ * implements it and paints a laid-out tree through {@link JXFrame#paint}. Text arrives in logical
+ * size units; layout measured it through {@code JXTextEngine}, so a backend draws with the font
+ * that engine was given (see {@code JXTextEngine.setLineMetrics}).
  */
-interface JXPainter {
+public interface JXPainter {
     void fillRect(float x, float y, float w, float h, int argb);
 
     void fillRoundRect(float x, float y, float w, float h, float radius, int argb);
