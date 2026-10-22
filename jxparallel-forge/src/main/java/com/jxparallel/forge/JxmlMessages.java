@@ -89,7 +89,7 @@ public final class JxmlMessages {
             return out;
         }
 
-        /** Whether some plural or select in the message has this name (as opposed to a plain argument only). */
+        /** Equal when the ICU text is equal. */
         @Override
         public boolean equals(Object other) {
             return other instanceof Message && ((Message) other).toIcu().equals(toIcu());
