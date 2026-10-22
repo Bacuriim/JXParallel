@@ -617,7 +617,62 @@ public final class JXForge {
         return written;
     }
 
+    /**
+     * Converts the translation files in {@code l10nDir} (ARB and/or {@code strings.xml}) into Android resources:
+     * {@code values/strings.xml} for the default locale and {@code values-pt}, {@code values-pt-rBR}... for the others,
+     * under {@code resDir}. Strings, plurals and arrays are written; what Android cannot say (select, selectordinal, offset,
+     * {@code =N}, number and date arguments, a plural in the middle of a text) is left out and reported in {@code warnings}
+     * (may be null) as {@code file:line: message}. Android has no argument names: they are numbered
+     * ({@code %1$s}), so converting back names them {@code arg1}, {@code arg2}...; ARB descriptions and
+     * {@code translatable="false"} strings are not carried. A locale folder is rewritten whole.
+     *
+     * @return the files written
+     */
+    public static List<File> l10nToAndroid(File l10nDir, File resDir, List<String> warnings) throws IOException {
+        JxmlCatalog catalog = JxmlCatalog.load(l10nDir, false);
+        List<String> notes = new ArrayList<String>(catalog.getWarnings());
+        List<File> written = new ArrayList<File>();
+        for (String tag : catalog.tags()) {
+            String folder = catalog.androidFolder(tag);
+            if (folder == null) {
+                notes.add(catalog.fileOf(tag) + ": the locale " + tag + " has no values folder name Android reads here "
+                        + "(use a language, or a language and a region such as pt_BR); it was skipped");
+                continue;
+            }
+            File dir = new File(resDir, folder);
+            if (!dir.isDirectory() && !dir.mkdirs()) {
+                throw new IOException("Cannot create " + dir);
+            }
+            File file = new File(dir, "strings.xml");
+            Files.write(file.toPath(), catalog.toAndroid(tag, notes).getBytes(StandardCharsets.UTF_8));
+            written.add(file);
+        }
+        if (warnings != null) {
+            warnings.addAll(notes);
+        }
+        return written;
+    }
+
     public static void main(String[] args) throws IOException {
+        if (args.length > 0 && "--l10n-to-android".equals(args[0])) {
+            if (args.length != 3) {
+                System.err.println("usage: JXForge --l10n-to-android <l10nDir> <resDir>");
+                System.exit(2);
+            }
+            try {
+                List<String> warnings = new ArrayList<String>();
+                for (File file : l10nToAndroid(new File(args[1]), new File(args[2]), warnings)) {
+                    System.out.println("wrote " + file);
+                }
+                for (String warning : warnings) {
+                    System.err.println("warning: " + warning);
+                }
+            } catch (JxmlException e) {
+                System.err.println(e.getMessage());
+                System.exit(1);
+            }
+            return;
+        }
         if (args.length > 0 && "--l10n-init".equals(args[0])) {
             if (args.length < 3) {
                 System.err.println("usage: JXForge --l10n-init <l10nDir> <locale>...   (the first locale is the default)");
