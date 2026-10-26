@@ -23,8 +23,8 @@ import org.lwjgl.system.MemoryUtil;
 /**
  * Native window: GLFW owns the window and the OpenGL context, on the {@link JXDisplay} thread
  * shared by every window of the process. 64-bit JVMs on Java 9+ paint with Skia (Skija); 32-bit
- * JVMs and Java 8, where Skija has no working native library, paint with NanoVG.
- * {@code -Djx.renderer=skia|nanovg} forces one.
+ * JVMs, where Skija has no native library, and Java 8 paint with NanoVG.
+ * {@code -Djx.renderer=skia|nanovg} forces one (Skia also works on Java 8 64-bit).
  *
  * <p>{@link #show()} opens the window and blocks until it closes; {@link #open()} returns at once.
  * Without an {@linkplain #setInputListener input listener} a primary click calls the hit node's
@@ -100,7 +100,8 @@ public final class JXWindow implements AutoCloseable {
         String arch = System.getProperty("os.arch", "");
         boolean is32Bit = "32".equals(dataModel)
                 || (dataModel == null && (arch.equals("x86") || arch.matches("i[3-6]86")));
-        // Skija 0.116 crashes the JVM while loading its library on Java 8 (checked on 8u202 x64).
+        // Java 8 keeps NanoVG, the measured configuration. Skija used to crash the JVM there while loading
+        // its library: the types 0.1.1 it brings are Java 9 classes; with types 0.2.0 (pom) it loads.
         boolean java8 = System.getProperty("java.specification.version", "").startsWith("1.");
         return is32Bit || java8 ? NANOVG : SKIA;
     }
