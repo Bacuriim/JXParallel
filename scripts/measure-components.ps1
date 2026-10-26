@@ -20,9 +20,10 @@ param(
 # out is logged, its row kept with the exit code, and the rest of its runs skipped; the series goes on.
 #
 # Build first (JavaFX examples on JDK 17, the rest on any JDK 8+):
-#   mvn -pl jxparallel-forge,jxparallel-examples-native -am install -DskipTests
-#   mvn -P legacy-javafx -pl jxparallel-examples -am compile        (JAVA_HOME = JDK 17)
-#   mvn -pl jxparallel-examples-native dependency:build-classpath -Dmdep.outputFile=target/classpath.txt
+#   (live-bindings research branch: nothing is installed, the classes come from the modules' target\classes)
+#   mvn -o -pl jxparallel-core,jxparallel-ui,jxparallel-forge,jxparallel-examples-native compile   (one reactor)
+#   mvn -o -P legacy-javafx -pl jxparallel-examples -am compile        (JAVA_HOME = JDK 17)
+#   mvn -o -pl jxparallel-examples-native dependency:build-classpath -Dmdep.outputFile=target/classpath.txt
 # Examples:
 #   scripts\measure-components.ps1 -Runs 1 -Passes 3 -Jvms java17-x64 -Components Button,TextField,ListView,Row -Out $env:TEMP\comp
 #   scripts\measure-components.ps1 -FxPrism sw ...    (JavaFX painted by its software pipeline, -Dprism.order=sw)

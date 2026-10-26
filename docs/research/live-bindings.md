@@ -118,8 +118,10 @@ with the current reconcile, strictly for all components, and with a fresh mount 
 
 ## 4. Tests
 
-Counts (this branch, Java 17 unless noted): core 36, ui 289 (1 skipped), forge 251 (on Java 8: 251 with 1 skipped, on Java
-21: 251), examples-native 48. The branch added 1 test class to ui (`JXLiveNodeTest`, 5 tests) and 5 to examples-native (13 tests).
+Counts (this branch, Java 17 unless noted): core 36, ui 289 (1 skipped), forge 253 (on Java 8: 253 with 1 skipped, on Java
+21: 253), examples-native 48. The branch added 1 test class to ui (`JXLiveNodeTest`, 5 tests), 1 to forge (`JxmlLiveTest`, 2
+tests: a generated view's session against a node that only mirrors the element tree, and the interpreter's no-plan case)
+and 5 to examples-native (13 tests).
 
 * **Node level** (`JXLiveNodeTest`, ui): on 600 random trees, `setProp` on every changed prop and a bottom-up `commit` give the
   nodes, sizes and boxes that reconciling the rebuilt tree gives and that a fresh mount gives; 400 more with three further
@@ -138,8 +140,10 @@ Counts (this branch, Java 17 unless noted): core 36, ui 289 (1 skipped), forge 2
   prop and back.
 * **(c) Allocation** (`LiveAllocationTest`, `ThreadMXBean`, 40 refreshes after 60 warm-up ones, bytes of `refresh()` alone):
   5000 Separators, 5000 Sliders and 5000 Labels, one value changed in every one, **0.02 B per node per refresh**; 1500
-  ScrollBars 0.07 B (about 100 B per refresh, in all). The bound asserted is 8 B. That is the boxed values that were not
-  cached; the layout the host runs afterwards is measured separately (5.1).
+  ScrollBars 0.07 B (about 100 B per refresh, in all). The bound asserted is 8 B. Where that remainder comes from is not
+  attributed (the benchmark's values are cached boxed objects and the conversions return the same instance, so it is not
+  boxing; the two `ThreadMXBean` reads and the loop are in it); the layout the host runs afterwards is not in this number
+  and is measured in 5.1 and 5.2.
 * **(d) Nothing changed**: the same, with no change: 0.02 B per node. A screen with 14 translated bindings: 0 B per refresh
   over 200 refreshes (`LiveLocaleTest`). With `JXSoftwareFrame`, a refresh that found nothing changed repaints 0 rectangles;
   after a change it repaints (`LiveAllocationTest`).
@@ -185,8 +189,8 @@ What the allocation column says:
 
 * The controls the series had behind JavaFX in allocation are now at or ahead of it: Slider 0.39x to **44x**, ScrollBar
   0.35x to **13.9x**, ProgressBar 1.14x to **119x**, Image 0.54x to **1.98x**, Separator 0.17x to **1.00x**.
-* The 5.5 KB that remain for Slider, ScrollBar and ProgressBar are `refresh()` (about 1.1 KB, section 5.2), the layout, and
-  the first calls of the pass; for Separator, Image, Label, Button and Grid the rest is the **layout the host runs after the refresh**
+* The 5.5 KB that remain for Slider, ScrollBar and ProgressBar are the layout, the controller's `setPhase`, the measurement
+  and the first calls of the pass; `refresh()` alone allocates about 100 B (4c). For Separator, Image, Label, Button and Grid the rest is the **layout the host runs after the refresh**
   (`layoutForBackend`), about 24 B per laid-out child, which is the same for the compiled path and was not touched. Separator's 122.7 KB is
   exactly that, and by coincidence JavaFX's 122.9 KB too. Closing that is a different change (layout).
 * ListView, TableView, Tree, TreeTable are the opaque parts: the same allocation as compiled, as expected. TableView
@@ -223,7 +227,9 @@ Reading it: live removes the element build, and what that costs is only part of 
 every size alone (Slider's `value`, ScrollBar, TextField) the update is 0.39x to 0.74x of compiled; where it changes a size
 (Separator's `prefWidth`, Label's text, Image's `fitWidth`, ProgressBar) the work of `outcome`, the sizes and the layout is
 the same in both paths and live is 0.82x to 0.90x. The opaque parts are 1.01x to 1.05x: the same rebuild plus the
-bookkeeping of the sites. `refresh()` itself allocates about 1.1 KB for 5000 nodes; the rest of the live column is the layout.
+bookkeeping of the sites. The live allocation column is `refresh()` (about 100 B for 5000 nodes, 4c), the layout and the two
+reads of the allocation counter: for Slider, ScrollBar, ProgressBar and TextField, whose update changes no size, it is 1.1 to
+1.2 KB; for the others it is the layout.
 
 ### 5.3 What the recording costs: build, ready, retained
 
@@ -283,6 +289,10 @@ not a measurement of the 43.
   expects it to stay as it was built (a cache, a comparison) sees it change under it. Hoisted constants and memoized
   elements are shared across screens and are never written (they have no bindings), which is the property the design relies on;
   it is checked by the structure tests but not enforced by the type system.
+* **What the JVM matrix covers**: forge ran on Java 8, 17 and 21 with `JxmlLiveTest`, which drives a generated view's
+  session (recording, checks, writes in place, the rebuilt tab pane, the fallbacks) against a node that only mirrors the
+  element tree, and compiles the generated `Live` class at `-source 8`. The renderer's nodes (`setProp`, `commit`, layout),
+  the 94 components, the samples and all the measurements ran on Java 17 only.
 * **Not exercised**: the host. `JXWindow` does not call `refresh()`; the benchmark and the tests do, on the display thread's
   behalf. The NanoVG and Skia renderers read the same nodes and were not run. Java 8 x86 (32-bit) was not measured (the tests
   for forge ran on 8). Threads: the session is single-threaded, like the tree.

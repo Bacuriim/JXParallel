@@ -1,6 +1,7 @@
 package com.jxparallel.examples.nativeui;
 
 import static org.junit.jupiter.api.Assertions.assertArrayEquals;
+import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNull;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
@@ -79,5 +80,7 @@ class LiveComponentsTest {
         }
         Files.write(Paths.get("target", "live-coverage.csv"), table, StandardCharsets.UTF_8);
         System.out.println("LIVE components where the current reconcile differs from a fresh mount: " + divergent);
+        // live equals a fresh mount for every component but the one the current reconcile itself gets wrong (see the class comment)
+        assertEquals(java.util.Collections.singletonList("Tooltip"), divergent);
     }
 }
