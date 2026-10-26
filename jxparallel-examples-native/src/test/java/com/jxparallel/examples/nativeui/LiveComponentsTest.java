@@ -72,6 +72,10 @@ class LiveComponentsTest {
                 // the element tree of the session is what is mounted: the props written in place and the rebuilt parts are in it
                 assertNull(JxmlTrees.diff(element, live.element()), name + " step " + step + ": the live element tree is the built one");
             }
+            assertEquals(0, live.fallbacks(), name + ": the global fallback is never taken");
+            if (!"Tabs".equals(name) && !"Tree".equals(name) && !"TreeTable".equals(name)) { // (the trees: next commit)
+                assertEquals(0, live.opaqueBuilds(), name + ": no part is rebuilt as a whole");
+            }
             if (!reconcileIsFresh) {
                 divergent.add(name);
             }

@@ -249,13 +249,28 @@ public final class JxmlRuntime {
 
     /** {@code first} kept within the items, and the scroll offset that puts that row at the top of the viewport. */
     private static void virtual(JXProps props, JXProps.Builder out, String heightProp) {
-        int count = ((Number) props.get("itemCount")).intValue();
-        double height = ((Number) props.get(heightProp)).doubleValue();
+        Object count = props.get("itemCount");
+        Object first = props.get("first");
+        out.set("first", virtualFirst(count, first)).set("scrollY", virtualScroll(count, first, props.get(heightProp), heightProp));
+    }
+
+    /** The {@code first} prop of a virtual list as {@code finish} derives it: kept within the items. The live plan reads it the same way. */
+    public static Integer virtualFirst(Object itemCount, Object first) {
+        int count = ((Number) itemCount).intValue();
+        return Integer.valueOf(Math.max(0, Math.min(Math.max(0, count - 1), ((Number) first).intValue())));
+    }
+
+    /** The {@code scrollY} prop of a virtual list as {@code finish} derives it: the offset that puts row {@code first} at the top. */
+    public static Double virtualScroll(Object itemCount, Object first, Object rowHeight) {
+        return virtualScroll(itemCount, first, rowHeight, "rowHeight");
+    }
+
+    private static Double virtualScroll(Object itemCount, Object first, Object rowHeight, String heightProp) {
+        double height = ((Number) rowHeight).doubleValue();
         if (!(height > 0)) {
             throw new IllegalArgumentException(heightProp + " must be greater than 0, not " + height);
         }
-        int first = Math.max(0, Math.min(Math.max(0, count - 1), ((Number) props.get("first")).intValue()));
-        out.set("first", Integer.valueOf(first)).set("scrollY", Double.valueOf(first * height));
+        return Double.valueOf(virtualFirst(itemCount, first).intValue() * height);
     }
 
     /** The key of the content of tab {@code index}; the same instance as the literal {@code "tab<index>"}. */

@@ -63,6 +63,9 @@ public final class JxmlCompiler {
     private final StringBuilder liveMembers = new StringBuilder();
     private final Map<String, String> liveGetters = new LinkedHashMap<String, String>();
     private final Map<String, String> liveGetterNames = new java.util.HashMap<String, String>();
+    /** The row templates of the virtual lists a live session keeps live (see {@link #virtualList}), and the expression that builds each. */
+    private final java.util.Set<JxmlTemplate.Element> rowRoots = java.util.Collections.newSetFromMap(new IdentityHashMap<JxmlTemplate.Element, Boolean>());
+    private final Map<JxmlTemplate.Element, Object[]> rowBuilt = new IdentityHashMap<JxmlTemplate.Element, Object[]>();
     private int nextPlan;
     /** The screen has a translated prop: its live session watches the locale. */
     private boolean liveLocale;
@@ -102,6 +105,7 @@ public final class JxmlCompiler {
             throw new JxmlException(template.source, template.root.line,
                     "bindings and handlers need controller=\"fully.qualified.Class\" on the root element");
         }
+        findRowRoots(template.root);
         String root = note(template.root, element(template.root, null, false, "            "));
         String live = livePlan();
         StringBuilder out = new StringBuilder();
@@ -376,15 +380,65 @@ public final class JxmlCompiler {
                 }
                 return false; // no group: finish hands the props back as they are
             }
-            return true;
+            return !virtualList(e);
         }
         return false;
     }
 
-    /** Remembers the expression that builds an opaque element, with the loop variables in scope, for its rebuilder. */
+    /**
+     * A {@code ListView} or {@code TableView} whose rows a live session keeps live: one {@code <For>} (not memoized) whose body
+     * is one element that is made of plain elements only (bindings and static children: no loop, condition, slot, element-valued
+     * prop, tab pane, tree, list or group button below it). The session then keeps a record of each row, and a change of the
+     * window (the first row) or of the items keeps the rows that stay, with their nodes, and builds the rows that come in.
+     */
+    private boolean virtualList(JxmlTemplate.Element e) {
+        if (!e.tag.virtual || e.tag.control || e.constant() || e.children.size() != 1) {
+            return false;
+        }
+        JxmlTemplate.Element loop = e.children.get(0);
+        if (!"For".equals(loop.tag.name) || loop.memo != null || loop.children.size() != 1 || loop.prop("items") == null) {
+            return false;
+        }
+        return plainRow(loop.children.get(0));
+    }
+
+    private boolean plainRow(JxmlTemplate.Element e) {
+        if (e.tag.control || JxmlTemplate.isSlot(e.tag) || e.tag.virtual || e.tag.tree || e.tag.finish
+                || e.tag.children == JxmlSchema.Children.TABS || !e.otherwise.isEmpty()) {
+            return false;
+        }
+        for (JxmlTemplate.Prop p : e.props) {
+            if (p.attr.type == AttrType.ELEMENT) {
+                return false;
+            }
+        }
+        for (JxmlTemplate.Element child : e.children) {
+            if (!plainRow(child)) {
+                return false;
+            }
+        }
+        return true;
+    }
+
+    private void findRowRoots(JxmlTemplate.Element e) {
+        if (virtualList(e)) {
+            rowRoots.add(e.children.get(0).children.get(0));
+        }
+        for (JxmlTemplate.Element child : e.children) {
+            findRowRoots(child);
+        }
+        for (JxmlTemplate.Element child : e.otherwise) {
+            findRowRoots(child);
+        }
+    }
+
+    /** Remembers the expression that builds an opaque element or a live row, with the loop variables in scope, for its rebuilder. */
     private String note(JxmlTemplate.Element e, String expression) {
         if (opaque(e)) {
             opaqueBuilt.put(e, new Object[] {expression, new ArrayList<Local>(scope)});
+        }
+        if (rowRoots.contains(e)) {
+            rowBuilt.put(e, new Object[] {expression, new ArrayList<Local>(scope)});
         }
         return expression;
     }
@@ -437,6 +491,17 @@ public final class JxmlCompiler {
         String limitGetter = limit == null ? "null" : getter(value(limit, n.tag), scope);
         Local local = new Local(n.var, n.var + "_" + (nextVariable++), type);
         scope.add(local);
+        if (n.children.size() == 1 && rowBuilt.containsKey(n.children.get(0))) { // the rows of a virtual list: kept by key
+            JxmlTemplate.Prop keyProp = n.prop("key");
+            Object[] built = rowBuilt.get(n.children.get(0));
+            @SuppressWarnings("unchecked")
+            List<Local> own = (List<Local>) built[1];
+            String key = keyProp == null ? "null" : getter(reference(keyProp), scope);
+            List<String> row = planList(n.children, null);
+            scope.remove(scope.size() - 1);
+            return planMethod("JxmlLive.rows(" + items + ", " + fromGetter + ", " + limitGetter + ", " + key + ", "
+                    + captures(n.children, n.var) + ", " + getter((String) built[0], own) + ", " + array(row) + ")");
+        }
         List<String> body = planList(n.children, n.prop("key"));
         scope.remove(scope.size() - 1);
         return planMethod("JxmlLive.each(" + items + ", " + fromGetter + ", " + limitGetter + ", " + (n.memo != null) + ", "
@@ -466,7 +531,11 @@ public final class JxmlCompiler {
             byName.remove("key");
         }
         List<String> binds = new ArrayList<String>();
+        boolean virtualList = virtualList(n);
         for (JxmlTemplate.Prop p : byName.values()) {
+            if (virtualList && "first".equals(p.attr.prop)) {
+                continue; // read as finish derives it, below
+            }
             if (p.kind == JxmlTemplate.Kind.TRANSLATION) {
                 binds.add(translatedBind(p, n.tag));
             } else if (p.kind == JxmlTemplate.Kind.BINDING) {
@@ -477,6 +546,13 @@ public final class JxmlCompiler {
         if (keyProp != null) {
             binds.add("JxmlLive.guard(\"key\", " + getter(reference(keyProp), scope) + ")");
         }
+        if (virtualList) { // what JxmlRuntime.finish makes of itemCount, first and the row height
+            String count = propValue(n, "itemCount");
+            String first = propValue(n, "first");
+            String height = propValue(n, "ListView".equals(n.tag.name) ? "cellHeight" : "rowHeight");
+            binds.add("JxmlLive.bind(\"first\", " + getter("JxmlRuntime.virtualFirst(" + count + ", " + first + ")", scope) + ")");
+            binds.add("JxmlLive.bind(\"scrollY\", " + getter("JxmlRuntime.virtualScroll(" + count + ", " + first + ", " + height + ")", scope) + ")");
+        }
         List<String> below = planList(n.children, null);
         boolean dynamic = false;
         for (String plan : below) {
@@ -486,6 +562,16 @@ public final class JxmlCompiler {
             return "JxmlLive.skip()";
         }
         return planMethod("JxmlLive.elem(new JxmlLive.Bind[] {" + String.join(", ", binds) + "}, " + (dynamic ? array(below) : "null") + ")");
+    }
+
+    /** The expression of the prop {@code name} of {@code e} as the build writes it: its attribute, or the tag's default. */
+    private String propValue(JxmlTemplate.Element e, String name) {
+        for (JxmlTemplate.Prop p : e.props) {
+            if (name.equals(p.attr.prop)) {
+                return value(p, e.tag);
+            }
+        }
+        return literal(e.defaults.get(name));
     }
 
     /**

@@ -197,6 +197,37 @@ public final class JxmlLive<C> implements JXLiveSession {
         return new Opaque(build, key);
     }
 
+    static final class Rows extends Plan {
+        final Getter<Object> items;
+        final Getter<Object> from;
+        final Getter<Object> limit;
+        final Getter<Object> key;
+        final boolean capturing;
+        final Getter<Object> build;
+        final Plan[] row;
+
+        Rows(Getter<?> items, Getter<?> from, Getter<?> limit, Getter<?> key, boolean capturing, Getter<?> build, Plan[] row) {
+            this.items = cast(items);
+            this.from = cast(from);
+            this.limit = cast(limit);
+            this.key = key == null ? null : cast(key);
+            this.capturing = capturing;
+            this.build = cast(build);
+            this.row = row;
+        }
+    }
+
+    /**
+     * The rows of a {@code ListView} or {@code TableView}: a window of {@code items} ({@code from}, {@code limit}), one row
+     * element for each, built by {@code build} from the loop scope, with {@code row} as the plan of one row. A refresh keeps the
+     * rows whose {@code key} (by identity, as a keyed reconcile compares them; null: the position) is still in the window,
+     * with their nodes, and builds the others; a change of the number of items or of {@code limit} is another shape.
+     */
+    public static Plan rows(Getter<?> items, Getter<?> from, Getter<?> limit, Getter<?> key, boolean capturing,
+                            Getter<?> build, Plan[] row) {
+        return new Rows(items, from, limit, key, capturing, build, row);
+    }
+
     @SuppressWarnings("unchecked")
     private static Getter<Object> cast(Getter<?> getter) {
         return (Getter<Object>) getter;
@@ -246,6 +277,140 @@ public final class JxmlLive<C> implements JXLiveSession {
             super(element, parent, order, index);
             this.build = build;
             this.scope = scope;
+        }
+    }
+
+    /** A list or table whose rows are kept by key: the element is recorded as any other, its rows by the group. */
+    private static final class ListSite extends Site {
+        RowGroup group;
+
+        ListSite(JXElement element, Site parent, int order, int index) {
+            super(element, parent, order, index);
+        }
+    }
+
+    /** One row of a virtual list: its scope, key, element and node, and its own small recording (sites parents first). */
+    private static final class Row {
+        final Scope scope;
+        final Object key;
+        final JXElement element;
+        JXLiveNode node;
+        Site[] sites = new Site[0];
+        Binding[] bindings = new Binding[0];
+        /** Built in this refresh, with the current values: its bindings are not read again until the next one. */
+        boolean fresh;
+
+        Row(Scope scope, Object key, JXElement element) {
+            this.scope = scope;
+            this.key = key;
+            this.element = element;
+        }
+    }
+
+    /** The window of rows of one virtual list, and what the refresh in progress found out about it. */
+    private static final class RowGroup {
+        final JxmlLive<?> live;
+        final Rows plan;
+        final Scope outer;
+        final ListSite list;
+        /** Scope that reads the key of an item without making a scope for it. */
+        final Scope probe;
+        Row[] rows = new Row[0];
+        /** The rows of the window after this refresh when they are not the same ones in the same places; else null. */
+        Row[] next;
+        Object[] buffer = new Object[32];
+        final int size;
+        final Integer limit;
+
+        RowGroup(JxmlLive<?> live, Rows plan, Scope outer, ListSite list, int size, Integer limit) {
+            this.live = live;
+            this.plan = plan;
+            this.outer = outer;
+            this.list = list;
+            this.probe = new Scope(outer, null);
+            this.size = size;
+            this.limit = limit;
+        }
+
+        private Object keyOf(Object item) {
+            if (plan.key == null) {
+                return null;
+            }
+            probe.item = item;
+            return plan.key.get(live.controller, probe);
+        }
+
+        /** Reads the window now; decides which rows stay (their scopes get the new items) and makes the rows that come in. */
+        void prepare() {
+            Object c = live.controller;
+            Integer f = plan.from == null ? null : (Integer) plan.from.get(c, outer);
+            Iterable<Object> items = JxmlRuntime.items(plan.items.get(c, outer), f, limit);
+            int n = 0;
+            if (items instanceof RandomAccess) {
+                List<Object> list = (List<Object>) items;
+                n = list.size();
+                if (n > buffer.length) {
+                    buffer = new Object[Math.max(n, buffer.length * 2)];
+                }
+                for (int i = 0; i < n; i++) {
+                    buffer[i] = list.get(i);
+                }
+            } else {
+                for (Object item : items) {
+                    if (n == buffer.length) {
+                        buffer = java.util.Arrays.copyOf(buffer, n * 2);
+                    }
+                    buffer[n++] = item;
+                }
+            }
+            Row[] old = rows;
+            boolean same = n == old.length;
+            for (int i = 0; same && i < n; i++) {
+                Row r = old[i];
+                same = (plan.key == null || keyOf(buffer[i]) == r.key) && (!plan.capturing || r.scope.item == buffer[i]);
+            }
+            if (same) {
+                for (int i = 0; i < n; i++) {
+                    old[i].scope.item = buffer[i];
+                    buffer[i] = null;
+                }
+                next = null;
+                return;
+            }
+            Row[] made = new Row[n];
+            boolean[] used = new boolean[old.length];
+            for (int i = 0; i < n; i++) {
+                Object item = buffer[i];
+                buffer[i] = null;
+                Object key = keyOf(item);
+                Row match = null;
+                if (plan.key == null) {
+                    if (i < old.length) {
+                        match = old[i];
+                        used[i] = true;
+                    }
+                } else {
+                    for (int j = 0; j < old.length; j++) {
+                        if (!used[j] && old[j].key == key) {
+                            match = old[j];
+                            used[j] = true;
+                            break;
+                        }
+                    }
+                }
+                if (match != null && plan.capturing && match.scope.item != item) {
+                    match = null; // the handlers of that row hold the previous item
+                }
+                if (match != null) {
+                    match.scope.item = item;
+                    made[i] = match;
+                } else {
+                    Scope inner = new Scope(outer, item);
+                    made[i] = live.recordRow(plan, (JXElement) plan.build.get(c, inner), inner, key);
+                    made[i].fresh = true;
+                }
+            }
+            next = made;
         }
     }
 
@@ -389,6 +554,28 @@ public final class JxmlLive<C> implements JXLiveSession {
         }
     }
 
+    /** The rows of a virtual list: the number of items and the number of rows asked for decide the shape; the window (the first row) does not. */
+    private static final class RowsCheck extends Check {
+        final Rows plan;
+        final Scope scope;
+        final int size;
+        final Integer limit;
+
+        RowsCheck(Rows plan, Scope scope, int size, Integer limit) {
+            this.plan = plan;
+            this.scope = scope;
+            this.size = size;
+            this.limit = limit;
+        }
+
+        @Override
+        boolean ok(JxmlLive<?> live) {
+            Object c = live.controller;
+            Integer l = plan.limit == null ? null : (Integer) plan.limit.get(c, scope);
+            return size >= 0 && Objects.equals(l, limit) && sizeOf(plan.items.get(c, scope)) == size;
+        }
+    }
+
     static int sizeOf(Object items) {
         if (items == null) {
             return 0;
@@ -429,6 +616,8 @@ public final class JxmlLive<C> implements JXLiveSession {
     private Check[] checks = new Check[0];
     private Binding[] bindings = new Binding[0];
     private OpaqueSite[] opaques = new OpaqueSite[0];
+    private final ArrayList<RowGroup> groupList = new ArrayList<RowGroup>();
+    private RowGroup[] groups = new RowGroup[0];
     private Site[] heap = new Site[16];
     private int heapSize;
 
@@ -436,6 +625,7 @@ public final class JxmlLive<C> implements JXLiveSession {
     private int fallbacks;
     private int changed;
     private int opaqueBuilds;
+    private int rowsMade;
     private String desync;
 
     private JxmlLive(JxmlView<C> view, Plan plan, C controller) {
@@ -505,9 +695,19 @@ public final class JxmlLive<C> implements JXLiveSession {
         return opaqueBuilds;
     }
 
+    /** The rows built for virtual lists after the recording (rows that came into a window), over all refreshes. */
+    public int rowsMade() {
+        return rowsMade;
+    }
+
     /** Recorded elements, bindings, checks and opaque parts: what the recording holds. */
     public String describe() {
-        return sites.length + " sites, " + bindings.length + " bindings, " + checks.length + " checks, " + opaques.length + " opaque";
+        int rows = 0;
+        for (RowGroup g : groups) {
+            rows += g.rows.length;
+        }
+        return sites.length + " sites, " + bindings.length + " bindings, " + checks.length + " checks, " + opaques.length + " opaque, "
+                + groups.length + " lists of " + rows + " rows";
     }
 
     private void record() {
@@ -515,12 +715,14 @@ public final class JxmlLive<C> implements JXLiveSession {
         checkList.clear();
         bindingList.clear();
         opaqueList.clear();
+        groupList.clear();
         recorded = false;
         attached = false;
         sites = new Site[0];
         checks = new Check[0];
         bindings = new Binding[0];
         opaques = new OpaqueSite[0];
+        groups = new RowGroup[0];
         lastLocale = locale == null ? null : locale.get();
         dirtyCount = 0;
         highest = 0;
@@ -543,6 +745,7 @@ public final class JxmlLive<C> implements JXLiveSession {
             checks = checkList.toArray(new Check[0]);
             bindings = bindingList.toArray(new Binding[0]);
             opaques = opaqueList.toArray(new OpaqueSite[0]);
+            groups = groupList.toArray(new RowGroup[0]);
             recorded = true;
         } catch (Desync | ClassCastException | IndexOutOfBoundsException e) {
             desync = e.toString();
@@ -550,11 +753,36 @@ public final class JxmlLive<C> implements JXLiveSession {
             checks = new Check[0];
             bindings = new Binding[0];
             opaques = new OpaqueSite[0];
+            groups = new RowGroup[0];
         }
         siteList.clear();
         checkList.clear();
         bindingList.clear();
         opaqueList.clear();
+        groupList.clear();
+    }
+
+    /**
+     * Records one row of a virtual list: the plan of the row against its element, into lists of its own (the sites a row has
+     * are numbered from 0 within it, parents first, and the row's root has no parent site).
+     */
+    private Row recordRow(Rows plan, JXElement element, Scope scope, Object key) {
+        int s0 = siteList.size();
+        int b0 = bindingList.size();
+        int c0 = checkList.size();
+        int o0 = opaqueList.size();
+        Row row = new Row(scope, key, element);
+        int used = walk(plan.row, java.util.Collections.singletonList(element), 0, null, scope, false);
+        if (used != 1 || checkList.size() != c0 || opaqueList.size() != o0) {
+            throw new Desync("the plan of a row used " + used + " elements, or made checks");
+        }
+        java.util.List<Site> own = siteList.subList(s0, siteList.size());
+        java.util.List<Binding> bound = bindingList.subList(b0, bindingList.size());
+        row.sites = own.toArray(new Site[0]);
+        row.bindings = bound.toArray(new Binding[0]);
+        own.clear();
+        bound.clear();
+        return row;
     }
 
     /**
@@ -575,7 +803,8 @@ public final class JxmlLive<C> implements JXLiveSession {
                     }
                     continue;
                 }
-                Site site = new Site(element, parent, siteList.size(), at - 1);
+                boolean list = e.children != null && e.children.length == 1 && e.children[0] instanceof Rows;
+                Site site = list ? new ListSite(element, parent, siteList.size(), at - 1) : new Site(element, parent, siteList.size(), at - 1);
                 siteList.add(site);
                 for (Bind b : e.binds) {
                     Object last = element.getProps().get(b.name);
@@ -616,6 +845,26 @@ public final class JxmlLive<C> implements JXLiveSession {
                     checkList.set(slot, new EachCheck(each, scope, source, from, limit, sizeOf(source),
                             each.memo ? null : scopes.toArray(new Scope[0])));
                 }
+            } else if (p instanceof Rows) {
+                Rows rows = (Rows) p;
+                if (frozen || !(parent instanceof ListSite) || ((ListSite) parent).group != null) {
+                    throw new Desync("rows outside a list");
+                }
+                ListSite list = (ListSite) parent;
+                Object source = rows.items.get(controller, scope);
+                Integer from = rows.from == null ? null : (Integer) rows.from.get(controller, scope);
+                Integer limit = rows.limit == null ? null : (Integer) rows.limit.get(controller, scope);
+                checkList.add(new RowsCheck(rows, scope, sizeOf(source), limit));
+                RowGroup group = new RowGroup(this, rows, scope, list, sizeOf(source), limit);
+                ArrayList<Row> made = new ArrayList<Row>();
+                for (Object item : JxmlRuntime.<Object>items(source, from, limit)) {
+                    Scope inner = new Scope(scope, item);
+                    JXElement rowElement = elements.get(at++);
+                    made.add(recordRow(rows, rowElement, inner, rows.key == null ? null : rows.key.get(controller, inner)));
+                }
+                group.rows = made.toArray(new Row[0]);
+                list.group = group;
+                groupList.add(group);
             } else if (p instanceof When) {
                 When when = (When) p;
                 boolean test = ((Boolean) when.test.get(controller, scope)).booleanValue();
@@ -679,6 +928,7 @@ public final class JxmlLive<C> implements JXLiveSession {
             return false;
         }
         next = 0;
+        pairing = sites;
         for (Site s : sites) {
             s.node = null;
             s.bits &= ~FLAGS;
@@ -692,15 +942,53 @@ public final class JxmlLive<C> implements JXLiveSession {
         return true;
     }
 
+    /** The sites {@link #pair} is pairing, and the next one to pair: those of the session, or of one row. */
+    private Site[] pairing = new Site[0];
+
+    /** Pairs the recording of one row with its node (the row's element is the node's source). */
+    private boolean pairRow(Row row) {
+        Site[] saved = pairing;
+        int savedNext = next;
+        pairing = row.sites;
+        next = 0;
+        boolean ok = row.sites.length == 0 || (row.node.getSource() == row.element && pair(row.node, row.element) && next == row.sites.length);
+        pairing = saved;
+        next = savedNext;
+        return ok;
+    }
+
+    private boolean pairRows(ListSite list, JXLiveNode node, JXElement el) {
+        RowGroup g = list.group;
+        List<? extends JXLiveNode> nodes = node.getLiveChildren();
+        List<JXElement> elements = el.getChildren();
+        if (g == null || nodes.size() != g.rows.length || elements.size() != g.rows.length) {
+            return false;
+        }
+        for (int i = 0; i < g.rows.length; i++) {
+            Row row = g.rows[i];
+            if (row.element != elements.get(i)) {
+                return false;
+            }
+            row.node = nodes.get(i);
+            if (!pairRow(row)) {
+                return false;
+            }
+        }
+        return true;
+    }
+
     private boolean pair(JXLiveNode node, JXElement el) {
-        if (next < sites.length && sites[next].element == el) {
-            Site site = sites[next++];
+        if (next < pairing.length && pairing[next].element == el) {
+            Site site = pairing[next++];
             if (node.getSource() != el) {
                 return false;
             }
             site.node = node;
             if (site instanceof OpaqueSite) {
                 return true; // rebuilt as a whole: nothing below is recorded
+            }
+            if (site instanceof ListSite) {
+                return pairRows((ListSite) site, node, el); // its rows have recordings of their own
             }
         }
         List<? extends JXLiveNode> nodes = node.getLiveChildren();
@@ -740,41 +1028,22 @@ public final class JxmlLive<C> implements JXLiveSession {
         boolean again = false;
         C c = controller;
         java.util.Locale now = locale == null ? null : locale.get();
-        boolean localeChanged = !Objects.equals(now, lastLocale);
+        localeChanged = !Objects.equals(now, lastLocale);
         lastLocale = now;
         try {
+            for (RowGroup g : groups) { // which rows stay in each window, and the rows that come in
+                g.prepare();
+            }
             for (Binding b : bindings) {
-                Bind bind = b.bind;
-                if (bind.translated && bind.deps != null) { // a message is made again only for another locale or other arguments
-                    boolean same = !localeChanged;
-                    Getter<Object>[] deps = bind.deps;
-                    for (int i = 0; i < deps.length; i++) {
-                        Object arg = deps[i].get(c, b.scope);
-                        if (!Objects.equals(arg, b.argsLast[i])) {
-                            b.argsLast[i] = arg;
-                            same = false;
-                        }
-                    }
-                    if (same) {
-                        continue;
-                    }
-                }
-                Object value = bind.getter.get(c, b.scope);
-                Object last = b.last;
-                if (value == last || same(value, last)) {
-                    continue;
-                }
-                int r = b.site.node.setProp(bind.name, value);
+                int r = rewrite(b);
                 if (r < 0) {
                     again = true; // a prop that appears or goes away is another set of keys: only a reconcile does that
-                    continue;
+                } else if (r > 0) {
+                    markDirty(b.site);
                 }
-                b.last = value;
-                changed++;
-                Site site = b.site;
-                site.bits |= ((r & JXLiveNode.SET_RELAYOUT) != 0 ? JXLiveNode.RELAYOUT : 0)
-                        | ((r & JXLiveNode.SET_PLACEMENT) != 0 ? JXLiveNode.PLACEMENT : 0);
-                markDirty(site);
+            }
+            for (RowGroup g : groups) {
+                again |= apply(g);
             }
             for (OpaqueSite o : opaques) {
                 JXElement built = (JXElement) o.build.get(c, o.scope);
@@ -795,13 +1064,145 @@ public final class JxmlLive<C> implements JXLiveSession {
                     }
                 }
             }
-            if (opaques.length > 0) {
+            if (heapSize > 0) { // something took the place of a child of a recorded element
                 replaceAncestors();
             }
         } finally {
             settle();
         }
         return again ? fallback() : true;
+    }
+
+    private boolean localeChanged;
+
+    /**
+     * Reads one binding again and writes it into its node when it changed: 0 when it did not, 1 when written (the site
+     * has the bits {@code commit} needs, the caller marks it to settle), -1 when the prop cannot be written in place.
+     */
+    private int rewrite(Binding b) {
+        Bind bind = b.bind;
+        C c = controller;
+        if (bind.translated && bind.deps != null) { // a message is made again only for another locale or other arguments
+            boolean same = !localeChanged;
+            Getter<Object>[] deps = bind.deps;
+            for (int i = 0; i < deps.length; i++) {
+                Object arg = deps[i].get(c, b.scope);
+                if (!Objects.equals(arg, b.argsLast[i])) {
+                    b.argsLast[i] = arg;
+                    same = false;
+                }
+            }
+            if (same) {
+                return 0;
+            }
+        }
+        Object value = bind.getter.get(c, b.scope);
+        Object last = b.last;
+        if (value == last || same(value, last)) {
+            return 0;
+        }
+        int r = b.site.node.setProp(bind.name, value);
+        if (r < 0) {
+            return -1;
+        }
+        b.last = value;
+        changed++;
+        b.site.bits |= ((r & JXLiveNode.SET_RELAYOUT) != 0 ? JXLiveNode.RELAYOUT : 0)
+                | ((r & JXLiveNode.SET_PLACEMENT) != 0 ? JXLiveNode.PLACEMENT : 0);
+        return 1;
+    }
+
+    /**
+     * The rows of one virtual list after {@link RowGroup#prepare}: the bindings of the rows that stay are read again and settled
+     * (a row's own sites, deepest first; what comes back goes to the list), and when the rows are not the same ones in the same
+     * places the list node is reconciled against a list element whose children are the rows that stay (the very elements, so a
+     * keyed reconcile finds them unchanged and moves them) and the rows that come in. True when it cannot be done in place.
+     */
+    private boolean apply(RowGroup g) {
+        boolean again = false;
+        Row[] now = g.next != null ? g.next : g.rows;
+        int pending = JXLiveNode.UNCHANGED;
+        for (Row row : now) {
+            if (row.fresh) {
+                continue;
+            }
+            boolean dirty = false;
+            for (Binding b : row.bindings) {
+                int r = rewrite(b);
+                if (r < 0) {
+                    again = true;
+                } else if (r > 0) {
+                    b.site.bits |= DIRTY;
+                    dirty = true;
+                }
+            }
+            if (dirty) {
+                for (int i = row.sites.length - 1; i >= 0; i--) {
+                    Site site = row.sites[i];
+                    if ((site.bits & DIRTY) == 0) {
+                        continue;
+                    }
+                    int r = site.node.commit(site.bits & FLAGS & ~DIRTY);
+                    site.bits &= ~FLAGS;
+                    if (r != JXLiveNode.UNCHANGED) {
+                        if (site.parent != null) {
+                            site.parent.bits |= (r == JXLiveNode.RESIZED ? JXLiveNode.RELAYOUT : JXLiveNode.CHILD_SUBTREE) | DIRTY;
+                        } else {
+                            pending = Math.max(pending, r);
+                        }
+                    }
+                }
+            }
+        }
+        ListSite list = g.list;
+        if (pending != JXLiveNode.UNCHANGED) {
+            list.bits |= pending == JXLiveNode.RESIZED ? JXLiveNode.RELAYOUT : JXLiveNode.CHILD_SUBTREE;
+            markDirty(list);
+        }
+        Row[] next = g.next;
+        if (next == null) {
+            return again;
+        }
+        g.next = null;
+        JXElement[] kids = new JXElement[next.length];
+        for (int i = 0; i < kids.length; i++) {
+            kids[i] = next[i].element;
+        }
+        JXElement shown = JXElement.of(list.element.getType(), list.element.getProps(), kids);
+        int r = list.node.reconcileLive(shown);
+        if (r < 0) {
+            return true;
+        }
+        g.rows = next;
+        list.element = shown;
+        List<? extends JXLiveNode> nodes = list.node.getLiveChildren();
+        if (nodes.size() != next.length) {
+            return true;
+        }
+        for (int i = 0; i < next.length; i++) {
+            Row row = next[i];
+            JXLiveNode node = nodes.get(i);
+            if (row.node != node) { // a row that came in, or one a positional reconcile gave another node
+                row.node = node;
+                if (!pairRow(row)) {
+                    return true;
+                }
+            }
+            if (row.fresh) {
+                row.fresh = false;
+                rowsMade++;
+            }
+        }
+        if (list.parent == null) {
+            element = shown;
+        } else {
+            stage(list.parent, list.index(), shown);
+            if (r != JXLiveNode.UNCHANGED) {
+                list.parent.bits |= r == JXLiveNode.RESIZED ? JXLiveNode.RELAYOUT : JXLiveNode.CHILD_SUBTREE;
+                markDirty(list.parent);
+            }
+        }
+        return again;
     }
 
     /** The children each recorded element has now, where a rebuilt part took the place of one (by site, null where none did). */
