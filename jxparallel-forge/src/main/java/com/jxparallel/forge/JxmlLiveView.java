@@ -16,6 +16,7 @@ import java.util.Collections;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.LinkedHashSet;
+import java.util.Locale;
 import java.util.Map;
 import java.util.Set;
 import java.util.concurrent.CopyOnWriteArrayList;
@@ -56,8 +57,14 @@ public final class JxmlLiveView implements JxmlView<Object>, AutoCloseable {
     public static final long DEBOUNCE_MILLIS = 80;
 
     private final File file;
+    private final File l10nDir;
     private final String name;
     private final long debounceMillis;
+    /** The translations the last good read used, or null when the screen has none; the locale is kept across reloads. */
+    private volatile JxmlCatalog catalog;
+    private volatile Locale locale;
+    /** The l10n folders (the directory and the ones inside it): any change in them reads the screen again. */
+    private volatile Set<Path> l10nFolders = Collections.emptySet();
     private final CopyOnWriteArrayList<Runnable> reloadListeners = new CopyOnWriteArrayList<Runnable>();
     private final CopyOnWriteArrayList<Consumer<JxmlException>> errorListeners = new CopyOnWriteArrayList<Consumer<JxmlException>>();
     private final Object lock = new Object();
@@ -71,8 +78,9 @@ public final class JxmlLiveView implements JxmlView<Object>, AutoCloseable {
     private Thread thread;
     private final Map<WatchKey, Path> directories = new HashMap<WatchKey, Path>();
 
-    private JxmlLiveView(File file, long debounceMillis) {
+    private JxmlLiveView(File file, File l10nDir, long debounceMillis) {
         this.file = file;
+        this.l10nDir = l10nDir;
         this.name = file.getPath().replace('\\', '/');
         this.debounceMillis = Math.max(0, debounceMillis);
     }
@@ -83,12 +91,80 @@ public final class JxmlLiveView implements JxmlView<Object>, AutoCloseable {
     }
 
     public static JxmlLiveView open(File file, long debounceMillis) {
-        JxmlLiveView view = new JxmlLiveView(file, debounceMillis);
+        return open(file, null, debounceMillis);
+    }
+
+    /**
+     * As {@link #open(File)}, for a screen with translations ({@code %{key}}): the files of {@code l10nDir} (see
+     * {@link JxmlCatalog}) are read with it and watched with it, so a saved edit of a text, a new locale file or a new key
+     * shows on the next build. The locale chosen with {@link #setLocale} stays across the reads. An l10n file with a
+     * mistake, or a screen that uses a key the files no longer have, keeps the last good screen like any other mistake.
+     */
+    public static JxmlLiveView open(File file, File l10nDir) {
+        return open(file, l10nDir, DEBOUNCE_MILLIS);
+    }
+
+    public static JxmlLiveView open(File file, File l10nDir, long debounceMillis) {
+        JxmlLiveView view = new JxmlLiveView(file, l10nDir, debounceMillis);
         JxmlException error = view.read();
         if (error != null) {
             throw error;
         }
         return view;
+    }
+
+    /** The translations of the last good read (the catalog the screen was built with), or null without an l10n directory. */
+    public JxmlCatalog catalog() {
+        return catalog;
+    }
+
+    /** The locale the texts are in: the best match for the system's until {@link #setLocale} chooses one. */
+    public Locale locale() {
+        return locale;
+    }
+
+    /**
+     * Shows the texts in another locale, now and after every later read, and calls the reload listeners so the application
+     * builds the screen again. Does nothing without an l10n directory.
+     */
+    public void setLocale(Locale wanted) {
+        if (wanted == null) {
+            throw new NullPointerException("locale");
+        }
+        synchronized (lock) {
+            if (catalog == null) {
+                return;
+            }
+            locale = wanted;
+            catalog.messages().setLocale(wanted);
+        }
+        fireReload();
+    }
+
+    private void fireReload() {
+        for (Runnable listener : reloadListeners) {
+            try {
+                listener.run();
+            } catch (RuntimeException ignored) {
+                // a listener's mistake must not stop the watching
+            }
+        }
+    }
+
+    /** Every folder under {@code dir}, itself included, as absolute paths; and the files in them added to {@code files}. */
+    private static void walk(File dir, Set<Path> folders, Set<Path> files) {
+        folders.add(dir.toPath().toAbsolutePath().normalize());
+        File[] entries = dir.listFiles();
+        if (entries == null) {
+            return;
+        }
+        for (File entry : entries) {
+            if (entry.isDirectory()) {
+                walk(entry, folders, files);
+            } else {
+                files.add(entry.toPath().toAbsolutePath().normalize());
+            }
+        }
     }
 
     /** The screen as the last good file builds it, with the bindings and handlers of {@code controller}. */
@@ -193,7 +269,23 @@ public final class JxmlLiveView implements JxmlView<Object>, AutoCloseable {
         final Set<String> opened = new LinkedHashSet<String>();
         JxmlException error = null;
         JxmlTemplate template = null;
+        JxmlCatalog loaded = null;
+        Set<Path> folders = new LinkedHashSet<Path>();
+        Set<Path> l10nFiles = new LinkedHashSet<Path>();
+        if (l10nDir != null) {
+            walk(l10nDir, folders, l10nFiles); // also when the read fails: fixing a file is how the mistake goes away
+        }
         try {
+            if (l10nDir != null) {
+                if (!l10nDir.isDirectory()) {
+                    throw new JxmlException(l10nDir.getPath().replace('\\', '/'), 0, "the l10n directory does not exist");
+                }
+                loaded = JxmlCatalog.load(l10nDir);
+                Locale chosen = locale;
+                if (chosen != null) {
+                    loaded.messages().setLocale(chosen);
+                }
+            }
             byte[] bytes = Files.readAllBytes(file.toPath());
             JxmlLoader recorder = new JxmlLoader() {
                 @Override
@@ -204,7 +296,7 @@ public final class JxmlLiveView implements JxmlView<Object>, AutoCloseable {
                     return JxmlLoader.files().open(part);
                 }
             };
-            template = JxmlTemplate.read(new ByteArrayInputStream(bytes), name, recorder);
+            template = JxmlTemplate.read(new ByteArrayInputStream(bytes), name, recorder, loaded);
         } catch (JxmlException e) {
             error = e;
         } catch (IOException e) {
@@ -219,13 +311,19 @@ public final class JxmlLiveView implements JxmlView<Object>, AutoCloseable {
                 read.add(absolute(part));
             }
         }
+        read.addAll(l10nFiles);
         if (error != null) {
             read.addAll(files); // keep watching what the last good screen used: fixing it is the way out
         }
         synchronized (lock) {
             files = Collections.unmodifiableSet(read);
+            l10nFolders = Collections.unmodifiableSet(folders);
             if (error == null) {
                 current = template;
+                catalog = loaded;
+                if (loaded != null) {
+                    locale = loaded.messages().locale(); // the first read picks the system's; later reads keep the chosen one
+                }
                 lastError = null;
                 version++;
             } else {
@@ -236,13 +334,7 @@ public final class JxmlLiveView implements JxmlView<Object>, AutoCloseable {
             }
         }
         if (error == null) {
-            for (Runnable listener : reloadListeners) {
-                try {
-                    listener.run();
-                } catch (RuntimeException ignored) {
-                    // a listener's mistake must not stop the watching
-                }
-            }
+            fireReload();
         } else {
             for (Consumer<JxmlException> listener : errorListeners) {
                 try {
@@ -263,8 +355,12 @@ public final class JxmlLiveView implements JxmlView<Object>, AutoCloseable {
 
     /** Watches the folder of every file; the lock is held. */
     private void register(Set<Path> paths) {
+        Set<Path> folders = new LinkedHashSet<Path>();
         for (Path path : paths) {
-            Path directory = path.getParent();
+            folders.add(path.getParent());
+        }
+        folders.addAll(l10nFolders); // a WatchService is not recursive: every folder of the l10n directory is registered
+        for (Path directory : folders) {
             if (directory == null || directories.containsValue(directory)) {
                 continue;
             }
@@ -313,6 +409,8 @@ public final class JxmlLiveView implements JxmlView<Object>, AutoCloseable {
         for (WatchEvent<?> event : key.pollEvents()) {
             if (event.kind() == StandardWatchEventKinds.OVERFLOW || directory == null) {
                 touched = true;
+            } else if (l10nFolders.contains(directory)) {
+                touched = true; // any change in the translations: a new locale file or folder, a key, a text
             } else if (event.context() instanceof Path) {
                 touched |= watched.contains(directory.resolve((Path) event.context()).toAbsolutePath().normalize());
             }

@@ -375,29 +375,30 @@ def main():
     ap.add_argument("--out", default="docs/assets/charts")
     ap.add_argument("--after", action="store_true",
                     help="the series measured after the optimizations: other notes, files named -after, no 20-screens chart")
+    ap.add_argument("--suffix", default="-after", help="with --after: the suffix of the file names")
     a = ap.parse_args()
     os.makedirs(a.out, exist_ok=True)
     data = Series(a.dir)
     if a.after:
         charts = {
-            "headline-java17-after": headline(data),
-            "by-jvm-after": by_jvm(data),
-            "update-by-component-after": diverging(
+            "headline-java17" + a.suffix: headline(data),
+            "by-jvm" + a.suffix: by_jvm(data),
+            "update-by-component" + a.suffix: diverging(
                 data, "update_warm_ns", "Changing one prop of every instance, per component",
                 "JavaFX divided by compiled JXML on Java 17 x64 (log scale; blue = JXML faster, red = slower)", "update", 0.2, 50,
                 ["JXML builds a new element and reconciles it; JavaFX sets the property. Only the losses and the three best are labeled.",
                  "Tree and TreeTable keep their 10,000 items with <For memo>."]),
-            "paint-by-component-after": diverging(
+            "paint-by-component" + a.suffix: diverging(
                 data, "paint_warm_ns", "Painting, per component (indicative)",
                 "JavaFX divided by JXML on Java 17 x64 (log scale; blue = JXML faster, red = slower)", "paint", 0.3, 20,
                 ["JXML paints with its software painter, JavaFX with Prism: different pipelines. Only the losses and the three best are labeled.",
                  "Nodes outside the window are skipped; each frame is the last of 8 passes of a fresh JVM, so the loops are not fully compiled."]),
-            "alloc-update-by-component-after": diverging(
+            "alloc-update-by-component" + a.suffix: diverging(
                 data, "update_warm_alloc_bytes", "Memory allocated by the update, per component",
                 "JavaFX divided by compiled JXML on Java 17 x64 (log scale; blue = JXML allocates less, red = more)", "alloc update", 0.005, 100,
                 ["Rebuilding an immutable element allocates more than setting a property when the change is tiny.",
                  "Only the losses and the three best are labeled."]),
-            "retained-per-instance-after": retained(data),
+            "retained-per-instance" + a.suffix: retained(data),
         }
         for name, svg in charts.items():
             path = os.path.join(a.out, name + ".svg")

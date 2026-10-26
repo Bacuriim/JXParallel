@@ -117,6 +117,8 @@ public final class JxmlTemplate implements JxmlView<Object> {
         final List<Element> children;
         /** Tabs only: titles and close flags of the tabs, in order; children are the contents. */
         final String[] titles;
+        /** Tabs only: for a tab whose title is a translation or a binding, that prop (its entry in titles is null); else null. */
+        final Prop[] titleProps;
         final boolean[] closable;
         /** The tag's default props that no attribute of this element sets. */
         final Map<String, Object> defaults;
@@ -129,13 +131,14 @@ public final class JxmlTemplate implements JxmlView<Object> {
         final JxmlMemo memo;
 
         Element(JxmlSchema.Tag tag, String source, int line, List<Prop> props, List<Element> children, String[] titles,
-                boolean[] closable, String var, String type, List<Element> otherwise) {
+                Prop[] titleProps, boolean[] closable, String var, String type, List<Element> otherwise) {
             this.tag = tag;
             this.source = source;
             this.line = line;
             this.props = props;
             this.children = children;
             this.titles = titles;
+            this.titleProps = titleProps;
             this.closable = closable;
             this.var = var;
             this.type = type;
@@ -150,7 +153,21 @@ public final class JxmlTemplate implements JxmlView<Object> {
         }
 
         Element withOtherwise(List<Element> elements) {
-            return new Element(tag, source, line, props, children, titles, closable, var, type, Collections.unmodifiableList(elements));        }
+            return new Element(tag, source, line, props, children, titles, titleProps, closable, var, type, Collections.unmodifiableList(elements));
+        }
+
+        /** The props that are not on the element itself: a tab's title, which {@code Tabs} keeps in its list of titles. */
+        List<Prop> tabTitles() {
+            List<Prop> out = new ArrayList<Prop>();
+            if (titleProps != null) {
+                for (Prop p : titleProps) {
+                    if (p != null) {
+                        out.add(p);
+                    }
+                }
+            }
+            return out;
+        }
 
         /** The prop set by the attribute of this name, or null. */
         Prop prop(String name) {
@@ -167,7 +184,9 @@ public final class JxmlTemplate implements JxmlView<Object> {
             if (tag.control) {
                 return true;
             }
-            for (Prop p : props) {
+            List<Prop> all = new ArrayList<Prop>(props);
+            all.addAll(tabTitles());
+            for (Prop p : all) {
                 if (p.kind == Kind.TRANSLATION) {
                     for (Translation t : p.translations) {
                         for (Arg a : t.args == null ? Collections.<Arg>emptyList() : t.args) {
@@ -202,6 +221,9 @@ public final class JxmlTemplate implements JxmlView<Object> {
                 if (p.kind != Kind.LITERAL) {
                     return false;
                 }
+            }
+            if (!tabTitles().isEmpty()) {
+                return false; // a translated or bound tab title changes with the locale or the controller
             }
             for (Element child : children) {
                 if (!child.constant()) {
@@ -451,6 +473,7 @@ public final class JxmlTemplate implements JxmlView<Object> {
         }
         List<Element> children = new ArrayList<Element>();
         String[] titles = null;
+        Prop[] titleProps = null;
         boolean[] closable = null;
         JxmlSchema.Tag below = tag.control ? owner : tag; // a loop or condition does not change what its children stand inside
         switch (tag.children) {
@@ -474,6 +497,7 @@ public final class JxmlTemplate implements JxmlView<Object> {
                 break;
             case TABS:
                 titles = new String[node.children.size()];
+                titleProps = new Prop[node.children.size()];
                 closable = new boolean[node.children.size()];
                 for (int i = 0; i < node.children.size(); i++) {
                     JxmlParser.Node tabNode = node.children.get(i);
@@ -485,7 +509,12 @@ public final class JxmlTemplate implements JxmlView<Object> {
                     closable[i] = true;
                     for (Prop p : tab.props) {
                         if ("title".equals(p.attr.name)) {
-                            titles[i] = (String) p.literal;
+                            if (p.kind == Kind.LITERAL) {
+                                titles[i] = (String) p.literal;
+                            } else {
+                                titles[i] = null; // a %{translation} or a ${binding}: read when the screen is built
+                                titleProps[i] = p;
+                            }
                         } else if ("closable".equals(p.attr.name)) {
                             closable[i] = (Boolean) p.literal;
                         }
@@ -518,7 +547,7 @@ public final class JxmlTemplate implements JxmlView<Object> {
             }
         }
         Element element = new Element(tag, source, node.line, Collections.unmodifiableList(props),
-                Collections.unmodifiableList(children), titles, closable, var, type, Collections.<Element>emptyList());
+                Collections.unmodifiableList(children), titles, titleProps, closable, var, type, Collections.<Element>emptyList());
         if (element.memo != null) {
             checkMemoBody(element.children, Collections.singleton(var));
         }
@@ -538,7 +567,9 @@ public final class JxmlTemplate implements JxmlView<Object> {
                 inner = new java.util.HashSet<String>(roots);
                 inner.add(e.var);
             }
-            for (Prop p : e.props) {
+            List<Prop> checked = new ArrayList<Prop>(e.props);
+            checked.addAll(e.tabTitles());
+            for (Prop p : checked) {
                 if (p.kind == Kind.TRANSLATION) {
                     throw new JxmlException(p.source, p.line, "<For memo> builds its elements once for as long as the list is the same, "
                             + "so \"" + p.attr.name + "\" cannot be a translation: its text changes with the locale");
@@ -993,7 +1024,16 @@ public final class JxmlTemplate implements JxmlView<Object> {
         }
         JXElement[] children = built.toArray(new JXElement[0]);
         if (e.tag.children == JxmlSchema.Children.TABS) {
-            return JxmlRuntime.tabs(props, selected, e.titles, e.closable, children);
+            String[] titles = e.titles;
+            if (!e.tabTitles().isEmpty()) {
+                titles = titles.clone();
+                for (int i = 0; i < titles.length; i++) {
+                    if (e.titleProps[i] != null) {
+                        titles[i] = (String) value(e.titleProps[i], controller, scope);
+                    }
+                }
+            }
+            return JxmlRuntime.tabs(props, selected, titles, e.closable, children);
         }
         JXProps finished = props.build();
         if (e.tag.finish) {

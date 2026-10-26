@@ -6,6 +6,13 @@
       fx:controller="com.jxparallel.forge.samples.SampleController" spacing="4">
   <ScrollPane fitToWidth="true" fitToHeight="false">
     <GridPane hgap="8" vgap="6" alignment="TOP_LEFT" padding="4">
+      <columnConstraints>
+        <ColumnConstraints hgrow="SOMETIMES" halignment="LEFT" prefWidth="80" minWidth="40"/>
+        <ColumnConstraints hgrow="ALWAYS"/>
+      </columnConstraints>
+      <rowConstraints>
+        <RowConstraints vgrow="SOMETIMES" valignment="TOP" prefHeight="24" minHeight="10"/>
+      </rowConstraints>
       <Label text="Name" GridPane.rowIndex="0" GridPane.columnIndex="0" GridPane.halignment="RIGHT" GridPane.valignment="CENTER"
              styleClass="note"/>
       <TextField text="Ada" promptText="Full name" prefColumnCount="20" GridPane.rowIndex="0" GridPane.columnIndex="1"

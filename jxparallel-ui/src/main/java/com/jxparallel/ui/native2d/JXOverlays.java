@@ -170,6 +170,8 @@ final class JXOverlays {
             return;
         }
         node.openChild = -1;
+        node.hot = null;
+        node.hotKey = false;
         if (!(node.getProperty("showing") instanceof Boolean)) {
             node.localOpen = open;
         }
@@ -211,6 +213,8 @@ final class JXOverlays {
             } else {
                 node.overlayState = null;
                 node.shownAt = 0;
+                node.hot = null;
+                node.hotKey = false;
             }
         }
         // the children of a menu are its items; the children of an open dialog or drawer are ordinary content
@@ -241,6 +245,8 @@ final class JXOverlays {
         String[] labels = new String[0];
         /** A date picker's calendar, laid out at x, y. */
         JXNativeNode calendar;
+        /** A select's list: the index of the first option shown. */
+        int first;
         /** Menu panels, the outermost first. */
         final List<Panel> panels = new ArrayList<Panel>();
         /** A color picker's hex field: x, y, width, height. */
@@ -329,7 +335,15 @@ final class JXOverlays {
         Popup po = new Popup();
         int rows = Math.min(options.length, SELECT_ROWS);
         int chosen = Arrays.asList(options).indexOf(JXPaint.text(host, "value"));
-        int first = Math.max(0, Math.min(options.length - rows, chosen < 0 ? 0 : chosen - rows / 2));
+        Popup before = popup(host);
+        // opened: the chosen option in the middle; open: the list stays where it was, until the highlighted option leaves it
+        int first = Math.max(0, Math.min(options.length - rows,
+                before != null ? before.first : chosen < 0 ? 0 : chosen - rows / 2));
+        if (host.hot instanceof Integer) {
+            int hot = ((Integer) host.hot).intValue();
+            first = Math.max(0, Math.min(options.length - rows, hot < first ? hot : hot >= first + rows ? hot - rows + 1 : first));
+        }
+        po.first = first;
         JXTextEngine engine = JXTextEngine.get(false);
         double widest = 0;
         for (String option : options) {
@@ -373,6 +387,12 @@ final class JXOverlays {
                 .set("title", Month.of(host.viewMonth).getDisplayName(TextStyle.FULL, locale) + " " + host.viewYear)
                 .set("todayYear", Integer.valueOf(now.getYear())).set("todayMonth", Integer.valueOf(now.getMonthValue()))
                 .set("todayDay", Integer.valueOf(now.getDayOfMonth()));
+        if (host.hot instanceof LocalDate) {
+            LocalDate hot = (LocalDate) host.hot;
+            props.set("hoverYear", Integer.valueOf(hot.getYear())).set("hoverMonth", Integer.valueOf(hot.getMonthValue()))
+                    .set("hoverDay", Integer.valueOf(hot.getDayOfMonth()))
+                    .set("hoverLayer", Integer.valueOf(host.hotKey ? JXTheme.FOCUS : JXTheme.HOVER));
+        }
         if (chosen != null) {
             props.set("selectedYear", Integer.valueOf(chosen.getYear())).set("selectedMonth", Integer.valueOf(chosen.getMonthValue()))
                     .set("selectedDay", Integer.valueOf(chosen.getDayOfMonth()));
@@ -1066,22 +1086,451 @@ final class JXOverlays {
         }
     }
 
+    // ---- the highlighted row: pointer and keys -----------------------------------------------------
+
+    /** A row of a menu the pointer or the keys can reach: not a separator, not disabled. */
+    static boolean selectable(JXNativeNode row) {
+        return !separator(row) && !Boolean.TRUE.equals(row.getProperty("disabled")) && !Boolean.TRUE.equals(row.getProperty("hidden"));
+    }
+
+    /** The topmost open overlay that is not a snack bar (which is not modal), or null. */
+    private static Entry topEntry(JXNativeNode root) {
+        List<Entry> open = collect(root);
+        for (int i = open.size() - 1; i >= 0; i--) {
+            if (!"snackbar".equals(open.get(i).node.getType())) {
+                return open.get(i);
+            }
+        }
+        return null;
+    }
+
+    private static int cellAt(Popup po, int x, int y) {
+        for (int i = 0; i < po.cells.length; i++) {
+            int[] c = po.cells[i];
+            if (x >= c[0] && y >= c[1] && x < c[0] + c[2] && y < c[1] + c[3]) {
+                return i;
+            }
+        }
+        return -1;
+    }
+
+    private static JXNativeNode menuRowAt(Popup po, int x, int y) {
+        for (int i = po.panels.size() - 1; i >= 0; i--) {
+            Panel panel = po.panels.get(i);
+            if (panel.contains(x, y)) {
+                for (JXNativeNode row : panel.container.getChildren()) {
+                    if (row.contains(x, y)) {
+                        return selectable(row) ? row : null;
+                    }
+                }
+                return null;
+            }
+        }
+        return null;
+    }
+
+    /** Places the open overlays again, in the window they were placed in: what a change of the highlight moves. */
+    private static void refresh(JXNativeNode root, JXNativeNode node) {
+        Popup po = popup(node);
+        if (po != null) {
+            layout(root, po.windowW, po.windowH);
+        }
+    }
+
+    /**
+     * See {@link JXNativeNode#routeHover}: the row under the pointer in the topmost open popup or menu becomes the
+     * highlighted one ({@code node.hot}); a pointer that is over no row clears a highlight it made, not one the keys made.
+     */
+    static boolean hover(JXNativeNode root, int x, int y) {
+        Entry top = topEntry(root);
+        Popup po = top == null ? null : popup(top.node);
+        if (po == null) {
+            return false;
+        }
+        JXNativeNode node = top.node;
+        Object now = null;
+        switch (node.getType()) {
+            case "menubutton":
+            case "contextmenu":
+            case "menubar":
+                now = menuRowAt(po, x, y);
+                break;
+            case "select": {
+                int i = cellAt(po, x, y);
+                now = i < 0 ? null : Integer.valueOf(po.cells[i][5]);
+                break;
+            }
+            case "timepicker":
+            case "colorpicker": {
+                int i = cellAt(po, x, y);
+                now = i < 0 ? null : Integer.valueOf(i);
+                break;
+            }
+            case "datepicker":
+                if (po.calendar != null && po.contains(x, y)) {
+                    int[] hit = JXCalendar.hit(po.calendar, x, y);
+                    now = hit[0] == JXCalendar.DAY ? LocalDate.of(hit[1], hit[2], hit[3]) : null;
+                }
+                break;
+            default:
+                return false;
+        }
+        if (now == null ? node.hot == null || node.hotKey : now.equals(node.hot) && !node.hotKey) {
+            return false;
+        }
+        node.hot = now;
+        node.hotKey = false;
+        refresh(root, node);
+        return true;
+    }
+
     // ---- keys ----------------------------------------------------------------------------------------
+
+    private static final int RIGHT = 262;
+    private static final int LEFT = 263;
+    private static final int DOWN = 264;
+    private static final int UP = 265;
+    private static final int PAGE_UP = 266;
+    private static final int PAGE_DOWN = 267;
+    private static final int HOME = 268;
+    private static final int END = 269;
+
+    @SuppressWarnings("unchecked")
+    private static Consumer<Object> changeHandler(JXNativeNode node) {
+        Object handler = node.getProperty("onChange");
+        return handler instanceof Consumer ? (Consumer<Object>) handler : null;
+    }
+
+    private static void highlight(JXNativeNode root, JXNativeNode node, Object row) {
+        node.hot = row;
+        node.hotKey = true;
+        refresh(root, node);
+    }
+
+    /**
+     * Keys in the topmost open popup or menu: Up and Down move the highlighted row (Page Up and Page Down by a page,
+     * Home and End to the first and the last), Enter picks it, Left and Right move in a grid, open and close the
+     * submenus of a menu and move along the titles of a menu bar. True when the key was used here.
+     */
+    private static boolean navigate(JXNativeNode root, JXNativeNode node, int code) {
+        Popup po = popup(node);
+        if (po == null) { // opened since the last layout (a press and a key before a frame): place it, as a frame would
+            layout(root, root.getWidth(), root.getHeight());
+            po = popup(node);
+        }
+        if (po == null) {
+            return false;
+        }
+        switch (node.getType()) {
+            case "menubutton":
+            case "contextmenu":
+            case "menubar":
+                return navigateMenu(root, node, po, code);
+            case "select":
+                return navigateList(root, node, code);
+            case "timepicker":
+            case "colorpicker":
+                return navigateGrid(root, node, po, code);
+            case "datepicker":
+                return navigateDays(root, node, code);
+            default:
+                return false;
+        }
+    }
+
+    private static boolean navigateList(JXNativeNode root, JXNativeNode node, int code) {
+        String[] options = JXPaint.strings(node.getProperty("options"));
+        int n = options.length;
+        if (n == 0) {
+            return false;
+        }
+        boolean has = node.hot instanceof Integer;
+        int cur = has ? ((Integer) node.hot).intValue() : Arrays.asList(options).indexOf(JXPaint.text(node, "value"));
+        int next;
+        switch (code) {
+            case ENTER: {
+                if (!has) {
+                    return false;
+                }
+                Consumer<Object> onChange = changeHandler(node);
+                if (onChange != null && cur >= 0 && cur < n) {
+                    onChange.accept(options[cur]);
+                }
+                request(node, false);
+                return true;
+            }
+            case DOWN:
+                next = cur < 0 ? 0 : Math.min(n - 1, cur + 1);
+                break;
+            case UP:
+                next = cur < 0 ? n - 1 : Math.max(0, cur - 1);
+                break;
+            case PAGE_DOWN:
+                next = cur < 0 ? 0 : Math.min(n - 1, cur + SELECT_ROWS);
+                break;
+            case PAGE_UP:
+                next = cur < 0 ? n - 1 : Math.max(0, cur - SELECT_ROWS);
+                break;
+            case HOME:
+                next = 0;
+                break;
+            case END:
+                next = n - 1;
+                break;
+            default:
+                return false; // Left and Right belong to an editable select's text
+        }
+        highlight(root, node, Integer.valueOf(next));
+        return true;
+    }
+
+    private static boolean navigateGrid(JXNativeNode root, JXNativeNode node, Popup po, int code) {
+        int n = po.cells.length;
+        if (n == 0) {
+            return false;
+        }
+        boolean has = node.hot instanceof Integer;
+        int cur = has ? ((Integer) node.hot).intValue() : -1;
+        if (!has) { // the first key starts from the cell that is the value now, if the grid has it
+            for (int i = 0; i < n && cur < 0; i++) {
+                if ("timepicker".equals(node.getType()) ? timeCurrent(node, po.cells[i])
+                        : po.cells[i][5] == colorOf(JXPaint.text(node, "value")) && colorOf(JXPaint.text(node, "value")) != 0) {
+                    cur = i;
+                }
+            }
+        }
+        int next;
+        switch (code) {
+            case ENTER:
+                if (!has) {
+                    return false;
+                }
+                int[] cell = po.cells[Math.min(cur, n - 1)];
+                pick(node, po, cell[0] + cell[2] / 2, cell[1] + cell[3] / 2);
+                return true;
+            case LEFT:
+                next = cur < 0 ? 0 : Math.max(0, cur - 1);
+                break;
+            case RIGHT:
+                next = cur < 0 ? 0 : Math.min(n - 1, cur + 1);
+                break;
+            case UP:
+            case DOWN:
+                next = cur < 0 ? (code == DOWN ? 0 : n - 1) : neighbour(po, cur, code == DOWN ? 1 : -1);
+                break;
+            case HOME:
+                next = 0;
+                break;
+            case END:
+                next = n - 1;
+                break;
+            default:
+                return false;
+        }
+        highlight(root, node, Integer.valueOf(next));
+        return true;
+    }
+
+    /** The cell nearest above ({@code dir} -1) or below (1) the cell {@code cur}: the next row, the closest column. */
+    private static int neighbour(Popup po, int cur, int dir) {
+        int[] c = po.cells[cur];
+        int cx = c[0] + c[2] / 2;
+        int cy = c[1] + c[3] / 2;
+        int best = cur;
+        int bestDy = Integer.MAX_VALUE;
+        int bestDx = Integer.MAX_VALUE;
+        for (int i = 0; i < po.cells.length; i++) {
+            int[] d = po.cells[i];
+            int dy = (d[1] + d[3] / 2 - cy) * dir;
+            if (dy <= 0) {
+                continue;
+            }
+            int dx = Math.abs(d[0] + d[2] / 2 - cx);
+            if (dy < bestDy || dy == bestDy && dx < bestDx) {
+                best = i;
+                bestDy = dy;
+                bestDx = dx;
+            }
+        }
+        return best;
+    }
+
+    private static boolean navigateDays(JXNativeNode root, JXNativeNode node, int code) {
+        boolean has = node.hot instanceof LocalDate;
+        LocalDate cur = has ? (LocalDate) node.hot : parseDate(JXPaint.text(node, "value"));
+        if (cur == null) {
+            cur = today.get();
+        }
+        LocalDate next;
+        switch (code) {
+            case ENTER: {
+                if (!has) {
+                    return false;
+                }
+                Consumer<Object> onChange = changeHandler(node);
+                if (onChange != null) {
+                    onChange.accept(cur.toString());
+                }
+                request(node, false);
+                return true;
+            }
+            case LEFT:
+                next = cur.minusDays(1);
+                break;
+            case RIGHT:
+                next = cur.plusDays(1);
+                break;
+            case UP:
+                next = cur.minusWeeks(1);
+                break;
+            case DOWN:
+                next = cur.plusWeeks(1);
+                break;
+            case PAGE_UP:
+                next = cur.minusMonths(1);
+                break;
+            case PAGE_DOWN:
+                next = cur.plusMonths(1);
+                break;
+            case HOME:
+                next = cur.withDayOfMonth(1);
+                break;
+            case END:
+                next = cur.withDayOfMonth(cur.lengthOfMonth());
+                break;
+            default:
+                return false;
+        }
+        node.viewYear = next.getYear(); // the calendar shows the month of the day the keys reached
+        node.viewMonth = next.getMonthValue();
+        highlight(root, node, next);
+        return true;
+    }
+
+    private static JXNativeNode firstSelectable(List<JXNativeNode> rows) {
+        for (JXNativeNode row : rows) {
+            if (selectable(row)) {
+                return row;
+            }
+        }
+        return null;
+    }
+
+    private static boolean navigateMenu(JXNativeNode root, JXNativeNode node, Popup po, int code) {
+        JXNativeNode hot = node.hot instanceof JXNativeNode ? (JXNativeNode) node.hot : null;
+        int active = po.panels.size() - 1; // the panel the keys work in: the one with the highlighted row, else the innermost
+        if (hot != null) {
+            int found = -1;
+            for (int k = 0; k < po.panels.size(); k++) {
+                if (po.panels.get(k).container.getChildren().contains(hot)) {
+                    found = k;
+                }
+            }
+            if (found < 0) {
+                hot = null;
+            } else {
+                active = found;
+            }
+        }
+        Panel panel = po.panels.get(active);
+        List<JXNativeNode> rows = panel.container.getChildren();
+        int n = rows.size();
+        JXNativeNode next = null;
+        switch (code) {
+            case DOWN:
+            case UP: {
+                int at = hot == null ? (code == DOWN ? -1 : n) : rows.indexOf(hot);
+                for (int s = 1; s <= n && next == null; s++) {
+                    JXNativeNode row = rows.get(Math.floorMod(at + (code == DOWN ? s : -s), n));
+                    next = selectable(row) ? row : null;
+                }
+                break;
+            }
+            case HOME:
+                next = firstSelectable(rows);
+                break;
+            case END:
+                for (int i = n - 1; i >= 0 && next == null; i--) {
+                    next = selectable(rows.get(i)) ? rows.get(i) : null;
+                }
+                break;
+            case RIGHT:
+            case ENTER:
+                if (hot != null && "menu".equals(hot.getType()) && selectable(hot) && !hot.getChildren().isEmpty()) {
+                    panel.container.openChild = rows.indexOf(hot);
+                    refresh(root, node);
+                    JXNativeNode inner = firstSelectable(hot.getChildren());
+                    highlight(root, node, inner != null ? inner : hot);
+                    return true;
+                }
+                if (code == ENTER) {
+                    if (hot == null) {
+                        return false;
+                    }
+                    if (selectable(hot)) {
+                        hot.dispatchPointer(new JXPointerEvent(hot.getX() + hot.getWidth() / 2, hot.getY() + hot.getHeight() / 2,
+                                JXInputEvent.BUTTON_PRIMARY));
+                        close(node);
+                    }
+                    return true;
+                }
+                if ("menubar".equals(node.getType())) {
+                    moveHeader(root, node, 1);
+                }
+                return true;
+            case LEFT:
+                if (active > 0) { // closes the submenu: the row that opened it is the highlighted one again
+                    po.panels.get(active - 1).container.openChild = -1;
+                    JXNativeNode opener = panel.container;
+                    refresh(root, node);
+                    highlight(root, node, opener);
+                } else if ("menubar".equals(node.getType())) {
+                    moveHeader(root, node, -1);
+                }
+                return true;
+            default:
+                return false;
+        }
+        if (next != null) {
+            if (active < po.panels.size() - 1 && panel.container.openChild != rows.indexOf(next)) {
+                panel.container.openChild = -1; // a row of an outer panel: the submenus beyond it close
+            }
+            highlight(root, node, next);
+        }
+        return true;
+    }
+
+    /** Opens the menu of the next ({@code dir} 1) or previous title of a menu bar that is not disabled. */
+    private static void moveHeader(JXNativeNode root, JXNativeNode bar, int dir) {
+        List<JXNativeNode> titles = bar.getChildren();
+        int n = titles.size();
+        for (int s = 1; s <= n; s++) {
+            int j = Math.floorMod(bar.openChild + dir * s, n);
+            if (!Boolean.TRUE.equals(titles.get(j).getProperty("disabled"))) {
+                resetMenus(bar);
+                bar.openChild = j;
+                refresh(root, bar);
+                JXNativeNode first = firstSelectable(titles.get(j).getChildren());
+                highlight(root, bar, first);
+                return;
+            }
+        }
+    }
 
     /** See {@link JXNativeNode#routeKey}. */
     static void key(JXNativeNode root, JXKeyEvent event, JXNativeNode focused) {
-        List<Entry> open = collect(root);
-        if (!open.isEmpty()) {
-            Entry top = open.get(open.size() - 1);
-            for (int i = open.size() - 1; i >= 0; i--) {
-                if (!"snackbar".equals(open.get(i).node.getType())) {
-                    top = open.get(i); // a snack bar is not modal: the dialog or popup under it gets the keys
-                    break;
-                }
-            }
+        Entry top = topEntry(root);
+        if (top == null) {
+            List<Entry> open = collect(root); // only snack bars: Escape still closes the last
+            top = open.isEmpty() ? null : open.get(open.size() - 1);
+        }
+        if (top != null) {
             int code = event.getKeyCode();
             if (code == ESCAPE) {
                 close(top.node);
+                return;
+            }
+            if ((code >= RIGHT && code <= END || code == ENTER) && navigate(root, top.node, code)) {
                 return;
             }
             if (code == ENTER) {

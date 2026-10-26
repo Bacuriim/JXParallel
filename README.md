@@ -45,9 +45,9 @@ JXParallel is a Java UI runtime made of three parts that you can use together or
 
 ## Why you would use it
 
-- **Fast to build and to show.** Compiled JXML builds a screen 19 to 20 times faster than the JavaFX
-  controls do, and is ready to paint 86 times faster once warm (geometric mean of 43 components, Java 17).
-- **Small.** About 47 times less memory retained per widget, half the classes loaded, 8 times less
+- **Fast to build and to show.** Compiled JXML builds a screen 22 to 24 times faster than the JavaFX
+  controls do, and is ready to paint 87 times faster once warm (geometric mean of 43 components, Java 17).
+- **Small.** About 51 times less memory retained per widget, half the classes loaded, 8 times less
   CPU over a run, in the same measurements.
 - **Never frozen.** Heavy work and FXML loading run on a worker pool; the UI thread only paints.
 - **Checked at build time.** A misspelled `${customer.nmae}` is a compile error that points at the
@@ -262,8 +262,9 @@ of the theme (`primary`, `onPrimary`, `surface`, `onSurface`, `outline`, `error`
   <img src="docs/assets/material-controls-dark.png" alt="The controls in the dark theme" width="380">
 </p>
 
-Skija publishes no 32-bit native libraries, so 32-bit JVMs use NanoVG (not yet checked with the Material
-look on 32-bit). Both renderers draw the same shapes, colors and sizes (image from before the Material look):
+Skija publishes no 32-bit native libraries, so 32-bit JVMs use NanoVG. Both renderers draw the same shapes,
+colors and sizes: a test captures the NanoVG frame on a 32-bit Java 8 and compares it with the other painters
+(0.6% of the pixels differ, at glyph edges). The image below is from before the Material look:
 
 <p align="center"><img src="docs/assets/renderers-nanovg-vs-skia.png" alt="NanoVG on Java 8 32-bit and Skia on Java 17 64-bit" width="560"></p>
 
@@ -276,35 +277,37 @@ components, 4 modes (JavaFX controls, interpreted JXML, cached template, compile
 5 runs each in a fresh JVM, with a fingerprint that checks that every mode did the same work. Fixed
 512 MB heap, Intel Core i5-12400F. The medians are in the repository.
 
-<p align="center"><img src="docs/assets/charts/headline-java17-after.svg" alt="Compiled JXML against JavaFX on Java 17: build, ready to paint, update, paint, allocation, memory, classes and CPU" width="760"></p>
+<p align="center"><img src="docs/assets/charts/headline-java17-final.svg" alt="Compiled JXML against JavaFX on Java 17: build, ready to paint, update, paint, allocation, memory, classes and CPU" width="760"></p>
 
 Compiled JXML against the JavaFX controls, geometric mean over the 43 components that have a JavaFX
 counterpart, Java 17:
 
 | | JXML is |
 |---|---:|
-| Build the screen, cold / warm | **20x / 19x** faster |
-| Native nodes ready to paint, cold / warm | **5.0x / 86x** faster |
-| Change one prop of every instance | **4.9x** faster |
-| Memory allocated: build / ready to paint / update | **20x / 107x / 2.7x** less |
-| Memory retained per instance | **47x** less |
+| Build the screen, cold / warm | **24x / 22x** faster |
+| Native nodes ready to paint, cold / warm | **5.0x / 87x** faster |
+| Change one prop of every instance | **5.2x** faster |
+| Paint (indicative: software painter against Prism) | **11.7x** faster |
+| Memory allocated: build / ready to paint / update | **31x / 105x / 4.1x** less |
+| Memory retained per instance | **51x** less |
 | Classes loaded | **2.1x** fewer |
-| CPU of the whole process | **7.9x** less |
+| CPU of the whole process | **8.1x** less |
 
-On Java 8 32-bit, building and getting ready to paint are 43x and 173x faster once warm.
+On Java 8 32-bit, building and getting ready to paint are 55x and 190x faster once warm. Measured with the
+Material look.
 JXML vs interpreting the file, on 20 form screens: compiled builds 30 to 40x faster warm.
 
 ### Where it is not ahead
 
 Rebuilding an immutable element is not free, and this is measured, not hidden:
 
-- **Tiny updates** (a `Slider` value, a `ScrollBar`, a `Separator`) cost more allocation than one
-  JavaFX setter (0.08x to 0.5x). The model rebuilds and reconciles the element; the gap was
-  narrowed, not removed.
-- **Painting text fields and tabs** is behind JavaFX in the benchmark (0.6x to 0.8x), and the paint
-  numbers are indicative: the software painter and JavaFX's Prism are different pipelines, and the
-  GPU is not measured.
-- **`Image`** allocates more than `ImageView` when it is created and updated.
+- **Tiny updates** (a `Separator`, `ScrollBar`, `Slider`, `TableView` scroll) still allocate more than one
+  JavaFX setter (0.17x to 0.4x), and a `ScrollBar` update takes twice as long (0.48x). The model rebuilds
+  and reconciles the element; the gap was narrowed twice, and only updating a node straight from the
+  changed binding would close it (designed, not built).
+- **`Image`** allocates more than `ImageView` when it is created and updated (0.7x and 0.55x).
+- **Paint numbers are indicative**: the software painter and JavaFX's Prism are different pipelines, and
+  the GPU is not measured. Every component now paints faster than JavaFX in the benchmark.
 - **JavaFX draws more** (CSS, skins, LCD text); part of every gap comes from that.
 
 `Tree` and `TreeTable` updates used to be the worst case (every item was built on each update); with
@@ -539,6 +542,7 @@ natives for Windows x64/x86 and Linux x64, and Skija on 64-bit.
 | `jxparallel-ui` | native scene graph, controls, layouts, `JXWindow`, Skia, NanoVG and software renderers | no |
 | `jxparallel-forge`, `jxforge-maven-plugin` | JXForge: JXML and FXML compiler, interpreter, live view, translations, Maven goal `jxforge:generate` | no |
 | `jxforge-gradle-plugin` | the same generation as a Gradle plugin (separate Gradle build, not in the Maven reactor) | no |
+| `jxparallel-android` | Android backend: `Canvas` painter, `JXAndroidView`, sample app and APK script (outside the Maven reactor) | no |
 | `jxparallel-javafx` | FX thread dispatch (`JXParallelFx`, `JXFxDispatcher`) and JavaFX control wrappers | yes |
 | `jxparallel-fxml` | `FXMLLoaderService` with parallel loading and cache | yes |
 | `jxparallel-fx` | JavaFX-compatible API that can run on the native renderer (`-Djx.backend=native`) | no |
@@ -567,18 +571,19 @@ JMH gate, ArchUnit, mutation testing): [docs/testing-strategy.md](docs/testing-s
 | Worker pool, tasks, backpressure, lifecycle | Tested; used by all benchmarks |
 | Properties, events, observable collections | Tested |
 | FX thread dispatch and parallel FXML loading | Tested; pre-parsed templates with `FXMLLoader` fallback |
-| Native window (Skia 64-bit, NanoVG 32-bit) | Working; Material 3 look everywhere, light and dark (NanoVG not yet checked with it on 32-bit) |
+| Native window (Skia 64-bit, NanoVG 32-bit) | Working; Material 3 look everywhere, light and dark, checked on Skia, NanoVG (32-bit) and the software painter |
 | JXForge (JXML compiler, interpreter, Maven plugin, live view) | Implemented and tested; 91 widgets, loops, conditions, styles, themes, includes |
 | Incremental UI updates | Implemented: memoized render and in-place reconciliation |
 | Virtualized list, table, tree and tree table | Implemented |
-| Overlays (dialogs, menus, pickers, snack bars) | Implemented; no keyboard navigation or hover inside popups yet |
+| Overlays (dialogs, menus, pickers, snack bars) | Implemented, with hover and keyboard navigation (arrows, Home/End, Page Up/Down, Enter, Escape, submenus) |
 | JavaFX-compatible API in native mode | Implemented and tested headless; not yet run on a large real application |
 | CSS | Subset: selectors with specificity, pseudo-classes, looked-up colors, inline styles |
 | Accessibility | Tree model only; no screen-reader adapter |
 | FXML compiled by JXForge | Implemented: the controls and layouts of the catalog, refusals with file and line for the rest; controllers need adapting (`fx:id`, handlers without `ActionEvent`) |
 | Gradle plugin for JXForge | Implemented and tested with TestKit (Gradle 7.5, JDK 11) |
 | Translations (ARB, Android `strings.xml`) | Implemented: typed `Strings`, plurals, build-time checks, runtime locale switch |
-| Android and iOS | Not started. The painter is one interface (`JXPainter`), so a backend over the Android `Canvas` is the natural route; the window today is GLFW and OpenGL |
+| Android | First version (`jxparallel-android`): a `JXPainter` over the Android `Canvas` and a `View`; a JXML screen runs on the emulator with taps, the switch and typed text. No touch scrolling, no IME composition, no clipboard yet |
+| iOS | Not started (needs a native-image toolchain and a Metal or Skia backend) |
 
 Roadmap: [docs/roadmap.md](docs/roadmap.md). Changes: [CHANGELOG.md](CHANGELOG.md).
 
@@ -609,9 +614,11 @@ an existing JavaFX application, so they need it.
 widget-style tags (`Column`, `Button`...) rather than JavaFX class names. FXML files can be compiled by
 JXForge to native screens (see above), or keep loading through `FXMLLoaderService` in a JavaFX application.
 
-**Can it run on a phone?** Not yet. Everything is drawn through one painter interface, so a backend over the
-Android `Canvas` (Java 8 bytecode runs on Android) is possible; the desktop window uses GLFW and OpenGL, and
-Skija has no Android build. iOS would need a native-image toolchain. None of it exists today.
+**Can it run on a phone?** On Android, as a first version. `jxparallel-android` draws through the same painter
+interface over the Android `Canvas`, and a `JXAndroidView` hosts a JXML screen, density-aware, with touch and
+the soft keyboard; `build-apk.ps1` builds the APK without the Android Gradle plugin. It has run on the
+Android 14 emulator (screenshots in `jxparallel-android/docs`). Touch scrolling, IME composition and the
+clipboard are not done. iOS would need a native-image toolchain and is not started.
 
 **Can I mix JXML screens and widgets written in Java?** Yes. A `<Slot content="${x}"/>` places a
 `JXElement` or component you built by hand, and a generated view is just a class that returns a

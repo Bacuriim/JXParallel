@@ -84,6 +84,49 @@ class JXPropsTest {
     }
 
     @Test
+    void ofIsTheSamePropsAsTheBuilderWithoutMakingOne() {
+        JXProps built = JXProps.builder().set("gap", 2.0).set("fillWidth", Boolean.TRUE).set("alignment", "TOP_LEFT").build();
+        JXProps of = JXProps.of("gap", 2.0, "fillWidth", Boolean.TRUE, "alignment", "TOP_LEFT");
+        assertEquals(built, of);
+        assertEquals(built.hashCode(), of.hashCode());
+        assertEquals(3, of.size());
+        assertEquals("gap", of.keyAt(0));
+        assertEquals("TOP_LEFT", of.valueAt(2));
+        assertSame(of, of.asMap());
+        // a null value leaves the pair out, as set(name, null) does, and the others keep their order
+        JXProps some = JXProps.of("a", 1, "b", null, "c", 3, "d", null);
+        assertEquals(java.util.Arrays.asList("a", "c"), new java.util.ArrayList<>(some.keySet()));
+        assertNull(some.get("b"));
+        assertEquals(false, some.containsKey("d"));
+        assertSame(JXProps.empty(), JXProps.of());
+        assertSame(JXProps.empty(), JXProps.of("a", null));
+        assertThrows(IllegalArgumentException.class, () -> JXProps.of("a"));
+    }
+
+    @Test
+    void absentKeysAreAnsweredForEveryHashAndPresentOnesAreFound() {
+        java.util.Map<String, Object> expected = new java.util.LinkedHashMap<>();
+        JXProps.Builder b = JXProps.builder();
+        for (int i = 0; i < 40; i++) { // more keys than mask bits: several share a bit
+            String key = "key" + i;
+            if (i % 2 == 0) {
+                b.set(key, i);
+                expected.put(key, i);
+            }
+        }
+        JXProps props = b.build();
+        for (int i = 0; i < 400; i++) {
+            String key = "key" + i;
+            assertEquals(expected.get(key), props.get(key), key);
+            assertEquals(expected.containsKey(key), props.containsKey(key), key);
+            assertEquals(expected.get(key), props.get(new String(key)), key + " by equality");
+        }
+        assertNull(props.get(null));
+        assertNull(props.get(Integer.valueOf(3)));
+        assertEquals(false, JXProps.empty().containsKey("a"));
+    }
+
+    @Test
     void emptyAndTypedReads() {
         assertSame(JXProps.empty(), JXProps.builder().build());
         JXProps p = JXProps.builder().set("flag", "true").set("n", 7).build();

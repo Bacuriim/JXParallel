@@ -77,7 +77,10 @@ final class FxmlTranslator {
         /** Its elements are children of the owner with {@code slot=} the name of the property ({@code <top>}...). */
         SLOT,
         /** The {@code <TableColumn>}s of a TableView. */
-        COLUMNS
+        COLUMNS,
+        /** The {@code <ColumnConstraints>} and {@code <RowConstraints>} of a GridPane. */
+        COLUMN_CONSTRAINTS,
+        ROW_CONSTRAINTS
     }
 
     /** An FXML class: the JXML tag it becomes, its attributes and its property elements. */
@@ -129,7 +132,15 @@ final class FxmlTranslator {
     static final List<String> MARGIN_OWNERS = Collections.unmodifiableList(
             Arrays.asList("VBox", "HBox", "StackPane", "BorderPane", "GridPane", "FlowPane", "TilePane"));
     /** The FXML names that are not classes of the table and are still understood. */
-    static final List<String> OTHER_CLASSES = Collections.unmodifiableList(Arrays.asList("Insets", "TableColumn"));
+    static final List<String> OTHER_CLASSES = Collections.unmodifiableList(
+            Arrays.asList("Insets", "TableColumn", "ContextMenu", "ColumnConstraints", "RowConstraints"));
+    /** The JXML attributes that show text to the user, the only ones that take a resource key ({@code %key}). */
+    private static final List<String> TRANSLATABLE = Collections.unmodifiableList(Arrays.asList("text", "prompt", "title"));
+    /** The JXML containers that take a {@code ContextMenu} as a child, which opens on a secondary press on them. */
+    private static final List<String> CONTEXT_MENU_OWNERS = Collections.unmodifiableList(
+            Arrays.asList("Column", "Row", "Stack", "Pane", "Anchor", "Flow", "Tile"));
+    /** FXML's own spec for the ContextMenu of a {@code <contextMenu>} property: its items are menu items and menus. */
+    private static final Spec CONTEXT_MENU = new Spec("ContextMenu", "ContextMenu").dflt("items", Prop.CHILDREN);
     /** The slots of a BorderPane. */
     static final List<String> SLOTS = Collections.unmodifiableList(Arrays.asList("top", "bottom", "left", "right", "center"));
 
@@ -182,7 +193,8 @@ final class FxmlTranslator {
         for (String slot : SLOTS) {
             border.prop(slot, Prop.SLOT);
         }
-        cls("GridPane", "Grid").a("hgap", Conv.NUM).a("vgap", Conv.NUM).a("alignment", Conv.KEEP).dflt("children", Prop.CHILDREN);
+        cls("GridPane", "Grid").a("hgap", Conv.NUM).a("vgap", Conv.NUM).a("alignment", Conv.KEEP).dflt("children", Prop.CHILDREN)
+                .prop("columnConstraints", Prop.COLUMN_CONSTRAINTS).prop("rowConstraints", Prop.ROW_CONSTRAINTS);
         cls("AnchorPane", "Anchor").dflt("children", Prop.CHILDREN);
         cls("FlowPane", "Flow").a("hgap", Conv.NUM).a("vgap", Conv.NUM).a("alignment", Conv.KEEP).a("orientation", Conv.LOWER)
                 .a("prefWrapLength", Conv.NUM).a("columnHalignment", Conv.KEEP).a("rowValignment", Conv.KEEP)
@@ -268,11 +280,14 @@ final class FxmlTranslator {
     /** What one translation keeps while it walks the file. */
     private static final class Run {
         final String source;
+        /** The translations a {@code %key} is checked against, or null: the key is written as it is. */
+        final JxmlCatalog catalog;
         final List<String> warnings = new ArrayList<String>();
         final Set<String> handlers = new LinkedHashSet<String>();
 
-        Run(String source) {
+        Run(String source, JxmlCatalog catalog) {
             this.source = source;
+            this.catalog = catalog;
         }
 
         JxmlException error(int line, String message) {
@@ -291,12 +306,41 @@ final class FxmlTranslator {
         final List<String> titles = new ArrayList<String>();
         final List<String> widths = new ArrayList<String>();
         boolean widthsGiven;
+        /** The ContextMenus of the element: added after its other children. */
+        final List<JxmlParser.Node> menus = new ArrayList<JxmlParser.Node>();
+        /** GridPane: the constraints of each column and row, by index. */
+        final List<Constraint> columnConstraints = new ArrayList<Constraint>();
+        final List<Constraint> rowConstraints = new ArrayList<Constraint>();
+    }
+
+    /** One {@code <ColumnConstraints>} or {@code <RowConstraints>}: what it sets, for the cells of its column or row. */
+    private static final class Constraint {
+        final int line;
+        final Map<String, String> grow = new LinkedHashMap<String, String>();   // hgrow / vgrow
+        final Map<String, String> align = new LinkedHashMap<String, String>();  // halignment / valignment
+        final Map<String, String> size = new LinkedHashMap<String, String>();   // prefWidth, minWidth / prefHeight, minHeight
+
+        Constraint(int line) {
+            this.line = line;
+        }
+
+        boolean needsCells() {
+            return !grow.isEmpty() && !"never".equals(grow.values().iterator().next()) || !align.isEmpty() || !size.isEmpty();
+        }
     }
 
     /** The JXML tree of an FXML file; its warnings are added to {@code warnings} (may be null). */
     static JxmlParser.Node translate(InputStream input, String source, List<String> warnings) {
+        return translate(input, source, warnings, null);
+    }
+
+    /**
+     * As above, with the translations the resource keys ({@code %key}) are checked against: a key that the default locale
+     * does not define, or that takes arguments, is a {@link JxmlException} with the FXML line. Null: keys are not checked.
+     */
+    static JxmlParser.Node translate(InputStream input, String source, List<String> warnings, JxmlCatalog catalog) {
         JxmlParser.Node raw = JxmlParser.parseXml(input, source);
-        Run run = new Run(source);
+        Run run = new Run(source, catalog);
         JxmlParser.Node root = root(run, raw);
         if (warnings != null) {
             warnings.addAll(run.warnings);
@@ -305,6 +349,13 @@ final class FxmlTranslator {
     }
 
     private static JxmlParser.Node root(Run run, JxmlParser.Node raw) {
+        if ("fx:root".equals(raw.tag)) {
+            throw run.error(raw.line, "fx:root has no JXML equivalent: it is the root of a custom component whose controller is "
+                    + "the root itself (set in code with setRoot(this) and setController(this)), and a JXML screen is a layout "
+                    + "with a separate controller. Write the layout of type=\"" + raw.attrs.get("type") + "\" as the root element "
+                    + "with fx:controller=\"...\" (a controller class that holds the state and the handlers), or build the "
+                    + "component in Java");
+        }
         if (raw.tag.startsWith("fx:")) {
             throw run.error(raw.line, raw.tag + " is not supported as the root of a screen; the root is a layout such as <VBox>");
         }
@@ -342,6 +393,10 @@ final class FxmlTranslator {
         if (spec == null) {
             throw run.error(raw.line, "<" + cls + "> has no JXML equivalent (custom or unsupported class); known: " + CLASSES.keySet());
         }
+        return build(run, raw, spec, cls, parentClass, root);
+    }
+
+    private static JxmlParser.Node build(Run run, JxmlParser.Node raw, Spec spec, String cls, String parentClass, boolean root) {
         JxmlParser.Node out = new JxmlParser.Node(spec.tag, raw.line, run.source);
         Pending pending = new Pending();
         if (root && raw.attrs.containsKey("fx:controller")) {
@@ -354,6 +409,10 @@ final class FxmlTranslator {
             out.attrs.put(fixed.getKey(), fixed.getValue());
         }
         children(run, out, raw, spec, pending, cls);
+        out.children.addAll(pending.menus);
+        if (!pending.columnConstraints.isEmpty() || !pending.rowConstraints.isEmpty()) {
+            constraints(run, out, pending);
+        }
         if (spec.virtual) {
             virtual(run, out, raw, spec, pending);
         }
@@ -415,14 +474,11 @@ final class FxmlTranslator {
         }
         String converted;
         if (resource) {
-            String key = value.substring(1);
-            if (attr.conv != Conv.TEXT) {
-                throw run.error(raw.line, "the resource key " + name + "=\"" + value + "\" is only translated in a text attribute");
+            if (attr.conv != Conv.TEXT || !TRANSLATABLE.contains(attr.jxml)) {
+                throw run.error(raw.line, "the resource key " + name + "=\"" + value + "\" is only translated in a text attribute "
+                        + "(text, promptText); <" + spec.fxml + "> " + name + " is not one");
             }
-            if (!JxmlCatalog.isKey(key)) {
-                throw run.error(raw.line, "the resource key " + name + "=\"" + value + "\" is not a key (letters, digits, _, . and -)");
-            }
-            converted = "%{" + key + "}";
+            converted = resourceKey(run, raw.line, name, value);
         } else {
             converted = convert(run, raw, spec, pending, name, attr, value1);
         }
@@ -444,6 +500,31 @@ final class FxmlTranslator {
         out.attrs.put(attr.jxml, converted);
     }
 
+    /**
+     * {@code %key} as the JXML translation {@code %{key}}. With a catalog the key must be defined in the default locale and
+     * take no arguments (an FXML resource key has none).
+     */
+    private static String resourceKey(Run run, int line, String name, String value) {
+        String key = value.substring(1);
+        if (!JxmlCatalog.isKey(key)) {
+            throw run.error(line, "the resource key " + name + "=\"" + value + "\" is not a key (letters, digits, _, . and -)");
+        }
+        if (run.catalog != null) {
+            JxmlCatalog.Signature sig = run.catalog.signature(key);
+            if (sig == null) {
+                throw run.error(line, "the resource key " + name + "=\"" + value + "\" is not defined in the default locale "
+                        + run.catalog.getDefaultTag() + " (" + run.catalog.fileOf(run.catalog.getDefaultTag()) + "); keys: "
+                        + run.catalog.keys());
+            }
+            if (!sig.names.isEmpty()) {
+                throw run.error(line, "the resource key " + name + "=\"" + value + "\" takes arguments (" + sig.describe()
+                        + ", defined at " + sig.location + "), which an FXML resource key cannot pass: write %{" + key
+                        + "(...)} in JXML");
+            }
+        }
+        return "%{" + key + "}";
+    }
+
     /** The value of {@code fx:controller} and the like: no expressions. */
     private static String rawValue(Run run, JxmlParser.Node raw, String name, String value) {
         return literal(run, raw, name, value);
@@ -462,8 +543,9 @@ final class FxmlTranslator {
             throw run.error(raw.line, "the reference " + name + "=\"" + value + "\" has no JXML equivalent (fx:id objects are not shared)");
         }
         if (value.startsWith("%")) {
-            throw run.error(raw.line, "the resource key " + name + "=\"" + value + "\" has no JXML equivalent; write the text, "
-                    + "or bind it with ${...}");
+            throw run.error(raw.line, "the resource key " + name + "=\"" + value + "\" has no JXML equivalent here: a key is "
+                    + "translated only in the text of a control, a prompt, a tab or a table column (it names no text in <"
+                    + raw.tag + "> " + name + "); write the value, or bind it with ${...}");
         }
         if (value.startsWith("@")) {
             throw run.error(raw.line, "the location " + name + "=\"" + value + "\" has no JXML equivalent");
@@ -578,8 +660,12 @@ final class FxmlTranslator {
             throw run.error(raw.line, name + "=\"" + t + "\" must name a controller method, such as #save");
         }
         if (run.handlers.add(t)) {
-            run.warn(raw.line, "handler " + t + " is called as " + t.substring(1) + "() with no arguments; a controller method "
-                    + t.substring(1) + "(ActionEvent) will not compile in the generated code: make it take no arguments");
+            String method = t.substring(1);
+            run.warn(raw.line, "handler " + t + " is called as " + method + "() with no arguments, so the controller needs "
+                    + "exactly that method. If it only has " + method + "(ActionEvent e), add this next to it, moving the body "
+                    + "of " + method + "(ActionEvent) here without the event (a bridge that passes null would break a handler "
+                    + "that reads the event): public void " + method + "() { /* body of " + method
+                    + "(ActionEvent) without the event */ }");
         }
         return t;
     }
@@ -618,6 +704,15 @@ final class FxmlTranslator {
             padding(run, out, prop, "padding", cls);
             return;
         }
+        if ("contextMenu".equals(name)) {
+            pending.menus.add(contextMenu(run, out, prop, cls));
+            return;
+        }
+        if ("tooltip".equals(name)) {
+            throw run.error(prop.line, "the <tooltip> of <" + cls + "> has no JXML equivalent: a JXML <Tooltip> is an element that "
+                    + "is drawn where it is written (a box with its text), and the renderer does not report the hover that would "
+                    + "show it on a control, so there is nothing to attach it to. Remove it, or show the text in a <Label>");
+        }
         Prop kind = spec.props.get(name);
         if (kind == null) {
             throw run.error(prop.line, "property <" + name + "> of <" + cls + "> has no JXML equivalent"
@@ -643,6 +738,13 @@ final class FxmlTranslator {
             case COLUMNS:
                 for (JxmlParser.Node column : prop.children) {
                     column(run, column, pending);
+                }
+                break;
+            case COLUMN_CONSTRAINTS:
+            case ROW_CONSTRAINTS:
+                boolean columns = kind == Prop.COLUMN_CONSTRAINTS;
+                for (JxmlParser.Node item : prop.children) {
+                    (columns ? pending.columnConstraints : pending.rowConstraints).add(constraint(run, item, columns));
                 }
                 break;
             default:
@@ -708,12 +810,16 @@ final class FxmlTranslator {
         String width = "-1";
         for (Map.Entry<String, String> entry : column.attrs.entrySet()) {
             String key = entry.getKey();
+            if ("text".equals(key) && entry.getValue().startsWith("%")) {
+                title = resourceKey(run, column.line, key, entry.getValue()); // %{key}: the titles are a list, so it is one of them
+                continue;
+            }
             String value = literal(run, column, key, entry.getValue()).trim();
             if ("text".equals(key)) {
                 if (value.indexOf(',') >= 0) {
                     throw run.error(column.line, "the column title \"" + value + "\" has a comma, which separates the titles in JXML");
                 }
-                title = value;
+                title = value.startsWith("%{") || value.startsWith("\\") ? "\\" + value : value;
             } else if ("prefWidth".equals(key)) {
                 String w = size(run, column, key, Conv.SIZE, value);
                 width = w == null ? "-1" : w;
@@ -772,6 +878,157 @@ final class FxmlTranslator {
         return Character.toUpperCase(s.charAt(0)) + s.substring(1);
     }
 
+    // ---- context menus and grid constraints ---------------------------------------------------------
+
+    /**
+     * {@code <contextMenu><ContextMenu>...</ContextMenu></contextMenu>}: JXML opens a {@code ContextMenu} on a secondary
+     * press on its parent, so it becomes the last child of a container. A control that takes no children cannot carry one.
+     */
+    private static JxmlParser.Node contextMenu(Run run, JxmlParser.Node out, JxmlParser.Node prop, String cls) {
+        if (prop.children.size() != 1 || !"ContextMenu".equals(simple(prop.children.get(0).tag))) {
+            throw run.error(prop.line, "<contextMenu> of <" + cls + "> must hold one <ContextMenu>");
+        }
+        if (!CONTEXT_MENU_OWNERS.contains(out.tag)) {
+            throw run.error(prop.line, "the <contextMenu> of <" + cls + "> has no JXML equivalent: JXML opens a ContextMenu on a "
+                    + "secondary press on its parent, which must be one of " + CONTEXT_MENU_OWNERS + " (<" + out.tag
+                    + "> cannot hold it); put the control in a <StackPane> or <VBox> and the <contextMenu> on that");
+        }
+        return build(run, prop.children.get(0), CONTEXT_MENU, "ContextMenu", cls, false);
+    }
+
+    /** One {@code <ColumnConstraints>} or {@code <RowConstraints>}: only what the cells of the column can say is kept. */
+    private static Constraint constraint(Run run, JxmlParser.Node node, boolean columns) {
+        String cls = columns ? "ColumnConstraints" : "RowConstraints";
+        if (!cls.equals(simple(node.tag))) {
+            throw run.error(node.line, "<" + node.tag + "> is not a <" + cls + ">");
+        }
+        if (!node.children.isEmpty()) {
+            throw run.error(node.children.get(0).line, "<" + cls + "> takes no children");
+        }
+        String grow = columns ? "hgrow" : "vgrow";
+        String align = columns ? "halignment" : "valignment";
+        String pref = columns ? "prefWidth" : "prefHeight";
+        String min = columns ? "minWidth" : "minHeight";
+        String max = columns ? "maxWidth" : "maxHeight";
+        String percent = columns ? "percentWidth" : "percentHeight";
+        String fill = columns ? "fillWidth" : "fillHeight";
+        Constraint c = new Constraint(node.line);
+        for (Map.Entry<String, String> entry : node.attrs.entrySet()) {
+            String key = entry.getKey();
+            if ("fx:id".equals(key)) {
+                run.warn(node.line, "fx:id=\"" + entry.getValue() + "\" on <" + cls + "> has no JXML equivalent");
+                continue;
+            }
+            String value = literal(run, node, key, entry.getValue()).trim();
+            if (key.equals(grow)) {
+                c.grow.put(grow, convert(run, node, null, null, grow, new Attr(grow, Conv.LOWER), value));
+            } else if (key.equals(align)) {
+                c.align.put(align, value);
+            } else if (key.equals(pref) || key.equals(min)) {
+                if ("-Infinity".equals(value)) {
+                    value = "USE_PREF_SIZE";
+                }
+                String size = size(run, node, key, key.equals(pref) ? Conv.SIZE : Conv.SIZE_MIN, value);
+                if (size != null) {
+                    c.size.put(key, size);
+                }
+            } else if (key.equals(max)) {
+                if (size(run, node, key, Conv.SIZE_MAX, value) != null) {
+                    throw run.error(node.line, "attribute " + key + "=\"" + value + "\" of <" + cls + "> has no JXML equivalent: "
+                            + "a cell can be given a maximum size but the column is not limited by it");
+                }
+            } else if (key.equals(percent)) {
+                double p;
+                try {
+                    p = Double.parseDouble(value);
+                } catch (NumberFormatException e) {
+                    throw run.error(node.line, key + "=\"" + value + "\" is not a number");
+                }
+                if (p >= 0) {
+                    throw run.error(node.line, "attribute " + key + "=\"" + value + "\" of <" + cls + "> has no JXML equivalent: "
+                            + "JXML has no share of the grid for a column; use " + pref + " or " + grow + "=\"ALWAYS\"");
+                }
+            } else if (key.equals(fill)) {
+                if (!"true".equalsIgnoreCase(value)) {
+                    throw run.error(node.line, "attribute " + key + "=\"" + value + "\" of <" + cls + "> has no JXML equivalent: "
+                            + "the cells of a Grid always fill their column");
+                }
+            } else {
+                throw run.error(node.line, "attribute " + key + " of <" + cls + "> has no JXML equivalent");
+            }
+        }
+        return c;
+    }
+
+    /**
+     * Writes the constraints of the GridPane on its cells: JXML sets {@code hgrow}, {@code vgrow}, {@code halignment},
+     * {@code valignment}, {@code prefWidth}/{@code minWidth} and {@code prefHeight}/{@code minHeight} on a cell, and
+     * the grid reads them from the cells that sit in only one column (row). The constraint of the column wins over the
+     * cell for the grow priority and the sizes (as in JavaFX), the cell's own alignment wins over the column's.
+     */
+    private static void constraints(Run run, JxmlParser.Node out, Pending pending) {
+        apply(run, out, pending.columnConstraints, true);
+        apply(run, out, pending.rowConstraints, false);
+    }
+
+    private static void apply(Run run, JxmlParser.Node out, List<Constraint> list, boolean columns) {
+        String cls = columns ? "ColumnConstraints" : "RowConstraints";
+        String place = columns ? "column" : "row";
+        String span = columns ? "columnSpan" : "rowSpan";
+        for (int i = 0; i < list.size(); i++) {
+            Constraint c = list.get(i);
+            List<JxmlParser.Node> cells = new ArrayList<JxmlParser.Node>();
+            for (JxmlParser.Node child : out.children) {
+                if (!"ContextMenu".equals(child.tag) && intAttribute(child, place, 0) == i && intAttribute(child, span, 1) == 1) {
+                    cells.add(child);
+                }
+            }
+            if (cells.isEmpty()) {
+                if (c.needsCells()) {
+                    throw run.error(c.line, "<" + cls + "> number " + (i + 1) + " (" + place + " " + i + ") sets " + describe(c)
+                            + ", but no cell of the <GridPane> sits only in " + place + " " + i + ": JXML sets these on the cells, "
+                            + "not on the " + place);
+                }
+                continue;
+            }
+            for (JxmlParser.Node cell : cells) {
+                cell.attrs.putAll(c.grow);
+                for (Map.Entry<String, String> a : c.align.entrySet()) {
+                    if (!cell.attrs.containsKey(a.getKey())) {
+                        cell.attrs.put(a.getKey(), a.getValue());
+                    }
+                }
+                cell.attrs.putAll(c.size);
+            }
+            if (!c.size.isEmpty()) {
+                run.warn(c.line, "<" + cls + "> number " + (i + 1) + " sets " + c.size + ": JXML sizes cells, so it is written on "
+                        + "the " + cells.size() + " cell(s) of " + place + " " + i + ". A cell that does not fill its " + place
+                        + " in JavaFX (a Button, a CheckBox) becomes as large as the " + place + " here; set it on the cells that "
+                        + "should have it");
+            }
+        }
+    }
+
+    private static String describe(Constraint c) {
+        Map<String, String> all = new LinkedHashMap<String, String>();
+        all.putAll(c.grow);
+        all.putAll(c.align);
+        all.putAll(c.size);
+        return all.toString();
+    }
+
+    private static int intAttribute(JxmlParser.Node node, String name, int fallback) {
+        String value = node.attrs.get(name);
+        if (value == null) {
+            return fallback;
+        }
+        try {
+            return Integer.parseInt(value.trim());
+        } catch (NumberFormatException e) {
+            return fallback;
+        }
+    }
+
     // ---- fx: elements -----------------------------------------------------------------------------
 
     private static JxmlParser.Node fxElement(Run run, JxmlParser.Node raw, String parentClass) {
@@ -801,6 +1058,10 @@ final class FxmlTranslator {
             } else if ("fx:id".equals(name)) {
                 run.warn(raw.line, "fx:id=\"" + entry.getValue() + "\" on <fx:include> has no JXML equivalent: the controller of the "
                         + "included file is not given to this controller");
+            } else if ("resources".equals(name)) {
+                throw run.error(raw.line, "attribute resources=\"" + entry.getValue() + "\" of <fx:include> has no JXML equivalent: "
+                        + "the texts of every screen come from the one set of l10n files (src/main/l10n), through %key in a text "
+                        + "attribute; remove it");
             } else if (STATIC.containsKey(name)) {
                 Attr attr = STATIC.get(name);
                 if (!name.substring(0, name.indexOf('.')).equals(parentClass)) {

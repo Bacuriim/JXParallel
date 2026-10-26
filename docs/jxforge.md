@@ -147,16 +147,25 @@ error points at the FXML line.
 | `<Insets>`, `padding="8"`, `<padding>`; `disable`, `promptText`, `visible="false"`, `id`, `styleClass`, `fx:include` | `padding`, `disabled`, `prompt`, `hidden`, `key`, `style`, `<Include>` |
 
 What has no equivalent is **refused with the file and line**, never translated partly: `fx:define`, `fx:script`, FXML `${}` expressions, `fx:reference`,
-`fx:copy`, `fx:factory`, `fx:value`, `fx:constant`, custom or unmapped classes, `stylesheets`, `columnConstraints`, `managed="false"`, `USE_PREF_SIZE`, and
-any attribute the target tag lacks (the message names the attribute and the tag). `onAction` is translated only where it means "clicked"
-(buttons, check and radio boxes, hyperlinks, menu items); on a `TextField` or `ComboBox` it means something else in JavaFX and is refused.
+`fx:copy`, `fx:factory`, `fx:value`, `fx:constant`, `fx:root` (the message explains the custom-component pattern and what to write instead), custom or
+unmapped classes, `stylesheets`, `managed="false"`, `USE_PREF_SIZE`, and any attribute the target tag lacks (the message names the attribute and the tag).
+`onAction` is translated only where it means "clicked" (buttons, check and radio boxes, hyperlinks, menu items); on a `TextField` or `ComboBox` it means
+something else in JavaFX and is refused.
+
+- `ColumnConstraints` / `RowConstraints` are written onto the cells of their column or row (`hgrow`, `vgrow`, alignments, `prefWidth`/`minWidth`,
+  `prefHeight`/`minHeight`; the cell's own alignment wins). `percentWidth`/`percentHeight`, `maxWidth`/`maxHeight`, `fillWidth="false"` and a constraint of a
+  column with no cell are refused: the JXML `Grid` has no `columns`/`rows` attribute for them yet, although the renderer could lay them out.
+- A `ContextMenu` (the `contextMenu` property) is mapped on `VBox`, `HBox`, `StackPane`, `Pane`, `AnchorPane`, `FlowPane` and `TilePane`, where JXML opens it
+  on a secondary press of the parent; on a leaf control it is refused with the advice to wrap the control in a `StackPane` (an automatic wrapper would change
+  its size).
+- A `Tooltip` is refused: JXML would draw it as a permanent box, because the renderer does not report hover over a control.
 
 The controllers need a look, and JXForge says what, as **warnings** (listed on every compile): each `fx:id` (JXML has no injected fields: the screen
 reads the controller with `${}`) and each handler (`#save` calls `save()` with no arguments, while JavaFX handlers often take an `ActionEvent`; `javac`
-fails on those). A `ListView` or `TableView` needs its `fx:id`, which becomes `items="${<id>}"` (the controller exposes `get<Id>()`); the cells of a
+fails on those; the warning prints the exact no-argument method to add, and says why a bridge that passes `null` is wrong). A `ListView` or `TableView` needs its `fx:id`, which becomes `items="${<id>}"` (the controller exposes `get<Id>()`); the cells of a
 table column show the row itself until you edit them. `styleClass` works if an included `.jxml` part defines the `<Style>`.
 
-To migrate by hand, `java -cp ... com.jxparallel.forge.JXForge --fxml-to-jxml screen.fxml [screen.jxml]` prints the translation as `.jxml`.
+To migrate by hand, `java -cp ... com.jxparallel.forge.JXForge --fxml-to-jxml screen.fxml [screen.jxml]` prints the translation as `.jxml`; with `--l10n <dir>` the `%key` texts print as `%{key}` and are checked against the translations.
 The 20 form screens of the FXML benchmark (`jxparallel-examples/src/main/resources/fxmlbench`) all translate, compile and build their tree.
 
 ## Translations
@@ -189,14 +198,19 @@ The build generates `<package>.Strings`, a final class with one typed static met
 `itemCount(int count)`; `double`/`num` are `double`, `DateTime` is `java.util.Date`), and the screens call it directly, so `javac` checks them.
 Keys with `.` or `-` give methods with `_` (`app.menu-save` is `app_menu_save()`). The locale is chosen at runtime, with the fallback `pt_BR` → `pt` →
 default: `Strings.setLocale(Locale)`, `Strings.locale()`, `Strings.supported()`, and `Strings.onLocaleChange(Runnable)` so the application rebuilds its screens.
-The message syntax is the ICU subset Flutter uses (`plural` with `=N` and `zero|one|two|few|many|other` by the rules of en, es, pt and fr, `select`, nesting,
-`#`, `'` quoting); Android `%1$s`/`%d` and `<plurals>` read into the same model (format flags and widths are dropped).
+The message syntax is the ICU subset Flutter uses: `plural` with `=N`, `offset:N` and `zero|one|two|few|many|other` by the CLDR cardinal rules of en, es,
+pt, fr, it, de, nl, sv, nb, fi, et, el, hu, bg, tr, hi, ru, uk, pl, cs, sk, ar and he (ja, zh, ko, vi, th and id have only `other`); `selectordinal`
+(English categories; other languages `other`); `select`; nesting; `#`; `'` quoting; and `{n, number[, integer|percent|currency|pattern]}`,
+`{d, date|time[, short|medium|long|full|pattern]}` formatted with the current locale. Android `%1$s`/`%d`, `<plurals>` and `<string-array>` read into the same
+model (format flags and widths are dropped; an array item `days[1]` is its own key, and `Strings` also gets `String[] days()` when no item takes arguments).
+`--l10n-to-android <l10nDir> <resDir>` writes the files back as `strings.xml` (what Android cannot express, such as `select`, is left out with a warning).
 
 Checked at build time, with the line of the attribute: a key a screen uses that the default locale lacks, the wrong number or kind of arguments (text where
 `int` is declared), a plural or select without `other`, a duplicate key, a placeholder that differs between locales. **A key that a locale lacks (or has
 extra) is a warning** listed on every compile and written to `l10n-missing.txt` (like Flutter's untranslated-messages file); with `l10nStrict` it is an error.
-A `%{}` is never hoisted as a constant (the text depends on the locale) and cannot be inside a `<For memo>`; `Tab title` is not bindable, so it cannot be
-translated. In `.fxml` the bundle syntax `%key` on a text attribute is the same as `%{key}`.
+A `%{}` is never hoisted as a constant (the text depends on the locale) and cannot be inside a `<For memo>`. `Tab title` takes `%{}` and `${}`. In `.fxml` the
+bundle syntax `%key` is the same as `%{key}` on text attributes, `TableColumn` text, `Tab` text and `promptText`; it is refused where it cannot change with
+the locale (insets, include `source`, sizes). `JxmlLiveView.open(file, l10nDir)` reloads the screen when a translation file changes and keeps its locale.
 
 ```powershell
 java -cp ... com.jxparallel.forge.JXForge --l10n-init src/main/l10n en pt pt_BR              # sample ARB files
@@ -780,14 +794,12 @@ JXML screen with `new XView().build(controller)`, and JXML places a Java compone
 - Shadows (for `Card`) and the Material look of the bars: they are rows with a background.
 - A `ListView` with columns, and rows of different heights.
 - Selection in text inputs.
-- Keyboard navigation and hover in the popups and menus (see [Overlays](#overlays)), and a recursive model for `Tree`
-  (see [Trees](#trees)).
+- A recursive model for `Tree` (see [Trees](#trees)).
 - `<For>` over a `Map`, and the loop index as a variable.
 - An XSD for autocompletion in IDEs.
-- Translations: `<string-array>`, ICU `offset`, `selectordinal` and number/date styles, plural rules of other languages, a catalog in `JxmlLiveView`,
-  and `%key` in FXML `TableColumn` text, insets and include attributes. Converting back from ARB to `strings.xml`.
-- FXML: `ContextMenu`, `Tooltip`, `ColumnConstraints`, `fx:root`, and a catalog for `--fxml-to-jxml`.
-- The Gradle plugin logs the removed screens only once the forge jar it resolves is the new one.
-- A mobile backend (Android `Canvas` behind `JXPainter`): not started, see the README.
+- A `columns`/`rows` attribute on `Grid` (percent and maximum sizes), which would let FXML `ColumnConstraints` map exactly; `Tooltip` on hover; a
+  `ContextMenu` on a leaf control.
+- Updating a node directly from a changed binding, without rebuilding its element: the only way for a one-value update of thousands of tiny
+  controls to allocate as little as a JavaFX setter (see [jxforge-optimizations-2026-10-21.md](jxforge-optimizations-2026-10-21.md)).
 
 Measurements: [jxforge-benchmark-2026-10-21.md](jxforge-benchmark-2026-10-21.md) (20 form screens: compiled, interpreted, FXML) and [jxforge-components-benchmark-2026-10-21.md](jxforge-components-benchmark-2026-10-21.md) (every component one by one, against JavaFX).

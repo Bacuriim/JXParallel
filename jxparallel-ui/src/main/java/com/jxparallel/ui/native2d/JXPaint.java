@@ -198,13 +198,18 @@ final class JXPaint {
         if (node.getChildren().isEmpty()) {
             return true;
         }
-        float[] reach = {top, bottom};
-        reach(node, reach);
-        return reach[1] + CULL_MARGIN < clipTop || reach[0] - CULL_MARGIN > clipBottom;
+        reachTop = top;
+        reachBottom = bottom;
+        reach(node);
+        return reachBottom + CULL_MARGIN < clipTop || reachTop - CULL_MARGIN > clipBottom;
     }
 
-    /** Widens {@code range} (top, bottom) to what the children of {@code node} paint, as {@link #children} paints them. */
-    private static void reach(JXNativeNode node, float[] range) {
+    /** What {@link #reach} has found so far (top, bottom): fields, so that a test of a node makes no array. */
+    private float reachTop;
+    private float reachBottom;
+
+    /** Widens {@code reachTop}/{@code reachBottom} to what the children of {@code node} paint, as {@link #children} paints them. */
+    private void reach(JXNativeNode node) {
         String type = node.getType();
         if (node.collapsed() || node.overlayContent || scrolls(type) || "textarea".equals(type)
                 || Boolean.TRUE.equals(node.getProperty("clip"))) {
@@ -216,9 +221,9 @@ final class JXPaint {
             if (kid.floatingNode) {
                 continue; // painted over the window by the overlay pass, not in place
             }
-            range[0] = Math.min(range[0], Math.min(kid.getY(), kid.getY() + kid.getHeight()));
-            range[1] = Math.max(range[1], Math.max(kid.getY(), kid.getY() + kid.getHeight()));
-            reach(kid, range);
+            reachTop = Math.min(reachTop, Math.min(kid.getY(), kid.getY() + kid.getHeight()));
+            reachBottom = Math.max(reachBottom, Math.max(kid.getY(), kid.getY() + kid.getHeight()));
+            reach(kid);
         }
     }
 
@@ -263,6 +268,9 @@ final class JXPaint {
         after(node);
     }
 
+    /** Corner radius of the border of a scroll pane, list or table. */
+    private static final float CONTAINER_RADIUS = 4;
+
     /** Parts drawn over the children: scroll bars, table header, focus rings. */
     private void after(JXNativeNode node) {
         String type = node.getType();
@@ -271,6 +279,12 @@ final class JXPaint {
         }
         if ("table".equals(type)) {
             tableHeader(node);
+        }
+        if (scrolls(type)) {
+            // the border of the container: rounded, over the rows (which are clipped to the 1 px inside it)
+            boolean focused = !"scroll".equals(type) && Boolean.TRUE.equals(node.getProperty("focused"));
+            p.strokeRoundRect(node.getX(), node.getY(), node.getWidth(), node.getHeight(), CONTAINER_RADIUS, 1,
+                    focused ? theme().primary : theme().outlineVariant);
         }
         if ("badge".equals(type)) {
             badgeMark(node);
@@ -298,6 +312,9 @@ final class JXPaint {
                 content = t.onPrimary;
                 break;
             case "tonal":
+                if (!disabled && Boolean.TRUE.equals(node.getProperty("hover")) && !Boolean.TRUE.equals(node.getProperty("pressed"))) {
+                    elevation(p, fx, fy, fw, fh, r, 1); // M3: a tonal button rises to level 1 under the pointer, back to 0 pressed
+                }
                 p.fillRoundRect(fx, fy, fw, fh, r, disabled ? disabledContainer(t) : t.secondaryContainer);
                 content = t.onPrimaryContainer;
                 break;
@@ -702,13 +719,9 @@ final class JXPaint {
                 titled(node, x, y, w, h);
                 break;
             case "scroll":
-                p.fillRect(x, y, w, h, theme().outlineVariant);
-                p.fillRect(x + 1, y + 1, w - 2, h - 2, theme().surface);
-                break;
             case "list":
             case "table":
-                p.fillRect(x, y, w, h, Boolean.TRUE.equals(node.getProperty("focused")) ? theme().primary : theme().outlineVariant);
-                p.fillRect(x + 1, y + 1, w - 2, h - 2, theme().surface);
+                p.fillRoundRect(x, y, w, h, CONTAINER_RADIUS, theme().surface); // the 1 px border is drawn over the rows: after()
                 break;
             case "cell":
                 cell(node, x, y, w, h);
@@ -1020,14 +1033,21 @@ final class JXPaint {
         float top = y + Math.round((h - s) / 2);
         boolean on = Boolean.TRUE.equals(node.getProperty("checked"));
         int layer = pointerLayer(node);
-        if (layer > 0) {
-            p.fillOval(x + s / 2 - 11, top + s / 2 - 11, 22, 22, JXTheme.withAlpha(on ? t.primary : t.onSurface, layer));
+        if (layer > 0) { // a 20 px disc, 2 px beyond the circle: the label, 5 px away, keeps 3
+            p.fillOval(x + s / 2 - 10, top + s / 2 - 10, 20, 20, JXTheme.withAlpha(on ? t.primary : t.onSurface, layer));
         }
-        p.strokeOval(x, top, s, s, 2, on ? t.primary : Boolean.TRUE.equals(node.getProperty("hover")) ? t.onSurface : t.onSurfaceVariant);
+        // Focused: the ring sits on the edge of the 16 px box and the circle and its dot shrink inside it, so that nothing
+        // passes the box and the label keeps all of its CHECK_GAP (the ring used to end 3 px beyond, 2 px from the label)
+        boolean focused = Boolean.TRUE.equals(node.getProperty("focused"));
+        float in = focused ? 2 : 0;
+        p.strokeOval(x + in, top + in, s - 2 * in, s - 2 * in, 2,
+                on ? t.primary : Boolean.TRUE.equals(node.getProperty("hover")) ? t.onSurface : t.onSurfaceVariant);
         if (on) {
-            p.fillOval(x + 4, top + 4, s - 8, s - 8, t.primary);
+            p.fillOval(x + in + 4, top + in + 4, s - 2 * in - 8, s - 2 * in - 8, t.primary);
         }
-        focusRing(node, x, top, s, s, s / 2);
+        if (focused) {
+            p.strokeOval(x, top, s, s, 1.5f, t.primary);
+        }
         drawText(node, text(node, "label"), x + JXNativeNode.CHECK_BOX + JXNativeNode.CHECK_GAP, y, h, color(node, t.onSurface),
                 Boolean.TRUE.equals(node.getProperty("underline")));
     }

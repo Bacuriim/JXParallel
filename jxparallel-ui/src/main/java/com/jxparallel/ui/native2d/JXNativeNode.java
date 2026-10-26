@@ -126,6 +126,13 @@ public final class JXNativeNode {
     long shownAt;
     /** Geometry the overlay pass computed for this node's popup or menus, null while it is not open. */
     Object overlayState;
+    /**
+     * The highlighted row of the open popup or menus (see {@link JXOverlays#hover} and {@link JXOverlays#key}): an
+     * Integer, the index of a cell of a list or grid popup; the row node of a menu; the LocalDate of a calendar's day.
+     * Null while nothing is, and whenever the overlay closes. {@code hotKey}: it was put there by the keyboard.
+     */
+    Object hot;
+    boolean hotKey;
     /** This node is a titled pane's content. */
     private boolean titledContent;
     private Map<String, Object> props;
@@ -378,8 +385,20 @@ public final class JXNativeNode {
     }
 
     /**
-     * A key went down while {@code focused} (may be null) has the focus: Escape closes the topmost open overlay, Enter
-     * runs the default button of an open dialog (or closes an open popup); otherwise the focused node gets the key.
+     * The pointer is at (x, y) without a button: the row of the topmost open popup or menu under it is the highlighted
+     * one (a row that is none clears the highlight the pointer set; one the keyboard set stays). True when what is
+     * highlighted changed, so the window draws again. {@code (-1, -1)} is a pointer that left the window.
+     */
+    public boolean routeHover(int x, int y) {
+        return JXOverlays.hover(this, x, y);
+    }
+
+    /**
+     * A key went down while {@code focused} (may be null) has the focus: Escape closes the topmost open overlay; in an
+     * open popup or menu Up, Down, Home, End (Page Up and Page Down) move the highlighted row, Enter picks it, Left and
+     * Right move in a grid and open and close the submenus of a menu and move along the titles of a menu bar; Enter runs
+     * the default button of an open dialog (or closes an open popup with no highlighted row); otherwise the focused node
+     * gets the key.
      */
     public void routeKey(JXKeyEvent event, JXNativeNode focused) {
         JXOverlays.key(this, event, focused);
@@ -469,8 +488,26 @@ public final class JXNativeNode {
     private int outcome(boolean relayout, boolean subtree, boolean placement) {
         if (relayout) {
             double[] old = sizes;
-            invalidateLayout();
-            boolean sameSize = old != null && Arrays.equals(old, sizes());
+            boolean sameSize;
+            if (old != null && old.length == 6) {
+                // the new sizes are written into the old array when the node kind allows it (sizes6): the old values
+                // are kept in locals for the comparison, and the relayout makes no array
+                double a = old[0];
+                double b = old[1];
+                double c = old[2];
+                double d = old[3];
+                double e = old[4];
+                double f = old[5];
+                spare = old;
+                invalidateLayout();
+                double[] now = sizes();
+                spare = null;
+                sameSize = now.length == 6 && same(a, now[0]) && same(b, now[1]) && same(c, now[2]) && same(d, now[3])
+                        && same(e, now[4]) && same(f, now[5]);
+            } else {
+                invalidateLayout();
+                sameSize = old != null && Arrays.equals(old, sizes());
+            }
             return placement || !sameSize ? RESIZED : SUBTREE;
         }
         if (subtree) {
@@ -618,6 +655,31 @@ public final class JXNativeNode {
     public void invalidateLayout() {
         layoutDirty = true;
         sizes = null;
+    }
+
+    /** The array of sizes this node had before {@link #outcome} asked for them again: written over by {@link #sizes6}. */
+    private double[] spare;
+
+    /** {min, pref, max} width then height as one array: the node's previous one when the relayout of {@link #outcome} left it. */
+    double[] sizes6(double minW, double prefW, double maxW, double minH, double prefH, double maxH) {
+        double[] out = spare;
+        if (out == null) {
+            out = new double[6];
+        } else {
+            spare = null;
+        }
+        out[0] = minW;
+        out[1] = prefW;
+        out[2] = maxW;
+        out[3] = minH;
+        out[4] = prefH;
+        out[5] = maxH;
+        return out;
+    }
+
+    /** Equal as {@code Arrays.equals} sees doubles (NaN equals NaN, 0.0 is not -0.0). */
+    private static boolean same(double a, double b) {
+        return Double.doubleToLongBits(a) == Double.doubleToLongBits(b);
     }
 
     public boolean contains(int px, int py) {
@@ -1229,23 +1291,23 @@ public final class JXNativeNode {
             return new double[] {w, w, w, h, h, h};
         }
         if ("progress".equals(type)) {
-            return new double[] {0, 100, 100, 0, 1.5 * size, 1.5 * size};
+            return sizes6(0, 100, 100, 0, 1.5 * size, 1.5 * size);
         }
         if ("slider".equals(type)) {
             double h = 14 * size / 12;
-            return new double[] {42, 140, MAX, h, h, h};
+            return sizes6(42, 140, MAX, h, h, h);
         }
         if ("separator".equals(type)) {
             if (vertical()) {
                 double w = SEPARATOR_THICKNESS_V;
-                return new double[] {w, w, w, SEPARATOR_MIN_LENGTH, SEPARATOR_MIN_LENGTH, MAX};
+                return sizes6(w, w, w, SEPARATOR_MIN_LENGTH, SEPARATOR_MIN_LENGTH, MAX);
             }
             double h = SEPARATOR_THICKNESS_H;
-            return new double[] {SEPARATOR_MIN_LENGTH, SEPARATOR_MIN_LENGTH, MAX, h, h, h};
+            return sizes6(SEPARATOR_MIN_LENGTH, SEPARATOR_MIN_LENGTH, MAX, h, h, h);
         }
         double w = padding[1] + padding[3];
         double h = padding[0] + padding[2];
-        return new double[] {w, w, MAX, h, h, MAX}; // like an empty Region: its padding
+        return sizes6(w, w, MAX, h, h, MAX); // like an empty Region: its padding
     }
 
     private double number(String name, double fallback) {
@@ -1254,7 +1316,7 @@ public final class JXNativeNode {
     }
 
     /** Labeled: max = pref; the width can shrink to an ellipsis, like JavaFX's Labeled. */
-    private static double[] labeled(double textWidth, double extraWidth, double height, boolean bold, float size) {
+    private double[] labeled(double textWidth, double extraWidth, double height, boolean bold, float size) {
         double ellipsis = ellipsisWidth;
         if (bold || size != JXTextEngine.DEFAULT_SIZE) {
             ellipsis = JXTextEngine.get(bold).width("...", size);
@@ -1263,7 +1325,7 @@ public final class JXNativeNode {
             ellipsisWidth = ellipsis;
         }
         double pref = textWidth + extraWidth;
-        return new double[] {Math.min(textWidth, ellipsis) + extraWidth, pref, pref, height, height, height};
+        return sizes6(Math.min(textWidth, ellipsis) + extraWidth, pref, pref, height, height, height);
     }
 
     private String string(String name) {

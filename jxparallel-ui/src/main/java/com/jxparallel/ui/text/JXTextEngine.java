@@ -3,24 +3,6 @@ package com.jxparallel.ui.text;
 import java.io.File;
 import java.util.concurrent.ConcurrentHashMap;
 
-import org.lwjgl.system.MemoryStack;
-import org.lwjgl.util.harfbuzz.hb_font_extents_t;
-import org.lwjgl.util.harfbuzz.hb_glyph_position_t;
-
-import static org.lwjgl.util.harfbuzz.HarfBuzz.hb_blob_create_from_file;
-import static org.lwjgl.util.harfbuzz.HarfBuzz.hb_blob_destroy;
-import static org.lwjgl.util.harfbuzz.HarfBuzz.hb_buffer_add_utf16;
-import static org.lwjgl.util.harfbuzz.HarfBuzz.hb_buffer_create;
-import static org.lwjgl.util.harfbuzz.HarfBuzz.hb_buffer_destroy;
-import static org.lwjgl.util.harfbuzz.HarfBuzz.hb_buffer_get_glyph_positions;
-import static org.lwjgl.util.harfbuzz.HarfBuzz.hb_buffer_guess_segment_properties;
-import static org.lwjgl.util.harfbuzz.HarfBuzz.hb_face_create;
-import static org.lwjgl.util.harfbuzz.HarfBuzz.hb_face_get_upem;
-import static org.lwjgl.util.harfbuzz.HarfBuzz.hb_font_create;
-import static org.lwjgl.util.harfbuzz.HarfBuzz.hb_font_get_h_extents;
-import static org.lwjgl.util.harfbuzz.HarfBuzz.hb_font_set_scale;
-import static org.lwjgl.util.harfbuzz.HarfBuzz.hb_shape;
-
 /**
  * Measures text with HarfBuzz (kerning, ligatures, complex scripts) from the font file both
  * renderers draw with. CPU only: no window or GPU, and the same numbers on 32-bit and 64-bit JVMs,
@@ -57,7 +39,8 @@ public final class JXTextEngine {
     private final ConcurrentHashMap<String, Integer> advances = new ConcurrentHashMap<String, Integer>();
 
     private final String fontFile;
-    private final long font;
+    /** The HarfBuzz font, or null when sizes come from the host's {@link LineMetrics} or are estimated. */
+    private final JXHarfBuzz harfBuzz;
     private final int unitsPerEm;
     private final int ascender;
     private final int descender;
@@ -66,7 +49,7 @@ public final class JXTextEngine {
     /** Fallback without a font file: fixed-width estimate, so layout still works (and warns). */
     private JXTextEngine() {
         fontFile = null;
-        font = 0L;
+        harfBuzz = null;
         unitsPerEm = 1000;
         ascender = 800;
         descender = 200;
@@ -75,19 +58,11 @@ public final class JXTextEngine {
 
     private JXTextEngine(String fontFile) {
         this.fontFile = fontFile;
-        long blob = hb_blob_create_from_file(fontFile);
-        long face = hb_face_create(blob, 0);
-        hb_blob_destroy(blob); // the face keeps its own reference
-        unitsPerEm = hb_face_get_upem(face);
-        font = hb_font_create(face); // the font keeps the face; neither is freed, one per process
-        hb_font_set_scale(font, unitsPerEm, unitsPerEm);
-        try (MemoryStack stack = MemoryStack.stackPush()) {
-            hb_font_extents_t extents = hb_font_extents_t.malloc(stack);
-            hb_font_get_h_extents(font, extents);
-            ascender = extents.ascender();
-            descender = -extents.descender();
-            lineGap = extents.line_gap();
-        }
+        harfBuzz = new JXHarfBuzz(fontFile);
+        unitsPerEm = harfBuzz.unitsPerEm;
+        ascender = harfBuzz.ascender;
+        descender = harfBuzz.descender;
+        lineGap = harfBuzz.lineGap;
     }
 
     /**
@@ -102,7 +77,7 @@ public final class JXTextEngine {
                 if (engine == null) {
                     String file = findFontFile();
                     if (file == null) {
-                        System.err.println("JXParallel: no TrueType font found, text sizes are estimated; "
+                        if (lineMetrics == null) System.err.println("JXParallel: no TrueType font found, text sizes are estimated; "
                                 + "set -Djx.font=<path to .ttf>");
                         engine = new JXTextEngine();
                     } else {
@@ -126,8 +101,13 @@ public final class JXTextEngine {
                 engine = boldInstance;
                 if (engine == null) {
                     String file = findBoldFontFile();
-                    engine = file == null || get().getFontFile() == null ? get() : new JXTextEngine(file);
-                    if (engine != get()) {
+                    if (get().getFontFile() == null && lineMetrics != null) {
+                        engine = new JXTextEngine(); // a host measures text (Android): it also tells bold from regular
+                        engine.bold = true;
+                    } else {
+                        engine = file == null || get().getFontFile() == null ? get() : new JXTextEngine(file);
+                    }
+                    if (engine != get() && !engine.bold) {
                         engine.bold = true;
                     }
                     boldInstance = engine;
@@ -179,7 +159,7 @@ public final class JXTextEngine {
             return 0.0f;
         }
         LineMetrics metrics = lineMetrics;
-        if (metrics != null && (bold || size != DEFAULT_SIZE)) {
+        if (metrics != null && (bold || size != DEFAULT_SIZE || harfBuzz == null)) {
             // hinted advances drift from the scaled ones away from the default size: ask the host
             String key = size + "|" + text;
             Float known = measuredWidths.get(key);
@@ -197,13 +177,13 @@ public final class JXTextEngine {
                 return known;
             }
         }
-        if (font == 0L) {
+        if (harfBuzz == null) {
             return text.codePointCount(0, text.length()) * 0.6f * size;
         }
         // Unhinted advances scale linearly with size, so one entry per text serves every size.
         Integer units = advances.get(text);
         if (units == null) {
-            units = shapeAdvance(text);
+            units = harfBuzz.shapeAdvance(text);
             if (advances.size() >= MAX_CACHED) {
                 advances.clear(); // ponytail: crude eviction, an LRU if big apps thrash it
             }
@@ -220,13 +200,13 @@ public final class JXTextEngine {
      * For renderers that rasterize the glyphs themselves (the software renderer).
      */
     public int glyphs(String text, float size, Object[] out) {
-        if (font == 0L || text == null || text.isEmpty()) {
+        if (harfBuzz == null || text == null || text.isEmpty()) {
             return 0;
         }
         // Shaped once per text, in font units (unhinted: they scale with the size), as the advances.
         int[] run = runs.get(text);
         if (run == null) {
-            run = shapeRun(text);
+            run = harfBuzz.shapeRun(text);
             if (runs.size() >= MAX_CACHED) {
                 runs.clear();
             }
@@ -250,48 +230,6 @@ public final class JXTextEngine {
 
     /** Glyph id, pen x and y (y down) in font units, per glyph. */
     private final ConcurrentHashMap<String, int[]> runs = new ConcurrentHashMap<String, int[]>();
-
-    private int[] shapeRun(String text) {
-        long buffer = hb_buffer_create();
-        try {
-            hb_buffer_add_utf16(buffer, text, 0, -1);
-            hb_buffer_guess_segment_properties(buffer);
-            hb_shape(font, buffer, null);
-            org.lwjgl.util.harfbuzz.hb_glyph_info_t.Buffer infos = org.lwjgl.util.harfbuzz.HarfBuzz.hb_buffer_get_glyph_infos(buffer);
-            hb_glyph_position_t.Buffer positions = hb_buffer_get_glyph_positions(buffer);
-            int n = infos == null || positions == null ? 0 : Math.min(infos.remaining(), positions.remaining());
-            int[] run = new int[3 * n];
-            int pen = 0;
-            for (int i = 0; i < n; i++) {
-                hb_glyph_position_t p = positions.get(i);
-                run[3 * i] = infos.get(i).codepoint(); // after hb_shape, the glyph id
-                run[3 * i + 1] = pen + p.x_offset();
-                run[3 * i + 2] = -p.y_offset();
-                pen += p.x_advance();
-            }
-            return run;
-        } finally {
-            hb_buffer_destroy(buffer);
-        }
-    }
-
-    /** Total advance of the shaped text in font units. */
-    private int shapeAdvance(String text) {
-        long buffer = hb_buffer_create();
-        try {
-            hb_buffer_add_utf16(buffer, text, 0, -1);
-            hb_buffer_guess_segment_properties(buffer);
-            hb_shape(font, buffer, null);
-            hb_glyph_position_t.Buffer positions = hb_buffer_get_glyph_positions(buffer);
-            int advance = 0;
-            for (int i = 0; positions != null && i < positions.remaining(); i++) {
-                advance += positions.get(i).x_advance();
-            }
-            return advance;
-        } finally {
-            hb_buffer_destroy(buffer);
-        }
-    }
 
     /** Distance from the top of a line to the baseline. */
     public float ascent(float size) {

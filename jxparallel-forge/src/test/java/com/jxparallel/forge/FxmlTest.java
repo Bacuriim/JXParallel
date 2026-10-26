@@ -209,6 +209,14 @@ class FxmlTest {
             + "Menu{text=Edit}]"},
         {"<MenuButton text=\"Actions\"><items><MenuItem text=\"Open\"/></items><MenuItem text=\"Quit\"/></MenuButton>",
             "MenuButton{text=Actions}[MenuItem{text=Open},MenuItem{text=Quit}]"},
+        {"<StackPane><contextMenu><ContextMenu><items><MenuItem text=\"Cut\"/></items><SeparatorMenuItem/></ContextMenu></contextMenu>"
+            + "<Label text=\"a\"/></StackPane>",
+            "Stack[Label{text=a},ContextMenu[MenuItem{text=Cut},MenuItem{separator=true}]]"},
+        {"<GridPane><columnConstraints><ColumnConstraints hgrow=\"ALWAYS\" halignment=\"CENTER\" prefWidth=\"80\" minWidth=\"10\"/>"
+            + "</columnConstraints><rowConstraints><RowConstraints vgrow=\"SOMETIMES\" valignment=\"TOP\" prefHeight=\"30\"/></rowConstraints>"
+            + "<Label text=\"a\"/><Label text=\"b\" GridPane.columnIndex=\"1\"/></GridPane>",
+            "Grid[Label{text=a,hgrow=always,halignment=CENTER,prefWidth=80,minWidth=10,vgrow=sometimes,valignment=TOP,prefHeight=30},"
+            + "Label{text=b,column=1,vgrow=sometimes,valignment=TOP,prefHeight=30}]"},
     };
 
     @Test
@@ -303,7 +311,7 @@ class FxmlTest {
         refused("<com.acme.Widget/>", "custom class", "com.acme.Widget");
         refused("<Label><stylesheets><String fx:value=\"a.css\"/></stylesheets></Label>", "stylesheets");
         refused("<Label stylesheets=\"a.css\"/>", "stylesheets", "Label");
-        refused("<GridPane><columnConstraints><ColumnConstraints/></columnConstraints></GridPane>", "columnConstraints", "GridPane");
+        refused("<GridPane><columnConstraints><ColumnConstraints percentWidth=\"50\"/></columnConstraints></GridPane>", "percentWidth", "ColumnConstraints");
         refused("<Label><contextMenu/></Label>", "contextMenu");
         refused("<BorderPane><Label text=\"x\"/></BorderPane>", "BorderPane", "top");
         refused("<Label>text</Label>", "text content");
@@ -359,6 +367,126 @@ class FxmlTest {
         assertTrue(e.getMessage().startsWith("t.fxml:1: ") && e.getMessage().contains("fx:root"), e.getMessage());
         e = error("<top/>");
         assertEquals(1, e.getLine());
+    }
+
+    @Test
+    void fxRootIsRefusedWithTheCustomComponentPatternExplained() {
+        JxmlException e = error("<fx:root type=\"javafx.scene.layout.VBox\" xmlns:fx=\"http://javafx.com/fxml\"/>");
+        assertEquals(1, e.getLine());
+        assertTrue(e.getMessage().startsWith("t.fxml:1: fx:root has no JXML equivalent"), e.getMessage());
+        assertTrue(e.getMessage().contains("setRoot(this)") && e.getMessage().contains("javafx.scene.layout.VBox")
+                && e.getMessage().contains("fx:controller"), e.getMessage());
+        refused("<fx:root type=\"VBox\"/>", "fx:root"); // inside a screen it is still refused
+    }
+
+    @Test
+    void aContextMenuBecomesTheLastChildOfAContainerAndMeansAPressOnIt() {
+        assertEquals("Column[Label{text=a},ContextMenu{disabled=true}[MenuItem{text=Cut},Menu{text=More}[MenuItem{text=Deep}],MenuItem{text=Paste}]]",
+                shapes("<VBox><contextMenu><ContextMenu disable=\"true\"><items><MenuItem text=\"Cut\"/><Menu text=\"More\"><MenuItem text=\"Deep\"/></Menu>"
+                        + "</items><MenuItem text=\"Paste\"/></ContextMenu></contextMenu><Label text=\"a\"/></VBox>"));
+        for (String owner : new String[] {"VBox", "HBox", "StackPane", "Pane", "AnchorPane", "FlowPane", "TilePane"}) {
+            assertTrue(shapes("<" + owner + "><contextMenu><ContextMenu><MenuItem text=\"x\"/></ContextMenu></contextMenu><Label text=\"a\"/></" + owner + ">")
+                    .endsWith("[Label{text=a},ContextMenu[MenuItem{text=x}]]"), owner);
+        }
+        // on the root of a screen too, and the line of its fx:id warning is the ContextMenu's
+        List<String> warnings = new ArrayList<String>();
+        JxmlParser.Node root = translate(HEAD + "<contextMenu>\n<ContextMenu fx:id=\"menu\"><MenuItem text=\"x\"/></ContextMenu>\n</contextMenu>\n</VBox>", warnings);
+        assertEquals("ContextMenu", root.children.get(0).tag);
+        assertEquals(3, root.children.get(0).line);
+        assertTrue(warnings.get(0).startsWith("t.fxml:3: ") && warnings.get(0).contains("<ContextMenu>"), warnings.toString());
+    }
+
+    @Test
+    void aContextMenuOnAControlThatHoldsNoChildrenIsRefusedWithFileAndLine() {
+        for (String owner : new String[] {"Label", "Button", "TextField", "ListView fx:id=\"r\"", "TableView fx:id=\"r\"", "BorderPane", "GridPane",
+                "ScrollPane", "TitledPane"}) {
+            refused("<" + owner + "><contextMenu><ContextMenu><MenuItem text=\"x\"/></ContextMenu></contextMenu></" + owner.split(" ")[0] + ">",
+                    "contextMenu", "no JXML equivalent", "secondary press on its parent", "StackPane");
+        }
+        refused("<VBox><contextMenu><Label/></contextMenu></VBox>", "contextMenu", "one <ContextMenu>");
+        refused("<VBox><contextMenu><ContextMenu autoHide=\"true\"/></contextMenu></VBox>", "autoHide", "ContextMenu");
+        // what the ContextMenu holds is checked by the JXML side, with the FXML line
+        JxmlException e = assertThrows(JxmlException.class, () -> JxmlTemplate.read(stream(doc(
+                "<VBox><contextMenu><ContextMenu><Label/></ContextMenu></contextMenu></VBox>")), "t.fxml"));
+        assertTrue(e.getMessage().startsWith("t.fxml:2: ") && e.getMessage().contains("ContextMenu") && e.getMessage().contains("MenuItem"), e.getMessage());
+    }
+
+    @Test
+    void aTooltipIsRefusedBecauseJxmlHasNoHoverToShowItOn() {
+        refused("<Button text=\"a\"><tooltip><Tooltip text=\"hint\"/></tooltip></Button>", "tooltip", "Button", "no JXML equivalent", "hover");
+        refused("<VBox><tooltip><Tooltip text=\"hint\"/></tooltip></VBox>", "tooltip", "VBox");
+    }
+
+    private static List<String> warningsOf(String body) {
+        List<String> warnings = new ArrayList<String>();
+        translate(doc(body), warnings);
+        return warnings;
+    }
+
+    @Test
+    void columnAndRowConstraintsAreWrittenOnTheCellsOfTheColumnAndTheColumnWins() {
+        String grid = "<GridPane><columnConstraints><ColumnConstraints hgrow=\"ALWAYS\" prefWidth=\"90\"/><ColumnConstraints halignment=\"RIGHT\" minWidth=\"20\"/>"
+                + "</columnConstraints><rowConstraints><RowConstraints/><RowConstraints vgrow=\"NEVER\" valignment=\"BOTTOM\"/></rowConstraints>"
+                + "<Label text=\"a\" GridPane.hgrow=\"NEVER\" GridPane.halignment=\"LEFT\"/><Label text=\"b\" GridPane.columnIndex=\"1\" GridPane.halignment=\"CENTER\"/>"
+                + "<Label text=\"c\" GridPane.columnIndex=\"1\" GridPane.rowIndex=\"1\"/><Label text=\"wide\" GridPane.rowIndex=\"2\" GridPane.columnSpan=\"2\"/></GridPane>";
+        assertEquals("Grid[Label{text=a,hgrow=always,halignment=LEFT,prefWidth=90},Label{text=b,column=1,halignment=CENTER,minWidth=20},"
+                + "Label{text=c,column=1,row=1,halignment=RIGHT,minWidth=20,vgrow=never,valignment=BOTTOM},Label{text=wide,row=2,columnSpan=2}]", shapes(grid));
+        List<String> warnings = warningsOf(grid);
+        assertEquals(2, warnings.size(), warnings.toString());
+        assertTrue(warnings.get(0).startsWith("t.fxml:2: ") && warnings.get(0).contains("prefWidth=90") && warnings.get(0).contains("1 cell(s) of column 0"),
+                warnings.get(0));
+        assertTrue(warnings.get(1).contains("minWidth=20") && warnings.get(1).contains("2 cell(s) of column 1"), warnings.get(1));
+    }
+
+    @Test
+    void constraintsThatTheCellsCannotSayAreRefusedWithTheirLine() {
+        String cell = "<Label text=\"a\"/></GridPane>";
+        refused("<GridPane><columnConstraints><ColumnConstraints percentWidth=\"30\"/></columnConstraints>" + cell, "percentWidth", "ColumnConstraints", "no JXML equivalent");
+        refused("<GridPane><rowConstraints><RowConstraints percentHeight=\"30\"/></rowConstraints>" + cell, "percentHeight", "RowConstraints");
+        refused("<GridPane><columnConstraints><ColumnConstraints maxWidth=\"50\"/></columnConstraints>" + cell, "maxWidth", "ColumnConstraints");
+        refused("<GridPane><columnConstraints><ColumnConstraints fillWidth=\"false\"/></columnConstraints>" + cell, "fillWidth", "fill their column");
+        refused("<GridPane><columnConstraints><ColumnConstraints minWidth=\"USE_PREF_SIZE\"/></columnConstraints>" + cell, "USE_PREF_SIZE");
+        refused("<GridPane><columnConstraints><ColumnConstraints bogus=\"1\"/></columnConstraints>" + cell, "bogus", "ColumnConstraints");
+        refused("<GridPane><columnConstraints><ColumnConstraints><Label/></ColumnConstraints></columnConstraints>" + cell, "takes no children");
+        refused("<GridPane><columnConstraints><Label/></columnConstraints>" + cell, "not a <ColumnConstraints>");
+        // a column that sets something but has no cell of its own (the spacer column of a form, or one only a spanning cell sits in)
+        refused("<GridPane><columnConstraints><ColumnConstraints/><ColumnConstraints hgrow=\"ALWAYS\"/></columnConstraints>" + cell,
+                "number 2 (column 1)", "hgrow", "no cell of the <GridPane> sits only in column 1");
+        refused("<GridPane><rowConstraints><RowConstraints/><RowConstraints prefHeight=\"20\"/></rowConstraints><Label text=\"a\" GridPane.rowIndex=\"1\" "
+                + "GridPane.rowSpan=\"2\"/></GridPane>", "number 2 (row 1)", "prefHeight");
+        // what changes nothing is accepted: the defaults, a NEVER on an empty column, an empty constraint
+        assertEquals("Grid[Label{text=a,hgrow=never}]", shapes("<GridPane><columnConstraints><ColumnConstraints percentWidth=\"-1\" fillWidth=\"true\" maxWidth=\"Infinity\" "
+                + "hgrow=\"NEVER\"/><ColumnConstraints hgrow=\"NEVER\" minWidth=\"-1\"/></columnConstraints>" + cell));
+    }
+
+    @Test
+    void aResourceKeyInATableColumnATabAPromptAndAMenuIsTheTranslation() {
+        assertEquals("TableView{items=${r},var=row,columns=%{id.title}, Name, %{qty}}[TableRow[TableCell{text=${row}},TableCell{text=${row}},TableCell{text=${row}}]]",
+                shapes("<TableView fx:id=\"r\"><columns><TableColumn text=\"%id.title\"/><TableColumn text=\"Name\"/><TableColumn text=\"%qty\"/></columns></TableView>"));
+        assertEquals("Tabs[Tab{title=%{tab.one}}[Label{text=%{hello}}]]", shapes("<TabPane><Tab text=\"%tab.one\"><Label text=\"%hello\"/></Tab></TabPane>"));
+        assertEquals("TextField{prompt=%{hint}}", shapes("<TextField promptText=\"%hint\"/>"));
+        assertEquals("Menu{text=%{file}}[MenuItem{text=%{open}}]", shapes("<Menu text=\"%file\"><MenuItem text=\"%open\"/></Menu>"));
+        assertEquals("TitledPane{text=%{section}}", shapes("<TitledPane text=\"%section\"/>"));
+        assertEquals("Hyperlink{text=%{more}}", shapes("<Hyperlink text=\"%more\"/>"));
+    }
+
+    @Test
+    void aResourceKeyWhereNoTextIsShownIsRefusedAndSaysWhy() {
+        refused("<VBox><padding><Insets top=\"%gap\"/></padding></VBox>", "resource key", "top=\"%gap\"", "names no text in <Insets>");
+        refused("<fx:include source=\"%file\"/>", "resource key", "source");
+        refused("<fx:include source=\"a.fxml\" resources=\"msg\"/>", "resources", "src/main/l10n", "%key");
+        refused("<TableView fx:id=\"r\"><columns><TableColumn text=\"a\" prefWidth=\"%w\"/></columns></TableView>", "resource key", "prefWidth");
+        refused("<Button id=\"%x\"/>", "resource key", "is not one");
+        refused("<MenuItem accelerator=\"%acc\"/>", "resource key", "is not one");
+        refused("<TableView fx:id=\"r\"><columns><TableColumn text=\"%a b\"/></columns></TableView>", "not a key");
+    }
+
+    @Test
+    void theHandlerWarningSaysExactlyWhichBridgeMethodToAdd() {
+        List<String> warnings = warningsOf("<Button onAction=\"#save\"/>");
+        assertEquals(1, warnings.size());
+        assertTrue(warnings.get(0).contains("public void save() { /* body of save(ActionEvent) without the event */ }"), warnings.get(0));
+        assertTrue(!warnings.get(0).contains("save(null)") || warnings.get(0).contains("would break"), warnings.get(0));
     }
 
     @Test

@@ -164,13 +164,78 @@ final class JXSoftwarePainter implements JXPainter {
                 xa = Math.max(right, ix0);
                 xb = ix1;
             }
+            if (bandRow && runs) {
+                band(row, xa, xb, py, mx, my, hx, hy, r, ir, s, color);
+                continue;
+            }
             for (int xx = xa; xx < xb; xx++) {
                 pixel(row, xx, py, mx, my, hx, hy, r, ir, s, color);
             }
         }
     }
 
+    /** Tests turn it off to compare the runs of {@link #band} with the pixel by pixel version; the pixels must be the same. */
+    static boolean runs = true;
+
+    /**
+     * A row near the top or bottom of a rounded rectangle: only the pixels near the corners need the distance to the
+     * rounded box; between them the distance depends on the row alone ({@code x} is on the straight edge), so one
+     * coverage is computed and the run is blended as a span.
+     */
+    private void band(int row, int xa, int xb, float py, float mx, float my, float hx, float hy, float r, float ir, float s, int color) {
+        int lo = xb;
+        int hi = xb;
+        if (hx > 0 && hy > 0 && (s <= 0 || (hx - s > 0 && hy - s > 0))) {
+            float ay = Math.abs(py - my);
+            float axOuter = hx - r;
+            float limitOuter = Math.min(ay - (hy - r), 0);
+            float axInner = (hx - s) - ir;
+            float limitInner = s > 0 ? Math.min(ay - ((hy - s) - ir), 0) : 0;
+            // the candidate: where |x + 0.5 - mx| <= bound for both boxes, a little wide; the test below is exact
+            float half = Math.min(axOuter + limitOuter, s > 0 ? axInner + limitInner : Float.MAX_VALUE);
+            if (half >= 0) {
+                int c0 = Math.max(xa, (int) Math.ceil(mx - half - 0.5f) - 1);
+                int c1 = Math.min(xb, (int) Math.floor(mx + half - 0.5f) + 2);
+                while (c0 < c1 && !flat(c0, mx, axOuter, limitOuter, s > 0, axInner, limitInner)) {
+                    c0++;
+                }
+                while (c1 > c0 && !flat(c1 - 1, mx, axOuter, limitOuter, s > 0, axInner, limitInner)) {
+                    c1--;
+                }
+                if (c0 < c1) {
+                    lo = c0;
+                    hi = c1;
+                }
+            }
+        }
+        for (int xx = xa; xx < lo; xx++) {
+            pixel(row, xx, py, mx, my, hx, hy, r, ir, s, color);
+        }
+        if (lo < hi) {
+            float cov = coverage(lo, py, mx, my, hx, hy, r, ir, s);
+            if (cov > 0) {
+                span(row + lo, row + hi, color, cov256(cov));
+            }
+        }
+        for (int xx = Math.max(hi, lo); xx < xb; xx++) {
+            pixel(row, xx, py, mx, my, hx, hy, r, ir, s, color);
+        }
+    }
+
+    /** True when the distance to the rounded box (and the inner box of an outline) at column x does not depend on x. */
+    private static boolean flat(int x, float mx, float axOuter, float limitOuter, boolean stroke, float axInner, float limitInner) {
+        float dx = Math.abs((x + 0.5f) - mx);
+        return dx - axOuter <= limitOuter && (!stroke || dx - axInner <= limitInner);
+    }
+
     private void pixel(int row, int x, float py, float mx, float my, float hx, float hy, float r, float ir, float s, int color) {
+        float cov = coverage(x, py, mx, my, hx, hy, r, ir, s);
+        if (cov > 0) {
+            blend(row + x, color, cov);
+        }
+    }
+
+    private static float coverage(int x, float py, float mx, float my, float hx, float hy, float r, float ir, float s) {
         float px0 = x + 0.5f;
         float d = roundBox(px0 - mx, py - my, hx, hy, r);
         float cov = clamp01(0.5f - d);
@@ -178,9 +243,7 @@ final class JXSoftwarePainter implements JXPainter {
             float di = roundBox(px0 - mx, py - my, hx - s, hy - s, ir);
             cov -= clamp01(0.5f - di);
         }
-        if (cov > 0) {
-            blend(row + x, color, cov);
-        }
+        return cov;
     }
 
     /** Signed distance to a rounded box centred at the origin (half sizes hx, hy, corner radius r). */
@@ -364,18 +427,22 @@ final class JXSoftwarePainter implements JXPainter {
             }
             int gx = Math.round(px0 + xs[i] * scale) + g.left;
             int gy = Math.round(py0 + ys[i] * scale) - g.top;
-            for (int row = 0; row < g.height; row++) {
-                int yy = gy + row;
-                if (yy < cy0 || yy >= cy1) {
-                    continue;
-                }
-                int dst = yy * width;
+            // the part of the glyph inside the clip: rows and columns, decided once
+            int row0 = Math.max(0, cy0 - gy);
+            int row1 = Math.min(g.height, cy1 - gy);
+            int col0 = Math.max(0, cx0 - gx);
+            int col1 = Math.min(g.width, cx1 - gx);
+            if (row0 >= row1 || col0 >= col1) {
+                continue;
+            }
+            byte[] mask = g.alpha;
+            for (int row = row0; row < row1; row++) {
+                int dst = (gy + row) * width + gx;
                 int src = row * g.width;
-                for (int col = 0; col < g.width; col++) {
-                    int xx = gx + col;
-                    int a = g.alpha[src + col] & 0xFF;
-                    if (a != 0 && xx >= cx0 && xx < cx1) {
-                        blend(dst + xx, argb, a + (a >> 7));
+                for (int col = col0; col < col1; col++) {
+                    int a = mask[src + col] & 0xFF;
+                    if (a != 0) {
+                        blend(dst + col, argb, a + (a >> 7));
                     }
                 }
             }
