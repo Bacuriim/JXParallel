@@ -11,11 +11,35 @@ the Android Gradle plugin.
 | `AndroidCanvasPainter` | `JXPainter` over `Canvas`/`Paint`: rects, rounded rects (gradients via `LinearGradient`), ovals, arcs, lines, triangles (`Path`), text, images (`Bitmap` cached by array identity), clip (`save`/`clipRect`), layer opacity (`saveLayerAlpha`) |
 | `JXAndroidText` | The text metrics of the layout: installs a `JXTextEngine.LineMetrics` that asks `Paint` (same typefaces the painter draws with) |
 | `JXAndroidView` | `View`: `setContent(JXElement)` / `setContent(Supplier<JXElement>)`, density-aware layout (dp), `onDraw`, touch to pointer events, keys and soft keyboard |
+| `AndroidClipboard` | `JXClipboard` (the interface the desktop text inputs use) over `ClipboardManager` |
 | `JXAndroidMath` | Android-free arithmetic (tested on the JVM) |
 | `src/demo` | `JxHelloActivity`, `HelloController`, `hello.jxml` (compiled to `HelloView` at build time) |
 
 In `jxparallel-ui`: `JXPainter` is public (the extension point of the renderer) and `JXFrame` is the public facade
-(`mount`, `layout`, `paint`, `pointer`, `drag`, `key`, `character`, `tick`). Tested by `JXFrameTest`.
+(`mount`, `layout`, `paint`, `pointer`, `drag`, `key`, `character`, `tick`, and for touch hosts `scrollsAt`, `scroll`,
+`focus`). Tested by `JXFrameTest` and `JXHostGesturesTest`. The platform-independent parts of touch and text input live
+in `jxparallel-ui` and have JUnit tests that run on the desktop: `JXTouchScroller` (tap or drag by the touch slop, fling
+with velocity and deceleration), `JXEditBuffer` (text, selection and composing region of an `InputConnection`) and
+`JXTextInput` (caret, selection, word, cut/copy/paste through `JXClipboard`).
+
+## Input
+
+- **Touch scrolling.** A touch that starts in a scroll pane, list or table that can scroll presses on the lift, not on
+  the touch: a drag past the touch slop scrolls the innermost one that can move (never clicks), a quick lift flings
+  (the speed of the last 100 ms, then slowing down), a touch while it flings stops it and does not click. A tap clicks.
+  Elsewhere a touch presses at once, as before (scroll bar thumbs, sliders and dividers follow the finger). The scroll
+  offset is kept by the node until the application changes `hvalue`, `vvalue`, `scrollX`, `scrollY`, `first` or
+  `itemCount`; a node with an `onScroll` handler (a `Consumer<Object>` that gets `double[] {x, y}`) also reports it.
+  A virtual list or table (`ListView`, `TableView`, trees) has only the rows it was given (`rows`, 30 when not written,
+  from `first`): without `onScroll` it scrolls within them.
+- **Soft keyboard.** It edits through an `InputConnection` with composing text: `setComposingText`, `commitText`,
+  `finishComposingText`, `setComposingRegion`, `setSelection`, `deleteSurroundingText` (and in code points),
+  `getTextBeforeCursor`, `getTextAfterCursor`, `getSelectedText`, batch edits, `sendKeyEvent` (delete, enter, arrows).
+  Each operation changes the field once (its `onChange` gets the new text) and the screen is built again; the
+  keyboard is told with `updateSelection`, and if the application changed the text, with `restartInput`. Password
+  fields use the password input type, text areas the multi-line one.
+- **Clipboard.** A long press in a text field selects the word and shows a floating menu: Cut, Copy, Paste, Select all.
+  With a hardware keyboard Ctrl+A, C, X and V do the same. A password is never copied or cut.
 
 ## Build and run
 
@@ -47,10 +71,15 @@ JVM check of the arithmetic: see the header of `src/test/java/com/jxparallel/and
 
 - Verified on an x86_64 API 34 emulator (WHPX): the screen paints in the Material look; tapping the button
   changes the label, the switch toggles, and typed text reaches the text field (`docs/`).
-- No touch scrolling or fling (the node tree has no scroll-by-gesture entry yet; scroll bars follow drags).
-- A layer's blur radius is ignored (opacity works). No clipboard, no file dialogs, no accessibility bridge.
-- Soft keyboard: plain characters, backspace, enter; no composing text/IME suggestions. Verified with
-  `adb shell input text`, not with a real soft keyboard.
+- Touch scrolling, composing text and the clipboard were checked on the same emulator with Gboard (`docs/04` to `docs/18`:
+  a tap on a row clicks, a slow drag scrolls without clicking, a fast swipe flings; typing with predictions, a
+  suggestion, an accent from a long press, backspace while composing; long-press menu, copy, paste, Ctrl+A/X/V).
+  Not checked: swipe typing (`adb input` cannot draw a word), dictation, a physical keyboard other than the
+  emulator's, other keyboards than Gboard, other Android versions.
+- The composing text is not underlined, and there is no selection handle to drag: a selection comes from the long
+  press, Select all or the hardware keyboard. A press puts the caret; dragging in a text field does not select.
+- A virtual list scrolls only within its built rows (see Input); a JXML `ListView` has no `onScroll` attribute yet.
+- A layer's blur radius is ignored (opacity works). No file dialogs, no accessibility bridge.
 - Window insets and orientation changes are not handled specially (the view just re-lays out to its size).
 - Touch acts on press, like a mouse click; long press is a secondary press.
 - Only one density is supported per process (set when the first view is created).

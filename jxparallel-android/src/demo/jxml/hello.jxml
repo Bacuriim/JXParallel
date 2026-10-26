@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<!-- The sample screen of jxparallel-android: a label changed by a button, a text field and a switch. -->
-<Column controller="com.jxparallel.android.demo.HelloController" gap="16" padding="24" alignment="TOP_LEFT" fillWidth="true">
+<!-- The sample screen of jxparallel-android: a label changed by a button, a text field, a switch, a list and a scroll pane. -->
+<Column controller="com.jxparallel.android.demo.HelloController" gap="12" padding="24" alignment="TOP_LEFT" fillWidth="true">
   <Label text="JXParallel on Android" bold="true" fontSize="22"/>
   <Label text="${greeting}" fontSize="16"/>
   <Button text="Say hello" onAction="#sayHello" variant="filled"/>
@@ -10,4 +10,15 @@
     <Label text="${notifyText}"/>
   </Row>
   <Label text="${taps}"/>
+  <Label text="${picked}"/>
+  <ListView items="${items}" var="s" type="java.lang.String" cellHeight="32" prefHeight="192">
+    <ListItem text="${s}" onAction="#pick(s)"/>
+  </ListView>
+  <Scroll prefHeight="96" fitToWidth="true">
+    <Column gap="4">
+      <For items="${lines}" var="l" type="java.lang.String">
+        <Label text="${l}"/>
+      </For>
+    </Column>
+  </Scroll>
 </Column>

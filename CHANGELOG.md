@@ -2,6 +2,8 @@
 
 ## Unreleased
 
+- `jxparallel-android` input: touch scrolling of scroll panes, lists and tables (touch slop, press on the lift inside scrollables, fling), composing text from the soft keyboard (`InputConnection` over `JXEditBuffer`: suggestions, accents, backspace while composing), and cut, copy, paste and select all (long-press menu, Ctrl+A/C/X/V) through `AndroidClipboard`, a `JXClipboard`; checked on the Android 14 emulator with Gboard (`jxparallel-android/docs`); in `jxparallel-ui` the facade `JXFrame` gets `scrollsAt`, `scroll` (offset kept until the application changes the scroll props, optional `onScroll`) and `focus`, the text inputs get a caret, a selection and `JXTextInput`, and a press puts the caret
+
 - fixed: Skija crashed the JVM while loading its native library on Java 8 64-bit; the cause is the `io.github.humbleui:types` 0.1.1 it brings, compiled for Java 9 (the library looks up `Rect`, `IRect`, `Point`... on load and uses the failed lookup); `jxparallel-ui` now depends on `types` 0.2.0 (the same API plus two `contains` methods, compiled for Java 8), and the whole ui suite, Skia images included, runs on Java 8 64-bit; Java 8 still paints with NanoVG unless `-Djx.renderer=skia`
 
 - fixed: a reconcile that changed a tooltip's text, a combo or choice box's prompt, or a text area's row count kept the node's old size, so the text was cut and its neighbours stayed where they were (the native layer of `ComboBox.setPromptText` and `TextArea.setPrefRowCount` after the screen was shown); `sizeAffected` now names every prop the size code reads, and `JXSizePropsReconcileTest` changes each one in place and compares with a fresh mount

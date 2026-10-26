@@ -876,7 +876,7 @@ final class JXPaint {
      * 2 px primary while it has the focus.
      */
     private void field(JXNativeNode node, float x, float y, float w, float h) {
-        field(node, x, y, w, h, Boolean.TRUE.equals(node.getProperty("focused")));
+        field(node, x, y, w, h, focused(node));
     }
 
     private void field(JXNativeNode node, float x, float y, float w, float h, boolean active) {
@@ -911,15 +911,15 @@ final class JXPaint {
         float size = fontSize(node);
         boolean bold = bold(node);
         JXTextEngine engine = JXTextEngine.get(bold);
-        boolean focused = Boolean.TRUE.equals(node.getProperty("focused"));
+        boolean focused = focused(node);
         if (value.isEmpty()) {
             String prompt = text(node, "prompt");
             if (!prompt.isEmpty() && !focused) {
                 p.text(prompt, left, y + engine.baseline(h, size), size, bold, theme().onSurfaceVariant);
             }
         }
-        int caret = (int) number(node, "caret", -1);
-        int anchor = (int) number(node, "anchor", caret);
+        int caret = caretOf(node);
+        int anchor = anchorOf(node, caret);
         caret = Math.max(-1, Math.min(caret, value.length()));
         anchor = Math.max(-1, Math.min(anchor, value.length()));
         float available = right - left;
@@ -962,15 +962,15 @@ final class JXPaint {
         float line = engine.lineHeight(size);
         float left = x + 1 + JXNativeNode.FIELD_PAD_X;
         float top = y + 1 + JXNativeNode.PAD_Y - (float) number(node, "scrollTop", 0);
-        boolean focused = Boolean.TRUE.equals(node.getProperty("focused"));
+        boolean focused = focused(node);
         p.clip(x + 1, y + 1, w - 2, h - 2);
         if (value.isEmpty() && !focused) {
             p.text(text(node, "prompt"), left, top + engine.ascent(size), size, bold, theme().onSurfaceVariant);
         }
         List<String> lines = JXTextLayout.lines(value, Boolean.TRUE.equals(node.getProperty("wrapText"))
                 ? w - 2 - 2 * JXNativeNode.FIELD_PAD_X : Float.MAX_VALUE, size, bold);
-        int caret = (int) number(node, "caret", -1);
-        int anchor = (int) number(node, "anchor", caret);
+        int caret = caretOf(node);
+        int anchor = anchorOf(node, caret);
         int offset = 0;
         for (int i = 0; i < lines.size(); i++) {
             String text = lines.get(i);
@@ -1545,6 +1545,26 @@ final class JXPaint {
             return padding(node);
         }
         return new float[] {vertical, horizontal, vertical, horizontal};
+    }
+
+    /** The {@code focused} prop, or the focus a host keeps for the node (see {@link JXFrame#focus}). */
+    static boolean focused(JXNativeNode node) {
+        return node.hostFocus || Boolean.TRUE.equals(node.getProperty("focused"));
+    }
+
+    /** The caret of a text input: its {@code caret} prop, or the node's own while a host keeps the focus there; -1 none. */
+    static int caretOf(JXNativeNode node) {
+        if (node.getProps().containsKey("caret") || !node.hostFocus) {
+            return (int) number(node, "caret", -1);
+        }
+        return JXTextInput.caret(node);
+    }
+
+    static int anchorOf(JXNativeNode node, int caret) {
+        if (node.getProps().containsKey("anchor") || !node.hostFocus) {
+            return (int) number(node, "anchor", caret);
+        }
+        return JXTextInput.anchor(node);
     }
 
     static String text(JXNativeNode node, String property) {

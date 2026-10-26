@@ -46,7 +46,39 @@ public final class JXFrame {
      * the node that has the focus now, or null when an overlay took the press. A secondary press opens a context menu.
      */
     public static JXNativeNode pointer(JXNativeNode root, JXPointerEvent press) {
-        return root.routePointer(press);
+        JXNativeNode hit = root.routePointer(press);
+        if (hit != null && press.getButton() == 0 && JXTextInput.isEditable(hit)) {
+            JXTextInput.placeCaret(hit, press.getX(), press.getY()); // the press puts the caret where the finger is
+        }
+        return hit;
+    }
+
+    /**
+     * Whether a touch at (x, y) lands in a scroll pane, list or table that can scroll (and not on a scroll bar, slider or
+     * divider, which a drag operates). A touch host then presses on the lift, when it is known not to be a scroll.
+     */
+    public static boolean scrollsAt(JXNativeNode root, int x, int y) {
+        return JXScrolling.scrollsAt(root, x, y);
+    }
+
+    /**
+     * Scrolls the innermost scroll pane, list or table under (x, y) that can still move by {@code dx}, {@code dy} pixels
+     * (positive: further right and down). True when something moved: paint again. It keeps the offset until the
+     * application changes the scroll props; with an {@code onScroll} handler (a Consumer of {@code double[] {x, y}}) the
+     * application is told. A virtual list scrolls within the rows it has.
+     */
+    public static boolean scroll(JXNativeNode root, int x, int y, double dx, double dy) {
+        return JXScrolling.scrollBy(root, x, y, dx, dy);
+    }
+
+    /** Moves the focus the host keeps from {@code previous} to {@code next} (either may be null): the caret and selection show in {@code next}. */
+    public static void focus(JXNativeNode previous, JXNativeNode next) {
+        if (previous != null) {
+            previous.hostFocus = false;
+        }
+        if (next != null) {
+            next.hostFocus = true;
+        }
     }
 
     /** The pointer moved with the button down, to the event's position: a scroll bar's thumb or a divider follows it. */
