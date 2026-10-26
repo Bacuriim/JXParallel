@@ -60,7 +60,7 @@ public final class JXNativeNode {
             "columnWidths", "constrained", "titles", "selected", "closingPolicy", "closable", "pageCount", "current",
             "maxPageIndicatorCount", "fitToWidth", "fitToHeight", "hbarPolicy", "vbarPolicy", "side", "fitWidth",
             "fitHeight", "preserveRatio", "imageWidth", "imageHeight", "prefColumnCount", "fixedHeight", "wrapText",
-            "progress", "fillGraphic",
+            "progress", "fillGraphic", "prefRowCount",
             // Material controls: icon and avatar size, chip parts, badge content, steps, split positions, button look
             "size", "icon", "kind", "closable", "count", "text", "dot", "steps", "dividerPositions", "variant", "round",
             // overlays and trees: what widens a menu row, a snack bar or a tree cell
@@ -1271,7 +1271,11 @@ public final class JXNativeNode {
         return value == null ? "" : String.valueOf(value);
     }
 
-    /** True if the new props can change this node's size or its placement in the parent. */
+    /**
+     * True if the new props can change this node's size or its placement in the parent. Must name
+     * every prop that intrinsicSizes() and JXControlLayout.sizes() read; one missing here leaves a
+     * stale size after a reconcile (JXSizePropsReconcileTest lists them all).
+     */
     private boolean sizeAffected(JXProps old, JXProps next) {
         // Walk the props the two have (a few) instead of every layout key (dozens), by index: reconciling thousands
         // of nodes makes no key set and no iterator for any of them.
@@ -1292,7 +1296,8 @@ public final class JXNativeNode {
         }
         if ("button".equals(type) || "toggle".equals(type) || "checkbox".equals(type) || "titled".equals(type)
                 || "radio".equals(type) || "hyperlink".equals(type) || "switch".equals(type) || "chip".equals(type)
-                || "menubutton".equals(type) || "menu".equals(type) || "menuitem".equals(type)) {
+                || "menubutton".equals(type) || "menu".equals(type) || "menuitem".equals(type)
+                || "tooltip".equals(type)) {
             return !Objects.equals(old.get("label"), next.get("label"));
         }
         if ("cell".equals(type)) {
@@ -1303,6 +1308,7 @@ public final class JXNativeNode {
         }
         if ("select".equals(type)) {
             return !Objects.equals(old.get("value"), next.get("value"))
+                    || !Objects.equals(old.get("prompt"), next.get("prompt"))
                     || !Objects.deepEquals(old.get("options"), next.get("options"));
         }
         return false;

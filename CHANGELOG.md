@@ -2,6 +2,8 @@
 
 ## Unreleased
 
+- fixed: a reconcile that changed a tooltip's text, a combo or choice box's prompt, or a text area's row count kept the node's old size, so the text was cut and its neighbours stayed where they were (the native layer of `ComboBox.setPromptText` and `TextArea.setPrefRowCount` after the screen was shown); `sizeAffected` now names every prop the size code reads, and `JXSizePropsReconcileTest` changes each one in place and compares with a fresh mount
+
 - Material 3 look everywhere in `jxparallel-ui`, in light and dark, with the same sizes as before (compact density), so the JavaFX-compatible layer (`jxparallel-fx`) has it too; the other Material roles are derived from the six theme tokens; the Modena painting is gone; the reference images and recordings of the paint tests were regenerated; the 32-bit NanoVG renderer was not run with it yet
 - JXForge compiles `.fxml` files with the same compiler as `.jxml` (all 20 FXML screens of the benchmark compile), refusing with file and line what has no equivalent, with warnings for `fx:id` and handlers; `--fxml-to-jxml` prints the translation as `.jxml`
 - JXForge generates only what changed, by content: `.jxforge-manifest` records a SHA-256 for each screen, its includes and the options; unchanged output is not rewritten, removed screens' Java is deleted, warnings are shown on every compile
