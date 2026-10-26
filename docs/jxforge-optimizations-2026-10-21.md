@@ -96,10 +96,74 @@ Ratio JavaFX / JXML (above 1x JXML is better), before then after.
 - `Image` still allocates more when it becomes ready (0.71x): its native node is heavier than the
   `ImageView` of JavaFX.
 
+## Second round, with the Material look
+
+A second pass went after what the first one left, with A/B runs in fresh JVMs (15 runs, Java 17, interleaved)
+before any change, and the same series measured a third time on the frozen code: `docs/components-2026-10-21-final/`.
+This series paints the **Material** look (the earlier two painted Modena), so its paint checksums differ; its
+fingerprints (instances, nodes, probed values, visible nodes) are identical to the earlier series, so every mode
+did the same work.
+
+What the A/B runs showed and what changed:
+
+- **`Image` and `TableView` updates were noise, not a regression.** Two identical builds differ by up to 20% on
+  them; the `TableView` 8th pass was slow because of when the JIT swaps compiled code (it disappears with
+  `-XX:TieredStopAtLevel=1`), not because of the work.
+- **The paint of text fields was the rounded-rectangle edge, not the text.** 96% of the paint time of a text
+  field was the distance computation (two square roots) on every pixel of the top and bottom rows of each box,
+  across the whole width. Only the pixels near the corners compute it now; the straight run between them gets one
+  coverage per row. Pixels are identical (400 random shapes at four scales, every field outline, and the whole
+  1280x800 buffer of all 94 components in both value sets compared before and after). A text field frame in a warm
+  loop went from 8.4 to 0.5 ms.
+- **Less per element.** `JXProps` is one object that holds its array and is its own map (the second object is
+  gone); the compiler builds props with `JXProps.of(...)`, no builder; a node reuses its sizes array when it is laid
+  out again; whole numbers 0 to 255 share their boxed `Double`. Bytes per instance of an update (build / reconcile /
+  layout): Separator 183/64/24 → 119/0/24, Slider 167/0/0 → 127/0/0, ScrollBar 207/0/0 → 143/0/0, ProgressBar
+  183/64/0 → 119/0/0, Image 215/64/24 → 151/32/24.
+- **The culling check makes no array per container** (two fields instead of a `float[]`).
+
+Result, Java 17, geometric mean over the 43 components with a JavaFX counterpart (first round → second round):
+
+| | After the first round | Final |
+|---|---:|---:|
+| Build, cold / warm | 20.1x / 19.1x | 24.2x / 21.6x |
+| Ready to paint, cold / warm | 5.0x / 85.6x | 5.0x / 87.1x |
+| Update one prop | 4.9x | 5.2x |
+| Paint (indicative) | 7.4x | 11.7x |
+| Memory allocated: build / ready / update | 19.9x / 107.2x / 2.7x | 31.5x / 105.3x / 4.1x |
+| Memory retained per instance | 47.4x | 51.3x |
+| CPU of the whole process | 7.9x | 8.1x |
+
+Java 8 x86: warm build 43x → 55x, warm ready 173x → 190x, update allocation 3.2x → 4.9x.
+
+| Component, Java 17 | Update time | Update allocation | Paint |
+|---|---:|---:|---:|
+| TextField | 13.5x → 13.3x | 24.5x → 38.3x | 0.79x → **9.8x** |
+| PasswordField | 13.9x → 13.2x | 25.2x → 41.6x | 0.77x → **7.6x** |
+| TextArea | 14.7x → 12.6x | 16.0x → 21.5x | 0.73x → **11.7x** |
+| Tabs | 3.0x → 1.3x | 1.9x → 2.6x | 0.56x → **1.45x** |
+| ScrollBar | 0.50x → 0.48x | 0.22x → 0.35x | 2.2x → 22.6x |
+| Slider | 1.54x → 1.25x | 0.21x → 0.38x | 6.5x → 55.7x |
+| Separator | 0.98x → 1.08x | 0.08x → 0.17x | 3.3x → 2.3x |
+| ProgressBar | 2.53x → 2.48x | 0.46x → **1.14x** | 3.3x → 3.3x |
+| Image | 0.74x → 1.18x | 0.32x → 0.55x | 1.41x → 1.27x |
+| TableView | 0.98x → 0.98x | 0.27x → 0.35x | 5.6x → 4.2x |
+
+![Painting per component, final series](assets/charts/paint-by-component-final.svg)
+
+**Still behind JavaFX, final series:** the update allocation of tiny controls (Separator 0.17x, ScrollBar and
+TableView 0.35x, Slider 0.38x, Image 0.55x, TreeTable 0.64x, ListView 0.84x), the `ScrollBar` update time (0.48x),
+`TableView` update time (0.98x, inside the noise), and `Image` allocation when it becomes ready (0.70x). Nothing
+is behind in paint any more. The per-element garbage left is the element itself, its props and the children
+plumbing (about 120 to 150 B per instance); closing it needs a different update path: a generated view that
+records, for each controller-dependent prop, the node it lands on and a getter, re-reads the getters on an
+update and sets only the props that changed, falling back to rebuild and reconcile when a `For`, an `If` or a
+key changes. That is designed, not built.
+
 ## Reproduce
 
 ```powershell
 python -I scripts\generate-component-bench.py
 scripts\measure-components.ps1 -Runs 5 -Passes 8 -Out docs\components-<date>   # about 2.5 hours
-python -I scripts\make-component-charts.py --dir docs\components-<date> --after
+python -I scripts\make-component-charts.py --dir docs\components-<date> --after --suffix=-final
 ```
