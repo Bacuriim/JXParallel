@@ -23,6 +23,14 @@
             <artifactId>skija-shared</artifactId>
             <version>${skija.version}</version>
         </dependency>
+        <!-- Skija 0.116.4 brings types 0.1.1, compiled for Java 9: on Java 8 its native library finds no
+             Rect/IRect/Point classes while loading and crashes the JVM. 0.2.0 is the same API plus two
+             contains() methods, compiled for Java 8. -->
+        <dependency>
+            <groupId>io.github.humbleui</groupId>
+            <artifactId>types</artifactId>
+            <version>0.2.0</version>
+        </dependency>
         <dependency>
             <groupId>org.lwjgl</groupId>
             <artifactId>lwjgl</artifactId>
