@@ -1457,6 +1457,9 @@ public final class JXNativeNode implements JXLiveNode {
         if ("cell".equals(type)) {
             return "value".equals(key) && !Objects.equals(old, next);
         }
+        if ("badge".equals(type)) {
+            return "max".equals(key) && !Objects.equals(old, next);
+        }
         if ("image".equals(type)) {
             return "pixels".equals(key) && old != next;
         }

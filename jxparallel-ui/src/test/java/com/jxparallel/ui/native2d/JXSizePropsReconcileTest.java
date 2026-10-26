@@ -2,10 +2,12 @@ package com.jxparallel.ui.native2d;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Objects;
 
 import org.junit.jupiter.api.Test;
 
 import com.jxparallel.ui.JXElement;
+import com.jxparallel.ui.JXLiveNode;
 import com.jxparallel.ui.JXProps;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
@@ -143,6 +145,66 @@ class JXSizePropsReconcileTest {
         if (first.equals(expected)) {
             failures.add(name + ": the values do not change the size (" + expected + ")");
         }
+        // the live path (setProp per changed prop, commit bottom up) judges by keyAffects, which must agree
+        JXElement mounted = copy(screen(before));
+        JXNativeNode live = JXNativeNode.createBackendNode(mounted);
+        live.layoutForBackend(900, 600);
+        if (applyLive(live, mounted, screen(after))) {
+            live.layoutForBackend(900, 600);
+            String liveResult = describe(live);
+            if (!expected.equals(liveResult)) {
+                failures.add(name + " (live): expected " + expected + " but was " + liveResult);
+            }
+        }
+    }
+
+    /** Sets the changed props in place and settles bottom up; false when the shape or the set of keys differs. */
+    private static boolean applyLive(JXNativeNode node, JXElement before, JXElement after) {
+        return settle(node, before, after) >= 0;
+    }
+
+    private static int settle(JXNativeNode node, JXElement before, JXElement after) {
+        if (!before.getType().equals(after.getType()) || before.getChildren().size() != after.getChildren().size()
+                || before.getProps().size() != after.getProps().size()) {
+            return -1;
+        }
+        int bits = 0;
+        for (int i = 0; i < before.getProps().size(); i++) {
+            String key = before.getProps().keyAt(i);
+            if (after.getProps().indexOfKey(key) < 0) {
+                return -1;
+            }
+            Object next = after.getProps().get(key);
+            if (!Objects.deepEquals(before.getProps().valueAt(i), next)) {
+                int r = node.setProp(key, next);
+                if (r < 0) {
+                    return -1;
+                }
+                bits |= (r & JXLiveNode.SET_RELAYOUT) != 0 ? JXLiveNode.RELAYOUT : 0;
+                bits |= (r & JXLiveNode.SET_PLACEMENT) != 0 ? JXLiveNode.PLACEMENT : 0;
+            }
+        }
+        for (int i = 0; i < before.getChildren().size(); i++) {
+            int r = settle(node.getChildren().get(i), before.getChildren().get(i), after.getChildren().get(i));
+            if (r < 0) {
+                return -1;
+            }
+            bits |= r == JXLiveNode.RESIZED ? JXLiveNode.RELAYOUT : r == JXLiveNode.SUBTREE ? JXLiveNode.CHILD_SUBTREE : 0;
+        }
+        return node.commit(bits);
+    }
+
+    /** A deep copy with its own props: the live path writes into the props of the mounted elements. */
+    private static JXElement copy(JXElement e) {
+        JXProps.Builder props = JXProps.builder();
+        for (int i = 0; i < e.getProps().size(); i++) {
+            props.set(e.getProps().keyAt(i), e.getProps().valueAt(i));
+        }
+        List<JXElement> children = new ArrayList<JXElement>();
+        for (JXElement child : e.getChildren()) {
+            children.add(copy(child));
+        }
+        return JXElement.of(e.getType(), props.build(), children.toArray(new JXElement[0]));
     }
 
     /** One prop of one node; {@code base} are more props (key, value, ...) that stay the same. */
