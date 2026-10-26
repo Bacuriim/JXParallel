@@ -2,6 +2,8 @@
 
 ## Unreleased
 
+- fixed: a reconcile that changed a tooltip's text, a combo or choice box's prompt, or a text area's row count kept the node's old size, so the text was cut and its neighbours stayed where they were (the native layer of `ComboBox.setPromptText` and `TextArea.setPrefRowCount` after the screen was shown); `sizeAffected` now names every prop the size code reads, and `JXSizePropsReconcileTest` changes each one in place and compares with a fresh mount
+
 - `jxparallel-android`: a first Android backend (a `JXPainter` over the `Canvas`, `JXAndroidView` with touch and the soft keyboard, a sample JXML app, an APK built without the Android Gradle plugin), run on the Android 14 emulator; `JXPainter` is public and `JXFrame` is the facade backends use; the text engine no longer needs HarfBuzz when no font file is found
 - Material polish: tonal button states (hover with a level-1 shadow, pressed and focus at 12%), the focused radio ring inside its box, rounded list and table borders; hover and keyboard navigation in menus, selects and pickers; NanoVG checked on a 32-bit Java 8 against the other painters (a 1 px text offset fixed)
 - Software painter: rounded rectangles compute the edge only near the corners (text field paint about 16x faster, pixels identical); `JXProps` is one object and its own map, `JXProps.of(...)` in generated code, sizes arrays reused: an update of a tiny control allocates about a third less; measured again on 84 components (`docs/jxforge-optimizations-2026-10-21.md`, second round): every component paints faster than JavaFX, build 22x, ready 87x, update 5.2x, 51x less memory retained
