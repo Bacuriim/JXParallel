@@ -196,6 +196,16 @@
                 <maven.compiler.release>8</maven.compiler.release>
             </properties>
         </profile>
+        <!-- Mockito 5 needs Java 11; on JDK 8 the Mockito and PowerMock modules use the last 4.x. -->
+        <profile>
+            <id>mockito-java8</id>
+            <activation>
+                <jdk>1.8</jdk>
+            </activation>
+            <properties>
+                <mockito.version>4.11.0</mockito.version>
+            </properties>
+        </profile>
         <!-- JDKs 8 that bundle JavaFX (Oracle, Zulu FX) build the JavaFX-compatible API too. -->
         <profile>
             <id>javafx8</id>
