@@ -2,6 +2,8 @@
 
 ## Unreleased
 
+- fixed: Skija crashed the JVM while loading its native library on Java 8 64-bit; the cause is the `io.github.humbleui:types` 0.1.1 it brings, compiled for Java 9 (the library looks up `Rect`, `IRect`, `Point`... on load and uses the failed lookup); `jxparallel-ui` now depends on `types` 0.2.0 (the same API plus two `contains` methods, compiled for Java 8), and the whole ui suite, Skia images included, runs on Java 8 64-bit; Java 8 still paints with NanoVG unless `-Djx.renderer=skia`
+
 - fixed: a reconcile that changed a tooltip's text, a combo or choice box's prompt, or a text area's row count kept the node's old size, so the text was cut and its neighbours stayed where they were (the native layer of `ComboBox.setPromptText` and `TextArea.setPrefRowCount` after the screen was shown); `sizeAffected` now names every prop the size code reads, and `JXSizePropsReconcileTest` changes each one in place and compares with a fresh mount
 
 - JXForge and native UI, work that JXML still lost to JavaFX (`docs/jxforge-optimizations-2026-10-21.md`): `<For memo="true">` keeps the elements of a large loop while the controller, the list and the window are the same (checked: the body reads only its own loop variables), and the tree rows are made only for the window (a `Tree` update went from 20 MB to 0.1 MB allocated); `JXPaint` skips nodes outside the window (pixel-identical, tested on all 94 components) and the software painter blends translucent spans with less work; the reconcile and the native nodes make less garbage; measured again on 84 components, Java 17: build 19x, ready to paint 86x, 47x less memory retained, 7.9x less CPU; tiny updates and text input paint are still behind JavaFX
