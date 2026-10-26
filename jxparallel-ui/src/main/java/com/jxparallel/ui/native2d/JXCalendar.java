@@ -18,6 +18,8 @@ public final class JXCalendar {
     static final int WEEKDAYS = 22;
     static final int CELL_W = 32;
     static final int CELL_H = 24;
+    /** Corner radius of the surface. */
+    static final float RADIUS = 12;
     static final int WIDTH = PAD * 2 + 7 * CELL_W;
     static final int HEIGHT = PAD * 2 + HEADER + WEEKDAYS + 6 * CELL_H;
 
@@ -64,32 +66,31 @@ public final class JXCalendar {
     }
 
     static void paint(JXPainter p, JXNativeNode node, JXPaint paint) {
+        JXTheme t = paint.theme();
         float x = node.getX();
         float y = node.getY();
-        p.fillRect(x, y, WIDTH, HEIGHT, JXPaint.BOX_BORDER);
-        p.fillRect(x + 1, y + 1, WIDTH - 2, HEIGHT - 2, 0xFFFFFFFF);
+        p.fillRoundRect(x, y, WIDTH, HEIGHT, RADIUS, t.surfaceContainerHigh);
         JXTextEngine engine = JXTextEngine.get(false);
         JXTextEngine bold = JXTextEngine.get(true);
         float size = JXTextEngine.DEFAULT_SIZE;
         // header: arrows and month title
         float hy = y + PAD;
-        p.fillRoundRectGradient(x + PAD, hy, WIDTH - 2 * PAD, HEADER - 4, 3, 0xFFFDFDFD, 0xFFE2E2E2);
         float cy = hy + (HEADER - 4) / 2;
-        p.fillTriangle(x + PAD + 16, cy - 5, x + PAD + 16, cy + 5, x + PAD + 10, cy, JXPaint.ARROW);
-        p.fillTriangle(x + WIDTH - PAD - 16, cy - 5, x + WIDTH - PAD - 16, cy + 5, x + WIDTH - PAD - 10, cy, JXPaint.ARROW);
+        p.fillTriangle(x + PAD + 16, cy - 5, x + PAD + 16, cy + 5, x + PAD + 10, cy, t.onSurfaceVariant);
+        p.fillTriangle(x + WIDTH - PAD - 16, cy - 5, x + WIDTH - PAD - 16, cy + 5, x + WIDTH - PAD - 10, cy, t.onSurfaceVariant);
         String title = JXPaint.text(node, "title");
         if (title.isEmpty()) {
             title = month(node) + "/" + year(node);
         }
         float tw = bold.width(title, size);
-        p.text(title, x + (WIDTH - tw) / 2, hy + bold.baseline(HEADER - 4, size), size, true, JXPaint.TEXT);
+        p.text(title, x + (WIDTH - tw) / 2, hy + bold.baseline(HEADER - 4, size), size, true, t.onSurface);
         // weekday names
         String[] names = JXPaint.strings(node.getProperty("weekdays"));
         float wy = y + PAD + HEADER;
         for (int i = 0; i < 7; i++) {
             String name = i < names.length ? names[i] : DayOfWeek.of((firstDay(node) - 1 + i) % 7 + 1).name().substring(0, 2);
             float nw = engine.width(name, 11);
-            p.text(name, x + PAD + i * CELL_W + (CELL_W - nw) / 2, wy + engine.baseline(WEEKDAYS, 11), 11, false, 0xFF7A7A7A);
+            p.text(name, x + PAD + i * CELL_W + (CELL_W - nw) / 2, wy + engine.baseline(WEEKDAYS, 11), 11, false, t.onSurfaceVariant);
         }
         // days
         LocalDate start = gridStart(year(node), month(node), firstDay(node));
@@ -107,14 +108,16 @@ public final class JXCalendar {
             boolean inMonth = d.getMonthValue() == month(node);
             boolean selected = d.getYear() == selY && d.getMonthValue() == selM && d.getDayOfMonth() == selD;
             boolean today = d.getYear() == todayY && d.getMonthValue() == todayM && d.getDayOfMonth() == todayD;
+            float disc = CELL_H - 1; // the day is a circle centered in its cell
+            float dx = cx + (CELL_W - disc) / 2;
             if (selected) {
-                p.fillRect(cx + 1, ry + 1, CELL_W - 2, CELL_H - 2, JXPaint.SELECTION);
+                p.fillOval(dx, ry + 0.5f, disc, disc, t.primary);
             } else if (today) {
-                p.strokeRoundRect(cx + 1, ry + 1, CELL_W - 2, CELL_H - 2, 0, 1, JXPaint.ACCENT);
+                p.strokeOval(dx, ry + 0.5f, disc, disc, 1, t.primary);
             }
             String label = String.valueOf(d.getDayOfMonth());
             float lw = engine.width(label, size);
-            int color = selected ? 0xFFFFFFFF : inMonth ? JXPaint.TEXT : 0xFFAAAAAA;
+            int color = selected ? t.onPrimary : inMonth ? t.onSurface : JXTheme.withAlpha(t.onSurface, JXTheme.DISABLED_CONTENT);
             p.text(label, cx + (CELL_W - lw) / 2, ry + engine.baseline(CELL_H, size), size, false, color);
         }
     }

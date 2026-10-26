@@ -1,0 +1,43 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!-- TabPane and Tab (both forms of the content), SplitPane, Accordion and TitledPane, Pagination. -->
+<?import javafx.scene.control.*?>
+<?import javafx.scene.layout.*?>
+<VBox xmlns="http://javafx.com/javafx" xmlns:fx="http://javafx.com/fxml"
+      fx:controller="com.jxparallel.forge.samples.SampleController" spacing="4">
+  <TabPane tabClosingPolicy="UNAVAILABLE">
+    <tabs>
+      <Tab text="First" closable="false">
+        <content>
+          <Label text="first"/>
+        </content>
+      </Tab>
+      <Tab text="Second">
+        <SplitPane orientation="VERTICAL" dividerPositions="0.3, 0.7">
+          <items>
+            <Label text="a"/>
+            <Label text="b"/>
+          </items>
+          <Label text="c"/>
+        </SplitPane>
+      </Tab>
+    </tabs>
+  </TabPane>
+  <TabPane>
+    <Tab text="Closable by default" closable="true">
+      <Label text="x"/>
+    </Tab>
+  </TabPane>
+  <Accordion>
+    <panes>
+      <TitledPane text="One" expanded="true" collapsible="true">
+        <content>
+          <Label text="first"/>
+        </content>
+      </TitledPane>
+    </panes>
+    <TitledPane text="Two" expanded="false" collapsible="false">
+      <Label text="second"/>
+    </TitledPane>
+  </Accordion>
+  <Pagination pageCount="12" currentPageIndex="1" maxPageIndicatorCount="5"/>
+</VBox>

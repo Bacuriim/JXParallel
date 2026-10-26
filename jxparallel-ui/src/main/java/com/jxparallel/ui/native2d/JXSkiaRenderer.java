@@ -19,7 +19,8 @@ import com.jxparallel.ui.text.JXTextEngine;
  * {@link JXWindow}, or a raster surface in tests). The drawing itself is {@link JXPaint}.
  */
 public final class JXSkiaRenderer {
-    static final int BACKGROUND = 0xFFF4F4F4;
+    /** What a window is cleared to: the surface of the light theme. */
+    static final int BACKGROUND = JXTheme.LIGHT.surface;
 
     private static volatile Typeface typeface;
     private static Shaper shaper;

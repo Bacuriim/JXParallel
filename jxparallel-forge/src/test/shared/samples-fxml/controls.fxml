@@ -1,0 +1,30 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!-- Every input and display control. -->
+<?import javafx.scene.control.*?>
+<?import javafx.scene.layout.*?>
+<?import javafx.scene.text.*?>
+<?import javafx.scene.image.*?>
+<VBox xmlns="http://javafx.com/javafx" xmlns:fx="http://javafx.com/fxml"
+      fx:controller="com.jxparallel.forge.samples.SampleController" spacing="6" padding="8">
+  <TextField text="Ada" promptText="Name" prefColumnCount="16"/>
+  <PasswordField text="1234" promptText="PIN" prefColumnCount="6"/>
+  <CheckBox text="Agree" selected="true" onAction="#save"/>
+  <RadioButton text="A" selected="false" onAction="#save"/>
+  <ToggleButton text="Bold" selected="true" onAction="#save"/>
+  <ComboBox promptText="City" value="Recife"/>
+  <ChoiceBox value="B"/>
+  <Spinner min="0" max="100" initialValue="4"/>
+  <DatePicker promptText="Date" value="2026-10-21"/>
+  <ColorPicker value="#E91E63"/>
+  <Slider min="0" max="10" value="3" orientation="HORIZONTAL"/>
+  <ProgressBar progress="0.25"/>
+  <ProgressIndicator progress="0.5"/>
+  <Separator orientation="HORIZONTAL"/>
+  <Hyperlink text="Docs" visited="false" onAction="#save"/>
+  <ImageView fitWidth="16" fitHeight="16" preserveRatio="true"/>
+  <TextFlow>
+    <Text text="Hello " fill="#336699"/>
+    <Hyperlink text="link" onAction="#save"/>
+  </TextFlow>
+  <fx:include source="parts/header.fxml"/>
+</VBox>

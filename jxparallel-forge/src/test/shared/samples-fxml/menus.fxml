@@ -1,0 +1,30 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!-- MenuBar, Menu, MenuItem, SeparatorMenuItem (and a submenu), MenuButton. -->
+<?import javafx.scene.control.*?>
+<?import javafx.scene.layout.*?>
+<VBox xmlns="http://javafx.com/javafx" xmlns:fx="http://javafx.com/fxml"
+      fx:controller="com.jxparallel.forge.samples.SampleController">
+  <MenuBar>
+    <menus>
+      <Menu text="File">
+        <items>
+          <MenuItem text="New" accelerator="Ctrl+N" onAction="#save"/>
+          <SeparatorMenuItem/>
+          <MenuItem text="Locked" disable="true"/>
+          <Menu text="Export">
+            <MenuItem text="PDF" onAction="#save"/>
+          </Menu>
+        </items>
+      </Menu>
+    </menus>
+    <Menu text="Edit" disable="false">
+      <MenuItem text="Copy"/>
+    </Menu>
+  </MenuBar>
+  <MenuButton text="Actions" disable="false">
+    <items>
+      <MenuItem text="Open" onAction="#save"/>
+    </items>
+    <MenuItem text="Quit"/>
+  </MenuButton>
+</VBox>

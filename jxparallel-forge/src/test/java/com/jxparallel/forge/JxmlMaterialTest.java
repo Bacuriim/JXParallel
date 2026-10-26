@@ -457,7 +457,7 @@ class JxmlMaterialTest {
         for (File f : second.written) {
             again.add(f.getName());
         }
-        assertTrue(again.contains("ScreenView.java") && again.contains("OwnedView.java"), again.toString());
+        assertEquals(Arrays.asList("ScreenView.java"), again, "only the screen that includes the part");
         assertTrue(new String(Files.readAllBytes(new File(out, "gen/ScreenView.java").toPath()), StandardCharsets.UTF_8).contains("getName"));
     }
 }

@@ -1,0 +1,21 @@
+<Column controller="com.jxparallel.forge.L10nController" gap="4">
+  <Label text="%{greeting}"/>
+  <Label text="%{welcome(${user.name})}"/>
+  <Label text="%{welcome('Ada')}"/>
+  <Label text="%{itemCount(${count})}"/>
+  <Label text="%{itemCount(3)}"/>
+  <Label text="%{unread(${count})}"/>
+  <Label text="%{reply(${gender})}"/>
+  <Label text="%{price(${price})}"/>
+  <Label text="%{price(9.5)}"/>
+  <Label text="%{since(${when})}"/>
+  <Label text="%{quoted}"/>
+  <Label text="%{app.menu-save}"/>
+  <Label text="%{android_hello(${user.name}, ${count})}"/>
+  <Label text="%{android_apostrophe}"/>
+  <Label text="%{android_price(${price})}"/>
+  <Label text="%{android_files(${count})}"/>
+  <Label text="\%{greeting}"/>
+  <Label text="no translation here"/>
+  <ComboBox items="%{greeting}, plain, %{welcome('x')}" value="%{appTitle}"/>
+</Column>

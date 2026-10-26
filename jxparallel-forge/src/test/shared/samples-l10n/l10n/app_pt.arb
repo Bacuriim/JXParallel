@@ -1,0 +1,13 @@
+{
+  "@@locale": "pt",
+  "appTitle": "Meu App",
+  "greeting": "Olá",
+  "welcome": "Bem-vindo, {name}!",
+  "itemCount": "{count, plural, =0{Nenhum item} =1{Um item} other{{count} itens}}",
+  "reply": "{gender, select, male{Ele respondeu} female{Ela respondeu} other{Responderam}}",
+  "price": "Total: R$ {amount}",
+  "since": "Desde {date}",
+  "quoted": "Não use '{' nem '}' aqui, é ''estranho''",
+  "unread": "{count, plural, one{# mensagem não lida} other{# mensagens não lidas}}",
+  "app.menu-save": "Salvar"
+}

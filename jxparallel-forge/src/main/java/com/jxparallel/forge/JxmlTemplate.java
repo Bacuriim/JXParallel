@@ -32,7 +32,36 @@ import com.jxparallel.ui.JXProps;
  */
 public final class JxmlTemplate implements JxmlView<Object> {
     /** How an attribute gets its value. */
-    enum Kind { LITERAL, BINDING, HANDLER, CHANGE, SETTER }
+    enum Kind { LITERAL, BINDING, HANDLER, CHANGE, SETTER, TRANSLATION }
+
+    /** One argument of a translation: a literal ({@code String}, {@code Integer} or {@code Double}) or a binding. */
+    static final class Arg {
+        final Object literal;
+        final Prop binding;
+
+        Arg(Object literal, Prop binding) {
+            this.literal = literal;
+            this.binding = binding;
+        }
+    }
+
+    /**
+     * {@code %{key(args)}}, or (key null) a plain element of a list written beside translations. A translated attribute
+     * has one of these, a translated list one per element.
+     */
+    static final class Translation {
+        final String key;
+        final String literal;
+        final JxmlCatalog.Signature signature;
+        final List<Arg> args;
+
+        Translation(String key, String literal, JxmlCatalog.Signature signature, List<Arg> args) {
+            this.key = key;
+            this.literal = literal;
+            this.signature = signature;
+            this.args = args;
+        }
+    }
 
     /** One prop of one element. */
     static final class Prop {
@@ -51,9 +80,21 @@ public final class JxmlTemplate implements JxmlView<Object> {
         final boolean negate;
         final String source;
         final int line;
+        /** TRANSLATION only: what the attribute shows; one element, or one per element of a list attribute. */
+        final Translation[] translations;
+
+        Prop(JxmlSchema.Attr attr, Translation[] translations, String source, int line) {
+            this(attr, Kind.TRANSLATION, null, null, null, null, null, false, source, line, translations);
+        }
 
         Prop(JxmlSchema.Attr attr, Kind kind, Object literal, String root, String[] path, String method, String[] args,
              boolean negate, String source, int line) {
+            this(attr, kind, literal, root, path, method, args, negate, source, line, null);
+        }
+
+        private Prop(JxmlSchema.Attr attr, Kind kind, Object literal, String root, String[] path, String method, String[] args,
+             boolean negate, String source, int line, Translation[] translations) {
+            this.translations = translations;
             this.source = source;
             this.attr = attr;
             this.kind = kind;
@@ -121,7 +162,38 @@ public final class JxmlTemplate implements JxmlView<Object> {
             return null;
         }
 
-        /** No bindings or handlers anywhere below: the same tree for every controller. */
+        /** Whether the generated code reads the controller {@code c}: a translation with literal arguments does not. */
+        boolean needsController() {
+            if (tag.control) {
+                return true;
+            }
+            for (Prop p : props) {
+                if (p.kind == Kind.TRANSLATION) {
+                    for (Translation t : p.translations) {
+                        for (Arg a : t.args == null ? Collections.<Arg>emptyList() : t.args) {
+                            if (a.binding != null) {
+                                return true;
+                            }
+                        }
+                    }
+                } else if (p.kind != Kind.LITERAL) {
+                    return true;
+                }
+            }
+            for (Element child : children) {
+                if (child.needsController()) {
+                    return true;
+                }
+            }
+            for (Element child : otherwise) {
+                if (child.needsController()) {
+                    return true;
+                }
+            }
+            return false;
+        }
+
+        /** No bindings, handlers or translations anywhere below: the same tree for every controller and locale. */
         boolean constant() {
             if (tag.control) {
                 return false;
@@ -187,6 +259,8 @@ public final class JxmlTemplate implements JxmlView<Object> {
     final String source;
     final String controller;
     final Element root;
+    private final List<String> warnings = new ArrayList<String>();
+    private JxmlCatalog catalog;
     private final Map<Class<?>, Map<String, Method>> methods = new ConcurrentHashMap<Class<?>, Map<String, Method>>();
 
     private JxmlTemplate(String source, String controller, Element root) {
@@ -205,10 +279,31 @@ public final class JxmlTemplate implements JxmlView<Object> {
      * {@code source} is the name of the file for the loader, which resolves each {@code src} against it.
      */
     public static JxmlTemplate read(InputStream input, String source, JxmlLoader loader) {
-        JxmlParser.Node node = JxmlParser.parse(input, source);
+        return read(input, source, loader, null);
+    }
+
+    /**
+     * As {@link #read(InputStream, String, JxmlLoader)}, with the translations {@code %{key}} resolve against: every key
+     * and argument is checked now, and the tree is built with the texts of the catalog's current locale (null: a
+     * {@code %{...}} is an error). Change the locale with {@code catalog.messages().setLocale(...)} and build again.
+     */
+    public static JxmlTemplate read(InputStream input, String source, JxmlLoader loader, JxmlCatalog catalog) {
+        List<String> warnings = new ArrayList<String>();
+        JxmlParser.Node node = JxmlParser.parse(input, source, warnings);
         String controller = node.attrs.remove("controller");
-        String theme = JxmlPrepare.run(node, controller, loader);
-        return new JxmlTemplate(source, controller, resolve(node, source, null, null, null, theme));
+        String theme = JxmlPrepare.run(node, controller, loader, warnings);
+        JxmlTemplate template = new JxmlTemplate(source, controller, resolve(node, source, null, null, null, theme, catalog));
+        template.warnings.addAll(warnings);
+        template.catalog = catalog;
+        return template;
+    }
+
+    /**
+     * What the file reads but cannot carry over, such as the {@code fx:id}s of an FXML file (each as
+     * {@code file:line: message}); empty for a JXML file.
+     */
+    public List<String> getWarnings() {
+        return Collections.unmodifiableList(warnings);
     }
 
     /** Reads a file from the file system; its includes are found next to it. */
@@ -262,7 +357,7 @@ public final class JxmlTemplate implements JxmlView<Object> {
      * above it that is an element, which is what a menu item or a tree item must stand inside.
      */
     private static Element resolve(JxmlParser.Node written, String source, JxmlSchema.Tag parent, JxmlSchema.Tag owner, Var vars,
-                                   String theme) {
+                                   String theme, JxmlCatalog cat) {
         source = written.source; // an included file's elements report their own file
         JxmlParser.Node node = JxmlComposites.expand(written, source); // composites become primitive tags here, once
         JxmlSchema.Tag tag = JxmlSchema.tag(node.tag);
@@ -324,7 +419,7 @@ public final class JxmlTemplate implements JxmlView<Object> {
                 continue;
             }
             Var scope = "For".equals(tag.name) && "key".equals(attr.name) ? inner : vars;
-            addProps(props, attr, entry.getValue(), source, node.line, tag, scope, theme);
+            addProps(props, attr, entry.getValue(), source, node.line, tag, scope, theme, cat);
         }
         for (String name : tag.required) {
             if (!node.attrs.containsKey(name)) {
@@ -370,12 +465,12 @@ public final class JxmlTemplate implements JxmlView<Object> {
                     throw new JxmlException(source, node.line, "<" + tag.name + "> takes one child");
                 }
                 for (JxmlParser.Node child : node.children) {
-                    children.add(resolve(child, source, tag, below, vars, theme));
+                    children.add(resolve(child, source, tag, below, vars, theme, cat));
                 }
                 break;
             case MANY:
             case TEMPLATE:
-                children = resolveAll(node.children, source, tag, below, inner, theme);
+                children = resolveAll(node.children, source, tag, below, inner, theme, cat);
                 break;
             case TABS:
                 titles = new String[node.children.size()];
@@ -385,7 +480,7 @@ public final class JxmlTemplate implements JxmlView<Object> {
                     if (!"Tab".equals(tabNode.tag)) {
                         throw new JxmlException(source, tabNode.line, "<Tabs> takes only <Tab> children");
                     }
-                    Element tab = resolve(tabNode, source, tag, below, vars, theme);
+                    Element tab = resolve(tabNode, source, tag, below, vars, theme, cat);
                     titles[i] = "";
                     closable[i] = true;
                     for (Prop p : tab.props) {
@@ -444,6 +539,10 @@ public final class JxmlTemplate implements JxmlView<Object> {
                 inner.add(e.var);
             }
             for (Prop p : e.props) {
+                if (p.kind == Kind.TRANSLATION) {
+                    throw new JxmlException(p.source, p.line, "<For memo> builds its elements once for as long as the list is the same, "
+                            + "so \"" + p.attr.name + "\" cannot be a translation: its text changes with the locale");
+                }
                 if ((p.kind == Kind.BINDING || p.kind == Kind.SETTER) && (p.root == null || !inner.contains(p.root))) {
                     throw new JxmlException(p.source, p.line, "<For memo> builds its elements once for as long as the list is the same, "
                             + "so \"" + p.attr.name + "\" can read only the loop variable " + roots + ", not "
@@ -572,7 +671,7 @@ public final class JxmlTemplate implements JxmlView<Object> {
 
     /** Children of a tag that takes many: an {@code <Else>} joins the {@code <If>} just before it. */
     private static List<Element> resolveAll(List<JxmlParser.Node> nodes, String source, JxmlSchema.Tag parent, JxmlSchema.Tag owner,
-                                            Var vars, String theme) {
+                                            Var vars, String theme, JxmlCatalog cat) {
         List<Element> out = new ArrayList<Element>();
         boolean openIf = false;
         for (JxmlParser.Node node : nodes) {
@@ -584,11 +683,11 @@ public final class JxmlTemplate implements JxmlView<Object> {
                     throw new JxmlException(source, node.line, "<Else> has no attribute " + node.attrs.keySet().iterator().next());
                 }
                 int last = out.size() - 1;
-                out.set(last, out.get(last).withOtherwise(resolveAll(node.children, source, JxmlSchema.tag("Else"), owner, vars, theme)));
+                out.set(last, out.get(last).withOtherwise(resolveAll(node.children, source, JxmlSchema.tag("Else"), owner, vars, theme, cat)));
                 openIf = false;
                 continue;
             }
-            Element e = resolve(node, source, parent, owner, vars, theme);
+            Element e = resolve(node, source, parent, owner, vars, theme, cat);
             out.add(e);
             openIf = "If".equals(e.tag.name);
         }
@@ -596,9 +695,13 @@ public final class JxmlTemplate implements JxmlView<Object> {
     }
 
     private static void addProps(List<Prop> out, JxmlSchema.Attr attr, String value, String source, int line,
-                                 JxmlSchema.Tag tag, Var vars, String theme) {
+                                 JxmlSchema.Tag tag, Var vars, String theme, JxmlCatalog cat) {
         if (attr.type == AttrType.HANDLER || attr.type == AttrType.CHANGE) {
             out.add(handler(attr, value, source, line, vars));
+            return;
+        }
+        if (isTranslation(attr, value, source, line)) {
+            out.add(translation(attr, value, source, line, tag, vars, cat));
             return;
         }
         if (value.startsWith("@{") && value.endsWith("}")) {
@@ -650,6 +753,132 @@ public final class JxmlTemplate implements JxmlView<Object> {
             throw new JxmlException(source, line, attr.name + "=\"" + value + "\" is not a valid "
                     + attr.type.name().toLowerCase() + ": " + e.getMessage());
         }
+    }
+
+    // ---- translations: %{key} and %{key(arguments)} ---------------------------------------------
+
+    private static boolean isTranslated(String text) {
+        return text.startsWith("%{") && text.endsWith("}");
+    }
+
+    /** Whether the value is (or, for a list, has) a {@code %{...}}; one on an attribute that cannot take it is an error. */
+    private static boolean isTranslation(JxmlSchema.Attr attr, String value, String source, int line) {
+        boolean list = attr.type == AttrType.STRINGS;
+        boolean found = false;
+        if (list) {
+            for (String part : value.contains("%{") ? split(value, source, line) : new ArrayList<String>()) {
+                found |= isTranslated(part);
+            }
+        } else {
+            found = isTranslated(value);
+        }
+        if (found && (attr.type != AttrType.STRING && !list || !attr.bindable || attr.choices != null)) {
+            throw new JxmlException(source, line, attr.name + "=\"" + value + "\" cannot be a translation: only a text attribute that "
+                    + "can be bound takes %{...} (write \\%{...} for the text itself)");
+        }
+        return found;
+    }
+
+    /** The parts of {@code text} split at the commas outside quotes, braces and parentheses, trimmed. */
+    private static List<String> split(String text, String source, int line) {
+        List<String> out = new ArrayList<String>();
+        if (text.trim().isEmpty()) {
+            return out;
+        }
+        int depth = 0;
+        boolean quoted = false;
+        int start = 0;
+        for (int i = 0; i < text.length(); i++) {
+            char ch = text.charAt(i);
+            if (ch == '\'') {
+                quoted = !quoted;
+            } else if (!quoted && (ch == '{' || ch == '(')) {
+                depth++;
+            } else if (!quoted && (ch == '}' || ch == ')')) {
+                depth--;
+            } else if (!quoted && depth == 0 && ch == ',') {
+                out.add(text.substring(start, i).trim());
+                start = i + 1;
+            }
+        }
+        if (quoted || depth != 0) {
+            throw new JxmlException(source, line, "unbalanced quotes or brackets in \"" + text + "\"");
+        }
+        out.add(text.substring(start).trim());
+        return out;
+    }
+
+    private static Prop translation(JxmlSchema.Attr attr, String value, String source, int line, JxmlSchema.Tag tag, Var vars,
+                                    JxmlCatalog cat) {
+        List<String> texts = attr.type == AttrType.STRINGS ? split(value, source, line) : java.util.Collections.singletonList(value);
+        Translation[] items = new Translation[texts.size()];
+        for (int i = 0; i < items.length; i++) {
+            String text = texts.get(i);
+            if (isTranslated(text)) {
+                if (cat == null) {
+                    throw new JxmlException(source, line, text + " needs the translation files: give the build an l10n directory "
+                            + "(src/main/l10n) or read the file with a JxmlCatalog");
+                }
+                items[i] = parseTranslation(attr, text, source, line, vars, cat);
+            } else {
+                items[i] = new Translation(null, text.startsWith("\\") ? text.substring(1) : text, null, null);
+            }
+        }
+        return new Prop(attr, items, source, line);
+    }
+
+    private static Translation parseTranslation(JxmlSchema.Attr attr, String text, String source, int line, Var vars,
+                                                JxmlCatalog cat) {
+        String body = text.substring(2, text.length() - 1).trim();
+        int open = body.indexOf('(');
+        String key = open < 0 ? body : body.substring(0, open).trim();
+        if (open >= 0 && !body.endsWith(")") || !JxmlCatalog.isKey(key)) {
+            throw new JxmlException(source, line, "bad translation " + text + "; expected %{key} or %{key(argument, ...)}, "
+                    + "an argument being ${binding}, 'text' or a number");
+        }
+        JxmlCatalog.Signature sig = cat.signature(key);
+        if (sig == null) {
+            throw new JxmlException(source, line, text + ": the key " + key + " is not defined in the default locale "
+                    + cat.getDefaultTag() + " (" + cat.fileOf(cat.getDefaultTag()) + "); keys: " + cat.keys());
+        }
+        List<String> given = open < 0 ? new ArrayList<String>() : split(body.substring(open + 1, body.length() - 1), source, line);
+        String defined = sig.key + "(" + sig.describe() + ") is defined at " + sig.location + " for " + cat.definedIn(key);
+        if (given.size() != sig.names.size()) {
+            throw new JxmlException(source, line, text + ": " + sig.key + " takes " + sig.names.size() + " argument(s), "
+                    + given.size() + " given; " + defined);
+        }
+        List<Arg> args = new ArrayList<Arg>();
+        for (int i = 0; i < given.size(); i++) {
+            String a = given.get(i);
+            String type = sig.types.get(i);
+            String here = text + ": argument " + (i + 1) + " (" + sig.names.get(i) + ": " + type + ") ";
+            if (a.startsWith("${") && a.endsWith("}")) {
+                args.add(new Arg(null, reference(attr, segments(a.substring(2, a.length() - 1).trim(), a, source, line), false, a,
+                        source, line, vars)));
+            } else if (a.length() >= 2 && a.startsWith("'") && a.endsWith("'")) {
+                if (!"String".equals(type)) {
+                    throw new JxmlException(source, line, here + "is the text " + a + ", but " + defined);
+                }
+                args.add(new Arg(a.substring(1, a.length() - 1).replace("''", "'"), null));
+            } else if (a.matches("-?[0-9]+")) {
+                if ("int".equals(type)) {
+                    args.add(new Arg(Integer.valueOf(a), null));
+                } else if ("double".equals(type) || "num".equals(type)) {
+                    args.add(new Arg(Double.valueOf(a), null));
+                } else {
+                    throw new JxmlException(source, line, here + "is the number " + a + ", but " + defined);
+                }
+            } else if (a.matches("-?[0-9]+\\.[0-9]+")) {
+                if (!"double".equals(type) && !"num".equals(type)) {
+                    throw new JxmlException(source, line, here + "is the number " + a + ", but " + defined);
+                }
+                args.add(new Arg(Double.valueOf(a), null));
+            } else {
+                throw new JxmlException(source, line, here + "is neither ${binding}, 'text' nor a number: " + a
+                        + ("DateTime".equals(type) ? " (a DateTime needs a ${binding} of a java.util.Date)" : ""));
+            }
+        }
+        return new Translation(key, null, sig, args);
     }
 
     private static String[] segments(String path, String value, String source, int line) {
@@ -841,6 +1070,12 @@ public final class JxmlTemplate implements JxmlView<Object> {
                 return change(p, controller, loopValues(p, scope));
             case SETTER:
                 return setter(p, controller, scope);
+            case TRANSLATION:
+                String[] texts = new String[p.translations.length];
+                for (int i = 0; i < texts.length; i++) {
+                    texts[i] = translate(p, p.translations[i], controller, scope);
+                }
+                return p.attr.type == AttrType.STRINGS ? (Object) texts : texts[0];
             case BINDING:
                 Object value = walk(p, controller, scope, p.path.length);
                 Object bound;
@@ -852,6 +1087,48 @@ public final class JxmlTemplate implements JxmlView<Object> {
                 return p.negate ? Boolean.valueOf(!((Boolean) bound).booleanValue()) : bound;
             default:
                 throw new IllegalStateException();
+        }
+    }
+
+    /** The text of a translation in the catalog's current locale; its bound arguments are read from the controller now. */
+    private String translate(Prop p, Translation t, Object controller, Scope scope) {
+        if (t.key == null) {
+            return t.literal;
+        }
+        Object[] args = new Object[t.args.size()];
+        for (int i = 0; i < args.length; i++) {
+            Arg a = t.args.get(i);
+            if (a.binding == null) {
+                args[i] = a.literal;
+                continue;
+            }
+            Object raw = walk(a.binding, controller, scope, a.binding.path.length);
+            String type = t.signature.types.get(i);
+            try {
+                switch (type) {
+                    case "int":
+                        args[i] = JxmlValues.asInt(raw);
+                        break;
+                    case "double":
+                    case "num":
+                        args[i] = JxmlValues.asDouble(raw);
+                        break;
+                    case "DateTime":
+                        args[i] = (java.util.Date) raw;
+                        break;
+                    default:
+                        args[i] = JxmlValues.asString(raw);
+                }
+            } catch (NumberFormatException | ClassCastException ex) {
+                throw new JxmlException(p.source, p.line, "%{" + t.key + "}: argument " + (i + 1) + " ("
+                        + t.signature.names.get(i) + ": " + type + ") is bound to " + (raw == null ? "null" : raw.getClass().getName())
+                        + ", which is not a " + type + "; " + t.signature.key + " is defined at " + t.signature.location, ex);
+            }
+        }
+        try {
+            return catalog.messages().format(t.key, args);
+        } catch (IllegalArgumentException ex) {
+            throw new JxmlException(p.source, p.line, "%{" + t.key + "}: " + ex.getMessage(), ex);
         }
     }
 
