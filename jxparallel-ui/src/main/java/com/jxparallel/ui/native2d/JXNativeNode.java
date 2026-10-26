@@ -70,6 +70,13 @@ public final class JXNativeNode implements JXLiveNode {
     private static final java.util.Set<String> LAYOUT_KEY_SET =
             new java.util.HashSet<String>(java.util.Arrays.asList(LAYOUT_KEYS));
 
+    /** The props {@link #readLayoutProp} reads into fields of the node: a change of any other prop leaves those fields as they are. */
+    private static final java.util.Set<String> READ_KEY_SET = new java.util.HashSet<String>(java.util.Arrays.asList(
+            "vgrow", "hgrow", "gap", "alignment", "fillWidth", "fillHeight", "minWidth", "prefWidth", "maxWidth", "minHeight",
+            "prefHeight", "maxHeight", "padding", "margin", "position", "halignment", "valignment", "column", "row", "columnSpan",
+            "rowSpan", "cellFillWidth", "cellFillHeight", "hgap", "vgap", "layoutX", "layoutY", "leftAnchor", "rightAnchor",
+            "topAnchor", "bottomAnchor"));
+
     /** Container kind, so layout dispatches on an int instead of comparing type strings. */
     static final int LEAF = 0;
     static final int COLUMN = 1;
@@ -1363,8 +1370,8 @@ public final class JXNativeNode implements JXLiveNode {
         boolean relayout = keyAffects(name, layoutKey, old, value);
         boolean placement = layoutKey && ("vgrow".equals(name) ? vgrow != priority(value) : "hgrow".equals(name) && hgrow != priority(value));
         props.setValueAt(at, value);
-        if (layoutKey && !readLayoutKey(name, value)) {
-            setProps(props);
+        if (layoutKey && !readLayoutKey(name, value) && READ_KEY_SET.contains(name)) {
+            setProps(props); // (the other layout keys, such as progress or fontSize, are read where the sizes are computed)
         }
         return (relayout ? SET_RELAYOUT : 0) | (placement ? SET_PLACEMENT : 0);
     }

@@ -95,25 +95,21 @@ class LiveSamplesTest {
                 current.layoutForBackend(WIDTH, HEIGHT);
                 String liveText = describe(node);
                 assertNull(LiveSupport.firstDifference(describe(current), liveText), sample + " round " + round + ": live against the current reconcile");
+                JXNativeNode fresh = mount(view.build(c));
+                assertNull(LiveSupport.firstDifference(describe(fresh), liveText), sample + " round " + round + ": live against a fresh mount");
                 int[] pixelsLive = paint(node);
-                int[] pixelsCurrent = paint(current);
-                if (!java.util.Arrays.equals(pixelsLive, paint(node))) {
-                    System.out.println(sample + " round " + round + ": painting the same tree twice differs (time-dependent drawing)");
+                Thread.sleep(40);
+                if (!java.util.Arrays.equals(pixelsLive, paint(node))) { // an indeterminate progress bar draws by the clock
+                    report.append(sample).append(" round ").append(round).append(": draws by the clock, pixels not compared\n");
                     continue;
                 }
-                assertArrayEquals(pixelsCurrent, pixelsLive, sample + " round " + round + ": pixels against the current reconcile");
-                JXNativeNode fresh = mount(view.build(c));
-                String problem = LiveSupport.firstDifference(describe(fresh), liveText);
-                if (problem != null || !java.util.Arrays.equals(paint(fresh), paint(node))) {
-                    report.append(sample).append(" round ").append(round).append(": the current reconcile differs from a fresh mount too: ")
-                            .append(problem).append('\n');
-                }
+                assertArrayEquals(paint(current), pixelsLive, sample + " round " + round + ": pixels against the current reconcile");
+                assertArrayEquals(paint(fresh), pixelsLive, sample + " round " + round + ": pixels against a fresh mount");
             }
             report.append(sample).append(": ").append(live.refreshes()).append(" refreshes, ").append(live.fallbacks()).append(" fallbacks, ")
                     .append(live.opaqueBuilds()).append(" opaque builds, ").append(live.changes()).append(" props written; ")
                     .append(live.describe()).append('\n');
         }
         System.out.print(report);
-        assertTrue(!report.toString().contains("differs from a fresh mount"), report.toString());
     }
 }

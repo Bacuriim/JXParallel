@@ -289,6 +289,7 @@ public final class ComponentBench {
             metric("live_opaque_builds", liveSession.opaqueBuilds());
             metric("live_changes", liveSession.changes());
             keptLive = liveSession; // its recording is part of what the retained stage weighs
+            root = liveSession.element(); // and the element tree is the session's, not the first one built
         }
         Fingerprint after = fingerprint(mounted, entry);
         metric("fp_probe_updated", after.sum);
