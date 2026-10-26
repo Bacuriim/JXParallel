@@ -356,10 +356,73 @@ not a measurement of the 43.
 
 ### 5.4 Second series: virtual lists (`docs/research/live-lists-2026-10-26/`)
 
-Not measured yet: the code of sections 2.4 to 2.7 and the tests are committed, the series is run on frozen code afterwards
-(`scripts\measure-components.ps1 ... -Components ListView,TableView,Tree,TreeTable,Separator,Slider`, then the steady-state
-bench for the same components). The first series above is not touched and is the baseline: TableView allocation 0.35x of
-JavaFX, TreeTable 0.65x, ListView 0.85x, Tree 1.72x.
+Run on the committed code (after `d0e1c0c`, the generated views deleted and made again), same machine and method as 5.1 to
+5.3: 5 runs of each mode in a fresh JVM, 8 passes, JDK 17, 512 MB heap, medians; the steady state is 2000 rounds, 5 JVMs.
+ListView, TableView, Tree, TreeTable, with Separator and Slider as controls (code paths this work did not touch). The first
+series is the baseline and is not overwritten. Files: `docs/research/live-lists-2026-10-26/` (`components-java17-x64.csv`,
+`-median.csv`, `steady-runs.csv`, `steady-median.csv`, `report.md`, `environment.json`). Fingerprints verified for every run
+(the summarizer lists no failed or unverified run).
+
+Background CPU: the harness recorded 5.4% mean, 7% max before the series (as for the first one); I sampled the CPU load
+myself before the series and before the steady-state one and read 14.5% and 15.3% mean (Windows `LoadPercentage`, 10 and 8
+samples), with a desktop wallpaper program, a game launcher and a cloud agent running. The two do not agree, so the machine
+was quiet but not idle. The controls say how much that matters: Separator compiled steady went from 628 to 674 us (+7%) and
+Slider compiled from 363 to 376 us (+4%) between the series, while their live values moved -1% and -13%.
+
+**Update of one prop of every instance, 8th pass** (time ms, allocation KB; JavaFX / x above 1 is better than JavaFX; old =
+first series):
+
+| component | time ms: compiled | live | JavaFX | alloc KB: compiled | live | JavaFX | JavaFX / live | JavaFX / live, old |
+|---|---:|---:|---:|---:|---:|---:|---:|---:|
+| ListView | 0.72 | 1.07 | 2.49 | 133 | 124 | 112 | 0.90x | 0.85x |
+| TableView | 1.59 | 1.71 | 1.50 | 601 | 353 | 209 | 0.59x | 0.35x |
+| Tree | 2.11 | 1.81 | 3.05 | 131 | 74.5 | 225 | 3.02x | 1.72x |
+| TreeTable | 2.41 | 1.86 | 2.53 | 292 | 139 | 188 | 1.35x | 0.65x |
+| Separator (control) | 2.78 | 2.39 | 2.73 | 704 | 123 | 123 | 1.00x | 1.00x |
+| Slider (control) | 2.02 | 1.19 | 2.51 | 626 | 5.5 | 242 | 44.3x | 44.3x |
+
+Time against JavaFX (JavaFX / live): ListView 2.33x (old 3.44x), TableView 0.88x (old 0.74x), Tree 1.69x (old 1.53x), TreeTable
+1.36x (old 1.38x). The 8th pass is a poor place to read time (5.1): ListView live is 1.48x of compiled here and equal to it in
+the steady state below.
+
+**Steady state** (us per update, build + reconcile + layout for compiled, refresh + layout for live; allocation KB per update,
+which includes the layout and the two counter reads):
+
+| component | compiled us | live us | live / compiled | old live / compiled | alloc KB: compiled | live | old live |
+|---|---:|---:|---:|---:|---:|---:|---:|
+| ListView | 141.8 | 141.5 | 1.00x | 1.01x | 126.3 | 105.1 | 124.9 |
+| TableView | 341.8 | 215.3 | 0.63x | 1.02x | 594.4 | 334.0 | 594.0 |
+| Tree | 275.9 | 253.5 | 0.92x | 1.02x | 102.4 | 63.2 | 101.8 |
+| TreeTable | 371.0 | 296.6 | 0.80x | 1.05x | 279.6 | 131.2 | 279.2 |
+| Separator (control) | 673.9 | 537.4 | 0.80x | 0.87x | 700.1 | 118.4 | 118.4 |
+| Slider (control) | 376.1 | 233.5 | 0.62x | 0.74x | 622.0 | 1.2 | 1.1 |
+
+**What the recording costs** (ready was the same as compiled for all four; build is `view.live`):
+
+| component | build ms: compiled | live | build alloc KB: compiled | live | retained B per instance: compiled | live | difference | live / compiled | old live / compiled |
+|---|---:|---:|---:|---:|---:|---:|---:|---:|---:|
+| ListView | 0.20 | 0.81 | 84.6 | 302 | 12490 | 18706 | +6216 | 1.50x | 1.02x |
+| TableView | 0.34 | 1.24 | 343 | 664 | 57344 | 66818 | +9474 | 1.17x | 1.02x |
+| Tree | 1.14 | 1.20 | 112 | 114 | 15273 | 16746 | +1473 | 1.10x | 1.02x |
+| TreeTable | 1.27 | 1.37 | 215 | 217 | 49510 | 50952 | +1442 | 1.03x | 1.00x |
+
+Reading it, without more than the numbers allow:
+
+* **Allocation improved where rows were being made again**, and not as much as hoped. TableView 0.35x to 0.59x of JavaFX, Tree
+  1.72x to 3.02x, TreeTable 0.65x to 1.35x (it is now ahead of JavaFX); ListView 0.85x to only 0.90x. The allocation that
+  remains is the layout, the nodes of the 7 rows that come in (a native node is the larger part of a row) and the list element
+  and arrays of each scroll; for ListView, whose row is one small `cell`, the nodes are most of what is left, which is why it
+  hardly moved: 105 KB in the steady state against 125 KB. ListView and TableView do not yet beat JavaFX on allocation.
+* **Time**: in the steady state TableView (0.63x of compiled), TreeTable (0.80x) and Tree (0.92x) improved; ListView did not
+  (1.00x): its update is the keyed reconcile of 20 lists of 30 rows (a linear search by key for each row) and the creation of
+  7 nodes each, in both paths, which the live path does not shorten. The 8th-pass times are within the noise of 5.1 for
+  anything but the ranking of the first series, and the controls' compiled time moved 4% to 7% between the series.
+* **Cost**: retained memory per list is +6.2 KB (ListView) and +9.5 KB (TableView) for the 30 rows: about 210 B and 320 B per
+  row (the row record, its scope, key, sites, bindings and arrays), +50% and +17% over compiled for an instance that is
+  mostly nodes; the trees +10% and +3%. Building the live session of a ListView allocates 3.6x what the compiled build does
+  (302 against 85 KB, the second read of the getters, the groups and the row records) and takes 0.8 ms instead of 0.2.
+* **Not measured here**: a list that gains or loses an item (the fallback, which costs the compiled path plus the check pass),
+  and a tree whose model is not memoized (no row is reused, so it costs what it did plus the cache).
 
 ## 6. Threats to validity
 
