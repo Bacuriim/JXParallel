@@ -64,6 +64,8 @@ public final class JxmlCompiler {
     private final Map<String, String> liveGetters = new LinkedHashMap<String, String>();
     private final Map<String, String> liveGetterNames = new java.util.HashMap<String, String>();
     private int nextPlan;
+    /** The screen has a translated prop: its live session watches the locale. */
+    private boolean liveLocale;
 
     private JxmlCompiler(JxmlTemplate template, Options options) {
         this.template = template;
@@ -393,7 +395,7 @@ public final class JxmlCompiler {
         StringBuilder out = new StringBuilder();
         out.append("\n    @Override\n")
                 .append("    public JxmlLive<").append(controllerType).append("> live(final ").append(controllerType).append(" c) {\n")
-                .append("        return JxmlLive.of(this, Live.PLAN, c);\n")
+                .append("        return JxmlLive.of(this, Live.PLAN, c").append(liveLocale ? ", " + JxmlCatalog.STRINGS + "::locale" : "").append(");\n")
                 .append("    }\n")
                 .append("\n    /** Loaded when a screen is first made live: a screen that is only built never reads it. */\n")
                 .append("    private static final class Live {\n");
@@ -465,8 +467,10 @@ public final class JxmlCompiler {
         }
         List<String> binds = new ArrayList<String>();
         for (JxmlTemplate.Prop p : byName.values()) {
-            if (p.kind == JxmlTemplate.Kind.BINDING || p.kind == JxmlTemplate.Kind.TRANSLATION) {
-                boolean guard = p.kind == JxmlTemplate.Kind.BINDING && p.attr.type == AttrType.ELEMENT;
+            if (p.kind == JxmlTemplate.Kind.TRANSLATION) {
+                binds.add(translatedBind(p, n.tag));
+            } else if (p.kind == JxmlTemplate.Kind.BINDING) {
+                boolean guard = p.attr.type == AttrType.ELEMENT;
                 binds.add("JxmlLive." + (guard ? "guard" : "bind") + "(" + quote(p.attr.prop) + ", " + getter(value(p, n.tag), scope) + ")");
             }
         }
@@ -482,6 +486,30 @@ public final class JxmlCompiler {
             return "JxmlLive.skip()";
         }
         return planMethod("JxmlLive.elem(new JxmlLive.Bind[] {" + String.join(", ", binds) + "}, " + (dynamic ? array(below) : "null") + ")");
+    }
+
+    /**
+     * A translated prop: re-read when the locale changes and when a bound argument of one of its messages does. An argument
+     * that can change without being another object (a date) makes it re-read always.
+     */
+    private String translatedBind(JxmlTemplate.Prop p, JxmlSchema.Tag tag) {
+        liveLocale = true;
+        List<String> deps = new ArrayList<String>();
+        boolean always = false;
+        for (JxmlTemplate.Translation t : p.translations) {
+            if (t.key == null) {
+                continue;
+            }
+            for (int i = 0; i < t.args.size(); i++) {
+                JxmlTemplate.Arg a = t.args.get(i);
+                if (a.binding != null) {
+                    always |= "DateTime".equals(t.signature.types.get(i));
+                    deps.add(getter(reference(a.binding), scope));
+                }
+            }
+        }
+        return "JxmlLive.translated(" + quote(p.attr.prop) + ", " + getter(value(p, tag), scope) + ", "
+                + (always ? "null" : "new JxmlLive.Getter<?>[] {" + String.join(", ", deps) + "}") + ")";
     }
 
     private String planMethod(String expression) {

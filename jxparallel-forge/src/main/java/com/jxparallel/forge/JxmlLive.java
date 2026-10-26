@@ -77,20 +77,40 @@ public final class JxmlLive<C> {
         final String name;
         final Getter<Object> getter;
         final boolean guard;
+        /** A translated text: it changes with the locale and with the bound arguments of the message, nothing else. */
+        final boolean translated;
+        /** The raw arguments the message reads; the text is made again only when one of them (or the locale) changed. Null: always. */
+        final Getter<Object>[] deps;
 
-        Bind(String name, Getter<?> getter, boolean guard) {
+        Bind(String name, Getter<?> getter, boolean guard, boolean translated, Getter<?>[] deps) {
             this.name = name;
             this.getter = cast(getter);
             this.guard = guard;
+            this.translated = translated;
+            this.deps = deps == null ? null : castAll(deps);
         }
     }
 
     public static Bind bind(String name, Getter<?> getter) {
-        return new Bind(name, getter, false);
+        return new Bind(name, getter, false, false, null);
     }
 
     public static Bind guard(String name, Getter<?> getter) {
-        return new Bind(name, getter, true);
+        return new Bind(name, getter, true, false, null);
+    }
+
+    /**
+     * A prop that is a translation ({@code %{key(args)}}): re-read when the locale changed or when one of {@code deps}, the
+     * bound arguments of its messages, changed (formatting a message makes garbage, so an unchanged one is not formatted
+     * again). {@code deps} null: always re-read (an argument that may change in place, such as a date).
+     */
+    public static Bind translated(String name, Getter<?> getter, Getter<?>[] deps) {
+        return new Bind(name, getter, false, true, deps);
+    }
+
+    @SuppressWarnings("unchecked")
+    private static Getter<Object>[] castAll(Getter<?>[] getters) {
+        return (Getter<Object>[]) getters;
     }
 
     static final class Elem extends Plan {
@@ -213,17 +233,18 @@ public final class JxmlLive<C> {
 
     private static final class Binding {
         final Site site;
-        final String name;
-        final Getter<Object> getter;
+        final Bind bind;
         final Scope scope;
         Object last;
+        /** A translation's arguments as they were when it was last made; null for the others. */
+        Object[] argsLast;
 
-        Binding(Site site, String name, Getter<Object> getter, Scope scope, Object last) {
+        Binding(Site site, Bind bind, Scope scope, Object last, Object[] argsLast) {
             this.site = site;
-            this.name = name;
-            this.getter = getter;
+            this.bind = bind;
             this.scope = scope;
             this.last = last;
+            this.argsLast = argsLast;
         }
     }
 
@@ -410,11 +431,20 @@ public final class JxmlLive<C> {
      * (null: nothing is recorded and every refresh falls back, which is what the interpreter does).
      */
     public static <C> JxmlLive<C> of(JxmlView<C> view, Plan plan, C controller) {
+        return of(view, plan, controller, null);
+    }
+
+    /** As {@link #of(JxmlView, Plan, Object)}; {@code locale} reads the current locale of the screen's translations (null: it has none). */
+    public static <C> JxmlLive<C> of(JxmlView<C> view, Plan plan, C controller, java.util.function.Supplier<java.util.Locale> locale) {
         JxmlLive<C> live = new JxmlLive<C>(view, plan, controller);
+        live.locale = locale;
         live.element = view.build(controller);
         live.record();
         return live;
     }
+
+    private java.util.function.Supplier<java.util.Locale> locale;
+    private java.util.Locale lastLocale;
 
     /** The element tree of the screen as of the last build; the props of the recorded elements are the live ones. */
     public JXElement element() {
@@ -462,7 +492,16 @@ public final class JxmlLive<C> {
         opaqueList.clear();
         recorded = false;
         attached = false;
-        if (plan == null || plan == SKIP) {
+        sites = new Site[0];
+        checks = new Check[0];
+        bindings = new Binding[0];
+        opaques = new OpaqueSite[0];
+        lastLocale = locale == null ? null : locale.get();
+        if (plan == null) {
+            return;
+        }
+        if (plan == SKIP) { // nothing in the screen depends on the controller or the locale
+            recorded = true;
             return;
         }
         try {
@@ -513,7 +552,14 @@ public final class JxmlLive<C> {
                     if (b.guard) {
                         checkList.add(new GuardCheck(b.getter, scope, last));
                     } else {
-                        bindingList.add(new Binding(site, b.name, b.getter, scope, last));
+                        Object[] args = null;
+                        if (b.translated && b.deps != null) {
+                            args = new Object[b.deps.length];
+                            for (int i = 0; i < args.length; i++) {
+                                args[i] = b.deps[i].get(controller, scope);
+                            }
+                        }
+                        bindingList.add(new Binding(site, b, scope, last, args));
                     }
                 }
                 if (e.children != null) {
@@ -662,14 +708,32 @@ public final class JxmlLive<C> {
         }
         boolean again = false;
         C c = controller;
+        java.util.Locale now = locale == null ? null : locale.get();
+        boolean localeChanged = !Objects.equals(now, lastLocale);
+        lastLocale = now;
         try {
             for (Binding b : bindings) {
-                Object value = b.getter.get(c, b.scope);
+                Bind bind = b.bind;
+                if (bind.translated && bind.deps != null) { // a message is made again only for another locale or other arguments
+                    boolean same = !localeChanged;
+                    Getter<Object>[] deps = bind.deps;
+                    for (int i = 0; i < deps.length; i++) {
+                        Object arg = deps[i].get(c, b.scope);
+                        if (!Objects.equals(arg, b.argsLast[i])) {
+                            b.argsLast[i] = arg;
+                            same = false;
+                        }
+                    }
+                    if (same) {
+                        continue;
+                    }
+                }
+                Object value = bind.getter.get(c, b.scope);
                 Object last = b.last;
                 if (value == last || Objects.deepEquals(value, last)) {
                     continue;
                 }
-                int r = b.site.node.setProp(b.name, value);
+                int r = b.site.node.setProp(bind.name, value);
                 if (r < 0) {
                     again = true; // a prop that appears or goes away is another set of keys: only a reconcile does that
                     continue;
