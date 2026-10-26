@@ -105,6 +105,8 @@ Write-Host "APK: $apk ($([math]::Round((Get-Item $apk).Length / 1KB)) KB)"
 
 if ($Install) {
     $adb = Join-Path $AndroidHome 'platform-tools\adb.exe'
+    # the debug key is generated at each build, so an installed build of another run cannot be updated: remove it first
+    & $adb uninstall com.jxparallel.android.demo | Out-Null
     Run $adb @('install', '-r', $apk)
     Run $adb @('shell', 'am', 'start', '-n', 'com.jxparallel.android.demo/.JxHelloActivity')
 }

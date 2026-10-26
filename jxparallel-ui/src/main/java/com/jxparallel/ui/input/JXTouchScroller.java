@@ -150,6 +150,11 @@ public final class JXTouchScroller {
         return flinging;
     }
 
+    /** The distance a touch may move and still be a tap. */
+    public double slop() {
+        return slop;
+    }
+
     /** A finger is down and has not moved out of the slop. */
     public boolean isTap() {
         return down && !scrolling;
