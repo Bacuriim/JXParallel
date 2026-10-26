@@ -48,6 +48,15 @@ class JXLiveNodeTest {
             if (r.nextBoolean()) {
                 props.set("prefWidth", Double.valueOf(20 + r.nextInt(200)));
             }
+            if (r.nextInt(4) == 0) {
+                props.set("minWidth", Double.valueOf(r.nextInt(60)));
+            }
+            if (r.nextInt(4) == 0) {
+                props.set("prefHeight", Double.valueOf(r.nextBoolean() ? -1 : 10 + r.nextInt(80)));
+            }
+            if (r.nextInt(4) == 0) {
+                props.set("maxHeight", Double.valueOf(10 + r.nextInt(80)));
+            }
             if (r.nextBoolean()) {
                 props.set("vgrow", GROW[r.nextInt(3)]);
             }
@@ -103,6 +112,12 @@ class JXLiveNodeTest {
                 return Double.valueOf(r.nextInt(12));
             case "prefWidth":
                 return Double.valueOf(20 + r.nextInt(200));
+            case "minWidth":
+                return Double.valueOf(r.nextInt(60));
+            case "prefHeight":
+                return Double.valueOf(r.nextBoolean() ? -1 : 10 + r.nextInt(80));
+            case "maxHeight":
+                return Double.valueOf(10 + r.nextInt(80));
             case "vgrow":
             case "hgrow":
                 return GROW[r.nextInt(3)];

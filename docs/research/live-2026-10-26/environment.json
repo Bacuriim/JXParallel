@@ -1,0 +1,25 @@
+﻿{
+    "date":  "2026-10-26",
+    "machine":  "ASUS System Product Name",
+    "cpu":  "12th Gen Intel(R) Core(TM) i5-12400F",
+    "cores":  6,
+    "logical_processors":  12,
+    "ram_gb":  15.8,
+    "os":  "Microsoft Windows 11 Enterprise 10.0.26300",
+    "powershell":  "5.1.26100.9711",
+    "background_cpu_percent_mean":  4.8,
+    "background_cpu_percent_max":  11,
+    "heap_flags":  "-Xms512m -Xmx512m",
+    "runs":  5,
+    "passes":  8,
+    "modes":  "javafx,compiled,live",
+    "fx_prism_order":  "default",
+    "timeout_sec":  300,
+    "components":  13,
+    "jvms":  {
+                 "java17-x64":  {
+                                    "java":  "C:\\Program Files\\Java\\jdk-17\\bin\\java.exe",
+                                    "version":  "java version \"17.0.12\" 2024-07-16 LTS | Java(TM) SE Runtime Environment (build 17.0.12+8-LTS-286) | Java HotSpot(TM) 64-Bit Server VM (build 17.0.12+8-LTS-286, mixed mode, sharing) | "
+                                }
+             }
+}

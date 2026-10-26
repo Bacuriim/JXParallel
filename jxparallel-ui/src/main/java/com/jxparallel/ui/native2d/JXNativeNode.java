@@ -1354,19 +1354,58 @@ public final class JXNativeNode implements JXLiveNode {
      */
     @Override
     public int setProp(String name, Object value) {
-        Object old = props.get(name);
-        if (old == null || value == null) {
+        int at = props.indexOfKey(name);
+        if (at < 0 || value == null) {
             return -1;
         }
-        boolean relayout = keyAffects(name, old, value);
-        boolean placement = "vgrow".equals(name) ? vgrow != priority(value) : "hgrow".equals(name) && hgrow != priority(value);
-        if (!props.replaceValue(name, value)) {
-            return -1;
-        }
-        if (LAYOUT_KEY_SET.contains(name)) {
+        Object old = props.valueAt(at);
+        boolean layoutKey = LAYOUT_KEY_SET.contains(name);
+        boolean relayout = keyAffects(name, layoutKey, old, value);
+        boolean placement = layoutKey && ("vgrow".equals(name) ? vgrow != priority(value) : "hgrow".equals(name) && hgrow != priority(value));
+        props.setValueAt(at, value);
+        if (layoutKey && !readLayoutKey(name, value)) {
             setProps(props);
         }
         return (relayout ? SET_RELAYOUT : 0) | (placement ? SET_PLACEMENT : 0);
+    }
+
+    /**
+     * The layout fields that each depend on one prop alone, read again for that prop only (what {@link #setProps} does for
+     * the whole set): the size overrides and the gap, which are the layout props a screen binds most. False for the
+     * others, which the caller reads again with {@link #setProps}.
+     */
+    private boolean readLayoutKey(String name, Object value) {
+        int index;
+        switch (name) {
+            case "minWidth":
+                index = 0;
+                break;
+            case "prefWidth":
+                index = 1;
+                break;
+            case "maxWidth":
+                index = 2;
+                break;
+            case "minHeight":
+                index = 3;
+                break;
+            case "prefHeight":
+                index = 4;
+                break;
+            case "maxHeight":
+                index = 5;
+                break;
+            case "gap":
+                gap = value instanceof Number ? Math.max(0, ((Number) value).doubleValue()) : 0;
+                return true;
+            default:
+                return false;
+        }
+        if (overrides != null) {
+            overrides[index] = Double.NaN;
+        }
+        override(index, value);
+        return true;
     }
 
     @Override
@@ -1387,8 +1426,8 @@ public final class JXNativeNode implements JXLiveNode {
      * placement: the per-key form of {@link #sizeAffected(JXProps, JXProps)}, which a reconcile uses for the whole prop
      * set. The two must agree; the live parity tests check it on every prop the benchmark components change.
      */
-    private boolean keyAffects(String key, Object old, Object next) {
-        if (LAYOUT_KEY_SET.contains(key) && !Objects.deepEquals(old, next)) {
+    private boolean keyAffects(String key, boolean layoutKey, Object old, Object next) {
+        if (layoutKey && !Objects.deepEquals(old, next)) {
             return true;
         }
         if ("#text".equals(type)) {

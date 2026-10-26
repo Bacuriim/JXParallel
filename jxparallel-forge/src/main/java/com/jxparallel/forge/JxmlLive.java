@@ -203,15 +203,17 @@ public final class JxmlLive<C> {
 
     // ---- the recording ------------------------------------------------------------------------------------------
 
+    /** In {@link Site#bits}: the site is on the list of those to settle. */
+    private static final int DIRTY = 8;
+
     /** An element with something live below or on it: its node, and what the refresh found out about it. */
     private static class Site {
         final JXElement element;
         final Site parent;
         final int order;
         JXLiveNode node;
-        /** What {@link JXLiveNode#commit} will be told: {@link JXLiveNode#RELAYOUT} and the like. */
+        /** What {@link JXLiveNode#commit} will be told ({@link JXLiveNode#RELAYOUT} and the like), and {@link #DIRTY}. */
         int bits;
-        boolean queued;
 
         Site(JXElement element, Site parent, int order) {
             this.element = element;
@@ -497,6 +499,10 @@ public final class JxmlLive<C> {
         bindings = new Binding[0];
         opaques = new OpaqueSite[0];
         lastLocale = locale == null ? null : locale.get();
+        dirtyCount = 0;
+        highest = 0;
+        heapSize = 0;
+        heapMode = false;
         if (plan == null) {
             return;
         }
@@ -651,7 +657,6 @@ public final class JxmlLive<C> {
         for (Site s : sites) {
             s.node = null;
             s.bits = 0;
-            s.queued = false;
         }
         if (mounted.getSource() != element || !pair(mounted, element) || next != sites.length) {
             desync = "the mounted tree is not the tree of the recording";
@@ -730,7 +735,7 @@ public final class JxmlLive<C> {
                 }
                 Object value = bind.getter.get(c, b.scope);
                 Object last = b.last;
-                if (value == last || Objects.deepEquals(value, last)) {
+                if (value == last || same(value, last)) {
                     continue;
                 }
                 int r = b.site.node.setProp(bind.name, value);
@@ -743,9 +748,7 @@ public final class JxmlLive<C> {
                 Site site = b.site;
                 site.bits |= ((r & JXLiveNode.SET_RELAYOUT) != 0 ? JXLiveNode.RELAYOUT : 0)
                         | ((r & JXLiveNode.SET_PLACEMENT) != 0 ? JXLiveNode.PLACEMENT : 0);
-                if (!site.queued) {
-                    push(site);
-                }
+                markDirty(site);
             }
             for (OpaqueSite o : opaques) {
                 int r = o.node.reconcileLive((JXElement) o.build.get(c, o.scope));
@@ -754,9 +757,7 @@ public final class JxmlLive<C> {
                     again = true;
                 } else if (r != JXLiveNode.UNCHANGED && o.parent != null) {
                     o.parent.bits |= r == JXLiveNode.RESIZED ? JXLiveNode.RELAYOUT : JXLiveNode.CHILD_SUBTREE;
-                    if (!o.parent.queued) {
-                        push(o.parent);
-                    }
+                    markDirty(o.parent);
                 }
             }
         } finally {
@@ -765,23 +766,82 @@ public final class JxmlLive<C> {
         return again ? fallback() : true;
     }
 
-    /** Settles the nodes that were touched, deepest first (a child's order is above its parent's): one commit each. */
+    /** {@code Objects.deepEquals}, with the common case (two values of one class that is not an array) one call of equals. */
+    private static boolean same(Object a, Object b) {
+        if (a == null || b == null) {
+            return false; // (the caller has seen that they are not both null)
+        }
+        Class<?> type = a.getClass();
+        if (type == b.getClass() && !type.isArray()) {
+            return a.equals(b);
+        }
+        return Objects.deepEquals(a, b);
+    }
+
+    private Site[] dirty = new Site[16];
+    private int dirtyCount;
+    private int highest;
+    /** While settling few sites: a parent that becomes dirty also goes into the heap. */
+    private boolean heapMode;
+
+    private void markDirty(Site site) {
+        if ((site.bits & DIRTY) != 0) {
+            return;
+        }
+        site.bits |= DIRTY;
+        if (dirtyCount == dirty.length) {
+            dirty = java.util.Arrays.copyOf(dirty, dirtyCount * 2);
+        }
+        dirty[dirtyCount++] = site;
+        if (site.order > highest) {
+            highest = site.order;
+        }
+        if (heapMode) {
+            push(site);
+        }
+    }
+
+    /**
+     * Settles the nodes that were touched, deepest first (a child's order is above its parent's), one commit each. When many
+     * were touched the recorded sites are walked once from the highest dirty one down (a parent is always below its
+     * children); when few, a heap keeps the cost in the number touched.
+     */
     private void settle() {
-        while (heapSize > 0) {
-            Site site = pop();
-            int r = site.node.commit(site.bits);
-            site.bits = 0;
-            if (r != JXLiveNode.UNCHANGED && site.parent != null) {
-                site.parent.bits |= r == JXLiveNode.RESIZED ? JXLiveNode.RELAYOUT : JXLiveNode.CHILD_SUBTREE;
-                if (!site.parent.queued) {
-                    push(site.parent);
+        if (dirtyCount == 0) {
+            return;
+        }
+        if (dirtyCount * 8 >= highest + 1) {
+            for (int i = highest; i >= 0; i--) {
+                Site site = sites[i];
+                if ((site.bits & DIRTY) != 0) {
+                    commit(site);
                 }
             }
+        } else {
+            heapMode = true;
+            for (int i = 0, n = dirtyCount; i < n; i++) {
+                push(dirty[i]);
+            }
+            while (heapSize > 0) {
+                commit(pop());
+            }
+            heapMode = false;
+        }
+        java.util.Arrays.fill(dirty, 0, dirtyCount, null);
+        dirtyCount = 0;
+        highest = 0;
+    }
+
+    private void commit(Site site) {
+        int r = site.node.commit(site.bits & ~DIRTY);
+        site.bits = 0;
+        if (r != JXLiveNode.UNCHANGED && site.parent != null) {
+            site.parent.bits |= r == JXLiveNode.RESIZED ? JXLiveNode.RELAYOUT : JXLiveNode.CHILD_SUBTREE;
+            markDirty(site.parent);
         }
     }
 
     private void push(Site site) {
-        site.queued = true;
         if (heapSize == heap.length) {
             heap = java.util.Arrays.copyOf(heap, heapSize * 2);
         }
@@ -819,7 +879,6 @@ public final class JxmlLive<C> {
             }
             heap[i] = last;
         }
-        top.queued = false;
         return top;
     }
 

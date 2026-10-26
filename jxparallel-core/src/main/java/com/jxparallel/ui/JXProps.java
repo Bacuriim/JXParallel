@@ -142,15 +142,32 @@ public final class JXProps extends AbstractMap<String, Object> {
      * shares with another (hoisted constants, memoized elements). Keys do not change, so {@code mask} stays valid.
      */
     public boolean replaceValue(String name, Object value) {
-        if (value == null || name == null || (mask & (1 << name.hashCode())) == 0) {
+        if (value == null) {
             return false;
+        }
+        int index = indexOfKey(name);
+        if (index < 0) {
+            return false;
+        }
+        entries[2 * index + 1] = value;
+        return true;
+    }
+
+    /** The position of the prop {@code name} for {@link #keyAt} and {@link #valueAt}, or -1 when it is not here. */
+    public int indexOfKey(String name) {
+        if (name == null || (mask & (1 << name.hashCode())) == 0) {
+            return -1;
         }
         int at = indexOf(entries, count, name);
-        if (at < 0) {
-            return false;
+        return at < 0 ? -1 : at >> 1;
+    }
+
+    /** As {@link #replaceValue} for the prop at {@code index} (from {@link #indexOfKey}); {@code value} must not be null. */
+    public void setValueAt(int index, Object value) {
+        if (value == null) {
+            throw new IllegalArgumentException("a prop cannot be set to null in place");
         }
-        entries[at + 1] = value;
-        return true;
+        entries[2 * index + 1] = value;
     }
 
     /** A read-only view, in the order the props were first set: these props themselves. */
