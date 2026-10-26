@@ -272,6 +272,8 @@ public final class JxmlLive<C> implements JXLiveSession {
     private static final class OpaqueSite extends Site {
         final Getter<Object> build;
         final Scope scope;
+        /** For a tree: the rows of its last window, which the next build gives back for the items that stay. */
+        JxmlRuntime.TreeRows rows;
 
         OpaqueSite(JXElement element, Site parent, int order, int index, Getter<Object> build, Scope scope) {
             super(element, parent, order, index);
@@ -1046,7 +1048,15 @@ public final class JxmlLive<C> implements JXLiveSession {
                 again |= apply(g);
             }
             for (OpaqueSite o : opaques) {
-                JXElement built = (JXElement) o.build.get(c, o.scope);
+                rowCache.use(o.rows);
+                JXElement built;
+                JxmlRuntime.LIVE.set(rowCache);
+                try {
+                    built = (JXElement) o.build.get(c, o.scope);
+                } finally {
+                    JxmlRuntime.LIVE.set(null);
+                    o.rows = rowCache.take();
+                }
                 int r = o.node.reconcileLive(built);
                 opaqueBuilds++;
                 if (r < 0) {
@@ -1074,6 +1084,7 @@ public final class JxmlLive<C> implements JXLiveSession {
     }
 
     private boolean localeChanged;
+    private final JxmlRuntime.RowCache rowCache = new JxmlRuntime.RowCache();
 
     /**
      * Reads one binding again and writes it into its node when it changed: 0 when it did not, 1 when written (the site

@@ -73,7 +73,7 @@ class LiveComponentsTest {
                 assertNull(JxmlTrees.diff(element, live.element()), name + " step " + step + ": the live element tree is the built one");
             }
             assertEquals(0, live.fallbacks(), name + ": the global fallback is never taken");
-            if (!"Tabs".equals(name) && !"Tree".equals(name) && !"TreeTable".equals(name)) { // (the trees: next commit)
+            if (!"Tabs".equals(name) && !"Tree".equals(name) && !"TreeTable".equals(name)) { // (a tree builds its model of items again; its rows are given back, LiveTreeTest)
                 assertEquals(0, live.opaqueBuilds(), name + ": no part is rebuilt as a whole");
             }
             if (!reconcileIsFresh) {

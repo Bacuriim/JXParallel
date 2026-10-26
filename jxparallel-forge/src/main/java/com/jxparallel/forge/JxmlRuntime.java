@@ -161,12 +161,142 @@ public final class JxmlRuntime {
         out.set("itemCount", Integer.valueOf(total)).set("first", Integer.valueOf(first))
                 .set("scrollY", Double.valueOf(first * height));
         java.util.List<JXElement> rows = new java.util.ArrayList<JXElement>(visible.size());
+        RowCache host = LIVE.get();
+        TreeRows cache = host == null ? null : host.rows();
+        if (cache != null) {
+            cache.begin();
+        }
         for (int k = 0; k < visible.size(); k++) {
             Object[] row = visible.get(k);
-            rows.add(table ? tableRow((JXElement) row[0], first + k, row) : treeCell((JXElement) row[0], first + k, row, true));
+            JXElement item = (JXElement) row[0];
+            JXElement made = cache == null ? null : cache.reuse(item, ((Integer) row[1]).intValue(), disclosure(row), first + k, table);
+            if (made == null) {
+                made = table ? tableRow(item, first + k, row) : treeCell(item, first + k, row, true);
+            }
+            rows.add(made);
+            if (cache != null) {
+                cache.keep(item, ((Integer) row[1]).intValue(), disclosure(row), made);
+            }
+        }
+        if (cache != null) {
+            cache.end();
         }
         return JXElement.of(table ? "table" : "list", out.build(), rows.toArray(new JXElement[0]));
     }
+
+    /**
+     * What a live session hands to {@link #tree} while it builds a tree again: the rows of the last window, so that a row
+     * whose item (the very element, as a memoized loop gives it), depth and arrow are the same is not made again but given
+     * back, with its {@code odd} brought up to its new position. The rows of one tree belong to one session, which owns their
+     * props.
+     */
+    static final class RowCache {
+        private TreeRows rows;
+        private boolean claimed;
+
+        /** The cache of the tree about to be built; null: none yet (made when the tree asks). */
+        void use(TreeRows rows) {
+            this.rows = rows;
+            this.claimed = false;
+        }
+
+        /** The cache for the first tree of the build (a build that makes several trees, in a tab pane, caches only the first). */
+        TreeRows rows() {
+            if (claimed) {
+                return null;
+            }
+            claimed = true;
+            if (rows == null) {
+                rows = new TreeRows();
+            }
+            return rows;
+        }
+
+        /** What the build left: the rows of the window it built, or null when it built no tree. */
+        TreeRows take() {
+            TreeRows out = claimed ? rows : null;
+            rows = null;
+            claimed = false;
+            return out;
+        }
+    }
+
+    static final class TreeRows {
+        private JXElement[] items = new JXElement[0];
+        private int[] depths = new int[0];
+        private String[] arrows = new String[0];
+        private JXElement[] made = new JXElement[0];
+        private int count;
+        private JXElement[] nextItems = new JXElement[0];
+        private int[] nextDepths = new int[0];
+        private String[] nextArrows = new String[0];
+        private JXElement[] nextMade = new JXElement[0];
+        private int nextCount;
+        private int at;
+
+        void begin() {
+            nextCount = 0;
+            at = 0;
+        }
+
+        /** The row made for this item last time, if it is the same row; its {@code odd} is set for {@code index}. */
+        JXElement reuse(JXElement item, int depth, String arrow, int index, boolean table) {
+            for (int q = at; q < count; q++) {
+                if (items[q] == item) {
+                    if (depths[q] != depth || !arrows[q].equals(arrow)) {
+                        return null;
+                    }
+                    at = q + 1;
+                    if (table || item.getProps().get("odd") == null) { // the parity of the new position (nothing else depends on it)
+                        JXProps props = made[q].getProps();
+                        int slot = props.indexOfKey("odd");
+                        Boolean odd = Boolean.valueOf(index % 2 == 1);
+                        if (slot >= 0 && !odd.equals(props.valueAt(slot))) {
+                            props.setValueAt(slot, odd);
+                        }
+                    }
+                    return made[q];
+                }
+            }
+            return null;
+        }
+
+        void keep(JXElement item, int depth, String arrow, JXElement row) {
+            if (nextCount == nextItems.length) {
+                int size = Math.max(8, nextCount * 2);
+                nextItems = java.util.Arrays.copyOf(nextItems, size);
+                nextDepths = java.util.Arrays.copyOf(nextDepths, size);
+                nextArrows = java.util.Arrays.copyOf(nextArrows, size);
+                nextMade = java.util.Arrays.copyOf(nextMade, size);
+            }
+            nextItems[nextCount] = item;
+            nextDepths[nextCount] = depth;
+            nextArrows[nextCount] = arrow;
+            nextMade[nextCount++] = row;
+        }
+
+        /** The window just built is the one the next build looks into. */
+        void end() {
+            JXElement[] i = items;
+            int[] d = depths;
+            String[] a = arrows;
+            JXElement[] m = made;
+            items = nextItems;
+            depths = nextDepths;
+            arrows = nextArrows;
+            made = nextMade;
+            count = nextCount;
+            nextItems = i;
+            nextDepths = d;
+            nextArrows = a;
+            nextMade = m;
+            java.util.Arrays.fill(nextItems, null);
+            java.util.Arrays.fill(nextMade, null);
+        }
+    }
+
+    /** Set by a live session around the rebuild of a tree on the thread that refreshes; null otherwise. */
+    static final ThreadLocal<RowCache> LIVE = new ThreadLocal<RowCache>();
 
     /** The rows {@code [first, first + limit)} of the visible items, and how many items there are in all. */
     private static final class Window {

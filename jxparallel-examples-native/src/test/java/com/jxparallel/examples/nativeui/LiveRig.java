@@ -49,7 +49,9 @@ final class LiveRig<M> {
         step++;
         String liveText = LiveSupport.describe(node);
         JXNativeNode fresh = ForgeLoadBenchmark.ready(view.build(model));
-        assertNull(LiveSupport.firstDifference(LiveSupport.describe(fresh), liveText), what + " (step " + step + "): live against a fresh mount");
+        String against = LiveSupport.firstDifference(LiveSupport.describe(fresh), liveText);
+        assertNull(against, what + " (step " + step + "): live against a fresh mount (the current reconcile "
+                + (LiveSupport.firstDifference(LiveSupport.describe(fresh), LiveSupport.describe(current)) == null ? "equals" : "also differs from") + " it)");
         assertNull(LiveSupport.firstDifference(LiveSupport.describe(current), liveText), what + " (step " + step + "): live against the current reconcile");
         int[] pixels = LiveSupport.paint(node);
         assertArrayEquals(LiveSupport.paint(fresh), pixels, what + " (step " + step + "): pixels against a fresh mount");
