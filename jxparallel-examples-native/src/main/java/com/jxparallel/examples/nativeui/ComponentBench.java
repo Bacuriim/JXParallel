@@ -11,6 +11,7 @@ import java.util.List;
 
 import com.jxparallel.examples.nativeui.components.ComponentController;
 import com.jxparallel.examples.nativeui.components.ComponentTable;
+import com.jxparallel.forge.JxmlLive;
 import com.jxparallel.forge.JxmlTemplate;
 import com.jxparallel.forge.JxmlTrees;
 import com.jxparallel.forge.JxmlView;
@@ -24,7 +25,8 @@ import com.jxparallel.ui.native2d.JXWindow;
  * {@code -Djx.comp.passes} passes (pass 1 cold, the last warm), emitting {@code JX_METRIC key=value} lines:
  * <ol>
  *   <li>{@code build}: the element tree of the screen. {@code interpreted} reads and checks the file on every load,
- *       {@code template} reads it once, {@code compiled} calls the generated class.</li>
+ *       {@code template} reads it once, {@code compiled} calls the generated class, {@code live} (research) is the
+ *       compiled build plus the recording of what depends on the controller ({@code JxmlLive}).</li>
  *   <li>{@code ready}: from a fresh tree (built before the clock starts), the native nodes created and laid out at
  *       1280x800 and the tabs mounted ahead.</li>
  *   <li>{@code update}: every instance gets a new value of one prop: the tree is built again with it and reconciled
@@ -46,6 +48,8 @@ public final class ComponentBench {
     /** Held in statics so that no stage's live objects are collected before the retained stage reads the heap. */
     private static JXElement keptElement;
     private static JXNativeNode keptNode;
+    /** Live mode: the recording stays alive with the instances, so the retained stage counts its cost. */
+    private static JxmlLive keptLive;
     private static int[] pixels;
 
     private ComponentBench() {
@@ -84,13 +88,25 @@ public final class ComponentBench {
             }
             return template.build(controller);
         }
-        if (!"compiled".equals(mode)) {
+        if (!"compiled".equals(mode) && !"live".equals(mode)) {
             throw new IllegalArgumentException("unknown mode " + mode);
         }
         if (cache[0] == null) {
             cache[0] = ComponentBenchViews.view(name);
         }
+        if ("live".equals(mode)) { // the same tree, and the recording of what depends on the controller
+            return ((JxmlView) cache[0]).live(controller).element();
+        }
         return ((JxmlView) cache[0]).build(controller);
+    }
+
+    /** The generated view of the component (kept in {@code cache[0]}, as {@link #build} keeps it). */
+    @SuppressWarnings("rawtypes")
+    private static JxmlView viewOf(String name, Object[] cache) {
+        if (cache[0] == null) {
+            cache[0] = ComponentBenchViews.view(name);
+        }
+        return (JxmlView) cache[0];
     }
 
     static JxmlTemplate readTemplate(String name) throws Exception {
@@ -185,6 +201,8 @@ public final class ComponentBench {
         ComponentTable.Entry entry = ComponentTable.get(name);
         final Object[] cache = new Object[1];
         final Object[] box = new Object[2];
+        final boolean live = "live".equals(mode);
+        final long[] attachNs = new long[1];
 
         // 1. build
         List<Rec> build = new ArrayList<Rec>();
@@ -196,17 +214,33 @@ public final class ComponentBench {
         metric("fp_instances", root.getChildren().size());
         metric("fp_nodes", JxmlTrees.count(root));
 
-        // 2. ready: each pass starts from a tree built before the clock
+        // 2. ready: each pass starts from a tree built before the clock (in live mode, with its recording, which the
+        // clock pairs with the mounted nodes: that is part of the cost of being live)
         List<Rec> ready = new ArrayList<Rec>();
         JXNativeNode node = null;
+        JxmlLive session = null;
         for (int p = 0; p < PASSES; p++) {
-            final JXElement tree = build(mode, name, controller, cache);
+            final JxmlLive recorded = live ? ((JxmlView) viewOf(name, cache)).live(controller) : null;
+            final JXElement tree = live ? recorded.element() : build(mode, name, controller, cache);
             box[0] = tree;
-            ready.add(time(() -> box[1] = ForgeLoadBenchmark.ready((JXElement) box[0])));
+            ready.add(time(() -> {
+                box[1] = ForgeLoadBenchmark.ready((JXElement) box[0]);
+                if (recorded != null) {
+                    long start = System.nanoTime();
+                    if (!recorded.attach((JXNativeNode) box[1])) {
+                        throw new IllegalStateException(name + ": the recording does not pair with the mounted tree: " + recorded.problem());
+                    }
+                    attachNs[0] = System.nanoTime() - start;
+                }
+            }));
             node = (JXNativeNode) box[1];
+            session = recorded;
             root = tree;
         }
         emit("ready", ready);
+        if (live) {
+            metric("live_attach_last_ns", attachNs[0]);
+        }
         Fingerprint before = fingerprint(node, entry);
         metric("fp_probe", before.sum);
         metric("fp_probe_n", before.count);
@@ -215,10 +249,18 @@ public final class ComponentBench {
         // 3. update: the two value sets alternate; the first pass changes phase 0 to 1
         List<Rec> update = new ArrayList<Rec>();
         final JXNativeNode mounted = node;
+        final JxmlLive liveSession = session;
         for (int p = 1; p <= PASSES; p++) {
             final int phase = p & 1;
             update.add(time(() -> {
                 controller.setPhase(phase);
+                if (liveSession != null) { // only what changed is written into the mounted nodes
+                    if (!liveSession.refresh()) {
+                        throw new IllegalStateException(name + ": the root type changed");
+                    }
+                    mounted.layoutForBackend(WIDTH, HEIGHT);
+                    return;
+                }
                 JXElement next = build(mode, name, controller, cache);
                 if (!mounted.reconcile(next)) {
                     throw new IllegalStateException(name + ": the root type changed");
@@ -226,14 +268,27 @@ public final class ComponentBench {
                 mounted.layoutForBackend(WIDTH, HEIGHT);
                 box[0] = next;
             }));
-            root = (JXElement) box[0];
+            if (liveSession == null) {
+                root = (JXElement) box[0];
+            }
         }
         emit("update", update);
         if ((PASSES & 1) == 0) { // end on the second value set, the one the fingerprint is defined for
             controller.setPhase(1);
-            root = build(mode, name, controller, cache);
-            mounted.reconcile(root);
+            if (liveSession != null) {
+                liveSession.refresh();
+            } else {
+                root = build(mode, name, controller, cache);
+                mounted.reconcile(root);
+            }
             mounted.layoutForBackend(WIDTH, HEIGHT);
+        }
+        if (liveSession != null) {
+            metric("live_refreshes", liveSession.refreshes());
+            metric("live_fallbacks", liveSession.fallbacks());
+            metric("live_opaque_builds", liveSession.opaqueBuilds());
+            metric("live_changes", liveSession.changes());
+            keptLive = liveSession; // its recording is part of what the retained stage weighs
         }
         Fingerprint after = fingerprint(mounted, entry);
         metric("fp_probe_updated", after.sum);
@@ -270,6 +325,7 @@ public final class ComponentBench {
         metric("heap_live_with_bytes", JvmMetrics.liveHeapAfterGc());
         keptElement = null;
         keptNode = null;
+        keptLive = null;
         metric("heap_live_released_bytes", JvmMetrics.liveHeapAfterGc());
         JvmMetrics.emitProcessMetrics();
     }
@@ -338,6 +394,7 @@ public final class ComponentBench {
         Object[] compiledCache = new Object[1];
         boolean ok = true;
         JXNativeNode node = null;
+        Fingerprint updated = null;
         for (int phase = 0; phase <= 1; phase++) {
             controller.setPhase(phase);
             JXElement interpreted = build("interpreted", name, controller, interpretedCache);
@@ -364,8 +421,28 @@ public final class ComponentBench {
                 Fingerprint f = fingerprint(node, entry);
                 metric("fp_probe_updated", f.sum);
                 metric("fp_probe_updated_n", f.count);
+                updated = f;
             }
         }
+        // live: the same tree, and a screen mounted once and refreshed to the second value set reaches the same fingerprint
+        controller.setPhase(0);
+        JxmlLive session = viewOf(name, new Object[1]).live(controller);
+        String liveProblem = JxmlTrees.diff(build("compiled", name, controller, compiledCache), session.element());
+        if (liveProblem != null) {
+            System.err.println(name + " live: " + liveProblem);
+            ok = false;
+        }
+        JXNativeNode liveNode = ForgeLoadBenchmark.ready(session.element());
+        ok &= session.attach(liveNode);
+        controller.setPhase(1);
+        ok &= session.refresh();
+        liveNode.layoutForBackend(WIDTH, HEIGHT);
+        Fingerprint liveFingerprint = fingerprint(liveNode, entry);
+        if (updated == null || liveFingerprint.sum != updated.sum || liveFingerprint.count != updated.count) {
+            System.err.println(name + " live: the fingerprint after refresh differs from the compiled one");
+            ok = false;
+        }
+        metric("live_verified_fallbacks", session.fallbacks());
         metric("n", controller.getCount());
         metric("verified", ok ? 1 : 0);
         return ok;

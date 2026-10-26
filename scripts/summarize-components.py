@@ -24,7 +24,7 @@ GROUPS = [
     ("overlays", "Overlays"),
     ("material", "Material controls"),
 ]
-MODES = ["javafx", "interpreted", "template", "compiled"]
+MODES = ["javafx", "interpreted", "template", "compiled", "live"]
 NA = "n/a"
 DEFAULT_TABLE = os.path.join(os.path.dirname(os.path.abspath(__file__)), "..", "jxparallel-examples-native", "src", "main",
                              "resources", "componentbench", "components.csv")
@@ -206,6 +206,53 @@ def ranking(jvm_rows, components, top=10):
     return scored[:top], list(reversed(scored))[:top]
 
 
+def _pick(rows, name, mode, getter):
+    row = rows.get((name, mode))
+    return None if row is None else getter(row)
+
+
+def live_section(jvm, rows, components):
+    """Live bindings (research): compiled against live against JavaFX, where the components have a live row."""
+    names = [c for c in components if (c["name"], "live") in rows]
+    if not names:
+        return []
+    lines = ["#### Live bindings against compiled JXML and JavaFX, %s" % jvm, "",
+             "Update of one prop of every instance, warm pass. Ratios are JavaFX / mode (above 1x the mode is better than JavaFX) and "
+             "live / compiled (below 1x live is better than compiled). Build and ready include the recording and its pairing with "
+             "the mounted nodes.", ""]
+    update_ms = _scaled(_g("update_warm_ns"), ms)
+    update_kb = _scaled(_g("update_warm_alloc_bytes"), kb)
+    lines.append("| component | n | update ms compiled | live | JavaFX | JavaFX/compiled | JavaFX/live | live/compiled |"
+                 " alloc KB compiled | live | JavaFX | JavaFX/compiled | JavaFX/live | live/compiled | fallbacks | opaque builds |")
+    lines.append("|---|---:|" + "---:|" * 14)
+    for comp in names:
+        n = comp["name"]
+        tc, tl, tj = (_pick(rows, n, m, update_ms) for m in ("compiled", "live", "javafx"))
+        ac, al, aj = (_pick(rows, n, m, update_kb) for m in ("compiled", "live", "javafx"))
+        live = rows[(n, "live")]
+        lines.append("| %s | %s | %s | %s | %s | %s | %s | %s | %s | %s | %s | %s | %s | %s | %s | %s |" % (
+            n, fmt(num(live.get("n"))), fmt(tc), fmt(tl), fmt(tj), fmt_ratio(ratio(tj, tc)), fmt_ratio(ratio(tj, tl)),
+            fmt_ratio(ratio(tl, tc)), fmt(ac), fmt(al), fmt(aj), fmt_ratio(ratio(aj, ac)), fmt_ratio(ratio(aj, al)),
+            fmt_ratio(ratio(al, ac)), fmt(num(live.get("live_fallbacks"))), fmt(num(live.get("live_opaque_builds")))))
+    lines.append("")
+    lines.append("Build, ready, retained (compiled and live), warm:")
+    lines.append("")
+    lines.append("| component | build ms compiled | live | ready ms compiled | live | build KB compiled | live | ready KB compiled | live |"
+                 " retained B/instance compiled | live | live/compiled |")
+    lines.append("|---|" + "---:|" * 11)
+    for comp in names:
+        n = comp["name"]
+        cells = []
+        for getter in (_scaled(_g("build_warm_ns"), ms), _scaled(_g("ready_warm_ns"), ms), _scaled(_g("build_warm_alloc_bytes"), kb),
+                       _scaled(_g("ready_warm_alloc_bytes"), kb)):
+            cells.extend([fmt(_pick(rows, n, "compiled", getter)), fmt(_pick(rows, n, "live", getter))])
+        rc, rl = (_pick(rows, n, m, _retained) for m in ("compiled", "live"))
+        cells.extend([fmt(rc), fmt(rl), fmt_ratio(ratio(rl, rc))])
+        lines.append("| %s | %s |" % (n, " | ".join(cells)))
+    lines.append("")
+    return lines
+
+
 def report(medians, components, source=""):
     lines = []
     lines.append("## Per-component results" + (" (%s)" % source if source else ""))
@@ -236,6 +283,7 @@ def report(medians, components, source=""):
             lines.append("")
             lines.extend(group_table(rows, comps, MEMORY_COLUMNS))
             lines.append("")
+        lines.extend(live_section(jvm, rows, components))
         wins, losses = ranking(rows, components)
         lines.append("#### Biggest wins and losses of compiled JXML against JavaFX, %s (%s)" % (jvm, HEADLINE[0]))
         lines.append("")

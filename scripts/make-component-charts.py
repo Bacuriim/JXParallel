@@ -171,7 +171,7 @@ class Series:
         g, info = {}, {}
         with open(os.path.join(self.dir, "components-%s.csv" % jvm), encoding="utf-8-sig") as f:
             for r in csv.DictReader(f):
-                if r["status"] == "ok" and r["mode"] in ("javafx", "interpreted", "template", "compiled"):
+                if r["status"] == "ok" and r["mode"] in ("javafx", "interpreted", "template", "compiled", "live"):
                     g.setdefault((r["component"], r["mode"]), []).append(r)
                     info[r["component"]] = int(float(r["n"]))
         self.cache[jvm] = (g, info)

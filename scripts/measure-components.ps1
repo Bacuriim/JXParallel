@@ -5,15 +5,15 @@ param(
     [string[]]$Jvms = @("java8-x86", "java17-x64", "java21-x64"),
     [string[]]$Components = @(),
     [string]$Out = "",
-    [string[]]$Modes = @("javafx", "interpreted", "template", "compiled"),
+    [string[]]$Modes = @("javafx", "interpreted", "template", "compiled", "live"),
     [string]$FxPrism = "",
     [int]$TimeoutSec = 300,
     [switch]$Force,
     [switch]$IncludeAliases
 )
 
-# One component at a time: its JavaFX counterpart (ComponentBenchFx, when it has one) against the three JXML modes
-# (ComponentBench: interpreted, template, compiled), each run in a fresh JVM, the modes alternating their place within
+# One component at a time: its JavaFX counterpart (ComponentBenchFx, when it has one) against the JXML modes
+# (ComponentBench: interpreted, template, compiled and, on the live-bindings research branch, live), each run in a fresh JVM, the modes alternating their place within
 # every run, components in the outer loop. Stages inside every JVM: build, ready, update, paint, retained (see the
 # classes). Per JVM one CSV with a row per run, and -median.csv with the median, min and max per component and mode.
 # Resumable: components that already have all their rows are skipped unless -Force. A mode that exits non-zero or times
@@ -44,7 +44,11 @@ $fxRepo = Join-Path $env:USERPROFILE ".m2\repository\org\openjfx"
 $openJfx = (@('javafx-base', 'javafx-graphics', 'javafx-controls', 'javafx-fxml') |
             ForEach-Object { "$fxRepo\$_\21.0.2\$_-21.0.2-win.jar" }) -join ';'
 $fxCp = "jxparallel-examples\target\classes;jxparallel-fxml\target\classes;jxparallel-javafx\target\classes;jxparallel-core\target\classes"
-$deps = (Get-Content "jxparallel-examples-native\target\classpath.txt" -Raw).Trim().Split(';')
+# The third-party jars of the classpath file only: its jxparallel-* entries are the jars installed in ~/.m2, which may be
+# another version of the code than this tree's. The modules come from their target\classes (live-bindings research branch).
+$deps = @((Get-Content "jxparallel-examples-native\target\classpath.txt" -Raw).Trim().Split(';') |
+          Where-Object { (Split-Path $_ -Leaf) -notlike 'jxparallel-*' })
+$deps = @("jxparallel-ui\target\classes", "jxparallel-forge\target\classes", "jxparallel-core\target\classes") + $deps
 $deps86 = $deps | ForEach-Object {
     $alt = $_ -replace 'natives-windows\.jar$', 'natives-windows-x86.jar'
     if ($alt -ne $_ -and (Test-Path $alt)) { $alt } else { $_ }
