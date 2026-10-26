@@ -2,6 +2,8 @@
 
 ## Unreleased
 
+- fixed: Skija crashed the JVM while loading its native library on Java 8 64-bit; the cause is the `io.github.humbleui:types` 0.1.1 it brings, compiled for Java 9 (the library looks up `Rect`, `IRect`, `Point`... on load and uses the failed lookup); `jxparallel-ui` now depends on `types` 0.2.0 (the same API plus two `contains` methods, compiled for Java 8), and the whole ui suite, Skia images included, runs on Java 8 64-bit; Java 8 still paints with NanoVG unless `-Djx.renderer=skia`
+
 - fixed: a reconcile that changed a tooltip's text, a combo or choice box's prompt, or a text area's row count kept the node's old size, so the text was cut and its neighbours stayed where they were (the native layer of `ComboBox.setPromptText` and `TextArea.setPrefRowCount` after the screen was shown); `sizeAffected` now names every prop the size code reads, and `JXSizePropsReconcileTest` changes each one in place and compares with a fresh mount
 
 - `jxparallel-android`: a first Android backend (a `JXPainter` over the `Canvas`, `JXAndroidView` with touch and the soft keyboard, a sample JXML app, an APK built without the Android Gradle plugin), run on the Android 14 emulator; `JXPainter` is public and `JXFrame` is the facade backends use; the text engine no longer needs HarfBuzz when no font file is found
