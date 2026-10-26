@@ -2,6 +2,8 @@
 
 ## Unreleased
 
+- fixed: Skija crashed the JVM while loading its native library on Java 8 64-bit; the cause is the `io.github.humbleui:types` 0.1.1 it brings, compiled for Java 9 (the library looks up `Rect`, `IRect`, `Point`... on load and uses the failed lookup); `jxparallel-ui` now depends on `types` 0.2.0 (the same API plus two `contains` methods, compiled for Java 8), and the whole ui suite, Skia images included, runs on Java 8 64-bit; Java 8 still paints with NanoVG unless `-Djx.renderer=skia`
+
 - fixed: a reconcile that changed a tooltip's text, a combo or choice box's prompt, or a text area's row count kept the node's old size, so the text was cut and its neighbours stayed where they were (the native layer of `ComboBox.setPromptText` and `TextArea.setPrefRowCount` after the screen was shown); `sizeAffected` now names every prop the size code reads, and `JXSizePropsReconcileTest` changes each one in place and compares with a fresh mount
 
 - Material 3 look everywhere in `jxparallel-ui`, in light and dark, with the same sizes as before (compact density), so the JavaFX-compatible layer (`jxparallel-fx`) has it too; the other Material roles are derived from the six theme tokens; the Modena painting is gone; the reference images and recordings of the paint tests were regenerated; the 32-bit NanoVG renderer was not run with it yet
