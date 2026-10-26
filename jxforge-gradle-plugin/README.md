@@ -45,9 +45,9 @@ A JXML error fails the build with the message `File.jxml:line: problem`.
 
 ## Build and test
 
-Gradle 7.5 or newer, run on a JDK between 8 and 18 for Gradle 7.5 (JDK 11 and 17 work; Gradle 7.5.1 on
-JDK 21 fails with `Unsupported class file major version 65`, and 8.5 is the first release that runs on 21).
-The plugin targets Java 8.
+Gradle 7.5 or newer. The 12 TestKit tests pass with Gradle 7.5.1 on JDK 11 and 17, and with Gradle 8.10.2 on
+JDK 11, 17 and 21, with no change to the build. Gradle 7.5.1 cannot run on JDK 21 (`Unsupported class file major
+version 65`); use 8.5 or newer there. The plugin targets Java 8.
 It resolves `jxparallel-forge` and `jxparallel-core` from `mavenLocal()`, so install them first
 (`mvn install` in the parent project).
 
