@@ -26,7 +26,7 @@ public final class JXTextHit {
         float right = node.getX() + node.getWidth() - pad[1] - sides[1] - buttonWidth(node);
         float available = right - left;
         float full = engine.width(value, size);
-        int caret = (int) JXPaint.number(node, "caret", -1);
+        int caret = JXPaint.caretOf(node);
         float shift = 0;
         String align = String.valueOf(node.getProperty("textAlignment"));
         if (full < available && "CENTER".equalsIgnoreCase(align)) {

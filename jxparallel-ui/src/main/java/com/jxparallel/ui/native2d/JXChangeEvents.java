@@ -279,7 +279,22 @@ final class JXChangeEvents {
         char typed = event.getKeyChar();
         int code = event.getKeyCode();
         String next = text;
-        if (typed >= 32 && typed != 127) {
+        int anchor = node.anchor < 0 ? caret : Math.min(node.anchor, text.length());
+        boolean insert = typed >= 32 && typed != 127 || code == ENTER && "textarea".equals(node.getType());
+        if (anchor != caret && (insert || code == BACKSPACE || code == DELETE || code == LEFT || code == RIGHT)) {
+            // a selection (a host put it there, see JXTextInput): typing and deleting replace it, the arrows end it
+            int start = Math.min(anchor, caret);
+            int end = Math.max(anchor, caret);
+            if (insert) {
+                next = text.substring(0, start) + (typed >= 32 ? String.valueOf(typed) : "\n") + text.substring(end);
+                caret = start + 1;
+            } else if (code == BACKSPACE || code == DELETE) {
+                next = text.substring(0, start) + text.substring(end);
+                caret = start;
+            } else {
+                caret = code == LEFT ? start : end;
+            }
+        } else if (typed >= 32 && typed != 127) {
             next = text.substring(0, caret) + typed + text.substring(caret);
             caret++;
         } else if (code == ENTER && "textarea".equals(node.getType())) {
@@ -300,6 +315,7 @@ final class JXChangeEvents {
             caret = text.length();
         }
         node.caret = caret;
+        node.anchor = -1;
         if (!next.equals(text)) {
             onChange.accept(next);
         }

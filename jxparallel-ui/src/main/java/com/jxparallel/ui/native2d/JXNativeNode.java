@@ -103,6 +103,13 @@ public final class JXNativeNode {
     final boolean overlayContent;
     /** Where typing goes in a text input (see {@link JXChangeEvents}); -1 is the end. */
     int caret = -1;
+    /** The other end of the selection of a text input (see {@link JXTextInput}); -1 is the caret: no selection. */
+    int anchor = -1;
+    /** The host (see {@link JXFrame#focus}) gives this node the focus: its caret and selection show without a {@code focused} prop. */
+    boolean hostFocus;
+    /** Scroll offsets in pixels a gesture set (see {@link JXScrolling}), NaN while the props decide. */
+    double userScrollX = Double.NaN;
+    double userScrollY = Double.NaN;
     /** A press on a scroll bar grabbed its thumb; the drag that follows moves it (see {@link JXChangeEvents#drag}). */
     boolean dragThumb;
     /** Distance from the start of the grabbed thumb or divider to the pointer, along the axis. */
@@ -453,6 +460,7 @@ public final class JXNativeNode {
         boolean placement = vgrow != priority(next.get("vgrow")) || hgrow != priority(next.get("hgrow"));
         boolean relayout = sizeAffected(previous, element.getProps());
         setProps(element.getProps());
+        JXScrolling.release(this, previous, element.getProps());
         boolean subtree = false;
         List<JXElement> nextChildren = element.getChildren();
         boolean retain = Boolean.TRUE.equals(next.get("retainChildren"));
@@ -650,6 +658,15 @@ public final class JXNativeNode {
 
     boolean isLayoutDirty() {
         return layoutDirty;
+    }
+
+    /** This node places its children again at its bounds (a scroll offset changed); its ancestors must call {@link #childNeedsRelayout}. */
+    void requestRelayout() {
+        layoutDirty = true;
+    }
+
+    void childNeedsRelayout() {
+        childNeedsLayout = true;
     }
 
     public void invalidateLayout() {

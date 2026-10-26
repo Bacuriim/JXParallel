@@ -722,6 +722,12 @@ public final class JXControlLayout {
             g.scrollX = Math.max(0, Math.min(JXPaint.number(node, "scrollX", 0), g.maxScrollX()));
             g.scrollY = Math.max(0, Math.min(JXPaint.number(node, "scrollY", 0), g.maxScrollY()));
         }
+        if (!Double.isNaN(node.userScrollX)) { // a touch scrolled it (see JXScrolling): the props show where it started
+            g.scrollX = Math.max(0, Math.min(node.userScrollX, g.maxScrollX()));
+        }
+        if (!Double.isNaN(node.userScrollY)) {
+            g.scrollY = Math.max(0, Math.min(node.userScrollY, g.maxScrollY()));
+        }
         if (vBar) {
             g.vx = x + w - SCROLL_BAR;
             g.vy = y;
