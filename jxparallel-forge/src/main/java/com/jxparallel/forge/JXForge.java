@@ -1,15 +1,18 @@
 package com.jxparallel.forge;
 
+import java.io.ByteArrayOutputStream;
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
+import java.security.CodeSource;
 import java.security.MessageDigest;
 import java.security.NoSuchAlgorithmException;
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.Enumeration;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.LinkedHashMap;
@@ -18,6 +21,8 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 import java.util.TreeMap;
+import java.util.jar.JarEntry;
+import java.util.jar.JarFile;
 
 /**
  * Compiles a directory of JXML and FXML files into Java sources, one class per file, like {@code protoc}:
@@ -25,7 +30,8 @@ import java.util.TreeMap;
  *
  * <p>The run is incremental by content, not by time. The output directory keeps a {@value #MANIFEST} file with, for each
  * screen, the SHA-256 of its own bytes and of every file it includes (transitively), plus one fingerprint of the options
- * (package, suffix, hoist, forge version). On each run only the screens whose key changed, or whose generated file is
+ * (package, suffix, hoist, forge version and the content of the forge's own classes, so a changed compiler generates
+ * everything again even when the version stays a snapshot). On each run only the screens whose key changed, or whose generated file is
  * missing, are compiled again; a generated text equal to the file on disk is not written (so javac sees no change); the
  * generated files of sources that are gone are deleted. The warnings of every screen are kept in the manifest and shown
  * on each run, also for the screens that are up to date. A missing, corrupt or foreign manifest only means that
@@ -281,11 +287,95 @@ public final class JXForge {
 
     // ---- the keys ---------------------------------------------------------------------------------------------
 
-    /** The forge version from the jar's manifest, or a constant when running from classes. */
+    /**
+     * The forge version from the jar's manifest (or a constant when running from classes) and the digest of the forge's
+     * classes: a snapshot keeps its version while the compiler changes, and the screens it generated must follow.
+     */
     private static String version() {
         Package pack = JXForge.class.getPackage();
         String version = pack == null ? null : pack.getImplementationVersion();
-        return version == null ? "unversioned" : version;
+        return (version == null ? "unversioned" : version) + "\n" + compilerDigest();
+    }
+
+    /** Computed once per class loader; package-private so a test can stand for a changed compiler. */
+    static volatile String compilerDigest;
+
+    /**
+     * SHA-256 of the names and bytes of the classes under {@code com/jxparallel/forge/}, in name order, read from the jar
+     * or the class directory this class was loaded from. Only contents count, so a jar rebuilt from the same classes keeps
+     * the digest. When the location cannot be read the digest is a constant, and the run is keyed by the version alone.
+     */
+    static String compilerDigest() {
+        String digest = compilerDigest;
+        if (digest == null) {
+            digest = "unknown";
+            try {
+                CodeSource source = JXForge.class.getProtectionDomain().getCodeSource();
+                File location = source == null ? null : new File(source.getLocation().toURI());
+                TreeMap<String, byte[]> classes = new TreeMap<String, byte[]>();
+                if (location != null && location.isDirectory()) {
+                    File dir = new File(location, "com/jxparallel/forge");
+                    collectClasses(dir, "com/jxparallel/forge/", classes);
+                } else if (location != null && location.isFile()) {
+                    JarFile jar = new JarFile(location);
+                    try {
+                        for (Enumeration<JarEntry> e = jar.entries(); e.hasMoreElements(); ) {
+                            JarEntry entry = e.nextElement();
+                            if (entry.getName().startsWith("com/jxparallel/forge/") && entry.getName().endsWith(".class")) {
+                                InputStream in = jar.getInputStream(entry);
+                                try {
+                                    classes.put(entry.getName(), readAll(in));
+                                } finally {
+                                    in.close();
+                                }
+                            }
+                        }
+                    } finally {
+                        jar.close();
+                    }
+                }
+                if (!classes.isEmpty()) {
+                    MessageDigest sha = MessageDigest.getInstance("SHA-256");
+                    for (Map.Entry<String, byte[]> e : classes.entrySet()) {
+                        sha.update(e.getKey().getBytes(StandardCharsets.UTF_8));
+                        sha.update((byte) 0);
+                        sha.update(e.getValue());
+                    }
+                    StringBuilder hex = new StringBuilder();
+                    for (byte b : sha.digest()) {
+                        hex.append(Character.forDigit((b >> 4) & 15, 16)).append(Character.forDigit(b & 15, 16));
+                    }
+                    digest = hex.toString();
+                }
+            } catch (Exception e) {
+                digest = "unknown"; // an unreadable location only makes the key coarser
+            }
+            compilerDigest = digest;
+        }
+        return digest;
+    }
+
+    private static void collectClasses(File dir, String prefix, Map<String, byte[]> classes) throws IOException {
+        File[] files = dir.listFiles();
+        if (files == null) {
+            return;
+        }
+        for (File file : files) {
+            if (file.isDirectory()) {
+                collectClasses(file, prefix + file.getName() + "/", classes);
+            } else if (file.getName().endsWith(".class")) {
+                classes.put(prefix + file.getName(), Files.readAllBytes(file.toPath()));
+            }
+        }
+    }
+
+    private static byte[] readAll(InputStream in) throws IOException {
+        ByteArrayOutputStream out = new ByteArrayOutputStream();
+        byte[] buffer = new byte[8192];
+        for (int n; (n = in.read(buffer)) > 0; ) {
+            out.write(buffer, 0, n);
+        }
+        return out.toByteArray();
     }
 
     /** The files {@code name} includes, directly or not (not itself), in a fixed order. */

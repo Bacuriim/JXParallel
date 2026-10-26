@@ -176,6 +176,26 @@ class IncrementalTest {
     }
 
     @Test
+    void aChangedCompilerRegeneratesEverythingThoughTheSourcesAreTheSame() throws Exception {
+        String digest = JXForge.compilerDigest();
+        assertTrue(digest.matches("[0-9a-f]{64}"), "the forge classes are read: " + digest);
+        run();
+        String fresh = new String(Files.readAllBytes(generated("AView").toPath()), StandardCharsets.UTF_8);
+        // what an older compiler of the same snapshot left: the sources and the version did not change
+        Files.write(generated("AView").toPath(), "// stale".getBytes(StandardCharsets.UTF_8));
+        assertTrue(run().written.isEmpty(), "same compiler: the output is trusted");
+        try {
+            JXForge.compilerDigest = "another compiler";
+            JXForge.Result again = run();
+            assertEquals(Arrays.asList("AView.java"), names(again.written), "only the stale text differs");
+            assertEquals(2, again.upToDate.size(), "the others were compiled again to the text they had");
+            assertEquals(fresh, new String(Files.readAllBytes(generated("AView").toPath()), StandardCharsets.UTF_8));
+        } finally {
+            JXForge.compilerDigest = digest;
+        }
+    }
+
+    @Test
     void aRemovedSourceDeletesItsClass() throws Exception {
         run();
         age();
