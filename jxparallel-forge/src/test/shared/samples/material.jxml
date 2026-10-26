@@ -1,0 +1,44 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!-- Switch, Icon, Button variants, IconButton, Fab, Chip, Badge, Avatar, Stepper, ScrollBar, SplitPane, TabBar. -->
+<Column controller="com.jxparallel.forge.samples.SampleController" theme="light" gap="6" padding="8">
+  <Switch text="Wi-Fi" selected="@{agree}" disabled="${busy}"/>
+  <Switch text="Plain" selected="${on}" onChange="#setAgree"/>
+  <Icon name="home" size="32" color="primary"/>
+  <Icon name="star" size="${gap}" color="${color}"/>
+  <Button text="Filled" variant="filled" round="true" padding="8 20" textFill="#FFFFFF" onAction="#save"/>
+  <Button text="Tonal" variant="tonal"/>
+  <Button text="Outlined" variant="outlined"/>
+  <Button text="Text" variant="text"/>
+  <Button text="Elevated" variant="elevated"/>
+  <Button text="With icon" variant="outlined"><Icon name="add" mouseTransparent="true"/></Button>
+  <IconButton icon="add" onAction="#save" variant="tonal" size="20" color="error" disabled="${busy}"/>
+  <IconButton icon="close"/>
+  <Fab icon="add" onAction="#save" disabled="false"/>
+  <Fab icon="edit" text="Create"/>
+  <Fab text="Label only"/>
+  <Row gap="6">
+    <Chip text="Assist" kind="assist" icon="star" onAction="#save"/>
+    <Chip text="Filter" kind="filter" selected="@{agree}" closable="true" onClose="#save" disabled="${busy}"/>
+    <Chip text="${title}" kind="choice" selected="${on}" onChange="#setAgree"/>
+    <Chip text="Input" kind="input" closable="true" icon="person"/>
+  </Row>
+  <Badge count="${unread}" max="9" color="#FF0000"><Icon name="mail"/></Badge>
+  <Badge text="new" dot="${busy}"><Label text="inbox"/></Badge>
+  <Avatar initials="${name}" size="48" color="#C5CAE9" textFill="primary"/>
+  <Avatar pixels="${pixels}" imageWidth="2" imageHeight="2" size="${gap}"/>
+  <Stepper titles="One, Two, Three" current="${tabIndex}"/>
+  <Stepper steps="${limit}" current="1"/>
+  <ScrollBar min="0" max="100" value="@{scroll}" visibleAmount="20" orientation="horizontal"/>
+  <ScrollBar value="${scroll}" onChange="#setScroll" orientation="vertical" prefHeight="80"/>
+  <SplitPane orientation="horizontal" dividerPositions="@{positions}" prefHeight="60">
+    <Label text="left"/>
+    <Label text="middle"/>
+    <Label text="right"/>
+  </SplitPane>
+  <SplitPane orientation="vertical" dividerPositions="0.4" onChange="#setPositions" prefHeight="60">
+    <Label text="top"/>
+    <Label text="bottom"/>
+  </SplitPane>
+  <TabBar titles="Home, Search" selected="@{tabIndex}" closable="true" onClose="#closeTab"/>
+  <TabBar titles="${tabTitles}" selected="${tabIndex}" onChange="#setTabIndex"/>
+</Column>

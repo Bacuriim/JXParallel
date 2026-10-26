@@ -1,0 +1,26 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!-- Over the window: Dialog and AlertDialog (and Modal, which they are made of), Drawer, SnackBar. -->
+<Stack controller="com.jxparallel.forge.samples.SampleController">
+  <Column padding="8" gap="4" alignment="TOP_LEFT" fillWidth="false">
+    <Label text="Behind"/>
+    <Button text="Under" onAction="#save"/>
+  </Column>
+  <Dialog title="${title}" showing="${dialogOpen}" onShowing="#setOpen" dismissible="true">
+    <Label text="This cannot be undone."/>
+    <Button slot="actions" text="Cancel" onAction="#save"/>
+    <Button slot="actions" text="Delete" defaultButton="true" onAction="#save"/>
+  </Dialog>
+  <AlertDialog title="Alert" message="${name}" confirmText="Got it" cancelText="Cancel" onConfirm="#save" onCancel="#save"
+               dismissible="false" showing="false" onShowing="#setOpen"/>
+  <AlertDialog message="Plain" showing="false"/>
+  <Modal showing="false" dismissible="true" padding="10" gap="4" alignment="TOP_LEFT" fillWidth="true" onShowing="#setOpen">
+    <Label text="A modal"/>
+  </Modal>
+  <Drawer showing="${drawerOpen}" side="right" padding="12" gap="6" alignment="TOP_LEFT" fillWidth="true" onShowing="#setOpen">
+    <Button text="Home" onAction="#save"/>
+    <Button text="Settings"/>
+  </Drawer>
+  <Drawer showing="false"><Label text="Left"/></Drawer>
+  <SnackBar message="Saved" action="Undo" onAction="#save" duration="4000" showing="${snackOpen}" onShowing="#setOpen"/>
+  <SnackBar message="${title}" showing="false"/>
+</Stack>

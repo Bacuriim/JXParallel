@@ -1,5 +1,6 @@
 package com.jxparallel.ui.native2d;
 
+import java.util.ArrayList;
 import java.util.List;
 
 import com.jxparallel.ui.text.JXTextEngine;
@@ -40,9 +41,83 @@ final class JXPaint {
         this.p = painter;
     }
 
+    /** The theme set by the nearest ancestor with a {@code theme} prop; null when none sets one. */
+    private JXTheme theme;
+
+    JXTheme theme() {
+        return theme != null ? theme : JXTheme.LIGHT;
+    }
+
+    /** How deep {@link #paint} is called from itself: 0 outside the outermost call, which draws the overlays last. */
+    private int depth;
+    /** The node the outermost {@link #paint} was given: the window, for the scrim of a dialog. */
+    private JXNativeNode overlayRoot;
+    /** Open overlays met while painting, with the theme at their place in the tree: {node, theme}. */
+    private final List<Object[]> deferred = new ArrayList<Object[]>();
+
+    /**
+     * Paints the node and everything below it. The open overlays met on the way (popups, menus, dialogs, drawers, snack
+     * bars: {@link JXOverlays}) are not drawn in their place but after the whole tree, in tree order, so that they are
+     * over everything.
+     */
     void paint(JXNativeNode node) {
+        boolean outermost = depth == 0;
+        if (outermost) {
+            deferred.clear(); // a frame object is reused by the next frame
+            overlayRoot = node;
+            boolean sized = node.getHeight() > 0; // the root is the window: nothing outside it is seen
+            clipTop = sized ? node.getY() : Float.NEGATIVE_INFINITY;
+            clipBottom = sized ? node.getY() + node.getHeight() : Float.POSITIVE_INFINITY;
+        }
+        depth++;
+        try {
+            paintNode(node);
+        } finally {
+            depth--;
+        }
+        if (outermost) {
+            paintOverlays();
+        }
+    }
+
+    private void paintOverlays() {
+        JXTheme saved = theme;
+        depth++; // what an overlay paints below itself is nested, not a frame of its own
+        try {
+            for (int i = 0; i < deferred.size(); i++) { // an overlay inside an overlay is added while this runs
+                Object[] entry = deferred.get(i);
+                theme = (JXTheme) entry[1];
+                JXOverlayPaint.paint(this, (JXNativeNode) entry[0], overlayRoot);
+            }
+        } finally {
+            depth--;
+            theme = saved;
+            deferred.clear();
+        }
+    }
+
+    private void paintNode(JXNativeNode node) {
         if (Boolean.TRUE.equals(node.getProperty("hidden"))) {
             return; // invisible but managed: keeps its place in the layout, like JavaFX
+        }
+        JXTheme outer = theme;
+        Object named = node.getProperty("theme");
+        if (named instanceof String) {
+            theme = JXTheme.named((String) named);
+        }
+        try {
+            paintThemed(node);
+        } finally {
+            theme = outer;
+        }
+    }
+
+    private void paintThemed(JXNativeNode node) {
+        if (node.floatingNode) {
+            if (JXOverlays.isOpen(node)) {
+                deferred.add(new Object[] {node, theme}); // drawn after the tree; it takes no room where it is written
+            }
+            return;
         }
         double opacity = number(node, "opacity", 1.0);
         if (Boolean.TRUE.equals(node.getProperty("disabled"))) {
@@ -56,15 +131,26 @@ final class JXPaint {
         region(node);
         self(node);
         children(node);
+        if (node.overlayHost && JXOverlays.canOpen(node) && JXOverlays.isOpen(node)) {
+            deferred.add(new Object[] {node, theme}); // its popup or menu, over everything
+        }
         if (layered) {
             p.restore();
         }
+    }
+
+    /** What an overlay paints for a node of its content (a dialog's column, say). */
+    void paintNested(JXNativeNode node) {
+        paint(node);
     }
 
     /** CSS-like background and border of any node. */
     private void region(JXNativeNode node) {
         Object bg = node.getProperty("background");
         Object border = node.getProperty("borderColor");
+        if (!(bg instanceof Integer) && node.getProperty("theme") instanceof String) {
+            p.fillRect(node.getX(), node.getY(), node.getWidth(), node.getHeight(), theme().surface); // a themed root
+        }
         if (!(bg instanceof Integer) && !(border instanceof Integer)) {
             return;
         }
@@ -80,27 +166,97 @@ final class JXPaint {
         }
     }
 
+    /**
+     * A node that is this far beyond the window (in pixels) is still painted: what it draws outside its own box, such as
+     * a shadow, a focus ring or a line of text taller than the box, is not far from it.
+     */
+    private static final float CULL_MARGIN = 32;
+
+    /** Tests turn it off to compare a frame with and without the skipped nodes; the pixels must be the same. */
+    static boolean cull = true;
+
+    /** The part of the window the children being painted can reach: the nearest ancestor's clip, top and bottom. */
+    private float clipTop = Float.NEGATIVE_INFINITY;
+    private float clipBottom = Float.POSITIVE_INFINITY;
+
+    private static boolean scrolls(String type) {
+        return "scroll".equals(type) || "list".equals(type) || "table".equals(type);
+    }
+
+    /**
+     * True when {@code node} and everything it paints are above or below the clip, so painting it changes no pixel.
+     * Only the vertical extent is looked at (text that is longer than its box runs sideways, not up or down); a node
+     * that opens over the window is never skipped, and a container is skipped only when none of its descendants,
+     * which may lie outside its own box, reaches the clip.
+     */
+    private boolean outside(JXNativeNode node) {
+        if (!cull || node.floatingNode || node.overlayHost || node.overlayContent) {
+            return false;
+        }
+        float top = Math.min(node.getY(), node.getY() + node.getHeight());
+        float bottom = Math.max(node.getY(), node.getY() + node.getHeight());
+        if (bottom + CULL_MARGIN >= clipTop && top - CULL_MARGIN <= clipBottom) {
+            return false;
+        }
+        if (node.getChildren().isEmpty()) {
+            return true;
+        }
+        float[] reach = {top, bottom};
+        reach(node, reach);
+        return reach[1] + CULL_MARGIN < clipTop || reach[0] - CULL_MARGIN > clipBottom;
+    }
+
+    /** Widens {@code range} (top, bottom) to what the children of {@code node} paint, as {@link #children} paints them. */
+    private static void reach(JXNativeNode node, float[] range) {
+        String type = node.getType();
+        if (node.collapsed() || node.overlayContent || scrolls(type) || "textarea".equals(type)
+                || Boolean.TRUE.equals(node.getProperty("clip"))) {
+            return; // nothing of the children is drawn outside the node's own box
+        }
+        List<JXNativeNode> kids = node.getChildren();
+        for (int i = 0, n = kids.size(); i < n; i++) {
+            JXNativeNode kid = kids.get(i);
+            if (kid.floatingNode) {
+                continue; // painted over the window by the overlay pass, not in place
+            }
+            range[0] = Math.min(range[0], Math.min(kid.getY(), kid.getY() + kid.getHeight()));
+            range[1] = Math.max(range[1], Math.max(kid.getY(), kid.getY() + kid.getHeight()));
+            reach(kid, range);
+        }
+    }
+
     private void children(JXNativeNode node) {
-        if (node.collapsed()) {
-            return; // only the title bar of a collapsed pane shows
+        if (node.collapsed() || node.overlayContent) {
+            return; // only the title bar of a collapsed pane shows; the children of a menu are drawn with its panel
         }
         String type = node.getType();
         boolean clip = Boolean.TRUE.equals(node.getProperty("clip"));
         float[] viewport = null;
-        if ("scroll".equals(type) || "list".equals(type) || "table".equals(type)) {
+        if (scrolls(type)) {
             viewport = JXControlLayout.viewport(node);
         } else if ("textarea".equals(type)) {
             viewport = new float[] {node.getX() + 1, node.getY() + 1, node.getWidth() - 2, node.getHeight() - 2};
         }
+        float savedTop = clipTop;
+        float savedBottom = clipBottom;
         if (viewport != null) {
             p.clip(viewport[0], viewport[1], viewport[2], viewport[3]);
+            clipTop = Math.max(clipTop, viewport[1]);
+            clipBottom = Math.min(clipBottom, viewport[1] + viewport[3]);
         } else if (clip) {
             p.clip(node.getX(), node.getY(), node.getWidth(), node.getHeight());
+            clipTop = Math.max(clipTop, node.getY());
+            clipBottom = Math.min(clipBottom, node.getY() + node.getHeight());
         }
         List<JXNativeNode> kids = node.getChildren();
         for (int i = 0, n = kids.size(); i < n; i++) {
-            paint(kids.get(i)); // indexed: no iterator per node per frame
+            JXNativeNode kid = kids.get(i);
+            if (!outside(kid)) {
+                paint(kid); // indexed: no iterator per node per frame
+            }
         }
+        clipTop = savedTop;
+        clipBottom = savedBottom;
         if (viewport != null && ("list".equals(type) || "table".equals(type)) && node.getProperty("popupOf") == null) {
             emptyRows(node, viewport);
         }
@@ -119,6 +275,285 @@ final class JXPaint {
         if ("table".equals(type)) {
             tableHeader(node);
         }
+        if ("badge".equals(type)) {
+            badgeMark(node);
+        } else if ("splitpane".equals(type)) {
+            dividers(node);
+        }
+    }
+
+    // ---- Material controls -------------------------------------------------------------------
+
+    /** Fill, border and ring of a button variant; returns the color its label and graphic take. */
+    private int variantBody(JXNativeNode node, String variant, float x, float y, float w, float h) {
+        JXTheme t = theme();
+        float ring = JXControlLayout.shadow(node);
+        float fx = x + ring;
+        float fy = y + ring;
+        float fw = w - 2 * ring;
+        float fh = h - 2 * ring;
+        float r = Boolean.TRUE.equals(node.getProperty("round")) || "fab".equals(variant) ? fh / 2 : 4;
+        int content;
+        switch (variant) {
+            case "filled":
+                p.fillRoundRect(fx, fy, fw, fh, r, t.primary);
+                content = t.onPrimary;
+                break;
+            case "tonal":
+                p.fillRoundRect(fx, fy, fw, fh, r, t.tonal());
+                content = t.onSurface;
+                break;
+            case "outlined":
+                p.strokeRoundRect(fx, fy, fw, fh, r, 1, t.outline);
+                content = t.primary;
+                break;
+            case "elevated":
+                softRing(fx, fy, fw, fh, r);
+                p.fillRoundRect(fx, fy, fw, fh, r, t.elevated());
+                content = t.primary;
+                break;
+            case "fab":
+                softRing(fx, fy, fw, fh, r);
+                p.fillRoundRect(fx, fy, fw, fh, r, t.primary);
+                content = t.onPrimary;
+                break;
+            default: // text
+                content = t.primary;
+                break;
+        }
+        if (Boolean.TRUE.equals(node.getProperty("pressed"))) {
+            p.fillRoundRect(fx, fy, fw, fh, r, JXTheme.withAlpha(content, 0x24));
+        } else if (Boolean.TRUE.equals(node.getProperty("hover"))) {
+            p.fillRoundRect(fx, fy, fw, fh, r, JXTheme.withAlpha(content, 0x14));
+        }
+        focusRing(node, fx, fy, fw, fh, r);
+        return content;
+    }
+
+    /** No real blur is available to every painter, so the shadow is two soft darker rings below the face. */
+    private void softRing(float x, float y, float w, float h, float r) {
+        p.fillRoundRect(x - 2, y - 1, w + 4, h + 4, r + 2, 0x0F000000);
+        p.fillRoundRect(x - 1, y, w + 2, h + 2, r + 1, 0x18000000);
+    }
+
+    private void switchControl(JXNativeNode node, float x, float y, float h) {
+        JXTheme t = theme();
+        float top = y + Math.round((h - JXControlLayout.SWITCH_H) / 2f);
+        float tw = JXControlLayout.SWITCH_W;
+        float th = JXControlLayout.SWITCH_H;
+        if (Boolean.TRUE.equals(node.getProperty("checked"))) {
+            p.fillRoundRect(x, top, tw, th, th / 2, t.primary);
+            p.fillOval(x + tw - 3 - 16, top + 3, 16, 16, t.onPrimary);
+        } else {
+            p.fillRoundRect(x, top, tw, th, th / 2, t.surface);
+            p.strokeRoundRect(x, top, tw, th, th / 2, 2, t.outline);
+            p.fillOval(x + 5, top + 5, 12, 12, t.outline);
+        }
+        focusRing(node, x, top, tw, th, th / 2);
+        drawText(node, text(node, "label"), x + tw + JXControlLayout.SWITCH_GAP, y, h, color(node, t.onSurface),
+                Boolean.TRUE.equals(node.getProperty("underline")));
+    }
+
+    private void chip(JXNativeNode node, float x, float y, float w, float h) {
+        JXTheme t = theme();
+        String kind = text(node, "kind");
+        boolean selected = Boolean.TRUE.equals(node.getProperty("selected"));
+        // assist: outlined, 8 px corners; filter: outlined pill; choice: outlined, 4 px corners; input: 8 px corners on a tinted face
+        float r = "filter".equals(kind) ? h / 2 : "choice".equals(kind) ? 4 : 8;
+        int content = t.onSurface;
+        if ("input".equals(kind) && !selected) {
+            p.fillRoundRect(x, y, w, h, r, t.elevated());
+        }
+        if (selected && "choice".equals(kind)) {
+            p.fillRoundRect(x, y, w, h, r, t.primary);
+            content = t.onPrimary;
+        } else if (selected) {
+            p.fillRoundRect(x, y, w, h, r, t.tonal());
+        } else {
+            p.strokeRoundRect(x, y, w, h, r, 1, t.outline);
+        }
+        if (Boolean.TRUE.equals(node.getProperty("pressed"))) {
+            p.fillRoundRect(x, y, w, h, r, JXTheme.withAlpha(content, 0x24));
+        } else if (Boolean.TRUE.equals(node.getProperty("hover"))) {
+            p.fillRoundRect(x, y, w, h, r, JXTheme.withAlpha(content, 0x14));
+        }
+        float[] parts = JXControlLayout.chipParts(node);
+        String lead = JXControlLayout.chipLeading(node);
+        int iconColor = selected && "choice".equals(kind) ? t.onPrimary : t.primary;
+        if (lead != null) {
+            JXIcons.draw(p, lead, x + parts[0], y + (h - JXControlLayout.CHIP_ICON) / 2f, JXControlLayout.CHIP_ICON, iconColor);
+        }
+        drawText(node, text(node, "label"), x + parts[2], y, h, color(node, content), false);
+        if (parts[5] > 0) {
+            JXIcons.draw(p, "close", x + parts[4], y + (h - JXControlLayout.CHIP_ICON) / 2f, JXControlLayout.CHIP_ICON, content);
+        }
+        focusRing(node, x, y, w, h, r);
+    }
+
+    /** Pixels masked to a circle, by the identity of the source array. */
+    private static final java.util.Map<int[], int[]> ROUND = new java.util.WeakHashMap<int[], int[]>();
+
+    /** The image with everything outside its inscribed ellipse made transparent (a 1 px soft edge). */
+    static int[] circular(int[] pixels, int w, int h) {
+        synchronized (ROUND) {
+            int[] cached = ROUND.get(pixels);
+            if (cached != null && cached.length == w * h) {
+                return cached;
+            }
+            int[] out = new int[w * h];
+            double rx = w / 2.0;
+            double ry = h / 2.0;
+            for (int j = 0; j < h; j++) {
+                for (int i = 0; i < w; i++) {
+                    int src = j * w + i < pixels.length ? pixels[j * w + i] : 0;
+                    double dx = (i + 0.5 - rx) / rx;
+                    double dy = (j + 0.5 - ry) / ry;
+                    double edge = (1 - Math.sqrt(dx * dx + dy * dy)) * Math.min(rx, ry); // pixels inside the edge
+                    double cover = Math.max(0, Math.min(1, edge + 0.5));
+                    int a = (int) Math.round((src >>> 24) * cover);
+                    out[j * w + i] = (a << 24) | (src & 0xFFFFFF);
+                }
+            }
+            ROUND.put(pixels, out);
+            return out;
+        }
+    }
+
+    private void avatar(JXNativeNode node, float x, float y, float w, float h) {
+        JXTheme t = theme();
+        Object pixels = node.getProperty("pixels");
+        int iw = (int) number(node, "imageWidth", 0);
+        int ih = (int) number(node, "imageHeight", 0);
+        if (pixels instanceof int[] && iw > 0 && ih > 0) {
+            p.image(circular((int[]) pixels, iw, ih), iw, ih, x, y, w, h);
+            return;
+        }
+        Object fill = node.getProperty("fill");
+        p.fillOval(x, y, w, h, fill instanceof Integer ? (Integer) fill : t.tonal());
+        String initials = text(node, "initials");
+        if (!initials.isEmpty()) {
+            float size = Math.max(8, Math.min(w, h) * 0.4f);
+            JXTextEngine engine = JXTextEngine.get(false);
+            float tw = engine.width(initials, size);
+            p.text(initials, x + (w - tw) / 2, y + engine.baseline(h, size), size, false, color(node, t.primary));
+        }
+    }
+
+    private void stepper(JXNativeNode node, float x, float y, float w, float h) {
+        JXTheme t = theme();
+        int n = JXControlLayout.stepCount(node);
+        if (n == 0) {
+            return;
+        }
+        String[] titles = JXControlLayout.stepTitles(node);
+        int current = (int) number(node, "current", 0);
+        float slot = w / n;
+        float d = JXControlLayout.STEP_D;
+        float cy = y + d / 2;
+        JXTextEngine engine = JXTextEngine.get(false);
+        for (int i = 0; i < n; i++) {
+            float cx = x + slot * i + slot / 2;
+            if (i + 1 < n) { // the line to the next circle
+                p.fillRect(cx + d / 2 + 4, cy - 1, slot - d - 8, 2, i < current ? t.primary : t.outline);
+            }
+            if (i < current) {
+                p.fillOval(cx - d / 2, y, d, d, t.primary);
+                p.line(cx - 5, cy, cx - 1.5f, cy + 3.5f, 2, t.onPrimary);
+                p.line(cx - 1.5f, cy + 3.5f, cx + 5, cy - 3.5f, 2, t.onPrimary);
+            } else if (i == current) {
+                p.fillOval(cx - d / 2, y, d, d, t.primary);
+                number(engine, String.valueOf(i + 1), cx, y, d, t.onPrimary);
+            } else {
+                p.strokeOval(cx - d / 2, y, d, d, 2, t.outline);
+                number(engine, String.valueOf(i + 1), cx, y, d, t.outline);
+            }
+            if (i < titles.length) {
+                float tw = engine.width(titles[i], JXTextEngine.DEFAULT_SIZE);
+                p.text(titles[i], cx - tw / 2, y + d + 8 + engine.ascent(JXTextEngine.DEFAULT_SIZE), JXTextEngine.DEFAULT_SIZE,
+                        false, i == current ? t.primary : t.onSurface);
+            }
+        }
+    }
+
+    private void number(JXTextEngine engine, String label, float cx, float y, float d, int color) {
+        float size = 12;
+        p.text(label, cx - engine.width(label, size) / 2, y + engine.baseline(d, size), size, false, color);
+    }
+
+    private void scrollBar(JXNativeNode node, float x, float y, float w, float h) {
+        JXTheme t = theme();
+        boolean vertical = node.vertical();
+        float[] g = JXControlLayout.scrollBarGeometry(node);
+        float r = (vertical ? w : h) / 2;
+        p.fillRoundRect(x, y, w, h, r, JXTheme.withAlpha(t.outline, 0x33));
+        int thumb = Boolean.TRUE.equals(node.getProperty("pressed")) ? t.primary : t.outline;
+        if (vertical) {
+            p.fillRoundRect(x, g[2], w, g[3], r, thumb);
+        } else {
+            p.fillRoundRect(g[2], y, g[3], h, r, thumb);
+        }
+    }
+
+    private void tabBar(JXNativeNode node, float x, float y, float w, float h) {
+        JXTheme t = theme();
+        String[] titles = strings(node.getProperty("titles"));
+        int selected = (int) number(node, "selected", 0);
+        float[] edges = JXControlLayout.tabbarEdges(node);
+        boolean closable = Boolean.TRUE.equals(node.getProperty("closable"));
+        p.fillRect(x, y + h - 1, w, 1, JXTheme.withAlpha(t.outline, 0x66));
+        JXTextEngine engine = JXTextEngine.get(false);
+        for (int i = 0; i < titles.length; i++) {
+            float tx = x + edges[i];
+            float tw = edges[i + 1] - edges[i];
+            int color = i == selected ? t.primary : t.onSurface;
+            float room = tw - 2 * JXControlLayout.TABBAR_PAD - (closable ? JXControlLayout.TABBAR_CLOSE : 0);
+            float textW = engine.width(titles[i], JXTextEngine.DEFAULT_SIZE);
+            p.text(titles[i], tx + JXControlLayout.TABBAR_PAD + (room - textW) / 2, y + engine.baseline(h, JXTextEngine.DEFAULT_SIZE),
+                    JXTextEngine.DEFAULT_SIZE, false, color);
+            if (closable) {
+                JXIcons.draw(p, "close", tx + tw - JXControlLayout.TABBAR_PAD / 2f - 14 - 2, y + (h - 14) / 2, 14, color);
+            }
+            if (i == selected) {
+                p.fillRect(tx, y + h - 2, tw, 2, t.primary);
+            }
+        }
+    }
+
+    private void badgeMark(JXNativeNode node) {
+        String text = JXControlLayout.badgeText(node);
+        if (text == null) {
+            return;
+        }
+        JXTheme t = theme();
+        float[] size = JXControlLayout.badgeSize(node);
+        float bx = node.getX() + node.getWidth() - size[0];
+        float by = node.getY();
+        Object custom = node.getProperty("badgeColor");
+        int fill = custom instanceof Integer ? (Integer) custom : t.error;
+        if (text.isEmpty()) {
+            p.fillOval(bx, by, size[0], size[1], fill);
+            return;
+        }
+        p.fillRoundRect(bx, by, size[0], size[1], size[1] / 2, fill);
+        JXTextEngine engine = JXTextEngine.get(false);
+        p.text(text, bx + (size[0] - engine.width(text, 11)) / 2, by + engine.baseline(size[1], 11), 11, false, t.surface);
+    }
+
+    private void dividers(JXNativeNode node) {
+        JXTheme t = theme();
+        float[][] rects = JXControlLayout.splitRects(node);
+        boolean vertical = node.vertical();
+        for (int i = node.getChildren().size(); i < rects.length; i++) {
+            float[] r = rects[i];
+            p.fillRect(r[0], r[1], r[2], r[3], JXTheme.withAlpha(t.outline, 0x33));
+            float cx = r[0] + r[2] / 2;
+            float cy = r[1] + r[3] / 2;
+            for (int k = -1; k <= 1; k++) { // three grip dots
+                float dx = vertical ? k * 6 : 0;
+                float dy = vertical ? 0 : k * 6;
+                p.fillOval(cx + dx - 1, cy + dy - 1, 2, 2, t.outline);
+            }
+        }
     }
 
     private void self(JXNativeNode node) {
@@ -129,17 +564,53 @@ final class JXPaint {
         String type = node.getType();
         switch (type) {
             case "button":
-            case "toggle":
-                buttonBody(node, x, y, w, h, 3, Boolean.TRUE.equals(node.getProperty("selected")));
+            case "toggle": {
+                String variant = JXControlLayout.variant(node);
+                int textColor = TEXT;
+                if (variant.isEmpty()) {
+                    buttonBody(node, x, y, w, h, 3, Boolean.TRUE.equals(node.getProperty("selected")));
+                } else {
+                    textColor = variantBody(node, variant, x, y, w, h);
+                }
+                float[] pad = JXControlLayout.buttonPad(node);
                 if (node.getChildren().isEmpty()) {
-                    labeledText(node, text(node, "label"), x, y, w, h, alignmentH(node, 'C'),
-                            insetsOr(node, JXNativeNode.PAD_Y, JXNativeNode.PAD_X));
+                    if (variant.isEmpty()) {
+                        labeledText(node, text(node, "label"), x, y, w, h, alignmentH(node, 'C'), pad);
+                    } else {
+                        // the label takes the variant's color unless textFill is written
+                        labeledTextColored(node, x, y, w, h, pad, color(node, textColor));
+                    }
                 } else {
                     float[] group = JXControlLayout.buttonContent(node);
-                    float[] pad = insetsOr(node, JXNativeNode.PAD_Y, JXNativeNode.PAD_X);
                     String shown = JXTextLayout.ellipsize(text(node, "label"), x + w - pad[1] - group[1], fontSize(node), bold(node));
-                    drawText(node, shown, group[1], y, h, color(node, TEXT), Boolean.TRUE.equals(node.getProperty("underline")));
+                    drawText(node, shown, group[1], y, h, color(node, textColor), Boolean.TRUE.equals(node.getProperty("underline")));
                 }
+                break;
+            }
+            case "switch":
+                switchControl(node, x, y, h);
+                break;
+            case "icon": {
+                float size = (float) JXControlLayout.iconSize(node);
+                Object color = node.getProperty("color");
+                JXIcons.draw(p, text(node, "name"), x + (w - size) / 2, y + (h - size) / 2, size,
+                        color instanceof Integer ? (Integer) color : theme().onSurface);
+                break;
+            }
+            case "chip":
+                chip(node, x, y, w, h);
+                break;
+            case "avatar":
+                avatar(node, x, y, w, h);
+                break;
+            case "stepper":
+                stepper(node, x, y, w, h);
+                break;
+            case "scrollbar":
+                scrollBar(node, x, y, w, h);
+                break;
+            case "tabbar":
+                tabBar(node, x, y, w, h);
                 break;
             case "hyperlink": {
                 int color = Boolean.TRUE.equals(node.getProperty("visited")) ? 0xFF7A3D9E : ACCENT;
@@ -232,8 +703,85 @@ final class JXPaint {
             case "calendar":
                 JXCalendar.paint(p, node, this);
                 break;
+            case "timepicker":
+                timePicker(node, x, y, w, h);
+                break;
+            case "colorpicker":
+                colorPicker(node, x, y, w, h);
+                break;
+            case "menubutton":
+                menuButton(node, x, y, w, h);
+                break;
+            case "menubar":
+                menuBar(node, x, y, w, h);
+                break;
             default:
                 break;
+        }
+    }
+
+    // ---- pickers, menu button and menu bar (the popups and panels are JXOverlayPaint's) ------------
+
+    private void timePicker(JXNativeNode node, float x, float y, float w, float h) {
+        field(node, x, y, w, h);
+        float bw = JXControlLayout.DATE_BUTTON;
+        String shown = JXOverlays.timeText(node);
+        p.clip(x + 1, y, w - bw - 1, h);
+        if (shown.isEmpty()) {
+            drawText(node, text(node, "prompt"), x + JXNativeNode.FIELD_PAD_X, y, h, PROMPT, false);
+        } else {
+            drawText(node, shown, x + JXNativeNode.FIELD_PAD_X, y, h, color(node, TEXT), false);
+        }
+        p.restore();
+        buttonBody(node, x + w - bw, y, bw, h, 0, Boolean.TRUE.equals(node.getProperty("showing")));
+        float cx = x + w - bw / 2;
+        float cy = y + h / 2;
+        p.strokeOval(cx - 5, cy - 5, 10, 10, 1.5f, ARROW);
+        p.line(cx, cy, cx, cy - 3, 1.2f, ARROW);
+        p.line(cx, cy, cx + 2.5f, cy + 1.5f, 1.2f, ARROW);
+    }
+
+    private void colorPicker(JXNativeNode node, float x, float y, float w, float h) {
+        field(node, x, y, w, h);
+        float bw = JXControlLayout.DATE_BUTTON;
+        String hex = JXOverlays.normalizeHex(text(node, "value"));
+        float s = JXControlLayout.COLOR_SWATCH;
+        float sx = x + JXNativeNode.FIELD_PAD_X;
+        float sy = y + (h - s) / 2;
+        p.fillRect(sx - 1, sy - 1, s + 2, s + 2, BOX_BORDER);
+        p.fillRect(sx, sy, s, s, hex == null ? 0xFFFFFFFF : JXOverlays.colorOf(hex));
+        float left = sx + s + JXNativeNode.FIELD_PAD_X;
+        p.clip(left, y + 1, x + w - bw - left, h - 2);
+        if (hex == null) {
+            drawText(node, text(node, "prompt"), left, y, h, PROMPT, false);
+        } else {
+            drawText(node, hex, left, y, h, color(node, TEXT), false);
+        }
+        p.restore();
+        buttonBody(node, x + w - bw, y, bw, h, 0, Boolean.TRUE.equals(node.getProperty("showing")));
+        downArrow(x + w - bw + (bw - 8) / 2, y + (h - 4) / 2, ARROW);
+    }
+
+    private void menuButton(JXNativeNode node, float x, float y, float w, float h) {
+        buttonBody(node, x, y, w, h, 3, JXOverlays.isOpen(node));
+        p.clip(x, y, w - JXControlLayout.MENU_ARROW, h);
+        drawText(node, text(node, "label"), x + JXNativeNode.PAD_X, y, h, color(node, TEXT), false);
+        p.restore();
+        downArrow(x + w - JXNativeNode.PAD_X - 8, y + Math.round((h - 4) / 2), ARROW);
+    }
+
+    private void menuBar(JXNativeNode node, float x, float y, float w, float h) {
+        JXTheme t = theme();
+        p.fillRect(x, y, w, h, t.surface);
+        p.fillRect(x, y + h - 1, w, 1, JXTheme.withAlpha(t.outline, 0x66));
+        List<JXNativeNode> headers = node.getChildren();
+        for (int i = 0; i < headers.size(); i++) {
+            JXNativeNode header = headers.get(i);
+            if (i == node.openChild) {
+                p.fillRoundRect(header.getX(), header.getY() + 2, header.getWidth(), header.getHeight() - 4, 4, t.tonal());
+            }
+            int color = Boolean.TRUE.equals(header.getProperty("disabled")) ? JXTheme.withAlpha(t.onSurface, 0x66) : t.onSurface;
+            drawText(header, JXOverlays.label(header), header.getX() + JXOverlays.BAR_PAD, y, h, color, false);
         }
     }
 
@@ -594,12 +1142,27 @@ final class JXPaint {
             p.fillRect(x + w - 1, y, 1, h, 0xFFEDEDED);
         }
         String value = text(node, "value");
+        float tree = (float) JXControlLayout.treeLeft(node);
+        if (tree > 0) { // a tree row: the arrow of a row that expands, after its indentation
+            String disclosure = text(node, "disclosure");
+            if (!"leaf".equals(disclosure)) {
+                float[] pad = insetsOr(node, 3, 7);
+                float ax = x + pad[3] + (float) number(node, "indent", 0) * JXControlLayout.TREE_INDENT + 4;
+                float cy = y + h / 2;
+                int arrow = selected && focusedList ? 0xFFFFFFFF : ARROW;
+                if ("expanded".equals(disclosure)) {
+                    p.fillTriangle(ax - 1, cy - 2, ax + 7, cy - 2, ax + 3, cy + 3, arrow);
+                } else {
+                    p.fillTriangle(ax, cy - 4, ax, cy + 4, ax + 5, cy, arrow);
+                }
+            }
+        }
         if (!value.isEmpty()) {
             float[] pad = insetsOr(node, 3, 7);
             float graphic = node.getChildren().isEmpty() ? 0 : node.getChildren().get(0).getWidth();
             int textColor = selected && focusedList ? 0xFFFFFFFF : color(node, TEXT);
             p.clip(x, y, w, h);
-            float left = x + pad[3] + (graphic > 0 ? graphic + 4 : 0);
+            float left = x + pad[3] + tree + (graphic > 0 ? graphic + 4 : 0);
             char align = alignmentH(node, 'L');
             if (align != 'L') {
                 float tw = JXTextEngine.get(bold(node)).width(value, fontSize(node));
@@ -766,6 +1329,16 @@ final class JXPaint {
 
     /** A labeled control's text inside its padding, aligned horizontally, vertically centred. */
     private void labeledText(JXNativeNode node, String value, float x, float y, float w, float h, char align, float[] pad) {
+        labeledText(node, value, x, y, w, h, align, pad, null);
+    }
+
+    /** The label of a variant button, in the variant's color. */
+    private void labeledTextColored(JXNativeNode node, float x, float y, float w, float h, float[] pad, int fallback) {
+        labeledText(node, text(node, "label"), x, y, w, h, 'C', pad, fallback);
+    }
+
+    private void labeledText(JXNativeNode node, String value, float x, float y, float w, float h, char align, float[] pad,
+                             Integer fallbackColor) {
         if (value.isEmpty()) {
             return;
         }
@@ -782,7 +1355,8 @@ final class JXPaint {
             left += available - tw;
         }
         boolean wrap = Boolean.TRUE.equals(node.getProperty("wrapText"));
-        int color = color(node, "tooltip".equals(node.getType()) ? 0xFFFFFFFF : TEXT);
+        int color = color(node, fallbackColor != null ? fallbackColor
+                : "tooltip".equals(node.getType()) ? 0xFFFFFFFF : theme != null ? theme.onSurface : TEXT);
         if (wrap && engine.width(value, size) > available + 0.01f) {
             List<String> lines = JXTextLayout.lines(value, available, size, bold);
             float line = engine.lineHeight(size);

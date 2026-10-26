@@ -1,0 +1,3 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!-- Included inside a loop: it can use the loop variable of the file that includes it. -->
+<Label text="${r.name}"/>

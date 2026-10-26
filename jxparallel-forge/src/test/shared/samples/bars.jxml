@@ -1,0 +1,29 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!-- Scaffold and the bars: AppBar, BottomAppBar, BottomBar, ToolBar, NavigationBar, NavigationRail. -->
+<Scaffold controller="com.jxparallel.forge.samples.SampleController" padding="2">
+  <AppBar title="${title}" gap="6" padding="4 8" alignment="CENTER_LEFT">
+    <Button text="Menu"/>
+  </AppBar>
+  <Row>
+    <NavigationRail>
+      <Button text="1"/>
+      <Button text="2"/>
+    </NavigationRail>
+    <Column hgrow="always">
+      <ToolBar>
+        <Button text="Cut"/>
+        <Button text="Copy"/>
+      </ToolBar>
+      <NavigationBar gap="2" padding="2">
+        <Button text="a"/>
+        <Button text="b"/>
+      </NavigationBar>
+      <BottomBar>
+        <Label text="bar"/>
+      </BottomBar>
+    </Column>
+  </Row>
+  <BottomAppBar>
+    <Label text="status"/>
+  </BottomAppBar>
+</Scaffold>

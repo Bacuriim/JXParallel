@@ -1,0 +1,28 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!-- Composite tags: each one is rewritten into the primitive tags it stands for. -->
+<Column controller="com.jxparallel.forge.samples.SampleController" gap="4">
+  <Padding padding="8"><Label text="padded"/></Padding>
+  <Center><Label text="centered"/></Center>
+  <Align alignment="BOTTOM_RIGHT"><Label text="aligned"/></Align>
+  <SizedBox width="${gap}" height="20"><Label text="sized"/></SizedBox>
+  <SizedBox width="30"/>
+  <Row>
+    <Label text="l"/>
+    <Spacer/>
+    <Expanded><Button text="x"/></Expanded>
+    <Flexible vgrow="never"><Button text="y"/></Flexible>
+  </Row>
+  <Container padding="4" background="#EEEEEE"><Label text="container"/></Container>
+  <Box padding="2" borderColor="#000000"><Label text="box"/></Box>
+  <Card><Label text="card"/></Card>
+  <ListTile title="${title}" subtitle="${subtitle}" onAction="#save" gap="8" padding="4" alignment="CENTER_LEFT">
+    <Label slot="leading" text="L"/>
+    <Button slot="trailing" text="T"/>
+  </ListTile>
+  <ListTile title="plain"/>
+  <Divider/>
+  <Divider orientation="vertical"/>
+  <Visibility hidden="${hidden}"><Label text="v"/></Visibility>
+  <Opacity opacity="0.5"><Label text="o"/></Opacity>
+  <ChoiceBox items="A, B" value="A" prompt="p"/>
+</Column>

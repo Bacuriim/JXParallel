@@ -1,0 +1,51 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!-- Samples of the tags that came first: every tag and attribute of them appears at least once. -->
+<Border controller="com.jxparallel.forge.samples.SampleController" padding="2">
+  <Row slot="top" gap="${gap}" padding="4 8" alignment="CENTER_LEFT" fillHeight="true">
+    <Button text="Save" onAction="#save" defaultButton="true"/>
+    <Button text="${title}" onAction="#save" disabled="${busy}"/>
+    <Separator orientation="vertical"/>
+    <Label text="${title}" wrapText="true" bold="true" fontSize="13" textFill="#336699" hgrow="always" vgrow="never"/>
+  </Row>
+  <Tabs slot="center" selected="${tab}">
+    <Tab title="Form" closable="false">
+      <Scroll fitToWidth="true" fitToHeight="false">
+        <Grid hgap="8" vgap="6" padding="12" alignment="TOP_LEFT">
+          <Label text="Name" row="0" column="0" halignment="RIGHT" valignment="TOP"/>
+          <TextField text="@{name}" prompt="Full name" columns="20" row="0" column="1" columnSpan="2" hgrow="always"/>
+          <Label text="Pin" row="1" column="0" rowSpan="1"/>
+          <PasswordField text="${pin}" prompt="PIN" columns="6" onChange="#setPin" row="1" column="1"/>
+          <Label text="City" row="2" column="0"/>
+          <ComboBox items="${cities}" value="${city}" prompt="Choose" onChange="#setCity" row="2" column="1"/>
+          <Label text="Since" row="3" column="0"/>
+          <DatePicker value="${date}" prompt="Date" onChange="#setDate" row="3" column="1"/>
+          <Label text="Rating" row="4" column="0"/>
+          <Spinner value="${rating}" min="0" max="5" onChange="#setRating" row="4" column="1"/>
+          <CheckBox text="Active" selected="@{agree}" row="5" column="1"/>
+        </Grid>
+      </Scroll>
+    </Tab>
+    <Tab title="Notes">
+      <Column gap="8" padding="12" alignment="TOP_LEFT" fillWidth="true">
+        <TextArea text="${note}" prompt="Notes" rows="5" columns="30" wrapText="true" onChange="#setNote"/>
+        <Slider min="0" max="10" value="@{volume}" margin="2" minWidth="50" prefWidth="200" maxWidth="400"/>
+        <ProgressBar progress="${progress}" prefWidth="200" minHeight="4" prefHeight="8" maxHeight="12"/>
+        <TextField text="${name}" onChange="#setName"/>
+        <CheckBox text="Agree" selected="${agree}" onChange="#setAgree"/>
+        <Slider min="0" max="10" value="${volume}" onChange="#setVolume"/>
+        <Slot content="${banner}"/>
+      </Column>
+    </Tab>
+    <Tab title="Loop">
+      <Stack padding="4" alignment="CENTER">
+        <Column>
+          <For items="${rows}" var="r" type="com.jxparallel.forge.samples.SampleController.Row" key="${r.id}" from="0" limit="${limit}">
+            <Label text="${r.name}"/>
+          </For>
+          <If test="${busy}"><Label text="busy"/></If>
+          <Else><Label text="idle"/></Else>
+        </Column>
+      </Stack>
+    </Tab>
+  </Tabs>
+</Border>
