@@ -134,6 +134,25 @@ public final class JXProps extends AbstractMap<String, Object> {
         return value == null ? fallback : Boolean.parseBoolean(String.valueOf(value));
     }
 
+    /**
+     * Replaces, IN PLACE, the value of a prop that is here with a non-null {@code value}; false (nothing changed) when
+     * the prop is absent or the value is null (those change the set of keys). The props are immutable for everyone
+     * but a live session ({@code JxmlLive}), which owns the props of the elements it built and keeps the mounted
+     * node and the element in step; never call this on props you did not build for that purpose or that an element
+     * shares with another (hoisted constants, memoized elements). Keys do not change, so {@code mask} stays valid.
+     */
+    public boolean replaceValue(String name, Object value) {
+        if (value == null || name == null || (mask & (1 << name.hashCode())) == 0) {
+            return false;
+        }
+        int at = indexOf(entries, count, name);
+        if (at < 0) {
+            return false;
+        }
+        entries[at + 1] = value;
+        return true;
+    }
+
     /** A read-only view, in the order the props were first set: these props themselves. */
     public Map<String, Object> asMap() {
         return this;

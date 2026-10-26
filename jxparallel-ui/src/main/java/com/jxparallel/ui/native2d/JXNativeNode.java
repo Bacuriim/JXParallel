@@ -8,6 +8,7 @@ import java.util.Map;
 import java.util.Objects;
 
 import com.jxparallel.ui.JXElement;
+import com.jxparallel.ui.JXLiveNode;
 import com.jxparallel.ui.JXProps;
 import com.jxparallel.ui.text.JXTextEngine;
 
@@ -22,7 +23,7 @@ import com.jxparallel.ui.text.JXTextEngine;
  * {@code minWidth}, {@code prefWidth}, {@code maxWidth}, {@code minHeight}, {@code prefHeight},
  * {@code maxHeight} on any node, which override the computed sizes like JavaFX's setters.
  */
-public final class JXNativeNode {
+public final class JXNativeNode implements JXLiveNode {
     /** Insets of labeled controls in JavaFX's Modena theme: 0.333333em by 0.666667em at 12 px. */
     static final int PAD_X = 8;
     static final int PAD_Y = 4;
@@ -135,7 +136,7 @@ public final class JXNativeNode {
     boolean hotKey;
     /** This node is a titled pane's content. */
     private boolean titledContent;
-    private Map<String, Object> props;
+    private JXProps props;
     private JXElement source;
     /** What every node without children shares: most nodes of a tree are leaves, and none needs a list of its own. */
     private static final List<JXNativeNode> NO_CHILDREN = Collections.emptyList();
@@ -921,7 +922,7 @@ public final class JXNativeNode {
 
     private void setProps(JXProps given) {
         Map<String, Object> next = given.asMap();
-        props = next;
+        props = given;
         vgrow = 0;
         hgrow = 0;
         gap = 0;
@@ -1331,6 +1332,83 @@ public final class JXNativeNode {
     private String string(String name) {
         Object value = props.get(name);
         return value == null ? "" : String.valueOf(value);
+    }
+
+    // ---- live bindings (see JXLiveNode) ------------------------------------------------------------------------
+
+    @Override
+    public JXElement getSource() {
+        return source;
+    }
+
+    @Override
+    public List<? extends JXLiveNode> getLiveChildren() {
+        return getChildren();
+    }
+
+    /**
+     * Changes one prop in place, as a live session's refresh does: the same props object the element has, so no copy is
+     * made and nothing is allocated here. The change is judged by the same rules as {@link #sizeAffected(JXProps, JXProps)}
+     * ({@link #keyAffects}); the layout fields are read again by {@link #setProps} when the prop is a layout key.
+     * Sizes are settled later by {@link #commit}.
+     */
+    @Override
+    public int setProp(String name, Object value) {
+        Object old = props.get(name);
+        if (old == null || value == null) {
+            return -1;
+        }
+        boolean relayout = keyAffects(name, old, value);
+        boolean placement = "vgrow".equals(name) ? vgrow != priority(value) : "hgrow".equals(name) && hgrow != priority(value);
+        if (!props.replaceValue(name, value)) {
+            return -1;
+        }
+        if (LAYOUT_KEY_SET.contains(name)) {
+            setProps(props);
+        }
+        return (relayout ? SET_RELAYOUT : 0) | (placement ? SET_PLACEMENT : 0);
+    }
+
+    @Override
+    public int commit(int bits) {
+        return outcome((bits & RELAYOUT) != 0, (bits & CHILD_SUBTREE) != 0, (bits & PLACEMENT) != 0);
+    }
+
+    @Override
+    public int reconcileLive(JXElement element) {
+        if (element == null || !type.equals(element.getType())) {
+            return -1;
+        }
+        return reconcileInPlace(element);
+    }
+
+    /**
+     * Whether a prop going from {@code old} to {@code next} (both present) can change this node's size or its
+     * placement: the per-key form of {@link #sizeAffected(JXProps, JXProps)}, which a reconcile uses for the whole prop
+     * set. The two must agree; the live parity tests check it on every prop the benchmark components change.
+     */
+    private boolean keyAffects(String key, Object old, Object next) {
+        if (LAYOUT_KEY_SET.contains(key) && !Objects.deepEquals(old, next)) {
+            return true;
+        }
+        if ("#text".equals(type)) {
+            return "value".equals(key) && !Objects.equals(old, next);
+        }
+        if ("button".equals(type) || "toggle".equals(type) || "checkbox".equals(type) || "titled".equals(type)
+                || "radio".equals(type) || "hyperlink".equals(type) || "switch".equals(type) || "chip".equals(type)
+                || "menubutton".equals(type) || "menu".equals(type) || "menuitem".equals(type)) {
+            return "label".equals(key) && !Objects.equals(old, next);
+        }
+        if ("cell".equals(type)) {
+            return "value".equals(key) && !Objects.equals(old, next);
+        }
+        if ("image".equals(type)) {
+            return "pixels".equals(key) && old != next;
+        }
+        if ("select".equals(type)) {
+            return "value".equals(key) && !Objects.equals(old, next) || "options".equals(key) && !Objects.deepEquals(old, next);
+        }
+        return false;
     }
 
     /** True if the new props can change this node's size or its placement in the parent. */
