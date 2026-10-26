@@ -205,20 +205,35 @@ public final class JxmlLive<C> {
 
     /** In {@link Site#bits}: the site is on the list of those to settle. */
     private static final int DIRTY = 8;
+    /** The low bits of {@link Site#bits}: what {@code commit} is told, and {@link #DIRTY}; above them, the child index. */
+    private static final int FLAGS = 0xFF;
+    private static final int INDEX_SHIFT = 8;
 
     /** An element with something live below or on it: its node, and what the refresh found out about it. */
     private static class Site {
-        final JXElement element;
+        /** The element as it is now: the very one the node has as its source (an ancestor of a rebuilt part is replaced). */
+        JXElement element;
         final Site parent;
         final int order;
         JXLiveNode node;
-        /** What {@link JXLiveNode#commit} will be told ({@link JXLiveNode#RELAYOUT} and the like), and {@link #DIRTY}. */
+        /**
+         * What {@link JXLiveNode#commit} will be told ({@link JXLiveNode#RELAYOUT} and the like) and {@link #DIRTY} in the
+         * low byte, and above it the position of the element among the children of its parent's element.
+         */
         int bits;
 
-        Site(JXElement element, Site parent, int order) {
+        Site(JXElement element, Site parent, int order, int index) {
+            if (index >= 1 << (31 - INDEX_SHIFT)) {
+                throw new Desync("an element with " + index + " siblings before it");
+            }
             this.element = element;
             this.parent = parent;
             this.order = order;
+            this.bits = index << INDEX_SHIFT;
+        }
+
+        int index() {
+            return bits >>> INDEX_SHIFT;
         }
     }
 
@@ -226,8 +241,8 @@ public final class JxmlLive<C> {
         final Getter<Object> build;
         final Scope scope;
 
-        OpaqueSite(JXElement element, Site parent, int order, Getter<Object> build, Scope scope) {
-            super(element, parent, order);
+        OpaqueSite(JXElement element, Site parent, int order, int index, Getter<Object> build, Scope scope) {
+            super(element, parent, order, index);
             this.build = build;
             this.scope = scope;
         }
@@ -503,6 +518,7 @@ public final class JxmlLive<C> {
         highest = 0;
         heapSize = 0;
         heapMode = false;
+        staged = new JXElement[0][];
         if (plan == null) {
             return;
         }
@@ -551,7 +567,7 @@ public final class JxmlLive<C> {
                     }
                     continue;
                 }
-                Site site = new Site(element, parent, siteList.size());
+                Site site = new Site(element, parent, siteList.size(), at - 1);
                 siteList.add(site);
                 for (Bind b : e.binds) {
                     Object last = element.getProps().get(b.name);
@@ -612,7 +628,7 @@ public final class JxmlLive<C> {
                 Opaque o = (Opaque) p;
                 JXElement element = elements.get(at++);
                 if (!frozen) {
-                    OpaqueSite site = new OpaqueSite(element, parent, siteList.size(), o.build, scope);
+                    OpaqueSite site = new OpaqueSite(element, parent, siteList.size(), at - 1, o.build, scope);
                     siteList.add(site);
                     opaqueList.add(site);
                     if (o.key != null) {
@@ -656,7 +672,7 @@ public final class JxmlLive<C> {
         next = 0;
         for (Site s : sites) {
             s.node = null;
-            s.bits = 0;
+            s.bits &= ~FLAGS;
         }
         if (mounted.getSource() != element || !pair(mounted, element) || next != sites.length) {
             desync = "the mounted tree is not the tree of the recording";
@@ -751,19 +767,68 @@ public final class JxmlLive<C> {
                 markDirty(site);
             }
             for (OpaqueSite o : opaques) {
-                int r = o.node.reconcileLive((JXElement) o.build.get(c, o.scope));
+                JXElement built = (JXElement) o.build.get(c, o.scope);
+                int r = o.node.reconcileLive(built);
                 opaqueBuilds++;
                 if (r < 0) {
                     again = true;
-                } else if (r != JXLiveNode.UNCHANGED && o.parent != null) {
-                    o.parent.bits |= r == JXLiveNode.RESIZED ? JXLiveNode.RELAYOUT : JXLiveNode.CHILD_SUBTREE;
-                    markDirty(o.parent);
+                    continue;
                 }
+                o.element = built;
+                if (o.parent == null) {
+                    element = built;
+                } else {
+                    stage(o.parent, o.index(), built);
+                    if (r != JXLiveNode.UNCHANGED) {
+                        o.parent.bits |= r == JXLiveNode.RESIZED ? JXLiveNode.RELAYOUT : JXLiveNode.CHILD_SUBTREE;
+                        markDirty(o.parent);
+                    }
+                }
+            }
+            if (opaques.length > 0) {
+                replaceAncestors();
             }
         } finally {
             settle();
         }
         return again ? fallback() : true;
+    }
+
+    /** The children each recorded element has now, where a rebuilt part took the place of one (by site, null where none did). */
+    private JXElement[][] staged = new JXElement[0][];
+
+    private void stage(Site parent, int index, JXElement child) {
+        if (staged.length != sites.length) {
+            staged = new JXElement[sites.length][];
+        }
+        JXElement[] children = staged[parent.order];
+        if (children == null) {
+            children = parent.element.getChildren().toArray(new JXElement[0]);
+            staged[parent.order] = children;
+            push(parent); // (the heap is idle until the sites are settled: it orders these by depth)
+        }
+        children[index] = child;
+    }
+
+    /**
+     * An element is immutable, so a rebuilt part that took the place of another is a child the parent's element does not
+     * have: the parent gets a new element (the same type and props, the new list of children), and so do its ancestors up to
+     * the root, and each node is told. The element tree then is what is mounted, and the replaced parts can be collected.
+     */
+    private void replaceAncestors() {
+        while (heapSize > 0) {
+            Site site = pop();
+            JXElement[] children = staged[site.order];
+            staged[site.order] = null;
+            JXElement now = JXElement.of(site.element.getType(), site.element.getProps(), children);
+            site.element = now;
+            site.node.setSource(now);
+            if (site.parent == null) {
+                element = now;
+            } else {
+                stage(site.parent, site.index(), now);
+            }
+        }
     }
 
     /** {@code Objects.deepEquals}, with the common case (two values of one class that is not an array) one call of equals. */
@@ -833,8 +898,8 @@ public final class JxmlLive<C> {
     }
 
     private void commit(Site site) {
-        int r = site.node.commit(site.bits & ~DIRTY);
-        site.bits = 0;
+        int r = site.node.commit(site.bits & FLAGS & ~DIRTY);
+        site.bits &= ~FLAGS;
         if (r != JXLiveNode.UNCHANGED && site.parent != null) {
             site.parent.bits |= r == JXLiveNode.RESIZED ? JXLiveNode.RELAYOUT : JXLiveNode.CHILD_SUBTREE;
             markDirty(site.parent);

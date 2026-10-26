@@ -50,6 +50,13 @@ public interface JXLiveNode {
     int commit(int bits);
 
     /**
+     * Records that the node now mirrors {@code element}, which is the element it had with some of its children replaced by
+     * others (rebuilt parts of the screen, whose own nodes were reconciled). Nothing else changes; the element must have
+     * the type and the very props object of the one it replaces.
+     */
+    void setSource(JXElement element);
+
+    /**
      * Reconciles this node against a rebuilt element of the same type, as the parent's reconcile would; returns what
      * the parent has to do ({@link #UNCHANGED}, {@link #SUBTREE}, {@link #RESIZED}) or {@code -1} when the type differs.
      */

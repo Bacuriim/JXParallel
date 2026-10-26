@@ -68,9 +68,8 @@ class LiveComponentsTest {
                         || !Arrays.equals(LiveSupport.paint(fresh), livePixels)) {
                     reconcileIsFresh = false;
                 }
-                if (live.opaqueBuilds() == 0 && live.fallbacks() == 0) {
-                    assertNull(JxmlTrees.diff(element, live.element()), name + " step " + step + ": the live element tree is the built one");
-                }
+                // the element tree of the session is what is mounted: the props written in place and the rebuilt parts are in it
+                assertNull(JxmlTrees.diff(element, live.element()), name + " step " + step + ": the live element tree is the built one");
             }
             if (!reconcileIsFresh) {
                 divergent.add(name);

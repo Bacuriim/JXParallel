@@ -1414,6 +1414,14 @@ public final class JXNativeNode implements JXLiveNode {
     }
 
     @Override
+    public void setSource(JXElement element) {
+        if (element.getProps() != source.getProps() || !type.equals(element.getType())) {
+            throw new IllegalArgumentException("the new source must have the type and the props of the one it replaces");
+        }
+        source = element;
+    }
+
+    @Override
     public int reconcileLive(JXElement element) {
         if (element == null || !type.equals(element.getType())) {
             return -1;

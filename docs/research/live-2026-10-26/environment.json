@@ -7,7 +7,7 @@
     "ram_gb":  15.8,
     "os":  "Microsoft Windows 11 Enterprise 10.0.26300",
     "powershell":  "5.1.26100.9711",
-    "background_cpu_percent_mean":  4.8,
+    "background_cpu_percent_mean":  5.6,
     "background_cpu_percent_max":  11,
     "heap_flags":  "-Xms512m -Xmx512m",
     "runs":  5,

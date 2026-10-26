@@ -69,6 +69,7 @@ class LiveStructureTest {
             assertTrue(current.reconcile(view.build(model)), what);
             current.layoutForBackend(LiveSupport.W, LiveSupport.H);
             check(what);
+            assertNull(JxmlTrees.diff(view.build(model), live.element()), what + ": the element tree of the session is the built one");
             return live.fallbacks() - before;
         }
 
