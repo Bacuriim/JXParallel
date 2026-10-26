@@ -77,15 +77,32 @@ argument, which can change in place, is always read again.
 | `<If>` flips, `<Slot>` gets another element, a key (identity) changes | fallback | shape |
 | A prop that becomes or stops being `null` | fallback | set of keys |
 | Locale changed | the translated props are read again, no fallback | |
-| `Tabs`, `Tree`, `TreeTable`, `ListView`, `TableView`, a radio or toggle button *with* `group` | **opaque**: built again and reconciled into its own node on every refresh (the rest of the screen is live) | the runtime derives their props and rows (`first`, `scrollY`, the window of a tree, the selected tab, the group) from the bound ones, so a changed binding is not a change of one prop in one node. A shift of `first` is also a window change, with keys that are the items themselves |
+| `Tabs`, a radio or toggle button *with* `group` | **opaque**: built again and reconciled into its own node on every refresh (the rest of the screen is live) | the runtime derives their props (the selected tab, the group) from the bound ones, so a changed binding is not a change of one prop in one node |
+| `ListView`, `TableView` whose row template is made of plain elements (section 2.6) | **live**: the list element's props are bound (`first` and `scrollY` read as `finish` derives them), the rows are kept by key; a change of the window or of the values keeps the rows that stay, with their nodes, and builds only the rows that come in | the second series |
+| `ListView`, `TableView`: the number of items, or the number of rows asked for (`rows`), changes | fallback | shape |
+| `Tree`, `TreeTable` | **rebuilt, rows given back** (section 2.7): the tree is still built again on every refresh (all its items are built), but the rows of the items that stay are not made again | the rows are derived from the items by `JxmlRuntime.tree` |
 | The interpreter (`JxmlTemplate`) | every refresh is a fallback | as specified |
 
-Of the 94 benchmark components 89 are fully live (no opaque part, no fallback) and 5 have an opaque part: `Tabs`,
-`ListView`, `TableView`, `Tree`, `TreeTable`. No component of the benchmark takes the global fallback, in either value set
-(`live-coverage.csv`). For those five the update costs what it did, plus the recording's bookkeeping: that is a result, not a
-success (section 5).
+Of the 94 benchmark components 91 are fully live (no opaque part, no fallback) and 3 have an opaque part: `Tabs`, `Tree`,
+`TreeTable` (the first series, before section 2.6, had 5: also `ListView` and `TableView`). No component of the benchmark takes
+the global fallback, in either value set (`live-coverage.csv`; `LiveComponentsTest` asserts it, and asserts that nothing but
+those three is rebuilt as a whole).
 
-### 2.4 Deviations from the brief
+### 2.4 The window host (second series)
+
+`JXWindow` did not call `refresh()`; now it can. The layering holds (forge depends on core, ui does not depend on forge):
+
+| Piece | Where | What it does |
+|---|---|---|
+| `JXLiveSession` | core | What a host needs from a live screen: `element()`, `attach(JXLiveNode)`, `refresh()`, `renew()` (a new session for the same screen and model). `JxmlLive` implements it. |
+| `JXLiveHost` | ui | Mounts the session's element, pairs the session with the nodes, and `refresh()` brings the tree up to date; when the root changed type it mounts `session.renew()` anew (what `setContent` does when a reconcile cannot keep the root) and returns true. No window, no display thread: a backend that owns its window uses it directly (`JXFrame.mountLive`). |
+| `JXWindow.setLive(session)` | ui | On the display thread (posted with `JXDisplay.post` when called from another thread, like `setContent`): mounts the host, which becomes the window's root. From then on every frame that is going to be painted calls `refresh()` first, just before the backend renders (after the minimized and frame-slot checks, so a frame that waits for its slot is refreshed once), and takes the new root when the host mounted anew (the focused node is forgotten). `setContent` and `setRoot` end the live screen; `setLive(null)` stops refreshing. |
+
+Thread rule: the tree and the session are single-threaded, on the display thread. The model must be changed there too (an event
+handler, or `invokeLater`), followed by `requestRender()` (a handler already causes one). The window never refreshes by itself:
+nothing watches the model.
+
+### 2.5 Deviations from the brief
 
 | Brief | Built | Why |
 |---|---|---|
@@ -97,6 +114,49 @@ success (section 5).
 | Translations: rebound or structural fallback | rebound, watching locale and arguments | tested (`LiveLocaleTest`) |
 | Tabs, trees, virtual lists "handled or routed to the fallback" | a third way: opaque, rebuilt on their own | the fallback rebuilds the whole screen; the rest of it can stay live |
 | Harness classpath | `measure-components.ps1` takes the module classes from `target\classes` | the jars named in `classpath.txt` are the ones installed in `~/.m2`, another version of the code |
+
+### 2.6 Virtual lists: `ListView` and `TableView`
+
+The schema turns `<ListView items var key first rows>` into the list element with one child, a `<For items from=first
+limit=rows>` whose body is the row template; `JxmlRuntime.finish` then derives `first` (kept within the items) and `scrollY`
+from `itemCount`, `first` and the row height. The compiler keeps such a list live when the row is one element made of plain
+elements (bindings and static children; no loop, condition, slot, element-valued prop, tab pane, tree, list or group button
+below it, and the loop is not `memo`); otherwise it stays opaque as before.
+
+* The list element is an ordinary element of the plan. Its binds are the explicit ones, except that `first` and `scrollY` are
+  binds whose getters are `JxmlRuntime.virtualFirst/virtualScroll`, the very functions `finish` uses (so the two cannot drift).
+* The loop is `JxmlLive.rows(items, from, limit, key, capturing, build, row)`. `build` is the expression the generated `build`
+  uses for one row, with the loop scope. The session keeps for each list a **group**: the rows of the current window, each with
+  its scope (the item), its key, its element, its node and a recording of its own (its sites, parents first, and bindings), not
+  spliced into the session's arrays (the numbering of the sites stays fixed).
+* Check (before any write): the number of items, and `limit`, are what they were. The window (`from`) is not part of it.
+* Refresh: (1) for each group, read the window and decide which rows stay: by key, compared by identity as a keyed reconcile
+  compares them (no key: by position); a row whose key is in the window keeps its record and gets the new item in its scope
+  (when a handler of the row holds the item and the item is another object, the row is made anew); the others are built by
+  `build` and recorded. When the window is the same rows in the same places, nothing else is allocated (a buffer and a sub list
+  per group). (2) the ordinary bindings, which include the list's `itemCount`, `first` and `scrollY`. (3) the bindings of the rows
+  that stay are read and written in place, and the row's sites are settled deepest first with the row's own result going to the
+  list site. (4) when the rows are not the same ones in the same places, the list node is reconciled against a new list element
+  (same type and props, children = the staying row elements, which are the very objects the nodes have as source, and the new row
+  elements); the keyed reconcile then finds the staying rows `UNCHANGED` and moves them, creates the new ones and drops the others,
+  and the session pairs the new rows with their nodes. The list's ancestors get new elements as for an opaque part
+  (`replaceAncestors`).
+* A window of zero or one row, duplicate keys or no key is reconciled by the node by position (`keyed()`); the session pairs
+  every row with the node at its position afterwards, so the rows that stay keep their element, and are paired with whatever
+  node ends up at their position.
+
+### 2.7 `Tree` and `TreeTable`
+
+Their rows are not template rows: `JxmlRuntime.tree` flattens the item elements (all of them are built: a tree of thousands
+of items makes a few dozen rows) and derives a `cell` (or `tablerow` of `cell`s) for each row of the window, with `indent`,
+`disclosure` and `odd` from the position. These were left opaque and are still **rebuilt on every refresh**, but a live session
+hands `tree` the rows of the last window (`JxmlRuntime.RowCache/TreeRows`, a per-tree cache on the opaque site, a thread local
+that only a live refresh sets): a row whose item is the same element, with the same depth and arrow, is not made again; its
+`odd` is set in place to the parity of its new position. With a memoized model (`memo="true"`, which the benchmark's trees use)
+the item elements are the same objects from refresh to refresh and every row that stays is reused; with a model built anew each
+time no row is reused and the cost is what it was. The nodes of rows that stay are kept in both cases (the keyed reconcile always
+did that). The first refresh of a tree makes all its rows (the first build is not through the cache). `odd` is written in place
+without telling the node because nothing in the renderer reads it; a backend that did would not see the change.
 
 ## 3. Invariants
 
@@ -110,6 +170,11 @@ success (section 5).
 4. No check is passed unless all of them are; a failed check writes nothing.
 5. A node is settled once per refresh, children before parents, with the results a reconcile gives.
 6. Handlers are never rebound; a loop that holds an item in a handler never keeps an item that changed.
+7. (second series) A row of a virtual list that stays in the window keeps its node and its element, an element that is the
+   very object the node has as source; a row that comes in is built and gets a node; a row that leaves is gone (no node of
+   it is kept). A row is the same row when its key is the same object (by identity, as the keyed reconcile compares them).
+8. (second series) The window host refreshes once per painted frame, on the display thread, and what it shows after a
+   refresh is what a fresh build and mount of the model gives.
 
 `Tooltip` was first an exception: the reconcile left the column that holds 5000 tooltips with a stale preferred width when
 their texts changed, because `sizeAffected` did not know that a tooltip's `label` sizes it, and the live path inherited that.
@@ -119,10 +184,12 @@ then live equals a fresh mount for all 94 components, `Tooltip` included.
 
 ## 4. Tests
 
-Counts (this branch, Java 17 unless noted): core 36, ui 289 (1 skipped), forge 253 (on Java 8: 253 with 1 skipped, on Java
-21: 253), examples-native 48. The branch added 1 test class to ui (`JXLiveNodeTest`, 5 tests), 1 to forge (`JxmlLiveTest`, 2
-tests: a generated view's session against a node that only mirrors the element tree, and the interpreter's no-plan case)
-and 5 to examples-native (13 tests).
+Counts (this branch, Java 17 unless noted): core 36, ui 291 (1 skipped), forge 253 (on Java 8: 253 with 1 skipped, on Java
+21: 253), examples-native 60. The first series added 1 test class to ui (`JXLiveNodeTest`, 5 tests), 1 to forge
+(`JxmlLiveTest`, 2 tests: a generated view's session against a node that only mirrors the element tree, and the interpreter's
+no-plan case) and 5 to examples-native (13 tests: 48 in all). The second series added `JXLiveHostTest` (ui, 1 test, a fake
+session), and in examples-native `LiveHostTest` (3), `LiveVirtualTest` (6) and `LiveTreeTest` (3): 60 in all. Test helpers:
+`LiveRig` (a live screen, the current path, the model, and the comparisons below), `VirtualModel`, `TreeModel`, `LiveWindow`.
 
 * **Node level** (`JXLiveNodeTest`, ui): on 600 random trees, `setProp` on every changed prop and a bottom-up `commit` give the
   nodes, sizes and boxes that reconciling the rebuilt tree gives and that a fresh mount gives; 400 more with three further
@@ -130,8 +197,9 @@ and 5 to examples-native (13 tests).
   that appears or goes away is refused (`-1`); `setProp` of a cached boxed value allocates nothing (measured over 100000 calls).
 * **(a) The 94 components** (`LiveComponentsTest`): mount live, switch the value set 1, 0, 1, 0, 1, 0 through `refresh()`; after
   each step compare with the current reconcile path and with a fresh build and mount: all nodes, sizes, boxes, the whole pixel
-  buffer, and `JxmlTrees.diff` of the session's element tree against a fresh build. No component takes a fallback; 5 have an
-  opaque part (`live-coverage.csv`).
+  buffer, and `JxmlTrees.diff` of the session's element tree against a fresh build. No component takes a fallback (asserted);
+  `Tabs`, `Tree` and `TreeTable` are the only ones with an opaque part (asserted for the others; `live-coverage.csv`).
+  A test expects that no component diverges from a fresh mount.
 * **(b) Structure** (`LiveStructureTest`): a kitchen-sink screen with an `<If>`/`<Else>`, an unkeyed loop with handlers, a
   keyed loop, a window, a memo loop, a slot and a handler. Value changes (title, amount, gap, an item edited in place, a list
   copied into a new list object) never fall back; each structural change (flag, add, remove, reorder, other item objects,
@@ -153,6 +221,24 @@ and 5 to examples-native (13 tests).
   mount node by node, and pixel by pixel except in `controls`, which has an indeterminate progress bar that draws by the clock
   (two paints of one tree differ); there the nodes are compared, the pixels are not.
 * **Translations** (`LiveLocaleTest`): a locale change and a changed argument are written in place; no fallback.
+* **(f) The host** (`LiveHostTest`, `JXLiveHostTest`): `JXLiveHost` (through `JXFrame.mountLive`) and the display-thread part
+  of `JXWindow.setLive` (`mountLive`/`refreshLive`, reached through a test bridge; no GLFW) on a compiled screen: the session is
+  paired; value changes refresh in place (same root, no fallback) and equal a fresh mount, nodes and pixels; a shape change
+  falls back and keeps the root; a screen whose root is a slot, given an element of another type, is mounted anew
+  (`remounts`, new root, new session) and goes on live; a window with no live screen does not refresh. The ui test drives the
+  host with a fake session (attach, refresh, renew). Not tested: the posting to the display thread and the frame loop, which
+  need GLFW.
+* **(g) Virtual lists** (`LiveVirtualTest`; list, list without a key, list with a handler that holds the row's item, table):
+  random scrolls (`first` negative, beyond the end) 3 seeds x 40 steps each; windows of 0, 1, 2 and 3 rows (so a window shorter
+  than asked at the end); 60 mixed steps (an item edited, the same objects in another list, other objects of the same size,
+  a scroll); each step compared with the current path and a fresh mount (nodes, sizes, boxes, pixels, element tree), never a
+  fallback, no opaque build; an item added or removed, or another `rows`, falls back exactly once and the session goes on live;
+  node identity (rows that stay are the same node objects, 5 rows come in as 5 built rows, the 5 that left are different nodes
+  when they come back); a handler holds the item of its key, also after another list of new objects replaces the model.
+* **(h) Trees** (`LiveTreeTest`; tree and tree table, memoized or not): random scrolls, windows of 0, 1, 2 rows, and 60 mixed
+  steps (a folder edited or collapsed, a snapshot list, folders and children added or removed, another window, a scroll),
+  against the current path and a fresh mount, no fallback; the nodes of the rows that stay are kept, and with a memoized
+  model so are their elements, also when the shift flips their `odd`. (The tree tables use explicit column widths: see 6.)
 
 ## 5. Results
 
@@ -268,6 +354,13 @@ For scale: the earlier series has compiled JXML retaining 51x less per instance 
 components with a counterpart); a +25% on every instance would make that about 41x. That is arithmetic on the earlier mean,
 not a measurement of the 43.
 
+### 5.4 Second series: virtual lists (`docs/research/live-lists-2026-10-26/`)
+
+Not measured yet: the code of sections 2.4 to 2.7 and the tests are committed, the series is run on frozen code afterwards
+(`scripts\measure-components.ps1 ... -Components ListView,TableView,Tree,TreeTable,Separator,Slider`, then the steady-state
+bench for the same components). The first series above is not touched and is the baseline: TableView allocation 0.35x of
+JavaFX, TreeTable 0.65x, ListView 0.85x, Tree 1.72x.
+
 ## 6. Threats to validity
 
 * **One machine, one JDK for the series**: i5-12400F, Windows 11, JDK 17 (the examples ran on 8, 17 and 21 for the tests, not
@@ -294,18 +387,37 @@ not a measurement of the 43.
   session (recording, checks, writes in place, the rebuilt tab pane, the fallbacks) against a node that only mirrors the
   element tree, and compiles the generated `Live` class at `-source 8`. The renderer's nodes (`setProp`, `commit`, layout),
   the 94 components, the samples and all the measurements ran on Java 17 only.
-* **Not exercised**: the host. `JXWindow` does not call `refresh()`; the benchmark and the tests do, on the display thread's
-  behalf. The NanoVG and Skia renderers read the same nodes and were not run. Java 8 x86 (32-bit) was not measured (the tests
-  for forge ran on 8). Threads: the session is single-threaded, like the tree.
+* **The host is tested without a display.** `JXWindow.setLive` posts to the display thread and refreshes in the frame loop;
+  the tests call the display-thread parts directly (`JXLiveHost`, `mountLive`, `refreshLive`), so that the posting, the
+  frame loop and a real window with a real controller changing on another thread were not run. The NanoVG and Skia renderers
+  read the same nodes and were not run. Java 8 x86 (32-bit) was not measured (the tests for forge ran on 8). Threads: the
+  session is single-threaded, like the tree; a model changed from another thread while a frame refreshes is a race the
+  window does not prevent.
+* **Virtual lists are live only for plain row templates**, and only while the number of items and of rows is the same: adding
+  a row to the model, which is what a real list does, is a fallback (the whole screen is built and reconciled). The tests
+  prove parity for scrolls and edits; they do not prove it for every row template (the two shapes tested: one `cell`, one
+  `tablerow` of three `cell`s).
+* **Row identity is the key's identity**, as the node's keyed reconcile has it: a key that is a fresh boxed number each time
+  (`key="${r.id}"` on an `int`) never matches and every row is built anew on every scroll, the same as the reconcile it
+  replaces. A list without a key is matched by position.
+* **Trees only save the rows.** A tree still builds all its items on every refresh; the saving is the rows of the window, and
+  only for a memoized model (a model built anew has new item elements each time). The first refresh makes all the rows.
+  `odd` is written in place without notifying the node (nothing in the renderer reads it).
+* **A fitted table column keeps the width fitted to the first rows it showed** (`ColumnState`): a reconcile, and so live,
+  differs from a fresh mount when later rows are wider, for a `TreeTable` (or a table) with a column width of -1. Found when
+  a first test used such a column with a window of one row; it is in the reconcile of `main`, not in this work, and the tree
+  table tests use explicit widths.
 * **Test oracles**: parity is against the current reconcile and against a fresh mount; if both were wrong in the same way
   (the `Tooltip` case, since fixed, was one the two shared) the tests would not see it. The pixel buffer comparison skips drawings that depend
   on the clock.
 
 ## 7. Open questions
 
-* **Virtual lists.** `first` going from 0 to 7 is a window change of keyed rows whose keys are the items. Handling it like the
-  keyed reconcile does (rows that stay keep their nodes and only their positions change; the rows that scroll in are created)
-  would move ListView, TableView, Tree and TreeTable out of the opaque class. Today their update is the rebuild.
+* **Virtual lists: what is left.** A list that gains or loses an item takes the global fallback; the item count could be a
+  window change too (rows are only added or dropped at the end). Trees build all their items on every refresh; recording the
+  item model (the generated code would have to give the item elements apart from the rows) would let a tree bind the item
+  values and make no element for rows that stay, also for a model that is not memoized. Row templates with loops or
+  conditions in the row are still opaque. `Tabs` and grouped radios are opaque.
 * **Scoping the fallback.** The fallback rebuilds the whole screen. The compiler already emits one method per container; a
   fallback to the smallest enclosing container whose children are keyed would make "one row was added" cost one row.
 * **A smaller recording.** 120 B per bound instance is the site, the binding and the scope. A site and a binding could be one
@@ -319,8 +431,9 @@ not a measurement of the 43.
   what is left of the allocation.
 * **Retaining the element tree at all.** The session needs it only to pair nodes. After attach, the elements could be released
   and the node's props (the same objects) kept; the element tree would be rebuilt on demand.
-* **Hooking the host.** `JXWindow.setContent` takes an element; a `setLive(JxmlLive)` that attaches, refreshes on
-  `requestRender`, and falls back to `setContent` when `refresh()` says the root changed, is the natural integration.
+* **Hooking the host: what is left.** `JXWindow.setLive` exists (2.4), but nothing tells the window the model changed: the
+  application calls `requestRender()`. Whether a model that notifies (a change event, an observable) should do it, and how
+  that meets the single-threaded tree, is open; so is measuring a real window.
 * **Handlers that hold loop variables** could read them from the scope, which would make the loop that holds its item stop
   falling back when the list is replaced; that touches the code `build` runs, so it was not done here.
 * **Does it generalize?** The benchmark updates one prop of every instance. An application's updates are one or a few
@@ -328,6 +441,10 @@ not a measurement of the 43.
   skip above, or dependency tracking on the controller, is needed to win there is not measured.
 
 ## 8. Reproduce
+
+(The numbers of 5.1 to 5.3 are the first series, before the host and the virtual lists of 2.4 to 2.7. The view generator skips
+a screen whose `.jxml` is unchanged even when the compiler changed: delete `jxparallel-examples-native\target\generated-sources`
+before a build that must regenerate the benchmark's views.)
 
 ```powershell
 # build (the four modules in one reactor: the generated views need this tree's forge, not the installed one)
