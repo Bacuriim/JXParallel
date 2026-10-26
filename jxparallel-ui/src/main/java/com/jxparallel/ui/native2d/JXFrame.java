@@ -27,6 +27,14 @@ public final class JXFrame {
         return JXNativeNode.createBackendNode(element);
     }
 
+    /**
+     * Mounts a live screen (JXForge's {@code view.live(controller)}) and keeps it in step with its model: call
+     * {@link JXLiveHost#refresh()} when the model changed, then {@link #layout} and {@link #paint} {@link JXLiveHost#root()}.
+     */
+    public static JXLiveHost mountLive(com.jxparallel.ui.JXLiveSession session) {
+        return new JXLiveHost(session);
+    }
+
     /** Sizes the tree to a frame of {@code width} x {@code height} logical pixels, overlays included. */
     public static void layout(JXNativeNode root, int width, int height) {
         root.layoutForBackend(Math.max(1, width), Math.max(1, height));

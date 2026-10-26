@@ -8,6 +8,7 @@ import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.function.Consumer;
 
 import com.jxparallel.ui.JXElement;
+import com.jxparallel.ui.JXLiveSession;
 import com.jxparallel.ui.input.JXClipboard;
 import com.jxparallel.ui.text.JXTextEngine;
 
@@ -115,12 +116,55 @@ public final class JXWindow implements AutoCloseable {
             JXDisplay.post(() -> setContent(element));
             return;
         }
+        live = null; // explicit content replaces a live screen
         if (root == null || !root.reconcile(element)) {
             root = JXNativeNode.createBackendNode(element);
             focusedNode = null;
         }
         requestRender();
     }
+
+    /**
+     * Shows a live screen (JXForge's {@code view.live(controller)}): it is mounted now, and from then on every requested
+     * frame first calls the session's {@code refresh()}, which writes into the mounted nodes only what the controller
+     * changed, and mounts the screen anew when its root changed type, as {@link #setContent} does. To update the screen,
+     * change the model and call {@link #requestRender()}; the model is then read on the display thread, which also runs
+     * the event handlers, so change it there ({@link #invokeLater}). Null stops refreshing and keeps the tree as it is.
+     * Safe from any thread; {@link #setContent} and {@link #setRoot} end the live screen.
+     */
+    public void setLive(JXLiveSession session) {
+        if (!JXDisplay.isDisplayThread()) {
+            JXDisplay.post(() -> setLive(session));
+            return;
+        }
+        mountLive(session);
+        requestRender();
+    }
+
+    /** The display-thread part of {@link #setLive}. */
+    void mountLive(JXLiveSession session) {
+        if (session == null) {
+            live = null;
+            return;
+        }
+        live = new JXLiveHost(session);
+        root = live.root();
+        focusedNode = null;
+    }
+
+    /** Before a frame: the live screen takes in what its model changed. True when the tree was mounted anew. */
+    boolean refreshLive() {
+        JXLiveHost host = live;
+        if (host == null || !host.refresh()) {
+            return false;
+        }
+        root = host.root();
+        focusedNode = null;
+        return true;
+    }
+
+    /** The live screen, display thread only. */
+    private JXLiveHost live;
 
     /** The mounted tree; display thread only. */
     public JXNativeNode getRoot() {
@@ -135,10 +179,12 @@ public final class JXWindow implements AutoCloseable {
     public void setRoot(JXNativeNode tree, Object lock) {
         externalLock = lock;
         if (JXDisplay.isDisplayThread()) {
+            live = null;
             root = tree;
             focusedNode = null;
         } else {
             JXDisplay.post(() -> {
+                live = null;
                 root = tree;
                 focusedNode = null;
             });
@@ -657,6 +703,7 @@ public final class JXWindow implements AutoCloseable {
         if (!renderRequested.getAndSet(false)) {
             return;
         }
+        refreshLive();
         int[] fbWidth = new int[1];
         int[] fbHeight = new int[1];
         int[] winWidth = new int[1];

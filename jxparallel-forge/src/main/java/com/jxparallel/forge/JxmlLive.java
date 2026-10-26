@@ -7,6 +7,7 @@ import java.util.RandomAccess;
 
 import com.jxparallel.ui.JXElement;
 import com.jxparallel.ui.JXLiveNode;
+import com.jxparallel.ui.JXLiveSession;
 
 /**
  * Research: a screen kept live. {@link JxmlView#live} builds the element tree of a screen exactly as {@code build} does
@@ -37,7 +38,7 @@ import com.jxparallel.ui.JXLiveNode;
  * <p>The session owns the props of the elements it recorded: it writes into them. Never keep the element tree of a
  * live session to compare with another, and never hand the same element tree to two sessions.
  */
-public final class JxmlLive<C> {
+public final class JxmlLive<C> implements JXLiveSession {
     // ---- what the generated code uses: the plan ------------------------------------------------------------------
 
     /** The item of one iteration of a loop, and the scope of the loop around it; the generated getters read both. */
@@ -463,7 +464,14 @@ public final class JxmlLive<C> {
     private java.util.function.Supplier<java.util.Locale> locale;
     private java.util.Locale lastLocale;
 
+    /** A session for the same view and controller, built now: what a host mounts when {@link #refresh} says the root changed. */
+    @Override
+    public JxmlLive<C> renew() {
+        return view.live(controller);
+    }
+
     /** The element tree of the screen as of the last build; the props of the recorded elements are the live ones. */
+    @Override
     public JXElement element() {
         return element;
     }
@@ -663,6 +671,7 @@ public final class JxmlLive<C> {
      * Pairs the recording with the nodes of {@code mounted}, which must be the tree {@link #element()} mounted (or reconciled
      * into) and not touched since. Returns false (and the session then only falls back) when it does not match.
      */
+    @Override
     public boolean attach(JXLiveNode mounted) {
         this.root = mounted;
         attached = false;
@@ -714,6 +723,7 @@ public final class JxmlLive<C> {
      * Brings the mounted tree up to date with the controller. Returns false when the screen's root is another type now: the
      * caller must mount {@code view.live(controller)} anew. The caller lays the tree out and paints afterwards, as after a reconcile.
      */
+    @Override
     public boolean refresh() {
         refreshes++;
         if (root == null) {
