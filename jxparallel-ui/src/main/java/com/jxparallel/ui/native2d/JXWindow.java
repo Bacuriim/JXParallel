@@ -703,7 +703,6 @@ public final class JXWindow implements AutoCloseable {
         if (!renderRequested.getAndSet(false)) {
             return;
         }
-        refreshLive();
         int[] fbWidth = new int[1];
         int[] fbHeight = new int[1];
         int[] winWidth = new int[1];
@@ -728,6 +727,7 @@ public final class JXWindow implements AutoCloseable {
             GLFW.glfwMakeContextCurrent(window);
             GL.setCapabilities(capabilities);
         }
+        refreshLive(); // once for each painted frame: a frame that waited for its slot above is refreshed when it is painted
         Object lock = externalLock;
         if (lock != null) {
             synchronized (lock) {
