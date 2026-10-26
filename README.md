@@ -440,41 +440,44 @@ to the renderer.
 
 ## Installation
 
-JXParallel is not on Maven Central yet. Build and install it locally:
+JXParallel is on Maven Central under the group `io.github.bacuriim` (the Java packages stay `com.jxparallel`).
+Add the modules you need:
+
+```xml
+<!-- Level 1: worker pool, tasks, properties, events -->
+<dependency>
+    <groupId>io.github.bacuriim</groupId>
+    <artifactId>jxparallel-core</artifactId>
+    <version>0.1.0</version>
+</dependency>
+
+<!-- Level 1 and 2 in a JavaFX 21 app: FX dispatch, parallel FXML -->
+<dependency>
+    <groupId>io.github.bacuriim</groupId>
+    <artifactId>jxparallel-fxml</artifactId>
+    <version>0.1.0</version>
+</dependency>
+
+<!-- Level 3: native UI, no JavaFX -->
+<dependency>
+    <groupId>io.github.bacuriim</groupId>
+    <artifactId>jxparallel-ui</artifactId>
+    <version>0.1.0</version>
+</dependency>
+```
+
+`jxparallel-ui` brings the LWJGL natives for the platform Maven runs on (Windows x64/x86,
+Linux x64) and Skija on 64-bit. The JavaFX-compatible API is `jxparallel-fx` (Java 8 with its bundled
+JavaFX, or OpenJFX on Java 9 and later), with `jxparallel-fx-controlsfx`; the test helpers are
+`jxparallel-junit4`, `jxparallel-junit5`, `jxparallel-mockito` and `jxparallel-powermock`.
+
+To build from source instead:
 
 ```powershell
 git clone https://github.com/Bacuriim/JXParallel.git
 cd JXParallel
 mvn install -DskipTests
 ```
-
-Then add the modules you need:
-
-```xml
-<!-- Level 1: worker pool, tasks, properties, events -->
-<dependency>
-    <groupId>com.jxparallel</groupId>
-    <artifactId>jxparallel-core</artifactId>
-    <version>0.1.0-SNAPSHOT</version>
-</dependency>
-
-<!-- Level 1 and 2 in a JavaFX app: FX dispatch, parallel FXML (build with -Plegacy-javafx) -->
-<dependency>
-    <groupId>com.jxparallel</groupId>
-    <artifactId>jxparallel-fxml</artifactId>
-    <version>0.1.0-SNAPSHOT</version>
-</dependency>
-
-<!-- Level 3: native UI, no JavaFX -->
-<dependency>
-    <groupId>com.jxparallel</groupId>
-    <artifactId>jxparallel-ui</artifactId>
-    <version>0.1.0-SNAPSHOT</version>
-</dependency>
-```
-
-`jxparallel-ui` brings the LWJGL natives for the platform Maven runs on (Windows x64/x86,
-Linux x64) and Skija on 64-bit.
 
 ## Configuration
 

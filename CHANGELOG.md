@@ -1,6 +1,8 @@
 # Changelog
 
-## Unreleased
+## 0.1.0 (2026-10-26)
+
+- first release on Maven Central, group `io.github.bacuriim` (the Java packages stay `com.jxparallel`): `jxparallel-core`, `-ui`, `-junit4`, `-junit5`, `-mockito`, `-powermock`, `-fx`, `-fx-controlsfx` (built on JDK 8), `-javafx`, `-fxml` (built on OpenJFX 21); the poms carry the license, developer and SCM data Central asks for, and the `release` profile adds sources, Javadoc, GPG signatures and the upload (see RELEASING.md)
 
 - fixed: Skija crashed the JVM while loading its native library on Java 8 64-bit; the cause is the `io.github.humbleui:types` 0.1.1 it brings, compiled for Java 9 (the library looks up `Rect`, `IRect`, `Point`... on load and uses the failed lookup); `jxparallel-ui` now depends on `types` 0.2.0 (the same API plus two `contains` methods, compiled for Java 8), and the whole ui suite, Skia images included, runs on Java 8 64-bit; Java 8 still paints with NanoVG unless `-Djx.renderer=skia`
 
