@@ -111,10 +111,11 @@ success (section 5).
 5. A node is settled once per refresh, children before parents, with the results a reconcile gives.
 6. Handlers are never rebound; a loop that holds an item in a handler never keeps an item that changed.
 
-One thing is not an invariant of this work: `Tooltip`. The *current* reconcile leaves the column that holds 5000 tooltips with
-a stale preferred width when their texts change (`sizeAffected` does not know that a tooltip's `text` can size anything), so a
-current-path screen differs from a fresh mount there. The live path uses the same rules and inherits it; the tests compare live
-with the current reconcile, strictly for all components, and with a fresh mount for all but `Tooltip`. Not fixed here.
+`Tooltip` was first an exception: the reconcile left the column that holds 5000 tooltips with a stale preferred width when
+their texts changed, because `sizeAffected` did not know that a tooltip's `label` sizes it, and the live path inherited that.
+Looking for the cause found two more props missing in the same way (a select's `prompt`, a text area's `prefRowCount`); the
+fix went to `main` (`3278a4e`, `JXSizePropsReconcileTest`) and was merged here, with `keyAffects` given the same three. Since
+then live equals a fresh mount for all 94 components, `Tooltip` included.
 
 ## 4. Tests
 
@@ -297,7 +298,7 @@ not a measurement of the 43.
   behalf. The NanoVG and Skia renderers read the same nodes and were not run. Java 8 x86 (32-bit) was not measured (the tests
   for forge ran on 8). Threads: the session is single-threaded, like the tree.
 * **Test oracles**: parity is against the current reconcile and against a fresh mount; if both were wrong in the same way
-  (the `Tooltip` case is one the two share) the tests would not see it. The pixel buffer comparison skips drawings that depend
+  (the `Tooltip` case, since fixed, was one the two shared) the tests would not see it. The pixel buffer comparison skips drawings that depend
   on the clock.
 
 ## 7. Open questions

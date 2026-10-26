@@ -80,7 +80,7 @@ class LiveComponentsTest {
         }
         Files.write(Paths.get("target", "live-coverage.csv"), table, StandardCharsets.UTF_8);
         System.out.println("LIVE components where the current reconcile differs from a fresh mount: " + divergent);
-        // live equals a fresh mount for every component but the one the current reconcile itself gets wrong (see the class comment)
-        assertEquals(java.util.Collections.singletonList("Tooltip"), divergent);
+        // live equals a fresh mount for every component (Tooltip was the exception until sizeAffected knew its label)
+        assertEquals(java.util.Collections.emptyList(), divergent);
     }
 }
