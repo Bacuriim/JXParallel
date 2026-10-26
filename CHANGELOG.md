@@ -2,6 +2,10 @@
 
 ## Unreleased
 
+- fixed: Skija crashed the JVM while loading its native library on Java 8 64-bit; the cause is the `io.github.humbleui:types` 0.1.1 it brings, compiled for Java 9 (the library looks up `Rect`, `IRect`, `Point`... on load and uses the failed lookup); `jxparallel-ui` now depends on `types` 0.2.0 (the same API plus two `contains` methods, compiled for Java 8), and the whole ui suite, Skia images included, runs on Java 8 64-bit; Java 8 still paints with NanoVG unless `-Djx.renderer=skia`
+
+- fixed: a reconcile that changed a tooltip's text, a combo or choice box's prompt, or a text area's row count kept the node's old size, so the text was cut and its neighbours stayed where they were (the native layer of `ComboBox.setPromptText` and `TextArea.setPrefRowCount` after the screen was shown); `sizeAffected` now names every prop the size code reads, and `JXSizePropsReconcileTest` changes each one in place and compares with a fresh mount
+
 - builds on JDK 8 use Mockito 4.11 (profile `mockito-java8`, activated by the JDK), since Mockito 5 needs Java 11; JDK 11 and later keep Mockito 5
 - native mode on 32-bit: a frame of about 44 ms a few seconds after start-up is gone; the client VM compiles a native method's wrapper on the calling thread when it gets hot (about 15 ms each), so the NanoVG natives are now warmed on a background thread one second after the first frame (`JXNanoVGRenderer.startWarmCalls`, client VM only); measured with a synchronized 239 Hz display, the native worst frame is 5.2 ms against JavaFX's 15.9 ms, and no time, CPU or memory metric is significantly worse than JavaFX on 32 or 64-bit (`docs/fx-backends-comparison-2026-09-29.md`)
 

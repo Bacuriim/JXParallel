@@ -12,9 +12,8 @@ class JXWindowRendererTest {
     }
 
     @Test
-    void shouldPickNanoVGOn32BitAndSkiaOn64Bit() {
-        String expected = "32".equals(System.getProperty("sun.arch.data.model")) ? JXWindow.NANOVG : JXWindow.SKIA;
-        assertEquals(expected, JXWindow.selectRenderer());
+    void shouldPickNanoVGOn32BitAndJava8AndSkiaOtherwise() {
+        assertEquals(defaultRenderer(), JXWindow.selectRenderer());
     }
 
     @Test
@@ -24,7 +23,12 @@ class JXWindowRendererTest {
         System.setProperty("jx.renderer", "skia");
         assertEquals(JXWindow.SKIA, JXWindow.selectRenderer());
         System.setProperty("jx.renderer", "vulkan");
-        assertEquals("32".equals(System.getProperty("sun.arch.data.model")) ? JXWindow.NANOVG : JXWindow.SKIA,
-                JXWindow.selectRenderer());
+        assertEquals(defaultRenderer(), JXWindow.selectRenderer());
+    }
+
+    private static String defaultRenderer() {
+        boolean is32Bit = "32".equals(System.getProperty("sun.arch.data.model"));
+        boolean java8 = System.getProperty("java.specification.version", "").startsWith("1.");
+        return is32Bit || java8 ? JXWindow.NANOVG : JXWindow.SKIA;
     }
 }
