@@ -103,7 +103,12 @@ final class NativeOverlay {
         for (int i = 0; i < 7; i++) {
             names[i] = java.time.DayOfWeek.of((firstDay - 1 + i) % 7 + 1).getDisplayName(TextStyle.SHORT, locale);
         }
-        String title = first.getMonth().getDisplayName(TextStyle.FULL_STANDALONE, locale) + " " + year;
+        String monthName = first.getMonth().getDisplayName(TextStyle.FULL_STANDALONE, locale);
+        if (Character.isDigit(monthName.charAt(0))) {
+            // Java 8 has no standalone month names and returns the month number instead.
+            monthName = first.getMonth().getDisplayName(TextStyle.FULL, locale);
+        }
+        String title = monthName + " " + year;
         title = Character.toUpperCase(title.charAt(0)) + title.substring(1);
         Object value = Native.value(owner, "value");
         LocalDate today = LocalDate.now();
