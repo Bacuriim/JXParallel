@@ -13,6 +13,8 @@
     <description>JavaFX-compatible API under com.jxparallel.fx: an application migrates by replacing
         "javafx." with "com.jxparallel.fx." in its imports, and its FXML files keep working unchanged.</description>
 
+    <!-- Built on JDK 8 only, against the JavaFX bundled in the JDK (jre/lib/ext/jfxrt.jar): it uses
+         JavaFX 8 internals that OpenJFX 9+ removed. The root pom adds it under the javafx8 profile. -->
     <dependencies>
         <dependency>
             <groupId>io.github.bacuriim</groupId>
@@ -67,25 +69,6 @@
     </build>
 
     <profiles>
-        <!-- JDK 8 builds against the JavaFX bundled in the JDK (jre/lib/ext/jfxrt.jar). -->
-        <profile>
-            <id>openjfx</id>
-            <activation>
-                <jdk>[9,)</jdk>
-            </activation>
-            <dependencies>
-                <dependency>
-                    <groupId>org.openjfx</groupId>
-                    <artifactId>javafx-controls</artifactId>
-                    <version>${javafx.version}</version>
-                </dependency>
-                <dependency>
-                    <groupId>org.openjfx</groupId>
-                    <artifactId>javafx-fxml</artifactId>
-                    <version>${javafx.version}</version>
-                </dependency>
-            </dependencies>
-        </profile>
         <!-- Mutation testing of the native runtime (JDK 8):
              mvn -Pmutation -pl jxparallel-fx test-compile org.pitest:pitest-maven:mutationCoverage -->
         <profile>

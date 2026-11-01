@@ -4,6 +4,7 @@ import org.junit.jupiter.api.Test;
 
 import com.jxparallel.ui.JXElement;
 import com.jxparallel.ui.JXProps;
+import com.jxparallel.ui.text.JXTextEngine;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertSame;
@@ -27,15 +28,17 @@ class JXTitledPaneTest {
         JXNativeNode root = JXNativeNode.createBackendNode(column);
         root.layoutForBackend(300, 300);
         JXNativeNode pane = root.getChildren().get(0);
-        assertEquals(76, pane.getHeight());
-        assertEquals(76, root.getChildren().get(1).getY());
+        // title bar: one line (17 px in Segoe UI, 15 px in DejaVu Sans) + 4 + 4; content border 1
+        int bar = (int) Math.ceil(JXTextEngine.get().lineHeight(JXTextEngine.DEFAULT_SIZE) + 8);
+        assertEquals(bar + 50 + 1, pane.getHeight());
+        assertEquals(bar + 50 + 1, root.getChildren().get(1).getY());
 
         root.reconcile(JXElement.of("column", JXProps.builder().build(), titled(false, region(100, 50)), region(10, 10)));
         root.layoutForBackend(300, 300);
 
         assertSame(pane, root.getChildren().get(0), "pane node reused");
-        assertEquals(25, pane.getHeight());
-        assertEquals(25, root.getChildren().get(1).getY(), "the next node moves up");
+        assertEquals(bar, pane.getHeight());
+        assertEquals(bar, root.getChildren().get(1).getY(), "the next node moves up");
     }
 
     @Test

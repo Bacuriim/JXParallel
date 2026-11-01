@@ -467,8 +467,8 @@ Add the modules you need:
 ```
 
 `jxparallel-ui` brings the LWJGL natives for the platform Maven runs on (Windows x64/x86,
-Linux x64) and Skija on 64-bit. The JavaFX-compatible API is `jxparallel-fx` (Java 8 with its bundled
-JavaFX, or OpenJFX on Java 9 and later), with `jxparallel-fx-controlsfx`; the test helpers are
+Linux x64) and Skija on 64-bit. The JavaFX-compatible API is `jxparallel-fx` (built on Java 8 with its
+bundled JavaFX, such as Zulu FX), with `jxparallel-fx-controlsfx`; the test helpers are
 `jxparallel-junit4`, `jxparallel-junit5`, `jxparallel-mockito` and `jxparallel-powermock`.
 
 To build from source instead:
@@ -552,6 +552,7 @@ The default build has no JavaFX dependency. JavaFX modules are built with a prof
 ```powershell
 mvn test                      # core, UI, test integrations, benchmarks
 mvn -Plegacy-javafx test      # plus jxparallel-javafx, jxparallel-fxml, examples
+mvn test                      # on a JDK 8 with JavaFX (Zulu FX): plus jxparallel-fx, jxparallel-fx-controlsfx
 mvn -Pcoverage test           # JaCoCo report in <module>/target/site/jacoco
 ```
 
