@@ -36,6 +36,11 @@ class JXControlLayoutEdgesTest {
         return JXTextEngine.get().width(s, JXTextEngine.DEFAULT_SIZE);
     }
 
+    /** One line of default text, like {@link #text}: 17 px in Segoe UI (Windows), 15 px in DejaVu Sans (Linux). */
+    private static double line() {
+        return JXTextEngine.get().lineHeight(JXTextEngine.DEFAULT_SIZE);
+    }
+
     /** The control laid out at (LEFT, TOP) inside a padded row, at its pref size unless the props say otherwise. */
     private static JXNativeNode placed(JXElement element) {
         JXNativeNode root = JXNativeNode.createBackendNode(e("row",
@@ -103,7 +108,7 @@ class JXControlLayoutEdgesTest {
     void tooltipsAreTheirTextInModenaPadding() {
         JXNativeNode tip = JXNativeNode.createBackendNode(e("tooltip", p().set("label", "Dica")));
         assertEquals(text("Dica") + 18, tip.getPrefWidth(), 0.001);
-        assertEquals(17 + 8, tip.getPrefHeight(), 0.001);
+        assertEquals(line() + 8, tip.getPrefHeight(), 0.001);
     }
 
     // ---- cells -------------------------------------------------------------------------------
@@ -118,7 +123,7 @@ class JXControlLayoutEdgesTest {
         assertEquals(50, fixed.getPrefHeight(), 0.001);
         assertEquals(50, fixed.getMinHeight(), 0.001);
         JXNativeNode zero = JXNativeNode.createBackendNode(e("cell", p().set("value", "x").set("fixedHeight", 0.0)));
-        assertEquals(23, zero.getPrefHeight(), 0.001, "0 is no fixed height");
+        assertEquals(line() + 6, zero.getPrefHeight(), 0.001, "0 is no fixed height");
     }
 
     @Test
@@ -195,7 +200,7 @@ class JXControlLayoutEdgesTest {
         JXNativeNode bigNode = flow.getChildren().get(1);
         assertEquals(flow.getChildren().get(0).getPrefWidth() + bigNode.getPrefWidth(), flow.getPrefWidth(), 0.001);
         assertEquals(bigNode.getPrefHeight(), flow.getPrefHeight(), 0.001, "the tallest run");
-        assertTrue(bigNode.getPrefHeight() > 17);
+        assertTrue(bigNode.getPrefHeight() > line());
     }
 
     @Test
@@ -209,7 +214,7 @@ class JXControlLayoutEdgesTest {
         assertEquals(LEFT, narrow.getChildren().get(0).getX(), "the first run stays even when too wide");
         assertEquals(TOP, narrow.getChildren().get(0).getY());
         assertEquals(LEFT, narrow.getChildren().get(1).getX());
-        assertEquals(TOP + 17, narrow.getChildren().get(1).getY());
+        assertEquals(TOP + line(), narrow.getChildren().get(1).getY(), 0.001);
     }
 
     @Test
@@ -245,7 +250,7 @@ class JXControlLayoutEdgesTest {
     void buttonBarSizesAndVerticalCentring() {
         JXNativeNode one = JXNativeNode.createBackendNode(e("buttonbar", p(), e("button", p().set("label", "OK"))));
         assertEquals(75 + 2 * 10, one.getPrefWidth(), 0.001);
-        assertEquals(25, one.getPrefHeight(), 0.001);
+        assertEquals(line() + 8, one.getPrefHeight(), 0.001);
         JXNativeNode none = JXNativeNode.createBackendNode(e("buttonbar", p()));
         assertEquals(0, none.getPrefWidth(), 0.001);
         String wideLabel = "A button wider than seventy five pixels";
@@ -255,7 +260,7 @@ class JXControlLayoutEdgesTest {
         JXNativeNode bar = sized("buttonbar", 300, 45, p(), e("button", p().set("label", "OK")), e("button", p().set("label", "No")));
         JXNativeNode ok = bar.getChildren().get(0);
         JXNativeNode no = bar.getChildren().get(1);
-        assertEquals(TOP + 10, ok.getY());
+        assertEquals(TOP + Math.round((45 - (line() + 8)) / 2), ok.getY(), "(45 - 25) / 2 in Segoe UI");
         assertEquals(LEFT + 300 - 75, no.getX());
         assertEquals(LEFT + 300 - 75 - 10 - 75, ok.getX());
     }
@@ -340,11 +345,11 @@ class JXControlLayoutEdgesTest {
         JXNativeNode fixed = JXNativeNode.createBackendNode(e("list", p().set("cellHeight", 30.0), e("cell", p().set("value", "x"))));
         assertEquals(30, JXControlLayout.cellHeight(fixed), 0.001);
         JXNativeNode zero = JXNativeNode.createBackendNode(e("list", p().set("cellHeight", 0.0), e("cell", p().set("value", "x"))));
-        assertEquals(23, JXControlLayout.cellHeight(zero), 0.001, "0 is no fixed height");
+        assertEquals(line() + 6, JXControlLayout.cellHeight(zero), 0.001, "0 is no fixed height");
         JXNativeNode flat = JXNativeNode.createBackendNode(e("list", p(), region(10, 0)));
         assertEquals(1, JXControlLayout.cellHeight(flat), 0.001, "at least one pixel");
         JXNativeNode empty = JXNativeNode.createBackendNode(e("list", p()));
-        assertEquals(23, JXControlLayout.cellHeight(empty), 0.001);
+        assertEquals(23, JXControlLayout.cellHeight(empty), 0.001, "no cell: Modena's fixed default");
         JXNativeNode table = JXNativeNode.createBackendNode(e("table", p().set("rowHeight", 30.0)));
         assertEquals(30, JXControlLayout.rowHeight(table), 0.001);
         JXNativeNode defaultRows = JXNativeNode.createBackendNode(e("table", p().set("rowHeight", 0.0)));
@@ -395,13 +400,15 @@ class JXControlLayoutEdgesTest {
         JXControlLayout.ScrollGeometry g = JXControlLayout.scrollGeometry(list);
         assertEquals(0, JXControlLayout.itemAt(list, g.viewY));
         assertEquals(-1, JXControlLayout.itemAt(list, g.viewY - 0.5));
-        assertEquals(2, JXControlLayout.itemAt(list, g.viewY + 3 * 23 - 0.5));
-        assertEquals(-1, JXControlLayout.itemAt(list, g.viewY + 3 * 23), "below the last item");
+        double cell = line() + 6;
+        assertEquals(2, JXControlLayout.itemAt(list, g.viewY + 3 * cell - 0.5));
+        assertEquals(-1, JXControlLayout.itemAt(list, g.viewY + 3 * cell), "below the last item");
         JXNativeNode scrolled = sized("list", 100, 100, p().set("itemCount", 50).set("scrollY", 40.0),
                 e("cell", p().set("value", "a")));
         JXControlLayout.ScrollGeometry s = JXControlLayout.scrollGeometry(scrolled);
-        assertEquals(1, JXControlLayout.itemAt(scrolled, s.viewY + 5), "40 + 5 is in item 1");
-        assertEquals(5, JXControlLayout.itemAt(scrolled, s.viewY + s.viewH - 0.5), "(97.5 + 40) / 23");
+        assertEquals((int) ((40 + 5) / cell), JXControlLayout.itemAt(scrolled, s.viewY + 5), "40 + 5 is in item 1 in Segoe UI");
+        assertEquals((int) ((s.viewH - 0.5 + 40) / cell), JXControlLayout.itemAt(scrolled, s.viewY + s.viewH - 0.5),
+                "(97.5 + 40) / 23 in Segoe UI");
         assertEquals(-1, JXControlLayout.itemAt(scrolled, s.viewY + s.viewH));
     }
 

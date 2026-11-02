@@ -55,13 +55,13 @@ window.setContent(screen);
 
 ```xml
 <dependency>
-    <groupId>com.jxparallel</groupId>
+    <groupId>io.github.bacuriim</groupId>
     <artifactId>jxparallel-forge</artifactId>
     <version>${jxparallel.version}</version>
 </dependency>
 ...
 <plugin>
-    <groupId>com.jxparallel</groupId>
+    <groupId>io.github.bacuriim</groupId>
     <artifactId>jxforge-maven-plugin</artifactId>
     <version>${jxparallel.version}</version>
     <executions>

@@ -59,8 +59,8 @@ JXParallel is a Java UI runtime made of three parts that you can use together or
 
 ## Quick start
 
-Add JXForge and the native UI to a Maven project. JXParallel is not on Maven Central yet, so build
-it once locally:
+Add JXForge and the native UI to a Maven project. The native UI (`jxparallel-ui`) is on Maven Central
+under `io.github.bacuriim`; JXForge is not released yet, so build it once locally:
 
 ```powershell
 git clone https://github.com/Bacuriim/JXParallel.git
@@ -71,23 +71,23 @@ mvn install -DskipTests
 ```xml
 <dependencies>
   <dependency>
-    <groupId>com.jxparallel</groupId>
+    <groupId>io.github.bacuriim</groupId>
     <artifactId>jxparallel-ui</artifactId>
-    <version>0.1.0-SNAPSHOT</version>
+    <version>0.1.0</version>
   </dependency>
   <dependency>
-    <groupId>com.jxparallel</groupId>
+    <groupId>io.github.bacuriim</groupId>
     <artifactId>jxparallel-forge</artifactId>
-    <version>0.1.0-SNAPSHOT</version>
+    <version>0.1.0</version>
   </dependency>
 </dependencies>
 
 <build>
   <plugins>
     <plugin>
-      <groupId>com.jxparallel</groupId>
+      <groupId>io.github.bacuriim</groupId>
       <artifactId>jxforge-maven-plugin</artifactId>
-      <version>0.1.0-SNAPSHOT</version>
+      <version>0.1.0</version>
       <executions>
         <execution>
           <goals><goal>generate</goal></goals>
@@ -505,7 +505,8 @@ Full reference: [docs/configuration.md](docs/configuration.md).
 
 Everything compiles to Java 8 bytecode (`--release 8` on newer JDKs); the code JXForge generates is
 Java 8 source. The newest Windows x86 JDK published by Temurin and Zulu is 17. The JavaFX modules
-build against OpenJFX 21 and need JDK 17 or newer to compile. `jxparallel-ui` brings the LWJGL
+build against OpenJFX 21 and need JDK 17 or newer to compile, except `jxparallel-fx` and
+`jxparallel-fx-controlsfx`, which build on a JDK 8 that bundles JavaFX (Zulu FX). `jxparallel-ui` brings the LWJGL
 natives for Windows x64/x86 and Linux x64, and Skija on 64-bit.
 
 ## Modules
@@ -529,10 +530,11 @@ The default build has no JavaFX dependency:
 ```powershell
 mvn test                      # core, UI, JXForge, test integrations, benchmarks
 mvn -Plegacy-javafx test      # plus jxparallel-javafx, jxparallel-fxml, examples
+mvn test                      # on a JDK 8 with JavaFX (Zulu FX): plus jxparallel-fx, jxparallel-fx-controlsfx
 mvn -Pcoverage test           # JaCoCo report in <module>/target/site/jacoco
 ```
 
-The native UI tests run on JDK 17 (Skija does not run on a 64-bit Java 8). How the library itself is
+The golden-image tests of the native UI run on 64-bit Windows, whose UI font they were drawn with. How the library itself is
 tested (property-based, jcstress, golden images, pixel-for-pixel comparison of optimized paint paths,
 JMH gate, ArchUnit, mutation testing): [docs/testing-strategy.md](docs/testing-strategy.md).
 

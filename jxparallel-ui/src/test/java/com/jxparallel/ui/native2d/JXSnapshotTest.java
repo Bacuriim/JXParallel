@@ -11,6 +11,7 @@ import com.jxparallel.ui.JXElement;
 import com.jxparallel.ui.JXProps;
 import com.jxparallel.ui.controls.JXControls;
 import com.jxparallel.ui.layout.JXLayouts;
+import com.jxparallel.ui.text.JXTextEngine;
 import io.github.humbleui.skija.Bitmap;
 import io.github.humbleui.skija.EncoderPNG;
 import io.github.humbleui.skija.Image;
@@ -23,7 +24,7 @@ import static org.junit.jupiter.api.Assumptions.assumeTrue;
 
 /**
  * Snapshot tests of one screen with every control. The layout snapshot is plain text and runs
- * everywhere. The Skia image is rendered to a CPU raster (no GPU, no window) and compared with a
+ * everywhere, one per UI font. The Skia image is rendered to a CPU raster (no GPU, no window) and compared with a
  * golden PNG; fonts differ between systems, so it runs on 64-bit Windows only.
  * A missing snapshot is written to src/test/resources and the test fails once so it gets reviewed.
  * A mismatch writes the new version to target/snapshots.
@@ -56,11 +57,12 @@ class JXSnapshotTest {
         StringBuilder out = new StringBuilder();
         describe(root, 0, out);
 
+        String name = layoutSnapshotName();
         byte[] actual = out.toString().getBytes("UTF-8");
-        byte[] golden = goldenOrCreate("showcase-layout.txt", actual);
+        byte[] golden = goldenOrCreate(name, actual);
         if (!new String(golden, "UTF-8").replace("\r\n", "\n").equals(out.toString())) {
             Files.createDirectories(ACTUAL);
-            Files.write(ACTUAL.resolve("showcase-layout.txt"), actual);
+            Files.write(ACTUAL.resolve(name), actual);
             assertEquals(new String(golden, "UTF-8"), out.toString(), "layout changed, new version in " + ACTUAL);
         }
     }
@@ -110,6 +112,17 @@ class JXSnapshotTest {
             assertTrue(image.readPixels(bitmap));
             return bitmap.readPixels();
         }
+    }
+
+    /**
+     * Sizes come from the font the engine found, so each font has its own layout snapshot:
+     * showcase-layout.txt for Segoe UI (Windows), showcase-layout-dejavusans.txt for DejaVu Sans (Linux).
+     */
+    private static String layoutSnapshotName() {
+        String file = JXTextEngine.get().getFontFile();
+        String font = file == null ? "estimated" : Paths.get(file).getFileName().toString().replaceFirst("\\.[^.]*$", "")
+                .toLowerCase(java.util.Locale.ROOT);
+        return "segoeui".equals(font) ? "showcase-layout.txt" : "showcase-layout-" + font + ".txt";
     }
 
     private static byte[] goldenOrCreate(String name, byte[] actual) throws IOException {

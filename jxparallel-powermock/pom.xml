@@ -3,9 +3,9 @@
          xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 https://maven.apache.org/xsd/maven-4.0.0.xsd">
     <modelVersion>4.0.0</modelVersion>
     <parent>
-        <groupId>com.jxparallel</groupId>
+        <groupId>io.github.bacuriim</groupId>
         <artifactId>jxparallel-parent</artifactId>
-        <version>0.1.0-SNAPSHOT</version>
+        <version>0.1.0</version>
     </parent>
 
     <artifactId>jxparallel-powermock</artifactId>
@@ -14,7 +14,7 @@
 
     <dependencies>
         <dependency>
-            <groupId>com.jxparallel</groupId>
+            <groupId>io.github.bacuriim</groupId>
             <artifactId>jxparallel-core</artifactId>
             <version>${project.version}</version>
         </dependency>
