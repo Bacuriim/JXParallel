@@ -22,7 +22,25 @@ public final class JXProps {
     }
 
     public static Builder builder() {
-        return new Builder();
+        return new Builder(8);
+    }
+
+    /** A builder for an element with about {@code expected} props: its array has their size, not room for sixteen. */
+    public static Builder builder(int expected) {
+        return new Builder(expected);
+    }
+
+    /** How many props there are; {@link #keyAt} and {@link #valueAt} read them in order, without making an iterator. */
+    public int size() {
+        return values.count;
+    }
+
+    public String keyAt(int index) {
+        return (String) values.entries[2 * index];
+    }
+
+    public Object valueAt(int index) {
+        return values.entries[2 * index + 1];
     }
 
     public Object get(String name) {
@@ -46,10 +64,14 @@ public final class JXProps {
 
     public static final class Builder {
         /** Keys at even and values at odd indices: an element has a few dozen props at most. */
-        private Object[] entries = new Object[16];
+        private Object[] entries;
         private int count;
         /** The array was handed to a built JXProps: the next change works on a copy (built props never change). */
         private boolean shared;
+
+        Builder(int expected) {
+            entries = new Object[2 * Math.max(1, expected)];
+        }
 
         public Builder set(String name, Object value) {
             if (name == null || name.trim().isEmpty()) {

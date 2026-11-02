@@ -1,0 +1,40 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!-- Flow, Tile, Anchor, Pane, TextFlow, ButtonBar and the attributes every tag accepts. -->
+<Column controller="com.jxparallel.forge.samples.SampleController" gap="4" padding="4">
+  <Flow hgap="4" vgap="4" padding="2" alignment="TOP_LEFT" orientation="horizontal" prefWrapLength="200"
+        columnHalignment="LEFT" rowValignment="CENTER">
+    <Button text="One"/>
+    <Button text="Two"/>
+    <Button text="Three"/>
+  </Flow>
+  <Wrap hgap="${gap}" vgap="2">
+    <Label text="a"/>
+    <Label text="b"/>
+  </Wrap>
+  <Tile hgap="4" vgap="4" padding="2" alignment="TOP_LEFT" orientation="horizontal" prefColumns="2" prefRows="2"
+        prefTileWidth="60" prefTileHeight="24" tileAlignment="CENTER">
+    <For items="${rows}" var="r" type="com.jxparallel.forge.samples.SampleController.Row" key="${r.id}" from="0" limit="4">
+      <Label text="${r.name}"/>
+    </For>
+  </Tile>
+  <Anchor padding="2" prefWidth="200" prefHeight="80">
+    <Label text="TL" top="4" left="4"/>
+    <Label text="BR" right="${gap}" bottom="4"/>
+    <Positioned top="30" left="50"><Button text="P"/></Positioned>
+  </Anchor>
+  <Pane padding="2" prefWidth="120" prefHeight="60">
+    <Label text="at" x="10" y="${gap}"/>
+  </Pane>
+  <TextFlow>
+    <Label text="Hello "/>
+    <Label text="world" bold="true"/>
+    <Hyperlink text="link" onAction="#save"/>
+  </TextFlow>
+  <ButtonBar>
+    <Button text="OK" defaultButton="true"/>
+    <Button text="Cancel"/>
+  </ButtonBar>
+  <Label text="styled" opacity="${alpha}" hidden="${hidden}" mouseTransparent="true" background="#FFEEDD" backgroundRadius="4"
+         borderColor="${color}" borderWidth="2" borderRadius="4" margin="2" minWidth="10" maxWidth="300" minHeight="10"
+         maxHeight="100"/>
+</Column>

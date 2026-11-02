@@ -1,0 +1,37 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!-- MenuBar, Menu, MenuItem, MenuSeparator (and a submenu), MenuButton, ContextMenu. -->
+<Column controller="com.jxparallel.forge.samples.SampleController" gap="8" padding="8">
+  <MenuBar>
+    <Menu text="File" disabled="false">
+      <MenuItem text="New" accelerator="Ctrl+N" onAction="#save"/>
+      <MenuSeparator/>
+      <MenuItem text="Locked" disabled="true"/>
+      <Menu text="Export">
+        <MenuItem text="PDF" onAction="#save"/>
+        <MenuItem text="CSV" separator="false"/>
+      </Menu>
+      <MenuItem text="Exit" disabled="${busy}"/>
+    </Menu>
+    <Menu text="${title}" disabled="${busy}">
+      <For items="${cities}" var="c">
+        <MenuItem text="${c}" accelerator="${name}"/>
+      </For>
+      <If test="${on}"><MenuItem text="Shown when on" onAction="#save"/></If>
+      <Else><MenuItem text="Shown when off"/></Else>
+    </Menu>
+  </MenuBar>
+  <MenuButton text="Actions" disabled="${busy}" showing="${menuOpen}" onShowing="#setOpen">
+    <MenuItem text="Open" accelerator="Ctrl+O" onAction="#save"/>
+    <MenuSeparator/>
+    <Menu text="More"><MenuItem text="Inner" onAction="#save"/></Menu>
+    <MenuItem text="Quit"/>
+  </MenuButton>
+  <MenuButton text="Own state"><MenuItem text="One"/></MenuButton>
+  <Stack prefWidth="200" prefHeight="60">
+    <Label text="Right-click here"/>
+    <ContextMenu disabled="false" showing="${contextOpen}" onShowing="#setOpen">
+      <MenuItem text="Copy" accelerator="Ctrl+C" onAction="#save"/>
+      <MenuItem text="Paste"/>
+    </ContextMenu>
+  </Stack>
+</Column>

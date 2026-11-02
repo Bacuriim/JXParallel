@@ -31,6 +31,8 @@ import javafx.scene.control.Label;
 public final class FxmlLoadBenchmark {
     private static final int SCREENS = Integer.getInteger("jx.fxml.screens", 20);
     private static final int PASSES = Integer.getInteger("jx.fxml.passes", 3);
+    /** {@code javafx} mode: also give each screen a Scene and apply CSS and layout (ready to paint). */
+    private static final boolean READY = Boolean.getBoolean("jx.fxml.ready");
 
     private FxmlLoadBenchmark() {
     }
@@ -42,11 +44,12 @@ public final class FxmlLoadBenchmark {
         }
         JvmMetrics.startSampler();
         metric("screens", SCREENS);
+        metric("ready_stage", READY ? 1 : 0);
         metric("processors", Runtime.getRuntime().availableProcessors());
 
         long toolkitStart = System.nanoTime();
         CountDownLatch toolkit = new CountDownLatch(1);
-        Platform.startup(toolkit::countDown);
+        startToolkit(toolkit::countDown);
         toolkit.await();
         metric("toolkit_start_ns", System.nanoTime() - toolkitStart);
 
@@ -94,13 +97,29 @@ public final class FxmlLoadBenchmark {
         System.exit(0);
     }
 
+    /** {@code Platform.startup} is Java 9+; JavaFX 8 has the same entry point in PlatformImpl. */
+    private static void startToolkit(Runnable ready) throws Exception {
+        try {
+            Platform.class.getMethod("startup", Runnable.class).invoke(null, ready);
+        } catch (NoSuchMethodException javaFx8) {
+            Class.forName("com.sun.javafx.application.PlatformImpl").getMethod("startup", Runnable.class).invoke(null, ready);
+        }
+    }
+
     private static List<Parent> loadSequentialOnFxThread(long[] firstReady) throws Exception {
         List<Parent> views = new ArrayList<Parent>(SCREENS);
         CompletableFuture<Void> done = new CompletableFuture<Void>();
         Platform.runLater(() -> {
             try {
                 for (int i = 1; i <= SCREENS; i++) {
-                    views.add(FXMLLoader.<Parent>load(screen(i)));
+                    Parent view = FXMLLoader.<Parent>load(screen(i));
+                    if (READY) {
+                        // ready to paint, the counterpart of ForgeLoadBenchmark's ready stage
+                        new javafx.scene.Scene(view, 1280, 800);
+                        view.applyCss();
+                        view.layout();
+                    }
+                    views.add(view);
                     if (i == 1) {
                         firstReady[0] = System.nanoTime();
                     }

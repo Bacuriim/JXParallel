@@ -1,0 +1,11 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!-- TableView: a window of rows of a model, each a TableRow of TableCells. -->
+<TableView controller="com.jxparallel.forge.samples.SampleController" items="${rows}" var="r"
+           type="com.jxparallel.forge.samples.SampleController.Row" key="${r.id}" first="${top}" rows="8" rowHeight="24"
+           columns="Id, Name, Price" columnWidths="${widths}" constrained="true" prefHeight="150">
+  <TableRow selected="${r.selected}" odd="false" listFocused="true">
+    <TableCell text="${r.id}"/>
+    <TableCell text="${r.name}" alignment="LEFT" onAction="#select(r)"/>
+    <TableCell text="${r.price}" selected="${r.selected}" odd="true" listFocused="false"/>
+  </TableRow>
+</TableView>

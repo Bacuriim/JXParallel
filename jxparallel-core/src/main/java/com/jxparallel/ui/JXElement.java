@@ -22,6 +22,11 @@ public final class JXElement {
         return new JXElement(type, JXProps.empty(), Collections.<JXElement>emptyList());
     }
 
+    /** An element without children; unlike {@code of(type, props, children...)} it makes no empty array for them. */
+    public static JXElement of(String type, JXProps props) {
+        return new JXElement(type, props, Collections.<JXElement>emptyList());
+    }
+
     /** Null children are left out; the array is copied, so the caller may reuse it. */
     public static JXElement of(String type, JXProps props, JXElement... children) {
         int n = 0;

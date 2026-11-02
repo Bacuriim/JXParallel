@@ -80,6 +80,27 @@ final class JvmMetrics {
         return 0L;
     }
 
+    /** CPU time of the live threads, summed (dead threads are not counted; the granularity is that of the OS clock). */
+    static long threadCpuNanos() {
+        java.lang.management.ThreadMXBean bean = ManagementFactory.getThreadMXBean();
+        if (!bean.isThreadCpuTimeSupported() || !bean.isThreadCpuTimeEnabled()) {
+            return 0L;
+        }
+        long total = 0L;
+        for (long id : bean.getAllThreadIds()) {
+            total += Math.max(0L, bean.getThreadCpuTime(id));
+        }
+        return total;
+    }
+
+    /** Heap in use after three full collections: what the live objects hold. */
+    static long liveHeapAfterGc() {
+        for (int i = 0; i < 3; i++) {
+            System.gc();
+        }
+        return MEMORY.getHeapMemoryUsage().getUsed();
+    }
+
     private static long directBytes() {
         for (BufferPoolMXBean pool : ManagementFactory.getPlatformMXBeans(BufferPoolMXBean.class)) {
             if ("direct".equals(pool.getName())) {

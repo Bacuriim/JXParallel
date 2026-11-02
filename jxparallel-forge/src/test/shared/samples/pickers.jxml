@@ -1,0 +1,12 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!-- Popups that open below a control: ComboBox and DatePicker with showing and onShowing, TimePicker, ColorPicker. -->
+<Column controller="com.jxparallel.forge.samples.SampleController" gap="8" padding="8">
+  <ComboBox items="${cities}" value="${city}" showing="${comboOpen}" onShowing="#setOpen" onChange="#setCity"/>
+  <DatePicker value="${date}" showing="${dateOpen}" onShowing="#setOpen" onChange="#setDate"/>
+  <TimePicker value="${time}" prompt="HH:mm" hour24="true" minuteStep="15" disabled="false" showing="${timeOpen}"
+              onShowing="#setOpen" onChange="#setTime"/>
+  <TimePicker value="@{time}" hour24="${on}" minuteStep="${limit}" showing="false"/>
+  <ColorPicker value="${accent}" prompt="#RRGGBB" disabled="${busy}" showing="${colorOpen}" onShowing="#setOpen"
+               onChange="#setAccent"/>
+  <ColorPicker value="@{accent}"/>
+</Column>

@@ -1,0 +1,15 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!-- Accordion, TitledPane and Pagination. -->
+<Column controller="com.jxparallel.forge.samples.SampleController" gap="4">
+  <Accordion>
+    <TitledPane text="One" expanded="true" collapsible="true" onAction="#save">
+      <Label text="first"/>
+    </TitledPane>
+    <TitledPane text="${title}" expanded="${open}" collapsible="false">
+      <Label text="second"/>
+    </TitledPane>
+  </Accordion>
+  <Pagination pageCount="${pageCount}" current="${page}" maxPageIndicatorCount="5">
+    <Label text="page"/>
+  </Pagination>
+</Column>

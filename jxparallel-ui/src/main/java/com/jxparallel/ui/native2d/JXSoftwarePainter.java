@@ -499,8 +499,17 @@ final class JXSoftwarePainter implements JXPainter {
         if (a >= 255) {
             java.util.Arrays.fill(px, from, to, argb | 0xFF000000);
         } else if (a > 0) {
+            // the source half of over() does not depend on the pixel: made once for the whole span
+            int b = 255 - a;
+            int srb = (argb & 0xFF00FF) * a + 0x800080;
+            int sg = (argb & 0x00FF00) * a + 0x008000;
             for (int i = from; i < to; i++) {
-                px[i] = over(px[i], argb, a);
+                int d = px[i];
+                int rb = srb + (d & 0xFF00FF) * b;
+                int g = sg + (d & 0x00FF00) * b;
+                rb = ((rb + ((rb >>> 8) & 0xFF00FF)) >>> 8) & 0xFF00FF;
+                g = ((g + ((g >>> 8) & 0x00FF00)) >>> 8) & 0x00FF00;
+                px[i] = 0xFF000000 | rb | g;
             }
         }
     }

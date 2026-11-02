@@ -1,0 +1,33 @@
+﻿{
+    "date":  "2026-10-21",
+    "machine":  "ASUS System Product Name",
+    "cpu":  "12th Gen Intel(R) Core(TM) i5-12400F",
+    "cores":  6,
+    "logical_processors":  12,
+    "ram_gb":  15.8,
+    "os":  "Microsoft Windows 11 Enterprise 10.0.26300",
+    "powershell":  "5.1.26100.9711",
+    "background_cpu_percent_mean":  3.2,
+    "background_cpu_percent_max":  5,
+    "heap_flags":  "-Xms512m -Xmx512m",
+    "runs":  5,
+    "passes":  8,
+    "modes":  "javafx,interpreted,template,compiled",
+    "fx_prism_order":  "default",
+    "timeout_sec":  300,
+    "components":  2,
+    "jvms":  {
+                 "java8-x86":  {
+                                   "java":  "C:\\Program Files (x86)\\Java\\jdk1.8.0_51\\bin\\java.exe",
+                                   "version":  "java version \"1.8.0_51\" | Java(TM) SE Runtime Environment (build 1.8.0_51-b16) | Java HotSpot(TM) Client VM (build 25.51-b03, mixed mode) | "
+                               },
+                 "java17-x64":  {
+                                    "java":  "C:\\Program Files\\Java\\jdk-17\\bin\\java.exe",
+                                    "version":  "java version \"17.0.12\" 2024-07-16 LTS | Java(TM) SE Runtime Environment (build 17.0.12+8-LTS-286) | Java HotSpot(TM) 64-Bit Server VM (build 17.0.12+8-LTS-286, mixed mode, sharing) | "
+                                },
+                 "java21-x64":  {
+                                    "java":  "C:\\Program Files\\Java\\jdk-21\\bin\\java.exe",
+                                    "version":  "java version \"21.0.8\" 2025-07-15 LTS | Java(TM) SE Runtime Environment (build 21.0.8+12-LTS-250) | Java HotSpot(TM) 64-Bit Server VM (build 21.0.8+12-LTS-250, mixed mode, sharing) | "
+                                }
+             }
+}

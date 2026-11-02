@@ -31,8 +31,9 @@ class ArchitectureTest {
 
     @Test
     void runtimeModulesUseNeitherAwtSwingNorJavaFx() {
-        noClasses().should().dependOnClassesThat().resideInAnyPackage("java.awt..", "javax.swing..", "javafx..")
-                .because("the native UI runs without AWT and without JavaFX")
+        noClasses().should().dependOnClassesThat().resideInAnyPackage("java.awt..", "javax.swing..", "javafx..",
+                        "com.sun.javafx..", "com.jxparallel.fx..", "com.jxparallel.javafx..", "com.jxparallel.fxml..")
+                .because("the native UI runs without AWT and without JavaFX or the layers built on it")
                 .check(BOTH);
     }
 

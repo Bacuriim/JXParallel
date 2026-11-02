@@ -1,0 +1,6 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!-- A part: no controller of its own, so its bindings are the including file's. -->
+<Row gap="8" alignment="CENTER_LEFT">
+  <Label text="${title}" style="title"/>
+  <Include src="mark.jxml"/>
+</Row>
