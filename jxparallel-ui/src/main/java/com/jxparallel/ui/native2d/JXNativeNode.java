@@ -105,6 +105,9 @@ public final class JXNativeNode {
     final boolean floatingNode;
     /** Its children are the content of an overlay, placed by the overlay pass. */
     final boolean overlayContent;
+    /** Scroll offsets in pixels the wheel set (see {@link JXScrolling}), NaN while the props decide. */
+    double userScrollX = Double.NaN;
+    double userScrollY = Double.NaN;
     /** Where typing goes in a text input (see {@link JXChangeEvents}); -1 is the end. */
     int caret = -1;
     /** A press on a scroll bar grabbed its thumb; the drag that follows moves it (see {@link JXChangeEvents#drag}). */
@@ -511,6 +514,7 @@ public final class JXNativeNode {
         boolean placement = vgrow != priority(next.get("vgrow")) || hgrow != priority(next.get("hgrow"));
         boolean relayout = sizeAffected(previous, element.getProps());
         setProps(element.getProps());
+        JXScrolling.release(this, previous, element.getProps());
         boolean subtree = false;
         List<JXElement> nextChildren = element.getChildren();
         boolean retain = Boolean.TRUE.equals(next.get("retainChildren"));
@@ -691,6 +695,15 @@ public final class JXNativeNode {
 
     boolean isLayoutDirty() {
         return layoutDirty;
+    }
+
+    /** This node places its children again at its bounds (a scroll offset changed); its ancestors must call {@link #childNeedsRelayout}. */
+    void requestRelayout() {
+        layoutDirty = true;
+    }
+
+    void childNeedsRelayout() {
+        childNeedsLayout = true;
     }
 
     public void invalidateLayout() {

@@ -150,7 +150,7 @@ inside a `Border`), and these, which the renderer reads from any node:
 | `Stack` | `stack` | `padding`, `alignment` |
 | `Grid` | `grid` | `hgap`, `vgap`, `padding`, `alignment` |
 | `Border` | `border` | `padding`; children placed with `slot` |
-| `Scroll` | `scroll` | `fitToWidth`, `fitToHeight`; one child |
+| `Scroll` | `scroll` | `fitToWidth`, `fitToHeight`, `hvalue`, `vvalue` (0 to 1), `onScroll`; one child |
 | `Tabs` / `Tab` | `tabs` | `selected`; each `Tab` has `title`, `closable` and one child |
 | `Flow` | `flow` | `hgap`, `vgap`, `padding`, `alignment`, `orientation`, `prefWrapLength`, `columnHalignment`, `rowValignment` |
 | `Tile` | `tile` | `hgap`, `vgap`, `padding`, `alignment`, `orientation`, `prefColumns`, `prefRows`, `prefTileWidth`, `prefTileHeight`, `tileAlignment` |
@@ -167,7 +167,7 @@ inside a `Border`), and these, which the renderer reads from any node:
 | `ProgressIndicator` | `indicator` | `progress` (negative: indeterminate) |
 | `Tooltip` | `tooltip` | `text` |
 | `Image` | `image` | `pixels` (an `int[]` of ARGB), `imageWidth`, `imageHeight`, `fitWidth`, `fitHeight`, `preserveRatio` |
-| `ListView` | `list` | `items`, `var`, `type`, `key`, `first`, `rows`, `cellHeight`; one child, the row template |
+| `ListView` | `list` | `items`, `var`, `type`, `key`, `first`, `rows`, `cellHeight`, `onScroll`; one child, the row template |
 | `ListItem` | `cell` | `text`, `selected`, `odd`, `listFocused`, `alignment`, `onAction`; optionally one child, a graphic |
 | `TableView` | `table` | `items`, `var`, `type`, `key`, `first`, `rows`, `rowHeight`, `columns`, `columnWidths`, `constrained`; one `TableRow` |
 | `TableRow` | `tablerow` | `selected`, `odd`, `listFocused`; children are `TableCell`s |
@@ -356,8 +356,8 @@ a window of the model:
   and `${o.name}` and `#select(o)` work as in any loop.
 - `items` is the whole model (a `List`, an `Iterable` or an array). The list gets `itemCount` from it, `first`
   and `rows` choose the window, `rows` is 30 when not written. Build more rows than the viewport shows.
-- `first` is the index of the row at the top of the viewport (the application's scroll state; the renderer
-  reports no scroll events). It is kept within the model, and `scrollY` (the renderer's offset in pixels) is
+- `first` is the index of the row at the top of the viewport (the application's scroll state; the mouse wheel
+  moves the viewport, see below). It is kept within the model, and `scrollY` (the renderer's offset in pixels) is
   set to `first * height`. Keep `first` at most `itemCount` minus the rows the viewport shows: the renderer
   clamps `scrollY` to the scroll range, and a window that starts later would be drawn below the top.
 - `cellHeight` (list) and `rowHeight` (table) are fixed, 24 when not written, and must be greater than 0: the
@@ -371,6 +371,15 @@ a window of the model:
   padding; a `ListItem` is a `cell` as a list paints it. Both take a graphic as their one child.
 - `columns` are the header titles (a list, or `A, B, C`), `columnWidths` numbers (negative: fit to the content),
   `constrained="true"` fits the columns to the width.
+- The mouse wheel scrolls a `Scroll`, `ListView` or `TableView` in a desktop `JXWindow` without an input listener (a
+  plain JXML screen): the innermost one under the cursor that can still move takes it, so a nested pane passes the wheel
+  to the outer one once it is at its end. One notch is 40 px (about 3 lines of 16 px, like JavaFX); Shift+wheel, or a
+  horizontal wheel, scrolls sideways. A `Scroll` keeps the offset the wheel gave it across rebuilds, until the
+  application changes `hvalue`, `vvalue`, `scrollX`, `scrollY`, `first` or `itemCount` of that node, and its props decide again.
+  An open popup (a `ComboBox` list) takes the wheel over the pane under it.
+- `onScroll` (a `Consumer<double[]>`, `{x, y}` in pixels) is called after the wheel moved the node. A virtual list or
+  table without it scrolls only within the rows it was given; with it the whole model is the range, and the handler is
+  where the application moves `first` (and `scrollY`, `first * height`) to build the rows now in view.
 - A grid of items is a `Tile` with a `<For>`; a `ListView` has no columns.
 
 ## Groups
@@ -660,8 +669,8 @@ JXML screen with `new XView().build(controller)`, and JXML places a Java compone
 
 ## Not done yet
 
-- Events the renderer does not report, so no attribute exists for them: selection and scrolling of lists and
-  tables (use a row's `onAction` and the application's `first`), clicks on the buttons of a `Pagination`, and the
+- Events the renderer does not report, so no attribute exists for them: selection of lists and
+  tables (use a row's `onAction`), clicks on the buttons of a `Pagination`, and the
   hover that would show a `Tooltip`. A `TitledPane` collapses when the application changes `expanded`
   (its `onAction` tells it was clicked).
 - Loading an image file for `Image`: it takes the pixels an application decoded.
