@@ -108,6 +108,10 @@ public final class JXNativeNode {
     /** Scroll offsets in pixels the wheel set (see {@link JXScrolling}), NaN while the props decide. */
     double userScrollX = Double.NaN;
     double userScrollY = Double.NaN;
+    /** A press on the scroll bar of a pane, list or table grabbed its thumb: 1 vertical, 2 horizontal (see {@link JXScrolling#pressBar}). */
+    int barDrag;
+    /** The path from the root to this node when the thumb was grabbed: the layout of its ancestors follows the drag. */
+    java.util.List<JXNativeNode> dragPath;
     /** Where typing goes in a text input (see {@link JXChangeEvents}); -1 is the end. */
     int caret = -1;
     /** A press on a scroll bar grabbed its thumb; the drag that follows moves it (see {@link JXChangeEvents#drag}). */
@@ -832,6 +836,7 @@ public final class JXNativeNode {
     @SuppressWarnings("unchecked")
     public void dispatchPointer(JXPointerEvent event) {
         revision++; // a popup host may open, close or scroll its popup
+        barDrag = 0;
         if (Boolean.TRUE.equals(props.get("disabled"))) {
             return; // like JavaFX: disabled nodes get no mouse events
         }
@@ -862,6 +867,10 @@ public final class JXNativeNode {
     public void dispatchDrag(JXPointerEvent event) {
         revision++;
         if (Boolean.TRUE.equals(props.get("disabled"))) {
+            return;
+        }
+        if (barDrag != 0) {
+            JXScrolling.dragBar(this, event); // a pane's bar needs no onChange
             return;
         }
         JXChangeEvents.drag(this, event);
