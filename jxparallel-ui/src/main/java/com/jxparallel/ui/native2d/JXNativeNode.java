@@ -3,9 +3,11 @@ package com.jxparallel.ui.native2d;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
+import java.util.IdentityHashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
+import java.util.Set;
 
 import com.jxparallel.ui.JXElement;
 import com.jxparallel.ui.JXProps;
@@ -247,6 +249,16 @@ public final class JXNativeNode {
         if (n < (retain ? 0 : 2)) {
             return false;
         }
+        if (n > SCAN) {
+            Set<Object> seen = Collections.newSetFromMap(new IdentityHashMap<Object, Boolean>(n * 2));
+            for (int i = 0; i < n; i++) {
+                Object key = elements.get(i).getProps().get("key");
+                if (key == null || !seen.add(key)) {
+                    return false;
+                }
+            }
+            return true;
+        }
         // Rows and cells on screen are a few dozen: comparing pairs allocates nothing, unlike a set.
         for (int i = 0; i < n; i++) {
             Object key = elements.get(i).getProps().get("key");
@@ -278,10 +290,11 @@ public final class JXNativeNode {
             inOrder = children.get(i).props.get("key") == nextChildren.get(i).getProps().get("key");
         }
         JXNativeNode[] next = inOrder ? null : new JXNativeNode[n];
+        Map<Object, JXNativeNode> byKey = inOrder ? null : keysOfChildren();
         int result = 0;
         for (int i = 0; i < n; i++) {
             JXElement e = nextChildren.get(i);
-            JXNativeNode node = inOrder ? children.get(i) : withKey(e.getProps().get("key"));
+            JXNativeNode node = inOrder ? children.get(i) : lookup(byKey, e.getProps().get("key"));
             if (node == null && retained != null) {
                 node = retained.remove(e.getProps().get("key"));
             }
@@ -349,12 +362,38 @@ public final class JXNativeNode {
     }
 
     private void retainLeaving(JXNativeNode[] staying) {
+        Set<JXNativeNode> stay = Collections.newSetFromMap(new IdentityHashMap<JXNativeNode, Boolean>(staying.length * 2));
+        stay.addAll(Arrays.asList(staying));
         for (JXNativeNode child : children) {
             Object key = child.props.get("key");
-            if (key != null && !Arrays.asList(staying).contains(child)) {
+            if (key != null && !stay.contains(child)) {
                 keep(key, child);
             }
         }
+    }
+
+    /** Past this many children a reorder looks keys up in a map instead of scanning for each. */
+    private static final int SCAN = 16;
+
+    /** The current children by key (the first of a repeated key), or null when few enough to scan. */
+    private Map<Object, JXNativeNode> keysOfChildren() {
+        int n = children.size();
+        if (n <= SCAN) {
+            return null;
+        }
+        Map<Object, JXNativeNode> byKey = new IdentityHashMap<Object, JXNativeNode>(n * 2);
+        for (int i = 0; i < n; i++) {
+            JXNativeNode child = children.get(i);
+            Object key = child.props.get("key");
+            if (key != null && !byKey.containsKey(key)) {
+                byKey.put(key, child);
+            }
+        }
+        return byKey;
+    }
+
+    private JXNativeNode lookup(Map<Object, JXNativeNode> byKey, Object key) {
+        return byKey == null ? withKey(key) : byKey.get(key);
     }
 
     /** The current child with this key, or null. */
