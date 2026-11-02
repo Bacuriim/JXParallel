@@ -200,7 +200,7 @@ final class JXOverlays {
     }
 
     private static void walk(JXNativeNode node, List<JXNativeNode> path, List<Entry> out) {
-        if (Boolean.TRUE.equals(node.getProperty("hidden"))) {
+        if (!node.overlaysBelow || Boolean.TRUE.equals(node.getProperty("hidden"))) {
             return;
         }
         boolean open = false;
@@ -275,9 +275,10 @@ final class JXOverlays {
         return node.overlayState instanceof Popup ? (Popup) node.overlayState : null;
     }
 
-    /** Places every open overlay of the tree in a window of this size. */
-    static void layout(JXNativeNode root, int width, int height) {
-        for (Entry entry : collect(root)) {
+    /** Places every open overlay of the tree in a window of this size; returns whether one is open. */
+    static boolean layout(JXNativeNode root, int width, int height) {
+        List<Entry> open = collect(root);
+        for (Entry entry : open) {
             JXNativeNode node = entry.node;
             switch (node.getType()) {
                 case "select":
@@ -310,6 +311,7 @@ final class JXOverlays {
                     break;
             }
         }
+        return !open.isEmpty();
     }
 
     /** Below the host, aligned with its left edge, kept in the window; above it when it does not fit below. */

@@ -97,6 +97,8 @@ public final class JXNativeNode {
     private final int kind;
     /** What the overlay mechanism makes of this type, decided once (see {@link JXOverlays}): may open over the window. */
     final boolean overlayHost;
+    /** This node or one below is an {@link #overlayHost}: the overlay pass skips subtrees without one. */
+    boolean overlaysBelow;
     /** Takes no room where it is written (dialog, drawer, snack bar, context menu). */
     final boolean floatingNode;
     /** Its children are the content of an overlay, placed by the overlay pass. */
@@ -199,6 +201,19 @@ public final class JXNativeNode {
                 children.add(child(below.get(i)));
             }
         }
+        overlaysBelow = findOverlaysBelow();
+    }
+
+    private boolean findOverlaysBelow() {
+        if (overlayHost) {
+            return true;
+        }
+        for (int i = 0, n = children.size(); i < n; i++) {
+            if (children.get(i).overlaysBelow) {
+                return true;
+            }
+        }
+        return false;
     }
 
     /** The list of this node's children, made when the first one comes: a leaf shares {@link #NO_CHILDREN}. */
@@ -360,10 +375,29 @@ public final class JXNativeNode {
         return new JXNativeNode(element);
     }
 
+    /**
+     * Bumped by every reconcile that changes something and by every input event, in any tree: the overlay pass
+     * below is skipped while it has not moved. Trees are confined to their display thread; another tree's bump
+     * only costs this one an extra pass.
+     */
+    static int revision;
+    /** {@link #revision} and window size of this root's last overlay pass, and whether it found an open overlay. */
+    private int overlayRevision = -1;
+    private int overlayWidth;
+    private int overlayHeight;
+    private boolean overlaysOpen;
+
     /** Sizes the root to the window, like a JavaFX Scene does with its root, then lays out the tree. */
     public void layoutForBackend(int width, int height) {
         layout(0, 0, width, height);
-        JXOverlays.layout(this, width, height); // popups, menus, dialogs: placed over the window, out of the flow
+        if (overlaysOpen || overlayRevision != revision || overlayWidth != width || overlayHeight != height) {
+            // popups, menus, dialogs: placed over the window, out of the flow. The pass walks the whole tree, so an
+            // unchanged tree with nothing open (a memoized frame) skips it.
+            overlaysOpen = JXOverlays.layout(this, width, height);
+            overlayRevision = revision;
+            overlayWidth = width;
+            overlayHeight = height;
+        }
     }
 
     /**
@@ -374,6 +408,7 @@ public final class JXNativeNode {
      * overlays took the press.
      */
     public JXNativeNode routePointer(JXPointerEvent event) {
+        revision++;
         return JXOverlays.pointer(this, event);
     }
 
@@ -382,6 +417,7 @@ public final class JXNativeNode {
      * runs the default button of an open dialog (or closes an open popup); otherwise the focused node gets the key.
      */
     public void routeKey(JXKeyEvent event, JXNativeNode focused) {
+        revision++;
         JXOverlays.key(this, event, focused);
     }
 
@@ -396,6 +432,7 @@ public final class JXNativeNode {
 
     /** As {@link #tickOverlays()} at the given time (milliseconds), for hosts with their own clock and for tests. */
     public long tickOverlays(long nowMillis) {
+        revision++;
         return JXOverlays.tick(this, nowMillis);
     }
 
@@ -428,6 +465,7 @@ public final class JXNativeNode {
         if (element == source) {
             return UNCHANGED; // same immutable element (memoized render): nothing below changed
         }
+        revision++;
         JXProps previous = source.getProps();
         source = element;
         Map<String, Object> next = element.getProps().asMap();
@@ -467,6 +505,7 @@ public final class JXNativeNode {
 
     /** What the parent must do after this node was reconciled. */
     private int outcome(boolean relayout, boolean subtree, boolean placement) {
+        overlaysBelow = findOverlaysBelow(); // the children are final now
         if (relayout) {
             double[] old = sizes;
             invalidateLayout();
@@ -740,6 +779,7 @@ public final class JXNativeNode {
 
     @SuppressWarnings("unchecked")
     public void dispatchPointer(JXPointerEvent event) {
+        revision++; // a popup host may open, close or scroll its popup
         if (Boolean.TRUE.equals(props.get("disabled"))) {
             return; // like JavaFX: disabled nodes get no mouse events
         }
@@ -768,6 +808,7 @@ public final class JXNativeNode {
      * with an input listener delivers raw events instead, and the host calls this itself.
      */
     public void dispatchDrag(JXPointerEvent event) {
+        revision++;
         if (Boolean.TRUE.equals(props.get("disabled"))) {
             return;
         }
@@ -776,6 +817,7 @@ public final class JXNativeNode {
 
     @SuppressWarnings("unchecked")
     public void dispatchKey(JXKeyEvent event) {
+        revision++;
         Object handler = props.get("onKeyPressed");
         if (handler instanceof JXNativeEventHandler) {
             ((JXNativeEventHandler<JXKeyEvent>) handler).handle(event);
