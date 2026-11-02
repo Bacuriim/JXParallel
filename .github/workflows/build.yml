@@ -55,6 +55,10 @@ jobs:
           java-version: ${{ matrix.java }}
           architecture: ${{ matrix.arch }}
           cache: maven
+      # Skija's libskija.so links libEGL, which the runner image does not ship.
+      - name: Install Skija dependencies
+        if: runner.os == 'Linux'
+        run: sudo apt-get update && sudo apt-get install -y --no-install-recommends libegl1 libgl1
       - name: Test
         run: ${{ matrix.command }}
 
@@ -70,6 +74,21 @@ jobs:
           cache: maven
       - name: Test
         run: mvn --batch-mode --no-transfer-progress -Plegacy-javafx test
+
+  # JavaFX-compatible API: built on JavaFX 8 internals, so only on a JDK 8 that bundles JavaFX
+  # (jre/lib/ext/jfxrt.jar activates the javafx8 profile).
+  javafx8:
+    runs-on: windows-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-java@v4
+        with:
+          distribution: zulu
+          java-package: jdk+fx
+          java-version: 8
+          cache: maven
+      - name: Test
+        run: mvn --batch-mode --no-transfer-progress -pl jxparallel-fx,jxparallel-fx-controlsfx -am test
 
   # OpenJDK jcstress: thread-safety contracts of jxparallel-core. jcstress 0.16 needs JDK 9+ to run.
   jcstress:

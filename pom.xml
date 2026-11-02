@@ -311,13 +311,14 @@
                 <module>jxparallel-fx-controlsfx</module>
             </modules>
         </profile>
+        <!-- OpenJFX 21 on JDK 11+. Not jxparallel-fx: it extends JavaFX 8 internals (impl_* methods,
+             com.sun.javafx.*) that OpenJFX removed, so it builds only under javafx8 above. -->
         <profile>
             <id>legacy-javafx</id>
             <modules>
                 <module>jxparallel-javafx</module>
                 <module>jxparallel-fxml</module>
                 <module>jxparallel-examples</module>
-                <module>jxparallel-fx</module>
             </modules>
             <dependencyManagement>
                 <dependencies>

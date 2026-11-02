@@ -27,6 +27,11 @@ class JXControlLayoutTest {
         return JXTextEngine.get().width(s, JXTextEngine.DEFAULT_SIZE);
     }
 
+    /** One line of default text, like {@link #text}: 17 px in Segoe UI (Windows), 15 px in DejaVu Sans (Linux). */
+    private static double line() {
+        return JXTextEngine.get().lineHeight(JXTextEngine.DEFAULT_SIZE);
+    }
+
     // ---- scroll pane -------------------------------------------------------------------------
 
     @Test
@@ -95,20 +100,21 @@ class JXControlLayoutTest {
             cells[i] = JXElement.of("cell", JXProps.builder().set("value", "item " + (first + i)).build());
         }
         return JXElement.of("list", JXProps.builder().set("itemCount", 100).set("first", first)
-                .set("scrollY", first * 23.0 + 5).build(), cells);
+                .set("scrollY", first * (line() + 6) + 5).build(), cells);
     }
 
     @Test
     void listPlacesItsVirtualCellsAtTheirIndex() {
         JXNativeNode list = laidOut(cells(10, 5), 200, 102);
-        assertEquals(23.0, JXControlLayout.cellHeight(list), "Modena list cell: 17 px text + 3 + 3");
+        double cell = line() + 6;
+        assertEquals(cell, JXControlLayout.cellHeight(list), "Modena list cell: 17 px text (Segoe UI) + 3 + 3");
         // cell 10 starts at the viewport top minus the 5 px scrolled into it
         assertEquals(1 - 5, list.getChildren().get(0).getY());
-        assertEquals(1 - 5 + 23, list.getChildren().get(1).getY());
+        assertEquals(1 - 5 + cell, list.getChildren().get(1).getY(), 0.001);
         assertEquals(200 - 2 - 13, list.getChildren().get(0).getWidth(), "the vertical bar takes 13 px");
-        assertEquals(6, JXControlLayout.visibleCount(list), "ceil(100 / 23) + 1");
+        assertEquals((int) Math.ceil(100 / cell) + 1, JXControlLayout.visibleCount(list), "ceil(100 / 23) + 1");
         assertEquals(10, JXControlLayout.itemAt(list, 1 + 2));
-        assertEquals(11, JXControlLayout.itemAt(list, 1 + 23));
+        assertEquals(11, JXControlLayout.itemAt(list, 1 + cell));
         assertEquals(-1, JXControlLayout.itemAt(list, 0));
     }
 
@@ -224,7 +230,7 @@ class JXControlLayoutTest {
         JXNativeNode button = JXNativeNode.createBackendNode(JXElement.of("button",
                 JXProps.builder().set("label", "Salvar").build(), graphic));
         assertEquals(text("Salvar") + 16 + 4 + 16, button.getPrefWidth(), 0.001);
-        assertEquals(25, button.getPrefHeight(), 0.001);
+        assertEquals(Math.max(line(), 16) + 8, button.getPrefHeight(), 0.001, "the taller of text and graphic + 4 + 4");
         button.layoutForBackend(200, 40);
         JXNativeNode g = button.getChildren().get(0);
         double group = 16 + 4 + text("Salvar");
@@ -236,10 +242,10 @@ class JXControlLayoutTest {
     void radioAndHyperlinkSizesMatchModena() {
         JXNativeNode radio = JXNativeNode.createBackendNode(JXElement.of("radio", JXProps.builder().set("label", "Active").build()));
         assertEquals(text("Active") + 21, radio.getPrefWidth(), 0.001, "JavaFX 53.28 = 32.28 + 16 + 5");
-        assertEquals(17, radio.getPrefHeight(), 0.001);
+        assertEquals(Math.max(line(), 16), radio.getPrefHeight(), 0.001, "the text or the 16 px dot");
         JXNativeNode link = JXNativeNode.createBackendNode(JXElement.of("hyperlink", JXProps.builder().set("label", "Open").build()));
         assertEquals(text("Open") + 8, link.getPrefWidth(), 0.001, "JavaFX 37.17 = 29.17 + 8");
-        assertEquals(23, link.getPrefHeight(), 0.001);
+        assertEquals(line() + 6, link.getPrefHeight(), 0.001);
     }
 
     @Test
@@ -283,7 +289,7 @@ class JXControlLayoutTest {
         JXNativeNode flow = laidOut(JXElement.of("textflow", JXProps.empty(), JXElement.text("Hello "), JXElement.text("world")),
                 (int) Math.ceil(text("Hello ")) + 5, 100);
         assertEquals(0, flow.getChildren().get(1).getX(), "the second run starts a new line");
-        assertEquals(17, flow.getChildren().get(1).getY());
+        assertEquals(line(), flow.getChildren().get(1).getY(), 0.001);
     }
 
     @Test
