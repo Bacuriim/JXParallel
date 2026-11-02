@@ -11,6 +11,7 @@ import com.jxparallel.ui.JXProps;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNotSame;
 import static org.junit.jupiter.api.Assertions.assertSame;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 
 /** Children with keys keep their nodes when they move, like cells of a scrolled JavaFX list. */
 class JXKeyedReconcileTest {
@@ -197,5 +198,151 @@ class JXKeyedReconcileTest {
         root.reconcile(column(a));
         assertEquals(1, root.getChildren().size(), "a removed key drops its node");
         assertSame(before.get(0), root.getChildren().get(0));
+    }
+
+    private static final int MANY = 40; // past the size where reorders look keys up in a map
+
+    private static JXElement rows(Object[] keys) {
+        JXElement[] rows = new JXElement[keys.length];
+        for (int i = 0; i < rows.length; i++) {
+            rows[i] = row(keys[i], String.valueOf(keys[i]));
+        }
+        return column(rows);
+    }
+
+    private static Object[] keys(int n) {
+        Object[] keys = new Object[n];
+        for (int i = 0; i < n; i++) {
+            keys[i] = new String("k" + i); // distinct objects: keys are matched by identity
+        }
+        return keys;
+    }
+
+    private static void assertReused(List<JXNativeNode> before, int[] order, JXNativeNode root) {
+        assertEquals(order.length, root.getChildren().size());
+        for (int i = 0; i < order.length; i++) {
+            assertSame(before.get(order[i]), root.getChildren().get(i), "position " + i);
+        }
+    }
+
+    @Test
+    void aReversedListKeepsEveryNodeSmallOrLarge() {
+        for (int n : new int[] {5, MANY}) {
+            Object[] keys = keys(n);
+            JXNativeNode root = JXNativeNode.createBackendNode(rows(keys));
+            List<JXNativeNode> before = kids(root);
+            Object[] reversed = new Object[n];
+            int[] order = new int[n];
+            for (int i = 0; i < n; i++) {
+                reversed[i] = keys[n - 1 - i];
+                order[i] = n - 1 - i;
+            }
+            root.reconcile(rows(reversed));
+            assertReused(before, order, root);
+        }
+    }
+
+    @Test
+    void aRowInsertedAtTheTopKeepsTheOthers() {
+        for (int n : new int[] {5, MANY}) {
+            Object[] keys = keys(n + 1);
+            JXNativeNode root = JXNativeNode.createBackendNode(rows(java.util.Arrays.copyOfRange(keys, 1, n + 1)));
+            List<JXNativeNode> before = kids(root);
+            root.reconcile(rows(keys));
+            assertEquals(n + 1, root.getChildren().size());
+            assertEquals(keys[0], root.getChildren().get(0).getProperty("key"));
+            for (int i = 0; i < n; i++) {
+                assertSame(before.get(i), root.getChildren().get(i + 1), "row " + i);
+            }
+        }
+    }
+
+    @Test
+    void aRowRemovedFromTheMiddleKeepsTheOthers() {
+        for (int n : new int[] {5, MANY}) {
+            Object[] keys = keys(n);
+            JXNativeNode root = JXNativeNode.createBackendNode(rows(keys));
+            List<JXNativeNode> before = kids(root);
+            int gone = n / 2;
+            Object[] left = new Object[n - 1];
+            int[] order = new int[n - 1];
+            for (int i = 0, j = 0; i < n; i++) {
+                if (i != gone) {
+                    left[j] = keys[i];
+                    order[j++] = i;
+                }
+            }
+            root.reconcile(rows(left));
+            assertReused(before, order, root);
+        }
+    }
+
+    @Test
+    void aRepeatedKeyAmongTheCurrentChildrenGoesToTheFirstOne() {
+        for (int n : new int[] {4, MANY}) {
+            Object[] keys = keys(n);
+            Object[] repeated = keys.clone();
+            repeated[n - 1] = keys[1]; // the last row has the key of the second: written positionally, as repeats are
+            JXNativeNode root = JXNativeNode.createBackendNode(rows(keys));
+            root.reconcile(rows(repeated));
+            List<JXNativeNode> before = kids(root);
+            assertSame(root.getChildren().get(1).getProperty("key"), before.get(n - 1).getProperty("key"));
+            // distinct keys again, out of order: the key goes to the first child that has it, once
+            Object[] moved = new Object[n];
+            moved[0] = keys[1];
+            moved[1] = keys[0];
+            for (int i = 2; i < n; i++) {
+                moved[i] = keys[i];
+            }
+            root.reconcile(rows(moved));
+            assertSame(before.get(1), root.getChildren().get(0), "the first child with the key");
+            assertSame(before.get(0), root.getChildren().get(1));
+            assertEquals(n, new java.util.HashSet<JXNativeNode>(kids(root)).size(), "no node twice");
+        }
+    }
+
+    @Test
+    void childrenOfARetainingParentComeBackAfterAReorderOfManyRows() {
+        Object[] keys = keys(MANY);
+        JXNativeNode root = JXNativeNode.createBackendNode(tabs(rowsOf(keys)));
+        List<JXNativeNode> before = kids(root);
+        Object[] reversed = new Object[MANY - 1]; // the first row leaves, the rest are reversed
+        for (int i = 0; i < reversed.length; i++) {
+            reversed[i] = keys[MANY - 1 - i];
+        }
+        root.reconcile(tabs(rowsOf(reversed)));
+        assertEquals(MANY - 1, root.getChildren().size());
+        assertSame(before.get(MANY - 1), root.getChildren().get(0));
+        assertEquals(true, root.holds(keys[0]), "kept aside");
+        root.reconcile(tabs(rowsOf(keys)));
+        for (int i = 0; i < MANY; i++) {
+            assertSame(before.get(i), root.getChildren().get(i), "row " + i + " comes back as it was");
+        }
+    }
+
+    private static JXElement[] rowsOf(Object[] keys) {
+        return rows(keys).getChildren().toArray(new JXElement[0]);
+    }
+
+    @Test
+    void shuffledRowsAreFoundWithoutScanningTheChildrenForEachOne() {
+        int n = 20000;
+        Object[] keys = keys(n);
+        JXNativeNode root = JXNativeNode.createBackendNode(rows(keys));
+        List<JXNativeNode> before = kids(root);
+        Object[] shuffled = keys.clone();
+        java.util.Collections.shuffle(java.util.Arrays.asList(shuffled), new java.util.Random(7));
+        JXElement next = rows(shuffled);
+        long start = System.nanoTime();
+        root.reconcile(next);
+        long millis = (System.nanoTime() - start) / 1_000_000;
+        assertTrue(millis < 1000, "20000 shuffled rows took " + millis + " ms");
+        java.util.Map<Object, JXNativeNode> was = new java.util.IdentityHashMap<>();
+        for (JXNativeNode node : before) {
+            was.put(node.getProperty("key"), node);
+        }
+        for (int i = 0; i < n; i += 997) {
+            assertSame(was.get(shuffled[i]), root.getChildren().get(i));
+        }
     }
 }
