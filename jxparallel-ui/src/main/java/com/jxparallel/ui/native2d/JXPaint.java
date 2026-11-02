@@ -38,7 +38,7 @@ final class JXPaint {
     static java.util.function.LongSupplier clock = System::currentTimeMillis;
 
     JXPaint(JXPainter painter) {
-        this.p = painter;
+        this.p = new JXNonNegativePainter(painter); // a control smaller than its insets draws nothing instead of failing the frame
     }
 
     /** The theme set by the nearest ancestor with a {@code theme} prop; null when none sets one. */
@@ -1019,6 +1019,9 @@ final class JXPaint {
     }
 
     private void progressBar(JXNativeNode node, float x, float y, float w, float h) {
+        if (w <= 0 || h <= 0) {
+            return; // laid out with no room (a Scroll with fitToHeight): nothing to show
+        }
         p.fillRoundRect(x, y + 1, w, h, 4, HIGHLIGHT);
         p.fillRoundRectGradient(x, y, w, h, 3, 0xFFBBBBBB, 0xFFCFCFCF);
         p.fillRoundRectGradient(x + 1, y + 1, w - 2, h - 2, 2, 0xFFEDEDED, 0xFFFFFFFF);
