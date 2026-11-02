@@ -888,6 +888,10 @@ final class JXOverlays {
         if (path.isEmpty()) {
             return null;
         }
+        JXNativeNode bar = JXScrolling.pressBar(path, event); // the bar of a pane takes the press, not the content under it
+        if (bar != null) {
+            return bar;
+        }
         JXNativeNode node = path.get(path.size() - 1);
         node.dispatchPointer(event);
         return node;
@@ -899,6 +903,10 @@ final class JXOverlays {
     }
 
     private static JXNativeNode deliver(Entry entry, List<JXNativeNode> path, JXPointerEvent event) {
+        JXNativeNode bar = JXScrolling.pressBar(path, event); // a pane inside the overlay
+        if (bar != null) {
+            return bar;
+        }
         JXNativeNode node = path.get(path.size() - 1);
         String kind = node.getType();
         if ("menuitem".equals(kind)) {

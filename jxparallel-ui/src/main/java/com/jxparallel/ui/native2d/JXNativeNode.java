@@ -3,9 +3,11 @@ package com.jxparallel.ui.native2d;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
+import java.util.IdentityHashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
+import java.util.Set;
 
 import com.jxparallel.ui.JXElement;
 import com.jxparallel.ui.JXProps;
@@ -103,6 +105,13 @@ public final class JXNativeNode {
     final boolean floatingNode;
     /** Its children are the content of an overlay, placed by the overlay pass. */
     final boolean overlayContent;
+    /** Scroll offsets in pixels the wheel set (see {@link JXScrolling}), NaN while the props decide. */
+    double userScrollX = Double.NaN;
+    double userScrollY = Double.NaN;
+    /** A press on the scroll bar of a pane, list or table grabbed its thumb: 1 vertical, 2 horizontal (see {@link JXScrolling#pressBar}). */
+    int barDrag;
+    /** The path from the root to this node when the thumb was grabbed: the layout of its ancestors follows the drag. */
+    java.util.List<JXNativeNode> dragPath;
     /** Where typing goes in a text input (see {@link JXChangeEvents}); -1 is the end. */
     int caret = -1;
     /** A press on a scroll bar grabbed its thumb; the drag that follows moves it (see {@link JXChangeEvents#drag}). */
@@ -247,6 +256,16 @@ public final class JXNativeNode {
         if (n < (retain ? 0 : 2)) {
             return false;
         }
+        if (n > SCAN) {
+            Set<Object> seen = Collections.newSetFromMap(new IdentityHashMap<Object, Boolean>(n * 2));
+            for (int i = 0; i < n; i++) {
+                Object key = elements.get(i).getProps().get("key");
+                if (key == null || !seen.add(key)) {
+                    return false;
+                }
+            }
+            return true;
+        }
         // Rows and cells on screen are a few dozen: comparing pairs allocates nothing, unlike a set.
         for (int i = 0; i < n; i++) {
             Object key = elements.get(i).getProps().get("key");
@@ -278,10 +297,11 @@ public final class JXNativeNode {
             inOrder = children.get(i).props.get("key") == nextChildren.get(i).getProps().get("key");
         }
         JXNativeNode[] next = inOrder ? null : new JXNativeNode[n];
+        Map<Object, JXNativeNode> byKey = inOrder ? null : keysOfChildren();
         int result = 0;
         for (int i = 0; i < n; i++) {
             JXElement e = nextChildren.get(i);
-            JXNativeNode node = inOrder ? children.get(i) : withKey(e.getProps().get("key"));
+            JXNativeNode node = inOrder ? children.get(i) : lookup(byKey, e.getProps().get("key"));
             if (node == null && retained != null) {
                 node = retained.remove(e.getProps().get("key"));
             }
@@ -349,12 +369,38 @@ public final class JXNativeNode {
     }
 
     private void retainLeaving(JXNativeNode[] staying) {
+        Set<JXNativeNode> stay = Collections.newSetFromMap(new IdentityHashMap<JXNativeNode, Boolean>(staying.length * 2));
+        stay.addAll(Arrays.asList(staying));
         for (JXNativeNode child : children) {
             Object key = child.props.get("key");
-            if (key != null && !Arrays.asList(staying).contains(child)) {
+            if (key != null && !stay.contains(child)) {
                 keep(key, child);
             }
         }
+    }
+
+    /** Past this many children a reorder looks keys up in a map instead of scanning for each. */
+    private static final int SCAN = 16;
+
+    /** The current children by key (the first of a repeated key), or null when few enough to scan. */
+    private Map<Object, JXNativeNode> keysOfChildren() {
+        int n = children.size();
+        if (n <= SCAN) {
+            return null;
+        }
+        Map<Object, JXNativeNode> byKey = new IdentityHashMap<Object, JXNativeNode>(n * 2);
+        for (int i = 0; i < n; i++) {
+            JXNativeNode child = children.get(i);
+            Object key = child.props.get("key");
+            if (key != null && !byKey.containsKey(key)) {
+                byKey.put(key, child);
+            }
+        }
+        return byKey;
+    }
+
+    private JXNativeNode lookup(Map<Object, JXNativeNode> byKey, Object key) {
+        return byKey == null ? withKey(key) : byKey.get(key);
     }
 
     /** The current child with this key, or null. */
@@ -472,6 +518,7 @@ public final class JXNativeNode {
         boolean placement = vgrow != priority(next.get("vgrow")) || hgrow != priority(next.get("hgrow"));
         boolean relayout = sizeAffected(previous, element.getProps());
         setProps(element.getProps());
+        JXScrolling.release(this, previous, element.getProps());
         boolean subtree = false;
         List<JXElement> nextChildren = element.getChildren();
         boolean retain = Boolean.TRUE.equals(next.get("retainChildren"));
@@ -654,6 +701,15 @@ public final class JXNativeNode {
         return layoutDirty;
     }
 
+    /** This node places its children again at its bounds (a scroll offset changed); its ancestors must call {@link #childNeedsRelayout}. */
+    void requestRelayout() {
+        layoutDirty = true;
+    }
+
+    void childNeedsRelayout() {
+        childNeedsLayout = true;
+    }
+
     public void invalidateLayout() {
         layoutDirty = true;
         sizes = null;
@@ -780,6 +836,7 @@ public final class JXNativeNode {
     @SuppressWarnings("unchecked")
     public void dispatchPointer(JXPointerEvent event) {
         revision++; // a popup host may open, close or scroll its popup
+        barDrag = 0;
         if (Boolean.TRUE.equals(props.get("disabled"))) {
             return; // like JavaFX: disabled nodes get no mouse events
         }
@@ -810,6 +867,10 @@ public final class JXNativeNode {
     public void dispatchDrag(JXPointerEvent event) {
         revision++;
         if (Boolean.TRUE.equals(props.get("disabled"))) {
+            return;
+        }
+        if (barDrag != 0) {
+            JXScrolling.dragBar(this, event); // a pane's bar needs no onChange
             return;
         }
         JXChangeEvents.drag(this, event);

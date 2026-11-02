@@ -578,6 +578,9 @@ public final class JXWindow implements AutoCloseable {
         GLFW.glfwSetScrollCallback(handle, (h, dx, dy) -> {
             if (inputListener != null) {
                 deliver(JXInputEvent.scroll(cursorX, cursorY, dx, dy, currentModifiers(h), path(cursorX, cursorY)));
+            } else if (root != null && JXScrolling.wheel(root, (int) cursorX, (int) cursorY, dx, dy,
+                    (currentModifiers(h) & JXInputEvent.SHIFT) != 0)) {
+                requestRender(); // no input listener: the wheel scrolls the pane under the cursor
             }
         });
         GLFW.glfwSetKeyCallback(handle, (h, key, scancode, action, mods) -> {
