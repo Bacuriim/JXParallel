@@ -1107,6 +1107,26 @@ final class JXOverlays {
         if (focused != null) {
             focused.dispatchKey(event);
         }
+        if (event.getKeyCode() == ENTER && open.isEmpty() && (focused == null || !focused.takesEnter())) {
+            runScreenDefault(root); // like JavaFX: Enter in a field presses the default button of the screen
+        }
+    }
+
+    /** The default button of the screen, outside the dialogs, drawers and snack bars (open or not). */
+    private static boolean runScreenDefault(JXNativeNode node) {
+        String type = node.getType();
+        if ("dialog".equals(type) || "drawer".equals(type) || "snackbar".equals(type)) {
+            return false;
+        }
+        if ("button".equals(type)) {
+            return runDefaultButton(node);
+        }
+        for (JXNativeNode child : node.getChildren()) {
+            if (runScreenDefault(child)) {
+                return true;
+            }
+        }
+        return false;
     }
 
     private static boolean runDefaultButton(JXNativeNode node) {

@@ -564,11 +564,16 @@ public final class JXWindow implements AutoCloseable {
                 return;
             }
             boolean secondary = button == JXInputEvent.BUTTON_SECONDARY; // opens a context menu
+            if (button == JXInputEvent.BUTTON_PRIMARY && action == GLFW.GLFW_RELEASE && root != null) {
+                root.releasePointer(new JXPointerEvent((int) px[0], (int) py[0], glfwButton)); // a button clicks on the release
+                requestRender();
+                return;
+            }
             if (button != JXInputEvent.BUTTON_PRIMARY && !secondary || action != GLFW.GLFW_PRESS || root == null) {
                 return;
             }
             // the overlays first: a press outside an open popup or menu closes it, one inside a dialog stays in it
-            JXNativeNode hit = root.routePointer(new JXPointerEvent((int) px[0], (int) py[0], glfwButton));
+            JXNativeNode hit = root.pressPointer(new JXPointerEvent((int) px[0], (int) py[0], glfwButton));
             if (hit != null && !secondary) {
                 focusedNode = hit;
                 dragNode = hit; // a scroll bar's thumb or a split pane's divider follows the pointer until the release

@@ -460,6 +460,49 @@ public final class JXNativeNode {
         return JXOverlays.pointer(this, event);
     }
 
+    /** Types that act when the button is released over them, as JavaFX's buttons do, rather than on the press. */
+    private static final java.util.Set<String> CLICKED_ON_RELEASE = new java.util.HashSet<String>(java.util.Arrays.asList(
+            "button", "toggle", "radio", "hyperlink", "checkbox", "switch", "chip"));
+    /** Types that Space (and Enter) on the focused node act on, as a click does. */
+    private static final java.util.Set<String> PRESSED_BY_KEY = new java.util.HashSet<String>(java.util.Arrays.asList(
+            "button", "toggle", "radio", "hyperlink"));
+    private static final int KEY_ENTER = 257;
+
+    /** A press of {@link #pressPointer} is being routed: a button only arms. Display thread only. */
+    private static boolean pressing;
+    /** The button the last press armed; the release over it clicks it. */
+    private static JXNativeNode armed;
+
+    /**
+     * As {@link #routePointer}, for a window that also reports the release ({@link #releasePointer}): a button, toggle,
+     * radio button, hyperlink, check box, switch or chip under the pointer is only armed, and acts when the button is
+     * released over it, so the user can still slide off to cancel. Everything else acts on the press.
+     */
+    public JXNativeNode pressPointer(JXPointerEvent event) {
+        armed = null;
+        pressing = true;
+        try {
+            return routePointer(event);
+        } finally {
+            pressing = false;
+        }
+    }
+
+    /** The button was released: clicks what {@link #pressPointer} armed, when the pointer is still over it. */
+    public void releasePointer(JXPointerEvent event) {
+        JXNativeNode node = armed;
+        armed = null;
+        if (node != null && node.contains(event.getX(), event.getY())) {
+            revision++;
+            node.dispatchPointer(event);
+        }
+    }
+
+    /** Whether Enter goes to this focused node itself (a new line, or a button that presses) rather than the default button. */
+    boolean takesEnter() {
+        return "textarea".equals(type) || PRESSED_BY_KEY.contains(type);
+    }
+
     /**
      * A key went down while {@code focused} (may be null) has the focus: Escape closes the topmost open overlay, Enter
      * runs the default button of an open dialog (or closes an open popup); otherwise the focused node gets the key.
@@ -842,6 +885,10 @@ public final class JXNativeNode {
         if (Boolean.TRUE.equals(props.get("disabled"))) {
             return; // like JavaFX: disabled nodes get no mouse events
         }
+        if (pressing && CLICKED_ON_RELEASE.contains(type)) {
+            armed = this; // acts on the release (releasePointer)
+            return;
+        }
         if (JXChangeEvents.close(this, event)) {
             return; // the close icon of a chip or a tab is not a click on the chip or the bar
         }
@@ -884,6 +931,10 @@ public final class JXNativeNode {
         Object handler = props.get("onKeyPressed");
         if (handler instanceof JXNativeEventHandler) {
             ((JXNativeEventHandler<JXKeyEvent>) handler).handle(event);
+        }
+        if (PRESSED_BY_KEY.contains(type) && (event.getKeyChar() == ' ' || event.getKeyCode() == KEY_ENTER)) {
+            dispatchPointer(new JXPointerEvent(x + width / 2, y + height / 2, 0)); // Space or Enter on the focused button: a click
+            return;
         }
         JXChangeEvents.key(this, event);
     }
