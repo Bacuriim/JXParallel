@@ -535,7 +535,11 @@ public final class JxmlTemplate implements JxmlView<Object> {
         if (node.attrs.containsKey("key")) {
             loop.attrs.put("key", node.attrs.get("key"));
         }
-        loop.attrs.put("from", node.attrs.containsKey("first") ? node.attrs.get("first") : "0");
+        String first = node.attrs.containsKey("first") ? node.attrs.get("first") : "0";
+        if (first.startsWith("@{") && first.endsWith("}")) {
+            first = "$" + first.substring(1); // first="@{top}" binds the list two ways; the loop only reads it
+        }
+        loop.attrs.put("from", first);
         loop.attrs.put("limit", node.attrs.containsKey("rows") ? node.attrs.get("rows") : String.valueOf(DEFAULT_ROWS));
         loop.children.add(template);
         JxmlParser.Node list = new JxmlParser.Node(node.tag, node.line, node.source);

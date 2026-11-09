@@ -9,7 +9,7 @@
   </Row>
   <Tabs slot="center" selected="${tab}">
     <Tab title="Form" closable="false">
-      <Scroll fitToWidth="true" fitToHeight="false">
+      <Scroll fitToWidth="true" fitToHeight="false" hvalue="0" vvalue="${scroll}" onScroll="#scrolledTo">
         <Grid hgap="8" vgap="6" padding="12" alignment="TOP_LEFT">
           <Label text="Name" row="0" column="0" halignment="RIGHT" valignment="TOP"/>
           <TextField text="@{name}" prompt="Full name" columns="20" row="0" column="1" columnSpan="2" hgrow="always"/>

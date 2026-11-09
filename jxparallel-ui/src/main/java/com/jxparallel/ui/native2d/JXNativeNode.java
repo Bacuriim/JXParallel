@@ -108,6 +108,8 @@ public final class JXNativeNode {
     /** Scroll offsets in pixels the wheel set (see {@link JXScrolling}), NaN while the props decide. */
     double userScrollX = Double.NaN;
     double userScrollY = Double.NaN;
+    /** The first row a virtual list or table last reported through {@code onChange} (see {@link JXScrolling}), -1 for none. */
+    int reportedFirst = -1;
     /** A press on the scroll bar of a pane, list or table grabbed its thumb: 1 vertical, 2 horizontal (see {@link JXScrolling#pressBar}). */
     int barDrag;
     /** The path from the root to this node when the thumb was grabbed: the layout of its ancestors follows the drag. */

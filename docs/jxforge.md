@@ -167,9 +167,9 @@ inside a `Border`), and these, which the renderer reads from any node:
 | `ProgressIndicator` | `indicator` | `progress` (negative: indeterminate) |
 | `Tooltip` | `tooltip` | `text` |
 | `Image` | `image` | `pixels` (an `int[]` of ARGB), `imageWidth`, `imageHeight`, `fitWidth`, `fitHeight`, `preserveRatio` |
-| `ListView` | `list` | `items`, `var`, `type`, `key`, `first`, `rows`, `cellHeight`, `onScroll`; one child, the row template |
+| `ListView` | `list` | `items`, `var`, `type`, `key`, `first` (two ways: see [Lists and tables](#lists-and-tables)), `rows`, `cellHeight`, `onScroll`; one child, the row template |
 | `ListItem` | `cell` | `text`, `selected`, `odd`, `listFocused`, `alignment`, `onAction`; optionally one child, a graphic |
-| `TableView` | `table` | `items`, `var`, `type`, `key`, `first`, `rows`, `rowHeight`, `columns`, `columnWidths`, `constrained`; one `TableRow` |
+| `TableView` | `table` | `items`, `var`, `type`, `key`, `first` (two ways), `onScroll`, `rows`, `rowHeight`, `columns`, `columnWidths`, `constrained`; one `TableRow` |
 | `TableRow` | `tablerow` | `selected`, `odd`, `listFocused`; children are `TableCell`s |
 | `TableCell` | `cell` | like `ListItem`, with the table's cell look |
 | `Label` | `#text` | `text`, `wrapText`, `bold`, `fontSize`, `textFill` |
@@ -190,8 +190,8 @@ inside a `Border`), and these, which the renderer reads from any node:
 | `Modal` | `dialog` | `dismissible`, `padding`, `gap`, `alignment`, `fillWidth`, `showing`, `onShowing`; a column over a scrim; takes no room |
 | `Drawer` | `drawer` | `side` (`left`, `right`), `padding`, `gap`, `alignment`, `fillWidth`, `showing`, `onShowing`; a column over a scrim; takes no room |
 | `SnackBar` | `snackbar` | `message`, `action`, `onAction`, `duration`, `showing`, `onShowing`; takes no room |
-| `Tree` | `list` | `rowHeight`, `first`, `rows`; children are `TreeItem`s |
-| `TreeTable` | `table` | `rowHeight`, `first`, `rows`, `columns`, `columnWidths`, `constrained`; children are `TreeItem`s |
+| `Tree` | `list` | `rowHeight`, `first` (two ways), `rows`; children are `TreeItem`s |
+| `TreeTable` | `table` | `rowHeight`, `first` (two ways), `rows`, `columns`, `columnWidths`, `constrained`; children are `TreeItem`s |
 | `TreeItem` | `cell` | `text`, `expanded`, `selected`, `listFocused`, `values`, `onAction`, `onToggle`; children are `TreeItem`s |
 | `Separator` | `separator` | `orientation` |
 | `ProgressBar` | `progress` | `progress` |
@@ -336,11 +336,11 @@ a window of the model:
 
 ```xml
 <ListView items="${orders}" var="o" type="com.acme.Order" key="${o.id}"
-          first="${top}" rows="30" cellHeight="24" prefHeight="300">
+          first="@{top}" rows="30" cellHeight="24" prefHeight="300">
   <ListItem text="${o.name}" selected="${o.selected}" onAction="#select(o)"/>
 </ListView>
 
-<TableView items="${orders}" var="o" type="com.acme.Order" key="${o.id}" first="${top}" rowHeight="24"
+<TableView items="${orders}" var="o" type="com.acme.Order" key="${o.id}" first="@{top}" rowHeight="24"
            columns="Id, Name, Total" columnWidths="60, -1, 80">
   <TableRow selected="${o.selected}">
     <TableCell text="${o.id}"/>
@@ -358,7 +358,11 @@ a window of the model:
   and `rows` choose the window, `rows` is 30 when not written. Build more rows than the viewport shows.
 - `first` is the index of the row at the top of the viewport (the application's scroll state; the mouse wheel
   moves the viewport, see below). It is kept within the model, and `scrollY` (the renderer's offset in pixels) is
-  set to `first * height`. Keep `first` at most `itemCount` minus the rows the viewport shows: the renderer
+  set to `first * height`. **Bind it two ways (`first="@{top}"`, or `${top}` with `onChange="#setTop"`, an `int`)
+  so the user can scroll the whole model:** the wheel and the scroll bar then range over every item, the renderer
+  reports the row now at the top, and the next build gives the window from there. The offset in pixels is kept when
+  the application renders again with that row, so scrolling stays smooth. Read only (`${top}` alone), the list scrolls
+  within the `rows` it was given. The same holds for `Tree` and `TreeTable`. Keep `first` at most `itemCount` minus the rows the viewport shows: the renderer
   clamps `scrollY` to the scroll range, and a window that starts later would be drawn below the top.
 - `cellHeight` (list) and `rowHeight` (table) are fixed, 24 when not written, and must be greater than 0: the
   renderer needs them to place rows without measuring the first one, and `scrollY` is computed from the same number.

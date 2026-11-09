@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <!-- Tree and TreeTable: nested TreeItems, with loops inside them; only the visible rows of the window reach the renderer. -->
 <Column controller="com.jxparallel.forge.samples.SampleController" gap="6">
-  <Tree rowHeight="22" first="${top}" rows="20" prefHeight="150">
+  <Tree rowHeight="22" first="${top}" onChange="#setTop" rows="20" prefHeight="150">
     <TreeItem text="src" expanded="true" selected="${on}" listFocused="true" onAction="#save" onToggle="#save">
       <TreeItem text="main" expanded="${open}">
         <TreeItem text="java"/>
@@ -20,7 +20,7 @@
     </For>
     <If test="${busy}"><TreeItem text="Busy"/></If>
   </Tree>
-  <TreeTable rowHeight="24" first="0" rows="10" columns="Name, Size" columnWidths="-1, 80" constrained="true" prefHeight="120">
+  <TreeTable rowHeight="24" first="0" onChange="#setTop" rows="10" columns="Name, Size" columnWidths="-1, 80" constrained="true" prefHeight="120">
     <TreeItem text="docs" expanded="true" values="12 KB" onAction="#save" onToggle="#save">
       <TreeItem text="guide.md" values="4 KB" selected="true" listFocused="false"/>
       <TreeItem text="${title}" values="${cities}"/>

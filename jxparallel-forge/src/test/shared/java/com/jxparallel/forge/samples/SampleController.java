@@ -218,6 +218,16 @@ public class SampleController {
         return top;
     }
 
+    public void setTop(int value) {
+        top = value;
+    }
+
+    public double[] scrolled;
+
+    public void scrolledTo(double[] value) {
+        scrolled = value;
+    }
+
     public int getLimit() {
         return limit;
     }
