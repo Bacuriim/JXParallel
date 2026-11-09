@@ -61,7 +61,7 @@ public final class JXNativeNode {
             "fontSize", "bold", "hvalue", "vvalue", "scrollX", "scrollY", "first", "itemCount", "cellHeight", "rowHeight",
             "columnWidths", "constrained", "titles", "selected", "closingPolicy", "closable", "pageCount", "current",
             "maxPageIndicatorCount", "fitToWidth", "fitToHeight", "hbarPolicy", "vbarPolicy", "side", "fitWidth",
-            "fitHeight", "preserveRatio", "imageWidth", "imageHeight", "prefColumnCount", "fixedHeight", "wrapText",
+            "fitHeight", "preserveRatio", "imageWidth", "imageHeight", "src", "prefColumnCount", "fixedHeight", "wrapText",
             "progress", "fillGraphic", "prefRowCount",
             // Material controls: icon and avatar size, chip parts, badge content, steps, split positions, button look
             "size", "icon", "kind", "closable", "count", "text", "dot", "steps", "dividerPositions", "variant", "round",
@@ -1662,7 +1662,7 @@ public final class JXNativeNode {
             return !Objects.equals(old.get("value"), next.get("value"));
         }
         if ("image".equals(type)) {
-            return old.get("pixels") != next.get("pixels");
+            return old.get("pixels") != next.get("pixels") || !Objects.equals(old.get("src"), next.get("src"));
         }
         if ("select".equals(type)) {
             return !Objects.equals(old.get("value"), next.get("value"))

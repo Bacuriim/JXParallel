@@ -27,7 +27,7 @@ class JXPaintRecordingTest {
     private static final Path ACTUAL = Paths.get("target/snapshots");
 
     /** Writes each primitive call as one line, numbers with two decimals. */
-    static final class RecordingPainter implements JXPainter {
+    static class RecordingPainter implements JXPainter {
         final StringBuilder log = new StringBuilder();
 
         private void add(String name, Object... args) {

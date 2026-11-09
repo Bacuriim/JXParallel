@@ -1269,6 +1269,11 @@ final class JXPaint {
         Object pixels = node.getProperty("pixels");
         if (pixels instanceof int[]) {
             p.image((int[]) pixels, (int) number(node, "imageWidth", 0), (int) number(node, "imageHeight", 0), x, y, w, h);
+            return;
+        }
+        com.jxparallel.ui.resource.JXImage loaded = JXControlLayout.sourceImage(node);
+        if (loaded != null) {
+            p.image(loaded.getPixels(), loaded.getWidth(), loaded.getHeight(), x, y, w, h);
         }
     }
 

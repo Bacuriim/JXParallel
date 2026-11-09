@@ -398,9 +398,26 @@ public final class JXControlLayout {
         return windowX >= left && windowX < left + TREE_ARROW;
     }
 
+    /**
+     * The picture an {@code image} node's {@code src} prop names, or null when it has none, has pixels of its own
+     * (they win) or the file cannot be read (nothing is drawn, and the first failure is reported on stderr).
+     */
+    static com.jxparallel.ui.resource.JXImage sourceImage(JXNativeNode node) {
+        Object src = node.getProperty("src");
+        if (!(src instanceof String) || node.getProperty("pixels") instanceof int[]) {
+            return null;
+        }
+        return com.jxparallel.ui.resource.JXImages.find((String) src);
+    }
+
     static double[] imageSize(JXNativeNode node) {
         double iw = JXPaint.number(node, "imageWidth", 0);
         double ih = JXPaint.number(node, "imageHeight", 0);
+        com.jxparallel.ui.resource.JXImage loaded = sourceImage(node);
+        if (loaded != null) {
+            iw = loaded.getWidth(); // a picture from a file: its own size, whatever the pixel props say
+            ih = loaded.getHeight();
+        }
         double fw = JXPaint.number(node, "fitWidth", 0);
         double fh = JXPaint.number(node, "fitHeight", 0);
         boolean ratio = Boolean.TRUE.equals(node.getProperty("preserveRatio"));
