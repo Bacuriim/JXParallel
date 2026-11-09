@@ -83,6 +83,22 @@ public final class JXSkiaRenderer {
         }
     }
 
+    /**
+     * Like {@link #paint(JXNativeNode, Canvas, int, int)} for a canvas of physical pixels: {@code width x height}
+     * is the logical size the tree is laid out in, and the canvas is scaled by {@code scale} so shapes and
+     * text are rasterized at the physical resolution (a sharp 1.5x or 2x, not an enlarged 1x image).
+     */
+    public static void paint(JXNativeNode root, Canvas canvas, int width, int height, float scale) {
+        if (scale == 1f) {
+            paint(root, canvas, width, height);
+            return;
+        }
+        canvas.save();
+        canvas.scale(scale, scale);
+        paint(root, canvas, width, height);
+        canvas.restore();
+    }
+
     /** Shaped text at the default size, cached; {@code null} when there is nothing to draw. */
     static TextBlob shaped(String value, Font font, boolean bold) {
         if (value.isEmpty()) {

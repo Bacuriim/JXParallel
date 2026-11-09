@@ -78,6 +78,14 @@ public final class JXWindow implements AutoCloseable {
     private double lastPressX;
     private double lastPressY;
     private int clickCount;
+    /** Physical pixels per logical pixel ({@link JXScale}); all layout and application coordinates are logical. */
+    private volatile float scale = JXScale.resolve(JXScale.forced(), 1f, 1f);
+    /** GLFW window units (cursor positions) to logical pixels, per axis; display thread. */
+    private double toLogicalX = 1;
+    private double toLogicalY = 1;
+    /** Framebuffer size in physical pixels as of the last {@link #syncMetrics}; display thread. */
+    private int fbWidth;
+    private int fbHeight;
 
     public JXWindow(String title) {
         this.title = title == null ? "JXParallel" : title;
@@ -186,27 +194,42 @@ public final class JXWindow implements AutoCloseable {
         return title;
     }
 
-    /** Size of the content area in pixels; applied when the window opens, or at once if open. */
+    /**
+     * Size of the content area in logical pixels (physical pixels divided by {@link #getScale()}); applied
+     * when the window opens, or at once if open.
+     */
     public void setSize(int newWidth, int newHeight) {
         width = Math.max(1, newWidth);
         height = Math.max(1, newHeight);
         if (window != MemoryUtil.NULL) {
             JXDisplay.post(() -> {
                 if (window != MemoryUtil.NULL) {
-                    GLFW.glfwSetWindowSize(window, width, height);
+                    applyLogicalSize(window);
                 }
             });
         }
     }
 
+    /** Width of the content area in logical pixels. */
     public int getWidth() {
         return width;
     }
 
+    /** Height of the content area in logical pixels. */
     public int getHeight() {
         return height;
     }
 
+    /**
+     * Physical pixels per logical pixel: 1 on a 100% display, 1.5 at 150%, 2 at 200%. It is the window's
+     * monitor content scale, updated when the window moves to another monitor, or {@code -Djx.scale=N}
+     * when set. Before the window opens it is the forced scale or 1. Safe from any thread.
+     */
+    public float getScale() {
+        return scale;
+    }
+
+    /** Logical pixels; applied when the window opens, and again when the scale changes. */
     public void setMinSize(int newMinWidth, int newMinHeight) {
         minWidth = newMinWidth;
         minHeight = newMinHeight;
@@ -291,7 +314,11 @@ public final class JXWindow implements AutoCloseable {
         };
     }
 
-    /** Size of the primary monitor's work area: x, y, width, height. Safe from any thread. */
+    /**
+     * The primary monitor's work area in logical pixels: x, y, width, height. Safe from any thread.
+     * Where GLFW's screen coordinates are physical pixels (Windows, X11) the monitor's content scale
+     * divides them; on macOS and Wayland they already are logical.
+     */
     public static int[] screenBounds() {
         return JXDisplay.call(() -> {
             int[] x = new int[1];
@@ -303,8 +330,27 @@ public final class JXWindow implements AutoCloseable {
                 return new int[] {0, 0, 1280, 800};
             }
             GLFW.glfwGetMonitorWorkarea(monitor, x, y, w, h);
-            return new int[] {x[0], y[0], w[0], h[0]};
+            float s = screenCoordinatesAreLogical() ? 1f : monitorScale(monitor);
+            return new int[] {Math.round(x[0] / s), Math.round(y[0] / s), JXScale.logicalExtent(w[0], s),
+                    JXScale.logicalExtent(h[0], s)};
         });
+    }
+
+    /** True where one GLFW screen coordinate is one logical pixel and the framebuffer is denser (macOS, Wayland). */
+    private static boolean screenCoordinatesAreLogical() {
+        try {
+            int platform = GLFW.glfwGetPlatform();
+            return platform == GLFW.GLFW_PLATFORM_COCOA || platform == GLFW.GLFW_PLATFORM_WAYLAND;
+        } catch (Throwable e) {
+            return System.getProperty("os.name", "").toLowerCase(Locale.ROOT).contains("mac");
+        }
+    }
+
+    private static float monitorScale(long monitor) {
+        float[] sx = new float[1];
+        float[] sy = new float[1];
+        GLFW.glfwGetMonitorContentScale(monitor, sx, sy);
+        return JXScale.resolve(JXScale.forced(), sx[0], sy[0]);
     }
 
     /**
@@ -312,8 +358,19 @@ public final class JXWindow implements AutoCloseable {
      * the top. CPU only: no window, no OpenGL, any thread.
      */
     public static int[] captureSoftware(JXElement element, int width, int height) {
-        int[] argb = new int[Math.max(1, width * height)];
-        JXSoftwarePainter painter = new JXSoftwarePainter(argb, width, height, 1f);
+        return captureSoftware(element, width, height, 1f);
+    }
+
+    /**
+     * Like {@link #captureSoftware(JXElement, int, int)} for a HiDPI display: {@code width x height} is the
+     * logical size the tree is laid out in, and the image is {@code round(width * scale)} by
+     * {@code round(height * scale)} physical pixels, drawn at that resolution (not enlarged).
+     */
+    public static int[] captureSoftware(JXElement element, int width, int height, float scale) {
+        int pw = Math.max(1, JXScale.physicalExtent(width, scale));
+        int ph = Math.max(1, JXScale.physicalExtent(height, scale));
+        int[] argb = new int[pw * ph];
+        JXSoftwarePainter painter = new JXSoftwarePainter(argb, pw, ph, scale);
         painter.clear(JXSkiaRenderer.BACKGROUND);
         JXNativeNode node = JXNativeNode.createBackendNode(element);
         node.layoutForBackend(Math.max(1, width), Math.max(1, height));
@@ -358,7 +415,7 @@ public final class JXWindow implements AutoCloseable {
                 GLFW.glfwGetFramebufferSize(hidden, fbw, fbh);
                 NanoVGBackend backend = new NanoVGBackend();
                 try {
-                    backend.render(JXNativeNode.createBackendNode(element), fbw[0], fbh[0], width, height);
+                    backend.render(JXNativeNode.createBackendNode(element), fbw[0], fbh[0], width, height, (float) fbw[0] / width);
                     GL11.glFinish();
                     java.nio.ByteBuffer rgba = MemoryUtil.memAlloc(fbw[0] * fbh[0] * 4);
                     try {
@@ -422,7 +479,6 @@ public final class JXWindow implements AutoCloseable {
         if (adopted) {
             // the prewarmed hidden window, its OpenGL context already made: set it up as this window
             GLFW.glfwSetWindowTitle(handle, title);
-            GLFW.glfwSetWindowSize(handle, width, height);
             GLFW.glfwSetWindowAttrib(handle, GLFW.GLFW_RESIZABLE, resizable ? GLFW.GLFW_TRUE : GLFW.GLFW_FALSE);
             GLFW.glfwSetWindowAttrib(handle, GLFW.GLFW_DECORATED, decorated ? GLFW.GLFW_TRUE : GLFW.GLFW_FALSE);
             GLFW.glfwSetWindowAttrib(handle, GLFW.GLFW_FLOATING, floating ? GLFW.GLFW_TRUE : GLFW.GLFW_FALSE);
@@ -445,11 +501,10 @@ public final class JXWindow implements AutoCloseable {
             throw new IllegalStateException("Unable to create GLFW window");
         }
         window = handle;
-        if (minWidth > 0 || minHeight > 0) {
-            GLFW.glfwSetWindowSizeLimits(handle, minWidth > 0 ? minWidth : GLFW.GLFW_DONT_CARE,
-                    minHeight > 0 ? minHeight : GLFW.GLFW_DONT_CARE, GLFW.GLFW_DONT_CARE, GLFW.GLFW_DONT_CARE);
-        }
+        // Not GLFW_SCALE_TO_MONITOR: the size is converted here, from the scale of the monitor the window
+        // ends up on, so it works the same on Windows, X11, macOS and Wayland, and for -Djx.scale.
         place(handle);
+        syncMetrics(handle, false);
         installCallbacks(handle);
         if (software) {
             backend = new SoftwareBackend(org.lwjgl.glfw.GLFWNativeWin32.glfwGetWin32Window(handle));
@@ -476,6 +531,8 @@ public final class JXWindow implements AutoCloseable {
     private void place(long handle) {
         if (x != Integer.MIN_VALUE && y != Integer.MIN_VALUE) {
             GLFW.glfwSetWindowPos(handle, x, y);
+            scale = windowScale(handle); // the monitor the window is now on
+            applyLogicalSize(handle);
             return;
         }
         org.lwjgl.PointerBuffer monitors = GLFW.glfwGetMonitors();
@@ -483,23 +540,110 @@ public final class JXWindow implements AutoCloseable {
         long monitor = monitors != null && index != null && index >= 0 && index < monitors.limit()
                 ? monitors.get(index) : GLFW.glfwGetPrimaryMonitor();
         if (monitor == MemoryUtil.NULL) {
+            applyLogicalSize(handle);
             return;
         }
+        scale = monitorScale(monitor);
+        applyLogicalSize(handle);
         int[] mx = new int[1];
         int[] my = new int[1];
         int[] mw = new int[1];
         int[] mh = new int[1];
+        int[] ww = new int[1];
+        int[] wh = new int[1];
         GLFW.glfwGetMonitorWorkarea(monitor, mx, my, mw, mh);
-        GLFW.glfwSetWindowPos(handle, mx[0] + Math.max(0, (mw[0] - width) / 2), my[0] + Math.max(0, (mh[0] - height) / 2));
+        GLFW.glfwGetWindowSize(handle, ww, wh);
+        GLFW.glfwSetWindowPos(handle, mx[0] + Math.max(0, (mw[0] - ww[0]) / 2), my[0] + Math.max(0, (mh[0] - wh[0]) / 2));
+    }
+
+    /** The content scale of the monitor the window is on, or the forced one. */
+    private static float windowScale(long handle) {
+        float[] sx = new float[1];
+        float[] sy = new float[1];
+        GLFW.glfwGetWindowContentScale(handle, sx, sy);
+        return JXScale.resolve(JXScale.forced(), sx[0], sy[0]);
+    }
+
+    /**
+     * Gives the window the logical {@link #width} x {@link #height} at the current scale, and the logical
+     * minimum size (GLFW sizes are in window units: physical pixels on Windows and X11, points elsewhere).
+     * Display thread.
+     */
+    private void applyLogicalSize(long handle) {
+        applyLogicalSize(handle, true);
+    }
+
+    /** {@code resize} false only refreshes the minimum size. */
+    private void applyLogicalSize(long handle, boolean resize) {
+        int[] ww = new int[1];
+        int[] wh = new int[1];
+        int[] fw = new int[1];
+        int[] fh = new int[1];
+        GLFW.glfwGetWindowSize(handle, ww, wh);
+        GLFW.glfwGetFramebufferSize(handle, fw, fh);
+        float s = scale;
+        if (minWidth > 0 || minHeight > 0) {
+            GLFW.glfwSetWindowSizeLimits(handle,
+                    minWidth > 0 ? JXScale.toWindowUnits(minWidth, ww[0], fw[0], s) : GLFW.GLFW_DONT_CARE,
+                    minHeight > 0 ? JXScale.toWindowUnits(minHeight, wh[0], fh[0], s) : GLFW.GLFW_DONT_CARE,
+                    GLFW.GLFW_DONT_CARE, GLFW.GLFW_DONT_CARE);
+        }
+        if (resize) {
+            GLFW.glfwSetWindowSize(handle, JXScale.toWindowUnits(width, ww[0], fw[0], s),
+                    JXScale.toWindowUnits(height, wh[0], fh[0], s));
+        }
+    }
+
+    /**
+     * Re-reads the window and framebuffer sizes: sets the cursor conversion, the framebuffer size and the
+     * logical size. Reports a changed logical size to the input listener when {@code notify} is set.
+     * False when the window has no area (minimized). Display thread.
+     */
+    private boolean syncMetrics(long handle, boolean notify) {
+        int[] fw = new int[1];
+        int[] fh = new int[1];
+        int[] ww = new int[1];
+        int[] wh = new int[1];
+        GLFW.glfwGetFramebufferSize(handle, fw, fh);
+        GLFW.glfwGetWindowSize(handle, ww, wh);
+        if (fw[0] <= 0 || fh[0] <= 0 || ww[0] <= 0 || wh[0] <= 0) {
+            return false;
+        }
+        float s = scale;
+        fbWidth = fw[0];
+        fbHeight = fh[0];
+        toLogicalX = JXScale.toLogical(1, ww[0], fw[0], s);
+        toLogicalY = JXScale.toLogical(1, wh[0], fh[0], s);
+        int lw = JXScale.logicalExtent(fw[0], s);
+        int lh = JXScale.logicalExtent(fh[0], s);
+        if (lw != width || lh != height) {
+            width = lw;
+            height = lh;
+            if (notify) {
+                deliver(JXInputEvent.window(JXInputEvent.Kind.RESIZE, lw, lh));
+            }
+        }
+        return true;
     }
 
     private void installCallbacks(long handle) {
         GLFW.glfwSetFramebufferSizeCallback(handle, (h, w, hh) -> requestRender());
         GLFW.glfwSetWindowSizeCallback(handle, (h, w, hh) -> {
-            if (w > 0 && hh > 0) {
-                width = w;
-                height = hh;
-                deliver(JXInputEvent.window(JXInputEvent.Kind.RESIZE, w, hh));
+            if (w > 0 && hh > 0 && syncMetrics(h, false)) {
+                deliver(JXInputEvent.window(JXInputEvent.Kind.RESIZE, width, height)); // logical pixels
+            }
+            requestRender();
+        });
+        // The window moved to a monitor with another scale (or the user changed it): the logical size, the
+        // minimum size and the cursor conversion follow. Windows resizes the window itself, keeping its logical size.
+        GLFW.glfwSetWindowContentScaleCallback(handle, (h, sx, sy) -> {
+            float resolved = JXScale.resolve(JXScale.forced(), sx, sy);
+            if (resolved != scale) {
+                scale = resolved;
+                if (minWidth > 0 || minHeight > 0) {
+                    applyLogicalSize(h, false);
+                }
+                syncMetrics(h, true);
             }
             requestRender();
         });
@@ -519,7 +663,9 @@ public final class JXWindow implements AutoCloseable {
                 dispose();
             }
         });
-        GLFW.glfwSetCursorPosCallback(handle, (h, px, py) -> {
+        GLFW.glfwSetCursorPosCallback(handle, (h, rawX, rawY) -> {
+            double px = rawX * toLogicalX; // window units to logical pixels
+            double py = rawY * toLogicalY;
             cursorX = px;
             cursorY = py;
             if (inputListener != null) {
@@ -547,6 +693,8 @@ public final class JXWindow implements AutoCloseable {
             double[] px = new double[1];
             double[] py = new double[1];
             GLFW.glfwGetCursorPos(h, px, py);
+            px[0] *= toLogicalX; // window units to logical pixels
+            py[0] *= toLogicalY;
             cursorX = px[0];
             cursorY = py[0];
             if (action == GLFW.GLFW_PRESS) {
@@ -713,15 +861,12 @@ public final class JXWindow implements AutoCloseable {
         if (!renderRequested.getAndSet(false)) {
             return;
         }
-        int[] fbWidth = new int[1];
-        int[] fbHeight = new int[1];
-        int[] winWidth = new int[1];
-        int[] winHeight = new int[1];
-        GLFW.glfwGetFramebufferSize(window, fbWidth, fbHeight);
-        GLFW.glfwGetWindowSize(window, winWidth, winHeight);
-        if (fbWidth[0] <= 0 || fbHeight[0] <= 0 || winWidth[0] <= 0 || winHeight[0] <= 0) {
+        if (!syncMetrics(window, true)) {
             return; // minimized
         }
+        float frameScale = scale;
+        int logicalWidth = width;
+        int logicalHeight = height;
         if (frameIntervalNanos > 0) {
             // no vertical sync without OpenGL: at most one frame per refresh of the monitor
             long now = System.nanoTime();
@@ -740,10 +885,10 @@ public final class JXWindow implements AutoCloseable {
         Object lock = externalLock;
         if (lock != null) {
             synchronized (lock) {
-                backend.render(root, fbWidth[0], fbHeight[0], winWidth[0], winHeight[0]);
+                backend.render(root, fbWidth, fbHeight, logicalWidth, logicalHeight, frameScale);
             }
         } else {
-            backend.render(root, fbWidth[0], fbHeight[0], winWidth[0], winHeight[0]);
+            backend.render(root, fbWidth, fbHeight, logicalWidth, logicalHeight, frameScale);
         }
         if (frameIntervalNanos == 0) {
             GLFW.glfwSwapBuffers(window);
@@ -808,7 +953,11 @@ public final class JXWindow implements AutoCloseable {
 
     /** Paints one frame into the current OpenGL context. Display thread only. */
     private interface Backend {
-        void render(JXNativeNode root, int fbWidth, int fbHeight, int winWidth, int winHeight);
+        /**
+         * Paints a {@code fbWidth x fbHeight} physical framebuffer; the tree is laid out in
+         * {@code winWidth x winHeight} logical pixels, each {@code scale} physical pixels wide.
+         */
+        void render(JXNativeNode root, int fbWidth, int fbHeight, int winWidth, int winHeight, float scale);
 
         void close();
     }
@@ -822,17 +971,13 @@ public final class JXWindow implements AutoCloseable {
         private int height;
 
         @Override
-        public void render(JXNativeNode root, int fbWidth, int fbHeight, int winWidth, int winHeight) {
+        public void render(JXNativeNode root, int fbWidth, int fbHeight, int winWidth, int winHeight, float scale) {
             if (surface == null || fbWidth != width || fbHeight != height) {
                 recreateSurface(fbWidth, fbHeight);
             }
             context.resetAll(); // several windows share the thread: GL state may belong to another context's last frame
             if (root != null) {
-                io.github.humbleui.skija.Canvas canvas = surface.getCanvas();
-                canvas.save();
-                canvas.scale((float) fbWidth / winWidth, (float) fbHeight / winHeight);
-                JXSkiaRenderer.paint(root, canvas, winWidth, winHeight);
-                canvas.restore();
+                JXSkiaRenderer.paint(root, surface.getCanvas(), winWidth, winHeight, scale);
             }
             context.flush();
         }
@@ -881,11 +1026,11 @@ public final class JXWindow implements AutoCloseable {
         }
 
         @Override
-        public void render(JXNativeNode root, int fbWidth, int fbHeight, int winWidth, int winHeight) {
+        public void render(JXNativeNode root, int fbWidth, int fbHeight, int winWidth, int winHeight, float scale) {
             if (root != null) {
                 root.layoutForBackend(Math.max(1, winWidth), Math.max(1, winHeight));
             }
-            int rects = frame.paint(root, fbWidth, fbHeight, (float) fbWidth / winWidth);
+            int rects = frame.paint(root, fbWidth, fbHeight, scale);
             if (exposed) {
                 exposed = false;
                 whole[2] = fbWidth;
@@ -922,7 +1067,7 @@ public final class JXWindow implements AutoCloseable {
         }
 
         @Override
-        public void render(JXNativeNode root, int fbWidth, int fbHeight, int winWidth, int winHeight) {
+        public void render(JXNativeNode root, int fbWidth, int fbHeight, int winWidth, int winHeight, float scale) {
             int background = JXNanoVGRenderer.BACKGROUND;
             GL11.glViewport(0, 0, fbWidth, fbHeight);
             GL11.glClearColor(((background >> 16) & 0xFF) / 255.0f, ((background >> 8) & 0xFF) / 255.0f,
@@ -931,7 +1076,8 @@ public final class JXWindow implements AutoCloseable {
             if (root == null) {
                 return;
             }
-            NanoVG.nvgBeginFrame(vg, winWidth, winHeight, (float) fbWidth / winWidth);
+            // the view is the framebuffer divided by the ratio, not the rounded-up logical size: an exact mapping
+            NanoVG.nvgBeginFrame(vg, fbWidth / scale, fbHeight / scale, scale);
             JXNanoVGRenderer.paint(root, vg, color, hasFont, hasBold, winWidth, winHeight);
             NanoVG.nvgEndFrame(vg);
         }

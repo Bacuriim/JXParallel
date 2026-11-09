@@ -69,6 +69,28 @@ properties, bindings and animations behave as before; only the scene graph is no
 - bounded LRU resource byte cache
 - independent XML markup loader with external-entity protection
 
+## HiDPI
+
+`JXWindow` is DPI-aware. Layout, hit-testing and everything the application sees (`getWidth`, `getHeight`,
+`setSize`, `setMinSize`, pointer coordinates, `RESIZE` events, `screenBounds`) are in logical pixels; the
+framebuffer is in physical pixels. `JXWindow.getScale()` is physical pixels per logical pixel (1.5 at 150%).
+
+- the scale is the window's monitor content scale (`glfwGetWindowContentScale`), re-read when the window
+  moves to another monitor (`glfwSetWindowContentScaleCallback`), or `-Djx.scale=1.5` (also `150%`; 0.25 to 8)
+  to force it for every window; the logic is in `JXScale`, free of GLFW and unit-tested
+- logical size is `ceil(framebuffer / scale)`; the cursor is converted with the measured
+  `framebuffer / window` ratio, so the same code serves Windows and X11 (window units are physical pixels) and
+  macOS and Wayland (window units are points); `GLFW_SCALE_TO_MONITOR` is not used, the window size is
+  converted explicitly after the target monitor is known (also for `-Djx.monitor` and `-Djx.scale`)
+- Skia scales the canvas (`JXSkiaRenderer.paint(root, canvas, w, h, scale)`), NanoVG passes the scale as
+  `devicePixelRatio` to `nvgBeginFrame`, the software painter multiplies coordinates and rasterizes glyphs at
+  `size * scale`; text and shapes are drawn at the physical resolution, not enlarged
+- at scale 1 nothing changes: the goldens (`*-paint.txt`, `controls-skia.png`) are untouched
+- pixel snapping stays in logical pixels (JavaFX 21 algorithms at snap scale 1, in `JXBoxLayout` and
+  `JXGridLayout`): at 150% a border can sit on a half physical pixel. Snapping to physical pixels would change
+  layout results and the text measures that depend on them, and was left out
+- not verified on a real HiDPI display or with a monitor change (see the changelog entry)
+
 ## Current limitations
 
 - translate, scale and rotate are kept as values but not drawn (only opacity is); shape
