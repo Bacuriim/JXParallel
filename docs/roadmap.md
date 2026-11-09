@@ -1,117 +1,92 @@
 # JXParallel roadmap
 
-## Phase 1 — Core runtime
+Each phase below says what exists in the repository now and what is still open. The project is
+pre-1.0. The overview table is in the README ("Project status"); the JXForge widget checklist is in
+[jxforge-1.0.md](jxforge-1.0.md).
 
-Focus: scheduler, workers, queue, configuration, lifecycle, metrics.
+## Phase 1: core runtime (done)
 
-Status: completed as a working baseline.
+`jxparallel-core`: an adaptive worker pool (`AdaptiveWorkerPool`) with a bounded queue and four queue
+policies (`QueuePolicy`), `start`/`shutdown`/`shutdownNow`, task priorities, timeouts and cancellation
+(`Task`, `TaskPriority`, `CancellationToken`), configuration with a fixed precedence and a
+`jx-parallel.config` file ([configuration.md](configuration.md)), and metrics (`RuntimeMetrics`).
 
-### Goals
-- adaptive worker pool with bounded queue
-- lifecycle with start/shutdown/shutdownNow
-- task priorities and cancellation token
-- config precedence and file-based defaults
-- observability via metrics
+## Phase 2: lightweight infrastructure (done)
 
-## Phase 2 — Lightweight infrastructure
+Properties (`JXProperty` and its typed subclasses), `JXObservableList`, events (`JXEvent`,
+`JXEventDispatcher`) and the declarative model (`JXElement`, `JXComponent`, `JXState`, `JXLayouts`,
+`JXControls`; [ui-model.md](ui-model.md)), all in `jxparallel-core`.
 
-Focus: property system, events, observable collections, layout primitives.
+## Phase 3: JavaFX bridge (done)
 
-Status: implemented in the foundation package.
+`jxparallel-javafx`: `JXFxDispatcher` and `JXParallelFx` send work to the one JavaFX application
+thread and background work to the pool. Built with `-Plegacy-javafx`.
 
-### Goals
-- JXProperty family
-- listener registration with low overhead
-- observable collection support
-- minimal allocations and lazy creation
+## Phase 4: controls and regions (done, in three forms)
 
-## Phase 3 — JavaFX bridge
+- JavaFX wrappers in `jxparallel-javafx`: fifteen controls, `JXListView` and seven layouts, each
+  holding a real JavaFX node ([compatibility.md](compatibility.md)). The visual layer is in
+  [modern-ui.md](modern-ui.md).
+- Native components in `jxparallel-ui`: `JXLabel`, `JXButton`, `JXTextField`, `JXTextArea`,
+  `JXPasswordField`, `JXCheckBox`, `JXComboBox`, `JXSlider`, `JXProgressBar`, `JXToggleButton`
+  and `JXPane`, which return elements the native renderer draws.
+- The native toolkit itself and JXML, which carry the widgets in practice: the JXForge schema has
+  95 tags, among them layouts, text and input controls, buttons, pickers, lists, tables, trees, menus and
+  dialogs ([native-ui.md](native-ui.md), [jxforge.md](jxforge.md)). The planned `JXParent` and `JXRegion`
+  classes were not created; the element model replaced them.
 
-Focus: FX thread dispatch, scene integration, compatibility layer.
+## Phase 5: complex controls and virtualization (done for JXML and the native toolkit)
 
-Status: implemented as the JavaFX dispatcher bridge.
+Native `list`, `table`, `Tree` and `TreeTable` show only a window of rows (`first`, `rows`), with
+`Spinner`, `DatePicker`, `TimePicker`, `ColorPicker`, scroll panes, context menus, menu bars, dialogs,
+drawers and snack bars (overlays). The same controls for the JavaFX-compatible API (`jxparallel-fx`) are
+tracked in [native-ui-progress.md](native-ui-progress.md).
 
-### Goals
-- keep one JavaFX Application Thread only
-- background work routed to worker pool
-- UI updates routed via FX dispatcher
-- compatibility matrix for controls and behaviors
+Open: arrow-key navigation and hover in popups and menus; selection in text inputs of JXML screens;
+a `ListView` with columns and rows of different heights ([jxforge.md](jxforge.md), "Not done yet").
 
-## Phase 4 — Controls and regions
+## Phase 6: FXML loading and the resource cache (done, one item open)
 
-Focus: first components and reusable base classes.
+`FXMLLoaderService` in `jxparallel-fxml` loads FXML in parallel and caches each file as a pre-parsed
+template (`FxmlTemplate`), with `FXMLLoader` as the fallback and the cache strategies `NONE`, `LRU`, `TTL`
+and `LRU_TTL`. Every load builds a new scene graph, so nodes are never shared between parents.
 
-Status: broad initial compatibility bridge implemented.
+Open: preloading (there is no preload API), and compiling FXML files with JXForge so a JavaFX
+application moving to the native UI gets compiled screens without rewriting them.
 
-### Planned set
-- JXNode
-- JXParent
-- JXRegion
-- JXPane
-- JXLabel
-- JXButton
-- JXTextField
-- JXTextArea
-- JXComboBox
-- JXListView
+## Phase 7: testing and compatibility (in place)
 
-The initial bridge currently covers `JXLabel`, `JXButton`, `JXTextField`, and `JXTextArea`.
-These are documented as PARTIAL until an independent scene-graph implementation exists.
+JUnit 4 rule and JUnit 5 extension, Mockito and PowerMock helpers, jcstress thread-safety tests (profile
+`jcstress`), ArchUnit rules, property-based tests (jqwik), golden-image and paint-recording tests of
+the renderer, differential tests against JavaFX 21 and `FXMLLoader`, and a PIT mutation profile
+([testing-strategy.md](testing-strategy.md)). CI runs on Java 8 to 25, 32-bit and 64-bit
+([compatibility.md](compatibility.md#java-versions)).
 
-The first layout bridges (`JXPane`, `JXHBox`, and `JXVBox`) and the `JXListView` bridge are now
-available. `JXListView` relies on JavaFX's native virtualized cell implementation.
+Open: the JavaFX-compatible API has not been run on a large real application, and the golden images are
+drawn with the UI font of 64-bit Windows.
 
-The common control bridge now also covers check boxes, combo boxes, password fields, progress
-controls, radio/toggle buttons, sliders, tabs, scroll panes, and separators.
+## Phase 8: performance and maturity (in progress)
 
-## Phase 5 — Complex controls and virtualisation
+JMH benchmarks and a regression gate on ratios between benchmarks of the same run run in CI;
+the measurement reports with their data are in this folder (`*-2026-*.md` and the CSV files; the README
+links the main ones). A `release` profile builds sources, javadoc and signatures.
 
-Focus: list/table/tree-heavy controls.
+Open: a 1.0 release of JXForge (the README's quick start still builds it locally).
 
-Status: native virtualized `ListView` and `TableView` (cell pools, cell factories, sorting,
-selection, constrained columns), `Spinner`, `DatePicker`, scroll panes and context menus are
-implemented in the native mode of `jxparallel-fx` (phase 2b of the migration, see
-native-ui-progress.md). Trees and menu bars remain.
+## JXForge (done for the 1.0 widget checklist, further work open)
 
-### Planned set
-- JXTableView
-- JXTreeView
-- JXTreeTableView
-- JXSpinner
-- JXDatePicker
-- scroll and menu components
+The JXML language, interpreter, compiler, live view, command line, Maven plugin goals `generate` and
+`xsd`, and the widget checklist of [jxforge-1.0.md](jxforge-1.0.md) are implemented and tested. The
+XSD for IDEs is described in [jxforge-xsd.md](jxforge-xsd.md).
 
-## Phase 6 — FXML and resource cache
+Open ([jxforge.md](jxforge.md), "Not done yet"): events the renderer does not report, loading an image
+file for `Image`, shadows, `<For>` over a `Map`, a Gradle plugin, and animations and transitions (out of
+scope for 1.0).
 
-Focus: safe concurrent FXML loading and cache invalidation.
+## Not planned in this repository's current scope
 
-Status: implemented; preload support is still open.
-
-### Goals
-- JXFXMLLoader
-- LRU / TTL cache
-- preload support
-- resource cache and memory-safe invalidation
-
-The loader caches each FXML as a pre-parsed template (`FxmlTemplate`) rather than `Node`
-instances, with `FXMLLoader` as the fallback. Every load creates a new Scene Graph instance,
-avoiding illegal sharing of JavaFX nodes between parents.
-
-## Phase 7 — Testing and compatibility
-
-Focus: JUnit 4/5, Mockito, PowerMock, thread-safety and compatibility checks.
-
-Status: baseline in place; core, bridge, controls, cache, lifecycle, Mockito, JUnit, and API-shape tests are present.
-
-CI currently verifies Java 11, Java 17, and Java 21 for the complete UI reactor. Java 8 remains a
-core-runtime compatibility target
-until the JavaFX dependency profile is separated.
-
-## Phase 8 — Performance and open source maturity
-
-Focus: JMH benchmarks, docs, CI/CD, release readiness.
-
-Status: initial JMH scheduler baseline and CI workflow added.
+A platform screen-reader adapter: `JXAccessibilityTree` builds the tree of roles and names, and nothing
+passes it to the operating system yet.
 
 ## Design principle
 
