@@ -116,6 +116,35 @@ public final class JXNativeNode {
     java.util.List<JXNativeNode> dragPath;
     /** Where typing goes in a text input (see {@link JXChangeEvents}); -1 is the end. */
     int caret = -1;
+    /** The other end of the selection of a text input, from the caret; -1 when nothing is selected. */
+    int anchor = -1;
+    /** Text and caret before each edit of a text input (Ctrl+Z), and the ones undone (Ctrl+Y); made on the first edit. */
+    private java.util.Deque<Object[]> undo;
+    private java.util.Deque<Object[]> redo;
+    /** The pointer is over this node, or over a node inside it (see {@link #hoverPointer}). */
+    boolean hovered;
+
+    java.util.Deque<Object[]> undo() {
+        if (undo == null) {
+            undo = new java.util.ArrayDeque<Object[]>();
+        }
+        return undo;
+    }
+
+    java.util.Deque<Object[]> redo() {
+        if (redo == null) {
+            redo = new java.util.ArrayDeque<Object[]>();
+        }
+        return redo;
+    }
+
+    /** The clipboard of Ctrl+C, Ctrl+X and Ctrl+V in text inputs; null is the system's. Display thread only. */
+    static com.jxparallel.ui.input.JXClipboard clipboard;
+
+    /** Sets the clipboard text inputs copy to and paste from (null: the system's, through GLFW). */
+    public static void setClipboard(com.jxparallel.ui.input.JXClipboard value) {
+        clipboard = value;
+    }
     /** A press on a scroll bar grabbed its thumb; the drag that follows moves it (see {@link JXChangeEvents#drag}). */
     boolean dragThumb;
     /** Distance from the start of the grabbed thumb or divider to the pointer, along the axis. */
@@ -472,6 +501,52 @@ public final class JXNativeNode {
     private static boolean pressing;
     /** The button the last press armed; the release over it clicks it. */
     private static JXNativeNode armed;
+    /** The pointer is over {@link #armed}: it is drawn pressed. */
+    private static boolean armedInside;
+    /** The tooltip a window shows over everything ({text, x, y}, the window's coordinates), or null; see {@link JXPaint}. */
+    static Object[] shownTooltip;
+    /** The nodes {@link #hoverPointer} marked, the outermost first. */
+    private static List<JXNativeNode> hoverPath = new ArrayList<JXNativeNode>();
+
+    /**
+     * The pointer moved to (x, y) with no button held: the nodes under it are hovered (they answer {@code hover} true, so
+     * a button lightens) and the others no longer are. Returns whether that changed, so the window paints again.
+     */
+    public boolean hoverPointer(int px, int py) {
+        List<JXNativeNode> path = px < 0 || py < 0 ? new ArrayList<JXNativeNode>() : hitPath(px, py);
+        if (path.equals(hoverPath)) {
+            return false;
+        }
+        for (JXNativeNode node : hoverPath) {
+            node.hovered = false;
+        }
+        for (JXNativeNode node : path) {
+            node.hovered = true;
+        }
+        hoverPath = path;
+        revision++;
+        return true;
+    }
+
+    /** The deepest node under the pointer's last {@link #hoverPointer} that has a {@code tooltip}, or null. */
+    public static JXNativeNode hoveredTooltip() {
+        for (int i = hoverPath.size() - 1; i >= 0; i--) {
+            Object tip = hoverPath.get(i).props.get("tooltip");
+            if (tip instanceof String && !((String) tip).isEmpty()) {
+                return hoverPath.get(i);
+            }
+        }
+        return null;
+    }
+
+    /** The pointer moved to (x, y) with the button held: an armed button is drawn pressed only while the pointer is on it. */
+    public void movePointer(int px, int py) {
+        boolean inside = armed != null && armed.contains(px, py);
+        if (inside != armedInside) {
+            armedInside = inside;
+            revision++;
+        }
+    }
 
     /**
      * As {@link #routePointer}, for a window that also reports the release ({@link #releasePointer}): a button, toggle,
@@ -485,6 +560,7 @@ public final class JXNativeNode {
             return routePointer(event);
         } finally {
             pressing = false;
+            armedInside = armed != null;
         }
     }
 
@@ -492,9 +568,47 @@ public final class JXNativeNode {
     public void releasePointer(JXPointerEvent event) {
         JXNativeNode node = armed;
         armed = null;
+        armedInside = false;
         if (node != null && node.contains(event.getX(), event.getY())) {
             revision++;
             node.dispatchPointer(event);
+        }
+    }
+
+    /** The caret index of a text input under the event's position. */
+    private int textIndexAt(JXPointerEvent event) {
+        return "textarea".equals(type) ? JXTextHit.areaIndex(this, event.getX(), event.getY()) : JXTextHit.fieldIndex(this, event.getX());
+    }
+
+    /**
+     * A press in a text input: one click puts the caret where it lands, a double click selects the word there (the
+     * password field: everything), a triple click everything (a line of a text area). The drag that follows selects.
+     */
+    private void placeCaret(JXPointerEvent event) {
+        String text = props.get("value") == null ? "" : String.valueOf(props.get("value"));
+        int at = textIndexAt(event);
+        if (event.getClickCount() == 2 && !"password".equals(type)) {
+            int start = at;
+            int end = at;
+            while (start > 0 && Character.isLetterOrDigit(text.charAt(start - 1))) {
+                start--;
+            }
+            while (end < text.length() && Character.isLetterOrDigit(text.charAt(end))) {
+                end++;
+            }
+            anchor = start;
+            caret = end;
+        } else if (event.getClickCount() >= 2) {
+            int start = "textarea".equals(type) ? text.lastIndexOf('\n', Math.max(0, at - 1)) + 1 : 0;
+            int end = "textarea".equals(type) && text.indexOf('\n', at) >= 0 ? text.indexOf('\n', at) : text.length();
+            anchor = start;
+            caret = end;
+        } else {
+            caret = at;
+            anchor = -1;
+        }
+        if (anchor == caret) {
+            anchor = -1;
         }
     }
 
@@ -712,16 +826,27 @@ public final class JXNativeNode {
 
     public Object getProperty(String name) {
         Object value = props.get(name);
-        if (value == null && this == focusOwner) { // the window's focus, when the application does not draw its own
+        if (value != null) {
+            return value;
+        }
+        if (this == focusOwner) { // the window's focus, when the application does not draw its own
             if ("focused".equals(name)) {
                 return Boolean.TRUE;
             }
-            if ("caret".equals(name) && ("input".equals(type) || "password".equals(type) || "textarea".equals(type))) {
-                String text = String.valueOf(props.get("value") == null ? "" : props.get("value"));
-                return Integer.valueOf(caret < 0 ? text.length() : Math.min(caret, text.length()));
+            boolean text = "input".equals(type) || "password".equals(type) || "textarea".equals(type);
+            if (text && ("caret".equals(name) || "anchor".equals(name) && anchor >= 0)) {
+                int length = props.get("value") == null ? 0 : String.valueOf(props.get("value")).length();
+                int at = "anchor".equals(name) ? anchor : caret < 0 ? length : caret;
+                return Integer.valueOf(Math.min(at, length));
             }
         }
-        return value;
+        if (hovered && "hover".equals(name)) {
+            return Boolean.TRUE;
+        }
+        if (this == armed && armedInside && "pressed".equals(name)) {
+            return Boolean.TRUE;
+        }
+        return null;
     }
 
     /** The node that has the keyboard focus of the window (see {@link #setFocusOwner}); display thread only. */
@@ -956,10 +1081,8 @@ public final class JXNativeNode {
             armed = this; // acts on the release (releasePointer)
             return;
         }
-        if ("input".equals(type) || "password".equals(type)) {
-            caret = JXTextHit.fieldIndex(this, event.getX()); // the caret goes where the text was clicked
-        } else if ("textarea".equals(type)) {
-            caret = JXTextHit.areaIndex(this, event.getX(), event.getY());
+        if ("input".equals(type) || "password".equals(type) || "textarea".equals(type)) {
+            placeCaret(event);
         }
         if (JXChangeEvents.close(this, event)) {
             return; // the close icon of a chip or a tab is not a click on the chip or the bar
@@ -992,6 +1115,13 @@ public final class JXNativeNode {
         }
         if (barDrag != 0) {
             JXScrolling.dragBar(this, event); // a pane's bar needs no onChange
+            return;
+        }
+        if ("input".equals(type) || "password".equals(type) || "textarea".equals(type)) {
+            if (anchor < 0) {
+                anchor = caret; // the drag selects from where the press put the caret
+            }
+            caret = textIndexAt(event);
             return;
         }
         JXChangeEvents.drag(this, event);

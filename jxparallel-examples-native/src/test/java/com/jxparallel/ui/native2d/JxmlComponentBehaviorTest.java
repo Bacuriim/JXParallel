@@ -100,6 +100,34 @@ class JxmlComponentBehaviorTest {
             pointerX = x;
             pointerY = y;
             dragTo(x, y);
+            root.movePointer(x, y);
+        }
+
+        /** A double (2) or triple (3) click at (x, y): GLFW counts the presses, the last one carries the count. */
+        void clicks(int x, int y, int count) {
+            for (int i = 1; i <= count; i++) {
+                pointerX = x;
+                pointerY = y;
+                JXNativeNode hit = root.pressPointer(new JXPointerEvent(x, y, 0, i));
+                if (hit != null) {
+                    focused = hit;
+                    JXNativeNode.setFocusOwner(hit);
+                }
+                refresh();
+                release();
+            }
+        }
+
+        /** A key with Shift ({@link JXInputEvent#SHIFT}) and Ctrl ({@link JXInputEvent#CONTROL}) held. */
+        void key(int code, int modifiers) {
+            root.routeKey(new JXKeyEvent(code, '\0', modifiers), focused);
+            refresh();
+        }
+
+        /** The pointer moves to (x, y) with no button held. */
+        void hover(int x, int y) {
+            root.hoverPointer(x, y);
+            refresh();
         }
 
         JXNativeNode click(int x, int y) {
@@ -1001,6 +1029,156 @@ class JxmlComponentBehaviorTest {
             ui.root.tickOverlays(5000);
             ui.refresh();
             assertTrue(!ui.c.getSnack(), "it asks to close after its duration");
+        }
+    }
+
+    // ---- selection, clipboard, undo, hover, tooltips ---------------------------------------------------
+
+    @Nested
+    class SelectionAndHover {
+        private static final int SHIFT = JXInputEvent.SHIFT;
+        private static final int CTRL = JXInputEvent.CONTROL;
+        private final String[] clipboard = {null};
+
+        @org.junit.jupiter.api.BeforeEach
+        void fakeClipboard() {
+            JXNativeNode.setClipboard(new com.jxparallel.ui.input.JXClipboard() {
+                @Override
+                public String getText() {
+                    return clipboard[0];
+                }
+
+                @Override
+                public void setText(String value) {
+                    clipboard[0] = value;
+                }
+            });
+        }
+
+        @org.junit.jupiter.api.AfterEach
+        void systemClipboard() {
+            JXNativeNode.setClipboard(null);
+        }
+
+        private Ui typed(String xml, String text) {
+            Ui ui = new Ui(xml);
+            ui.click(ui.find(xml.contains("PasswordField") ? "password" : "input"));
+            ui.type(text);
+            return ui;
+        }
+
+        @Test
+        void shiftAndTheArrowsSelectAndTypingReplacesTheSelection() {
+            Ui ui = typed("<TextField text=\"@{name}\"/>", "hello world");
+            ui.key(HOME);
+            for (int i = 0; i < 5; i++) {
+                ui.key(RIGHT, SHIFT);
+            }
+            assertEquals(Integer.valueOf(0), ui.find("input").getProperty("anchor"), "the selection is drawn from 0");
+            ui.type("X");
+            assertEquals("X world", ui.c.getName());
+        }
+
+        @Test
+        void ctrlASelectsEverythingAndBackspaceClearsIt() {
+            Ui ui = typed("<TextField text=\"@{name}\"/>", "hello");
+            ui.key(65, CTRL);
+            ui.key(BACKSPACE);
+            assertEquals("", ui.c.getName());
+        }
+
+        @Test
+        void ctrlCCopiesCtrlXCutsAndCtrlVPastes() {
+            Ui ui = new Ui("<TextField text=\"@{name}\"/>\n<TextField text=\"@{other}\"/>");
+            ui.click(ui.find("input", 0));
+            ui.type("abc");
+            ui.key(65, CTRL);
+            ui.key(67, CTRL);
+            assertEquals("abc", clipboard[0], "Ctrl+C");
+            ui.click(ui.find("input", 1));
+            ui.key(86, CTRL);
+            assertEquals("abc", ui.c.getOther(), "Ctrl+V");
+            ui.key(65, CTRL);
+            ui.key(88, CTRL);
+            assertEquals("", ui.c.getOther(), "Ctrl+X removes it");
+            assertEquals("abc", clipboard[0]);
+        }
+
+        @Test
+        void aPasswordIsNotCopied() {
+            Ui ui = typed("<PasswordField text=\"@{secret}\"/>", "s3cr3t");
+            ui.key(65, CTRL);
+            ui.key(67, CTRL);
+            ui.key(88, CTRL);
+            assertNull(clipboard[0]);
+            assertEquals("s3cr3t", ui.c.getSecret());
+        }
+
+        @Test
+        void ctrlZUndoesAndCtrlYRedoes() {
+            Ui ui = typed("<TextField text=\"@{name}\"/>", "ab");
+            ui.key(90, CTRL);
+            assertEquals("a", ui.c.getName());
+            ui.key(90, CTRL);
+            assertEquals("", ui.c.getName());
+            ui.key(89, CTRL);
+            assertEquals("a", ui.c.getName());
+            ui.type("c");
+            assertEquals("ac", ui.c.getName(), "typing after an undo goes on from there");
+        }
+
+        @Test
+        void aDoubleClickSelectsAWordAndATripleClickEverything() {
+            Ui ui = typed("<TextField text=\"@{name}\"/>", "hello world");
+            JXNativeNode field = ui.find("input");
+            int y = center(field)[1];
+            int x = field.getX();
+            while (JXTextHit.fieldIndex(field, x) < 8) {
+                x++;
+            }
+            ui.clicks(x, y, 2);
+            ui.type("X");
+            assertEquals("hello X", ui.c.getName(), "a double click selected world");
+            ui.clicks(x, y, 3);
+            ui.type("Y");
+            assertEquals("Y", ui.c.getName(), "a triple click selected everything");
+        }
+
+        @Test
+        void aDragSelectsTheTextItCrosses() {
+            Ui ui = typed("<TextField text=\"@{name}\"/>", "hello");
+            JXNativeNode field = ui.find("input");
+            int y = center(field)[1];
+            ui.press(field.getX() + 2, y);
+            ui.moveTo(field.getX() + field.getWidth() - 4, y);
+            ui.release();
+            ui.type("Z");
+            assertEquals("Z", ui.c.getName());
+        }
+
+        @Test
+        void theNodesUnderThePointerAreHoveredAndATooltipIsFound() {
+            Ui ui = new Ui("<Button text=\"Save\" tooltip=\"Save the file\" onAction=\"#click\"/>\n<Label text=\"plain\"/>");
+            JXNativeNode button = ui.find("button");
+            int[] c = center(button);
+            ui.hover(c[0], c[1]);
+            assertEquals(Boolean.TRUE, ui.find("button").getProperty("hover"), "drawn hovered");
+            assertEquals("Save the file", JXNativeNode.hoveredTooltip().getProperty("tooltip"));
+            JXNativeNode label = ui.find("#text");
+            ui.hover(center(label)[0], center(label)[1]);
+            assertNull(ui.find("button").getProperty("hover"), "no longer hovered");
+            assertNull(JXNativeNode.hoveredTooltip());
+        }
+
+        @Test
+        void aButtonIsDrawnPressedOnlyWhileThePointerIsOnIt() {
+            Ui ui = new Ui("<Button text=\"Save\" onAction=\"#click\"/>");
+            int[] c = center(ui.find("button"));
+            ui.press(c[0], c[1]);
+            assertEquals(Boolean.TRUE, ui.find("button").getProperty("pressed"));
+            ui.moveTo(ui.w - 3, ui.h - 3);
+            assertNull(ui.find("button").getProperty("pressed"), "slid off: drawn up again");
+            ui.release();
         }
     }
 }

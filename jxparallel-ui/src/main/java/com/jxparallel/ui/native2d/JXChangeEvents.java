@@ -324,38 +324,124 @@ final class JXChangeEvents {
         }
     }
 
+    private static final int KEY_A = 65;
+    private static final int KEY_C = 67;
+    private static final int KEY_V = 86;
+    private static final int KEY_X = 88;
+    private static final int KEY_Y = 89;
+    private static final int KEY_Z = 90;
+    /** Edits a text input remembers for Ctrl+Z. */
+    private static final int UNDO_LIMIT = 100;
+
+    /**
+     * Editing a text input: typing, Backspace, Delete and Enter (a text area) replace the selection, if any; the arrows,
+     * Home and End move the caret, and with Shift extend the selection from where it started; Ctrl+A selects everything,
+     * Ctrl+C, Ctrl+X and Ctrl+V copy, cut and paste (not the text of a password field), Ctrl+Z undoes and Ctrl+Y (or
+     * Ctrl+Shift+Z) redoes.
+     */
     private static void edit(JXNativeNode node, JXKeyEvent event, Consumer<Object> onChange) {
         String text = JXPaint.text(node, "value");
+        boolean area = "textarea".equals(node.getType());
+        boolean password = "password".equals(node.getType());
         int caret = Math.max(0, Math.min(text.length(), node.caret < 0 ? text.length() : node.caret));
+        int anchor = node.anchor < 0 ? caret : Math.min(node.anchor, text.length());
+        int from = Math.min(caret, anchor);
+        int to = Math.max(caret, anchor);
         char typed = event.getKeyChar();
         int code = event.getKeyCode();
+        boolean shift = event.isShiftDown();
+        String insert = null;
+        boolean move = true; // a key that moves the caret: Shift keeps the anchor, otherwise it follows
         String next = text;
-        if (typed >= 32 && typed != 127) {
-            next = text.substring(0, caret) + typed + text.substring(caret);
-            caret++;
-        } else if (code == ENTER && "textarea".equals(node.getType())) {
-            next = text.substring(0, caret) + '\n' + text.substring(caret);
-            caret++;
-        } else if (code == BACKSPACE && caret > 0) {
-            next = text.substring(0, caret - 1) + text.substring(caret);
-            caret--;
-        } else if (code == DELETE && caret < text.length()) {
-            next = text.substring(0, caret) + text.substring(caret + 1);
-        } else if ((code == UP || code == DOWN) && "textarea".equals(node.getType())) {
+        if (event.isControlDown()) {
+            move = false;
+            if (code == KEY_A) {
+                anchor = 0;
+                caret = text.length();
+            } else if ((code == KEY_C || code == KEY_X) && from < to && !password) {
+                clipboard().setText(text.substring(from, to));
+                if (code == KEY_X) {
+                    insert = "";
+                }
+            } else if (code == KEY_V) {
+                String pasted = clipboard().getText();
+                insert = pasted == null ? "" : area ? pasted : pasted.replace("\r", "").replace('\n', ' ');
+            } else if (code == KEY_Z || code == KEY_Y) {
+                boolean undoing = code == KEY_Z && !shift; // Ctrl+Shift+Z and Ctrl+Y redo
+                java.util.Deque<Object[]> source = undoing ? node.undo() : node.redo();
+                java.util.Deque<Object[]> target = undoing ? node.redo() : node.undo();
+                if (!source.isEmpty()) {
+                    Object[] state = source.pop();
+                    target.push(new Object[] {text, Integer.valueOf(caret)});
+                    node.caret = (Integer) state[1];
+                    node.anchor = -1;
+                    onChange.accept(state[0]);
+                }
+                return;
+            }
+        } else if (typed >= 32 && typed != 127) {
+            insert = String.valueOf(typed);
+        } else if (code == ENTER && area) {
+            insert = "\n";
+        } else if (code == BACKSPACE) {
+            if (from < to) {
+                insert = "";
+            } else if (caret > 0) {
+                from = caret - 1;
+                to = caret;
+                insert = "";
+            }
+        } else if (code == DELETE) {
+            if (from < to) {
+                insert = "";
+            } else if (caret < text.length()) {
+                from = caret;
+                to = caret + 1;
+                insert = "";
+            }
+        } else if ((code == UP || code == DOWN) && area) {
             caret = JXTextHit.areaVertical(node, caret, code == UP ? -1 : 1); // the line above or below, same x
         } else if (code == LEFT) {
-            caret = Math.max(0, caret - 1);
+            caret = !shift && from < to ? from : Math.max(0, caret - 1); // a selection collapses to its start
         } else if (code == RIGHT) {
-            caret = Math.min(text.length(), caret + 1);
+            caret = !shift && from < to ? to : Math.min(text.length(), caret + 1);
         } else if (code == HOME) {
-            caret = 0;
+            caret = area ? JXTextHit.areaLineOf(node, caret)[1] : 0;
         } else if (code == END) {
-            caret = text.length();
+            caret = area ? lineEnd(text, caret) : text.length();
+        } else {
+            move = false;
+        }
+        if (insert != null) {
+            next = text.substring(0, from) + insert + text.substring(to);
+            caret = from + insert.length();
+            anchor = caret;
+        } else if (move && !shift) {
+            anchor = caret;
         }
         node.caret = caret;
+        node.anchor = anchor == caret ? -1 : anchor;
         if (!next.equals(text)) {
+            java.util.Deque<Object[]> undo = node.undo();
+            undo.push(new Object[] {text, Integer.valueOf(Math.min(from, text.length()))});
+            if (undo.size() > UNDO_LIMIT) {
+                undo.removeLast();
+            }
+            node.redo().clear();
             onChange.accept(next);
         }
+    }
+
+    /** The index of the end of the line of a text area that {@code index} is on (the next line break, or the end). */
+    private static int lineEnd(String text, int index) {
+        int end = text.indexOf('\n', index);
+        return end < 0 ? text.length() : end;
+    }
+
+    /** The clipboard Ctrl+C, Ctrl+X and Ctrl+V use: the system's, unless a host or a test set another. */
+    static com.jxparallel.ui.input.JXClipboard clipboard() {
+        com.jxparallel.ui.input.JXClipboard c = JXNativeNode.clipboard;
+        return c != null ? c : JXWindow.systemClipboard();
     }
 
     /** Up and Down change a spinner by its {@code step} (1 if none) within {@code min} and {@code max}. */

@@ -527,13 +527,18 @@ public final class JXWindow implements AutoCloseable {
                         0, buttonsDown != 0, path(px, py)));
             } else if (dragNode != null && buttonsDown != 0) {
                 dragNode.dispatchDrag(new JXPointerEvent((int) px, (int) py, GLFW.GLFW_MOUSE_BUTTON_LEFT));
+                root.movePointer((int) px, (int) py);
                 requestRender();
+            } else if (root != null && buttonsDown == 0) {
+                hover((int) px, (int) py);
             }
         });
         GLFW.glfwSetCursorEnterCallback(handle, (h, entered) -> {
             if (!entered && inputListener != null) {
                 deliver(JXInputEvent.pointer(JXInputEvent.Kind.EXIT, cursorX, cursorY, 0, 0, 0, buttonsDown != 0,
                         new ArrayList<JXNativeNode>()));
+            } else if (!entered && root != null) {
+                hover(-1, -1); // the pointer left the window: nothing is hovered
             }
         });
         GLFW.glfwSetMouseButtonCallback(handle, (h, glfwButton, action, mods) -> {
@@ -564,6 +569,7 @@ public final class JXWindow implements AutoCloseable {
                 return;
             }
             boolean secondary = button == JXInputEvent.BUTTON_SECONDARY; // opens a context menu
+            hideTooltip(); // a press or a release puts the tooltip away
             if (button == JXInputEvent.BUTTON_PRIMARY && action == GLFW.GLFW_RELEASE && root != null) {
                 root.releasePointer(new JXPointerEvent((int) px[0], (int) py[0], glfwButton)); // a button clicks on the release
                 requestRender();
@@ -573,7 +579,7 @@ public final class JXWindow implements AutoCloseable {
                 return;
             }
             // the overlays first: a press outside an open popup or menu closes it, one inside a dialog stays in it
-            JXNativeNode hit = root.pressPointer(new JXPointerEvent((int) px[0], (int) py[0], glfwButton));
+            JXNativeNode hit = root.pressPointer(new JXPointerEvent((int) px[0], (int) py[0], glfwButton, clickCount));
             if (hit != null && !secondary) {
                 focus(hit);
                 dragNode = hit; // a scroll bar's thumb or a split pane's divider follows the pointer until the release
@@ -601,8 +607,10 @@ public final class JXWindow implements AutoCloseable {
                         focus(next);
                     }
                 } else {
-                    root.routeKey(new JXKeyEvent(key, '\0'), focusedNode); // Escape and Enter belong to an open overlay first
+                    // Escape and Enter belong to an open overlay first; Shift and Ctrl select, copy, paste and undo text
+                    root.routeKey(new JXKeyEvent(key, '\0', JXKeys.modifiers(mods)), focusedNode);
                 }
+                hideTooltip();
                 requestRender();
             }
         });
@@ -616,6 +624,36 @@ public final class JXWindow implements AutoCloseable {
                 requestRender();
             }
         });
+    }
+
+    /** How long the pointer rests on a node with a {@code tooltip} before it shows, as JavaFX's default (milliseconds). */
+    private static final long TOOLTIP_DELAY = 600;
+    /** The node whose tooltip waits to show (or shows), and when it is due. */
+    private JXNativeNode tooltipNode;
+    private long tooltipDue;
+
+    /** The pointer is at (x, y) with no button held (-1: it left): hover states, and the tooltip of what is under it. */
+    private void hover(int x, int y) {
+        if (root.hoverPointer(x, y)) {
+            requestRender();
+        }
+        JXNativeNode tip = x < 0 ? null : JXNativeNode.hoveredTooltip();
+        if (tip != tooltipNode) {
+            hideTooltip();
+            tooltipNode = tip;
+            if (tip != null) {
+                tooltipDue = System.nanoTime() + TOOLTIP_DELAY * 1_000_000L;
+                JXDisplay.wakeAt(tooltipDue);
+            }
+        }
+    }
+
+    private void hideTooltip() {
+        if (JXNativeNode.shownTooltip != null) {
+            JXNativeNode.shownTooltip = null;
+            requestRender();
+        }
+        tooltipNode = null;
     }
 
     /** Gives the keyboard focus to {@code node} (null: none): keys go there, and it draws its focus ring and caret. */
@@ -656,6 +694,11 @@ public final class JXWindow implements AutoCloseable {
     void frameIfRequested() {
         if (window == MemoryUtil.NULL) {
             return;
+        }
+        if (tooltipNode != null && JXNativeNode.shownTooltip == null && System.nanoTime() >= tooltipDue) {
+            // the pointer rested on it: the tooltip shows below and right of the pointer, until it moves off or presses
+            JXNativeNode.shownTooltip = new Object[] {tooltipNode.getProperty("tooltip"), (int) cursorX + 12, (int) cursorY + 20};
+            renderRequested.set(true);
         }
         if (timedOverlay && root != null) {
             // a snack bar waits for its duration: ask it at every turn of the loop; when none waits any more, draw the result

@@ -148,6 +148,7 @@ public final class JxmlSchema {
         layout("opacity", "opacity", AttrType.DOUBLE, true);
         layout("hidden", "hidden", AttrType.BOOLEAN, true);
         layout("mouseTransparent", "mouseTransparent", AttrType.BOOLEAN, false);
+        layout("tooltip", "tooltip", AttrType.STRING, true); // shown when the pointer rests on the element
         // a click: the renderer calls the handler of the deepest element under the pointer (JXNativeNode.dispatchPointer)
         layout("onAction", "onAction", AttrType.HANDLER, false);
         layout("background", "background", AttrType.COLOR, true);

@@ -140,6 +140,7 @@ inside a `Border`), and these, which the renderer reads from any node:
 | `opacity` | number 0..1 | how opaque the node and everything below it is painted |
 | `hidden` | `true` / `false` | not painted and not hit, but it keeps its place in the layout |
 | `mouseTransparent` | `true` / `false` | the pointer goes through it to what is behind |
+| `tooltip` | text | shown in a box by the pointer when it rests on the element for 600 ms (the deepest element that has one), until the pointer moves off, presses or a key goes down |
 | `onAction` | `#method` | a click on it; the renderer calls the handler of the deepest element under the pointer. A `Button`, `ToggleButton`, `RadioButton`, `Hyperlink`, `CheckBox`, `Switch` or `Chip` acts when the mouse button is released over it (sliding off cancels); Space or Enter on a focused button, toggle, radio button or hyperlink is a click, and Enter elsewhere (but in a `TextArea`) presses the screen's `defaultButton` |
 | `background`, `borderColor` | color | `#RGB`, `#RRGGBB` or `#AARRGGBB` (a binding returns an ARGB `Integer`, or text like that) |
 | `backgroundRadius`, `borderRadius`, `borderWidth` | number | corner radii and border width of the two above |
@@ -296,7 +297,7 @@ text input its caret, without the screen holding that state.
 
 | Tag | New value passed | Reported when |
 |---|---|---|
-| `TextField`, `PasswordField`, `TextArea` | `String`, the whole text | typing, Backspace, Delete (a click puts the caret there; it moves with the arrows, Home and End, and Up / Down change the line of a `TextArea`; Enter adds a line in a `TextArea`, and the wheel scrolls its lines; no selection yet) |
+| `TextField`, `PasswordField`, `TextArea` | `String`, the whole text | typing, Backspace, Delete (a click puts the caret there; it moves with the arrows, Home and End, and Up / Down change the line of a `TextArea`; Enter adds a line in a `TextArea`, and the wheel scrolls its lines; Shift with the arrows, Home and End, a drag, a double click (a word) and a triple click (everything, or a line of a `TextArea`) select, and typing replaces the selection; Ctrl+A selects all, Ctrl+C / Ctrl+X / Ctrl+V copy, cut and paste with the system clipboard, but not a password; Ctrl+Z undoes, Ctrl+Y or Ctrl+Shift+Z redoes) |
 | `CheckBox` | `boolean` | click, or space |
 | `Slider` | `double` | click on the track, drag of the thumb, Left / Down and Right / Up (`blockIncrement`), Home / End |
 | `Spinner` | `double` | Up / Down arrows and a click on its arrow buttons (`step`), within `min` and `max` |
@@ -681,13 +682,12 @@ JXML screen with `new XView().build(controller)`, and JXML places a Java compone
 ## Not done yet
 
 - Events the renderer does not report, so no attribute exists for them: selection of lists and
-  tables (use a row's `onAction`), clicks on the buttons of a `Pagination`, and the
-  hover that would show a `Tooltip`. A `TitledPane` collapses when the application changes `expanded`
-  (its `onAction` tells it was clicked).
+  tables (use a row's `onAction`). A `TitledPane` collapses when the application changes `expanded`
+  (its `onAction` tells it was clicked). The `Tooltip` tag is a box drawn in place; the `tooltip` attribute is the one
+  that shows on hover.
 - Loading an image file for `Image`: it takes the pixels an application decoded.
 - Shadows (for `Card`) and the Material look of the bars: they are rows with a background.
 - A `ListView` with columns, and rows of different heights.
-- Selection in text inputs.
 - Keyboard navigation and hover in the popups and menus (see [Overlays](#overlays)), and a recursive model for `Tree`
   (see [Trees](#trees)).
 - `<For>` over a `Map`, and the loop index as a variable.
