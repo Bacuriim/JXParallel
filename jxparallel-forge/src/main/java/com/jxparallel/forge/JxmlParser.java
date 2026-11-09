@@ -63,7 +63,8 @@ final class JxmlParser {
                     Node node = new Node(qName, locator == null ? 0 : locator.getLineNumber(), source);
                     for (int i = 0; i < attributes.getLength(); i++) {
                         String name = attributes.getQName(i);
-                        if (!name.equals("xmlns") && !name.startsWith("xmlns:")) {
+                        // xmlns and xsi:noNamespaceSchemaLocation point an editor at jxml.xsd; they are not attributes of the tag
+                        if (!name.equals("xmlns") && !name.startsWith("xmlns:") && !name.startsWith("xsi:")) {
                             node.attrs.put(name, attributes.getValue(i));
                         }
                     }
