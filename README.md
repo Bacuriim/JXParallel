@@ -548,7 +548,7 @@ JMH gate, ArchUnit, mutation testing): [docs/testing-strategy.md](docs/testing-s
 | Native window (Skia 64-bit, NanoVG 32-bit) | Working; Modena and Material looks |
 | JXForge (JXML compiler, interpreter, Maven plugin, live view) | Implemented and tested; 91 widgets, loops, conditions, styles, themes, includes |
 | Incremental UI updates | Implemented: memoized render and in-place reconciliation |
-| Virtualized list, table, tree and tree table | Implemented |
+| Virtualized list, table, tree and tree table | Implemented, with single and multiple row selection by mouse and keyboard |
 | Overlays (dialogs, menus, pickers, snack bars) | Implemented; hover and keyboard navigation in combo lists and menus (not yet in the calendar and the time and color grids) |
 | JavaFX-compatible API in native mode | Implemented and tested headless; not yet run on a large real application |
 | CSS | Subset: selectors with specificity, pseudo-classes, looked-up colors, inline styles |
