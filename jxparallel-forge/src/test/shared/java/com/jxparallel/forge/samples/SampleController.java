@@ -228,6 +228,26 @@ public class SampleController {
         scrolled = value;
     }
 
+    /** The selection of the lists, tables and trees: the row (-1 for none) and, in multiple mode, the rows. */
+    public int selected = 4;
+    public double[] picked = {1, 3};
+
+    public int getSelected() {
+        return selected;
+    }
+
+    public void setSelected(int value) {
+        selected = value;
+    }
+
+    public double[] getPicked() {
+        return picked;
+    }
+
+    public void setPicked(double[] value) {
+        picked = value;
+    }
+
     public int getLimit() {
         return limit;
     }

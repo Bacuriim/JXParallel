@@ -123,6 +123,12 @@ public final class JXNativeNode {
     private java.util.Deque<Object[]> redo;
     /** The pointer is over this node, or over a node inside it (see {@link #hoverPointer}). */
     boolean hovered;
+    /**
+     * Selection of a list, table or tree the renderer handles (see {@link JXSelection}): the row a Shift range starts at,
+     * and the row the arrow keys move from in multiple mode, -1 for none.
+     */
+    int selAnchor = -1;
+    int selCursor = -1;
 
     java.util.Deque<Object[]> undo() {
         if (undo == null) {
@@ -864,6 +870,11 @@ public final class JXNativeNode {
         }
     }
 
+    /** Whether a node of this type takes the keyboard focus on its own (lists and tables only do with a selection). */
+    static boolean takesFocus(String type) {
+        return FOCUSABLE.contains(type) || CLICKED_ON_RELEASE.contains(type);
+    }
+
     /** Types that take the keyboard focus, in tree order with Tab. */
     private static final java.util.Set<String> FOCUSABLE = new java.util.HashSet<String>(java.util.Arrays.asList(
             "input", "password", "textarea", "button", "toggle", "radio", "hyperlink", "checkbox", "switch", "chip", "select",
@@ -897,8 +908,8 @@ public final class JXNativeNode {
         if (this != scope && ("dialog".equals(t) || "drawer".equals(t) || "snackbar".equals(t) || "contextmenu".equals(t))) {
             return; // a layer is its own focus scope, and a closed one has nothing to focus
         }
-        if (FOCUSABLE.contains(t) && width > 0 && height > 0) {
-            out.add(this);
+        if ((FOCUSABLE.contains(t) || JXSelection.enabled(this)) && width > 0 && height > 0) {
+            out.add(this); // a list, table or tree whose selection the renderer handles takes the focus too
             return;
         }
         for (JXNativeNode child : children) {
@@ -1093,14 +1104,25 @@ public final class JXNativeNode {
         if (JXChangeEvents.disclosure(this, event)) {
             return; // the arrow of a tree row expands or collapses it; the rest of the row is a click on the row
         }
-        // Controls set onAction (JXButton, JXControls.button); onClick is for hand-built elements.
+        runAction(event);
+        JXChangeEvents.pointer(this, event);
+    }
+
+    /**
+     * Runs this node's click handler: {@code onClick} if it has one, else {@code onAction}. True when one ran. Controls
+     * set onAction (JXButton, JXControls.button); onClick is for hand-built elements.
+     */
+    @SuppressWarnings("unchecked")
+    boolean runAction(JXPointerEvent event) {
         Object handler = props.containsKey("onClick") ? props.get("onClick") : props.get("onAction");
         if (handler instanceof JXNativeEventHandler) {
             ((JXNativeEventHandler<JXPointerEvent>) handler).handle(event);
+            return true;
         } else if (handler instanceof Runnable) {
             ((Runnable) handler).run();
+            return true;
         }
-        JXChangeEvents.pointer(this, event);
+        return false;
     }
 
     /**

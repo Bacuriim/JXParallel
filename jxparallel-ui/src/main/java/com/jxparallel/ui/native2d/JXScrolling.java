@@ -110,7 +110,7 @@ final class JXScrolling {
      * Sets the offset of the node {@code path[i]} (clamped to what it can scroll to), as the wheel does: the node keeps it,
      * the layout and the overlays follow, {@code onScroll} hears of it. False when it stays where it is.
      */
-    private static boolean scrollTo(List<JXNativeNode> path, int i, double x, double y) {
+    static boolean scrollTo(List<JXNativeNode> path, int i, double x, double y) {
         JXNativeNode node = path.get(i);
         JXControlLayout.ScrollGeometry g = JXControlLayout.scrollGeometry(node);
         double[] r = range(node);

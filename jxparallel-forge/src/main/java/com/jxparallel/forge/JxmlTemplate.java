@@ -332,14 +332,16 @@ public final class JxmlTemplate implements JxmlView<Object> {
             }
         }
         int changes = 0;
+        java.util.Set<String> reporting = new java.util.HashSet<String>();
         for (Prop p : props) {
-            // onClose and the like also take a value, but they are not the change of the edited attribute
-            if ((p.kind == Kind.CHANGE && "onChange".equals(p.attr.name)) || p.kind == Kind.SETTER) {
+            // onClose and the like also take a value, but they are not the change of an edited attribute
+            if ((p.kind == Kind.CHANGE && tag.twoWay.containsValue(p.attr.name)) || p.kind == Kind.SETTER) {
                 changes++;
+                if (!reporting.add(p.attr.name)) { // the handler written, and again by a @{...} binding
+                    throw new JxmlException(source, node.line, "<" + tag.name + "> has both " + p.attr.name
+                            + " and a @{...} binding; use one");
+                }
             }
-        }
-        if (changes > 1) {
-            throw new JxmlException(source, node.line, "<" + tag.name + "> has both onChange and a @{...} binding; use one");
         }
         for (Prop p : props) {
             if ((tag.virtual || tag.tree) && p.kind == Kind.LITERAL && p.literal instanceof Double && !(((Double) p.literal) > 0)
@@ -606,9 +608,10 @@ public final class JxmlTemplate implements JxmlView<Object> {
             return;
         }
         if (value.startsWith("@{") && value.endsWith("}")) {
-            if (!attr.name.equals(tag.changeAttr)) {
+            String reported = tag.twoWay.get(attr.name);
+            if (reported == null) {
                 throw new JxmlException(source, line, "<" + tag.name + "> " + attr.name + " cannot be bound two ways with @{...}"
-                        + (tag.changeAttr == null ? "" : "; use " + tag.changeAttr + "=\"@{...}\""));
+                        + (tag.twoWay.isEmpty() ? "" : "; use " + String.join(" or ", tag.twoWay.keySet()) + "=\"@{...}\""));
             }
             String[] segments = segments(value.substring(2, value.length() - 1), value, source, line);
             String last = segments[segments.length - 1];
@@ -620,7 +623,7 @@ public final class JxmlTemplate implements JxmlView<Object> {
             if (read.path.length == 0) {
                 throw new JxmlException(source, line, "bad binding " + value + "; expected @{name} or @{a.b}, a property to set");
             }
-            JxmlSchema.Attr change = tag.attr("onChange");
+            JxmlSchema.Attr change = tag.attr(reported);
             out.add(read);
             out.add(new Prop(change, Kind.SETTER, null, read.root, java.util.Arrays.copyOf(read.path, read.path.length - 1),
                     "set" + Character.toUpperCase(last.charAt(0)) + last.substring(1), new String[0], false, source, line));

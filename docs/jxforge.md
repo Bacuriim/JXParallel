@@ -168,9 +168,9 @@ inside a `Border`), and these, which the renderer reads from any node:
 | `ProgressIndicator` | `indicator` | `progress` (negative: indeterminate) |
 | `Tooltip` | `tooltip` | `text` |
 | `Image` | `image` | `src` (a picture file), `pixels` (an `int[]` of ARGB), `imageWidth`, `imageHeight`, `fitWidth`, `fitHeight`, `preserveRatio` |
-| `ListView` | `list` | `items`, `var`, `type`, `key`, `first` (two ways: see [Lists and tables](#lists-and-tables)), `rows`, `cellHeight`, `onScroll`; one child, the row template |
+| `ListView` | `list` | `items`, `var`, `type`, `key`, `first` (two ways: see [Lists and tables](#lists-and-tables)), `rows`, `cellHeight`, `onScroll`, and the selection: `selected` (two ways), `selectionMode`, `selection` (two ways), `onSelect`, `onSelection`; one child, the row template |
 | `ListItem` | `cell` | `text`, `selected`, `odd`, `listFocused`, `alignment`, `onAction`; optionally one child, a graphic |
-| `TableView` | `table` | `items`, `var`, `type`, `key`, `first` (two ways), `onScroll`, `rows`, `rowHeight`, `columns`, `columnWidths`, `constrained`; one `TableRow` |
+| `TableView` | `table` | `items`, `var`, `type`, `key`, `first` (two ways), `onScroll`, `rows`, `rowHeight`, `columns`, `columnWidths`, `constrained`, the selection (as `ListView`); one `TableRow` |
 | `TableRow` | `tablerow` | `selected`, `odd`, `listFocused`; children are `TableCell`s |
 | `TableCell` | `cell` | like `ListItem`, with the table's cell look |
 | `Label` | `#text` | `text`, `wrapText`, `bold`, `fontSize`, `textFill` |
@@ -191,8 +191,8 @@ inside a `Border`), and these, which the renderer reads from any node:
 | `Modal` | `dialog` | `dismissible`, `padding`, `gap`, `alignment`, `fillWidth`, `showing`, `onShowing`; a column over a scrim; takes no room |
 | `Drawer` | `drawer` | `side` (`left`, `right`), `padding`, `gap`, `alignment`, `fillWidth`, `showing`, `onShowing`; a column over a scrim; takes no room |
 | `SnackBar` | `snackbar` | `message`, `action`, `onAction`, `duration`, `showing`, `onShowing`; takes no room |
-| `Tree` | `list` | `rowHeight`, `first` (two ways), `rows`; children are `TreeItem`s |
-| `TreeTable` | `table` | `rowHeight`, `first` (two ways), `rows`, `columns`, `columnWidths`, `constrained`; children are `TreeItem`s |
+| `Tree` | `list` | `rowHeight`, `first` (two ways), `rows`, the selection (as `ListView`); children are `TreeItem`s |
+| `TreeTable` | `table` | `rowHeight`, `first` (two ways), `rows`, `columns`, `columnWidths`, `constrained`, the selection (as `ListView`); children are `TreeItem`s |
 | `TreeItem` | `cell` | `text`, `expanded`, `selected`, `listFocused`, `values`, `onAction`, `onToggle`; children are `TreeItem`s |
 | `Separator` | `separator` | `orientation` |
 | `ProgressBar` | `progress` | `progress` |
@@ -311,6 +311,7 @@ text input its caret, without the screen holding that state.
 | `TabBar`, `Tabs` | `int`, the tab | click on another tab; `onClose` gets the index of the tab whose close icon was clicked |
 | `Pagination` | `int`, the page | click on a page number, or on the arrow before or after |
 | `ListView`, `TableView`, `Tree`, `TreeTable` | `int`, the row at the top (`first`) | the wheel or the scroll bar moved the viewport to another row |
+| `ListView`, `TableView`, `Tree`, `TreeTable` | `onSelect`: `int`, the row selected (-1: none); `onSelection`: `double[]`, the rows selected | a click or a key moved the selection (see [Selection](#selection-of-rows)) |
 
 ```xml
 <TextField text="${note}" onChange="#setNote"/>           <!-- controller.setNote(String) -->
@@ -328,7 +329,8 @@ text input its caret, without the screen holding that state.
   would for a call: `setVolume(double)` and `setVolume(Double)` do, `setVolume(int)` does not.
 - `@{path}` is the two-way shorthand, on the attribute that holds the edited value: `text` of the
   text inputs, `selected` of the check box, switch, chip, tab bar and tab pane, `current` of a pagination, `first`
-  of the lists, tables and trees, `value` of the others. It reads like `${path}`, and
+  of the lists, tables and trees (which also bind `selected` through `onSelect` and `selection` through `onSelection`,
+  each at the same time as `first`), `value` of the others. It reads like `${path}`, and
   on change calls the setter `setX` of the last segment on the object the rest of the path
   returns (evaluated when the value arrives). The setter must take the type in the table.
 - `@{a.b()}` (a record accessor, which has no setter), `@{o}` (nothing to set), `@{}` on other
@@ -374,8 +376,9 @@ a window of the model:
   clamps `scrollY` to the scroll range, and a window that starts later would be drawn below the top.
 - `cellHeight` (list) and `rowHeight` (table) are fixed, 24 when not written, and must be greater than 0: the
   renderer needs them to place rows without measuring the first one, and `scrollY` is computed from the same number.
-- Selection is the application's state: the row template sets `selected` and `onAction="#select(o)"`; a click
-  reaches the cell (the deepest element under the pointer).
+- Selection is described below ([Selection of rows](#selection-of-rows)); a list with none of its attributes keeps the
+  older way: the row template sets `selected` and `onAction="#select(o)"`, and a click reaches the cell (the deepest
+  element under the pointer).
 - With `key` on the template's item (`key="${o.id}"`), a row that stays in the window after a scroll keeps its
   native node (`JXNativeNode.reconcile` matches by key); the keys must be the same instances on each build, as in
   any `<For key>`.
@@ -393,6 +396,53 @@ a window of the model:
   table without it scrolls only within the rows it was given; with it the whole model is the range, and the handler is
   where the application moves `first` (and `scrollY`, `first * height`) to build the rows now in view.
 - A grid of items is a `Tile` with a `<For>`; a `ListView` has no columns.
+
+### Selection of rows
+
+`ListView`, `TableView`, `Tree` and `TreeTable` select their rows themselves, and the application still holds the state:
+
+```xml
+<ListView items="${orders}" var="o" type="com.acme.Order" first="@{top}" selected="@{current}">
+  <ListItem text="${o.name}" onAction="#open(o)"/>
+</ListView>
+
+<TableView items="${orders}" var="o" type="com.acme.Order" first="@{top}" columns="Name, Total"
+           selectionMode="multiple" selection="@{picked}" onSelect="#lastPicked">
+  <TableRow><TableCell text="${o.name}"/><TableCell text="${o.total}"/></TableRow>
+</TableView>
+```
+
+| Attribute | Type | Meaning |
+|---|---|---|
+| `selected` | `int` | the index of the selected row in the whole model, -1 for none; `@{current}` binds it two ways (`getCurrent()` / `setCurrent(int)`) |
+| `onSelect` | handler, gets an `int` | the row the user selected (-1: none). In multiple mode, the row clicked or moved to last |
+| `selectionMode` | `single` (default) or `multiple` | multiple mode adds Ctrl and Shift selection |
+| `selection` | `double[]` (a `List` of numbers or `A, B` text also read) | multiple mode: the selected indices; `@{picked}` binds it two ways (`setPicked(double[])`) |
+| `onSelection` | handler, gets a `double[]` | multiple mode: all the selected indices, sorted |
+
+- **Types.** The indices of several rows travel as a `double[]`, the schema's list of numbers (as `dividerPositions` and
+  `columnWidths`); there is no `int[]` attribute type. A list that only reads (`selected="${current}"`) draws the selection and
+  tells nothing without `onSelect`.
+- **Controlled.** Like every input, the list does not change what it shows: it calls `onSelect` / `onSelection` and
+  shows the selection of its props until the application renders again. Each one is called only when the selection changes.
+  Writing any of the five attributes turns the feature on; a list with none behaves as before.
+- **Index.** Indices count the rows of the model, not of the window, so a selected row outside the `rows` that were built is
+  kept (it draws nothing until the window reaches it) and the keys move from it. A `Tree` and a `TreeTable` count their
+  *visible* items in order, so expanding or collapsing an item above a selected row shifts its index: the application
+  keeps it in step if it must follow the item.
+- **Pointer.** A click selects the row (on press, as JavaFX does); the arrow of a tree row still only expands it, and a
+  `Button` or other control inside a row acts as itself and selects nothing. In multiple mode Ctrl+click adds or removes
+  the row, Shift+click selects the rows from the one clicked last (Ctrl+Shift+click adds that range to the selection).
+  A single click does **not** run the row's `onAction`: a double click does (after selecting), as does Enter on the selected row.
+  The action is the one of the row (`TableRow onAction`), else of the cell under the pointer, else of the first cell that has one.
+- **Keys.** A list with a selection takes the focus when clicked and with Tab and Shift+Tab (it is not in the order without one);
+  its focus ring is the blue border of the list. Up, Down, Home, End, Page Up and Page Down (the rows the viewport shows) move
+  the selection and scroll the row into view, which reports a new `first` through `onChange` when the list is bound to it; with
+  nothing selected Down selects the first row and Up the last. In multiple mode Shift with those keys extends the selection from the
+  row it started on, and Ctrl+A selects every row of the model.
+- **Look.** A selected row is drawn with the look's selection colour (`#0096C9`, white text), or the grey one (`#D3D3D3`) when the
+  list does not have the focus. In a list with a selection the list decides: the `selected` and `listFocused` of a row template
+  (`ListItem`, `TableRow`, `TreeItem`) are ignored; in a list without one they are drawn as before.
 
 ## Groups
 
@@ -589,6 +639,8 @@ write.
 - **A row** has `indent` (its depth: 16 px each) and `disclosure`: `expanded` or `collapsed` draw an arrow, `leaf` draws none but
   keeps its room. A press on the arrow runs the item's `onToggle` (the application changes `expanded`); a press anywhere else on
   the row runs its `onAction` (the application changes `selected`). An item without `onToggle` selects on the arrow too.
+  A `Tree` or `TreeTable` with the selection attributes of [Selection of rows](#selection-of-rows) selects by itself instead: a
+  click selects the row (`selected` is the index among the visible items) and a double click or Enter runs `onAction`.
 - **`TreeTable`.** The first cell of a row is the tree (text, indent, arrow); `values` (a list, or `A, B`) are the texts of
   the next columns. `columns`, `columnWidths` and `constrained` are those of `TableView`. `onAction` is on every cell of the row,
   `onToggle` only on the first. `values` in a `Tree` is an error at the line of the `Tree`.
@@ -690,9 +742,8 @@ JXML screen with `new XView().build(controller)`, and JXML places a Java compone
 
 ## Not done yet
 
-- Events the renderer does not report, so no attribute exists for them: selection of lists and
-  tables (use a row's `onAction`). A `TitledPane` collapses when the application changes `expanded`
-  (its `onAction` tells it was clicked). The `Tooltip` tag is a box drawn in place; the `tooltip` attribute is the one
+- Events the renderer does not report, so no attribute exists for them: a `TitledPane` collapses when
+  the application changes `expanded` (its `onAction` tells it was clicked). The `Tooltip` tag is a box drawn in place; the `tooltip` attribute is the one
   that shows on hover.
 - SVG (and other vector formats) for `Image`: `src` reads the raster formats of stb_image only.
 - Shadows (for `Card`) and the Material look of the bars: they are rows with a background.

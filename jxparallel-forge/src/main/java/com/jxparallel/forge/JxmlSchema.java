@@ -54,6 +54,12 @@ public final class JxmlSchema {
         /** The Java type of the value onChange passes: STRING, BOOLEAN or DOUBLE. */
         public final AttrType changeType;
         /**
+         * Every attribute that {@code @{...}} binds two ways, with the handler attribute the renderer reports its change
+         * through: {@code onChange} for {@link #changeAttr}, and for the selection of a list or tree {@code selected}
+         * through {@code onSelect} and {@code selection} through {@code onSelection}.
+         */
+        public final Map<String, String> twoWay;
+        /**
          * A tag that stands for other tags: {@code JxmlComposites} rewrites it into primitive tags before the
          * interpreter and the compiler see it, so it has no native element of its own.
          */
@@ -83,7 +89,8 @@ public final class JxmlSchema {
         Tag(String name, String nativeType, Children children, Map<String, Attr> attrs, Map<String, Object> defaults,
             boolean control, String changeAttr, AttrType changeType, boolean composite, String alias,
             Map<String, String> aliasAttrs, boolean virtual, boolean finish, java.util.List<String> required,
-            boolean tree, java.util.List<String> only, java.util.List<String> parents) {
+            boolean tree, java.util.List<String> only, java.util.List<String> parents, Map<String, String> twoWay) {
+            this.twoWay = Collections.unmodifiableMap(twoWay);
             this.tree = tree;
             this.only = only == null ? null : Collections.unmodifiableList(only);
             this.parents = parents == null ? null : Collections.unmodifiableList(parents);
@@ -119,7 +126,8 @@ public final class JxmlSchema {
     static final java.util.List<String> ORIENTATIONS = Collections.unmodifiableList(java.util.Arrays.asList("horizontal", "vertical"));
     static final java.util.List<String> CHIP_KINDS = Collections.unmodifiableList(
             java.util.Arrays.asList("assist", "filter", "choice", "input"));
-    static final java.util.List<String> SIDES = Collections.unmodifiableList(java.util.Arrays.asList("left", "right"));
+    static final java.util.List<String> SELECTION_MODES = Collections.unmodifiableList(java.util.Arrays.asList("single", "multiple"));
+    static final java.util.List<String> SIDES =Collections.unmodifiableList(java.util.Arrays.asList("left", "right"));
 
     static {
         layout("theme", "theme", AttrType.STRING, false); // root only: light or dark, inherited by the renderer
@@ -417,7 +425,7 @@ public final class JxmlSchema {
                 .attr("rowHeight", "cellHeight", AttrType.DOUBLE, true).attr("first", "first", AttrType.INT, true)
                 .attr("rows", "rows", AttrType.INT, true)
                 .def("first", Integer.valueOf(0)).def("cellHeight", Double.valueOf(24))
-                .change("first", AttrType.INT)
+                .change("first", AttrType.INT).selection()
                 .done();
         tag("TreeTable", "table", Children.MANY).tree().only("TreeItem")
                 .attr("rowHeight", "rowHeight", AttrType.DOUBLE, true).attr("first", "first", AttrType.INT, true)
@@ -426,7 +434,7 @@ public final class JxmlSchema {
                 .attr("constrained", "constrained", AttrType.BOOLEAN, false)
                 .def("first", Integer.valueOf(0)).def("rowHeight", Double.valueOf(24)).def("columns", new String[0])
                 .def("constrained", Boolean.FALSE)
-                .change("first", AttrType.INT)
+                .change("first", AttrType.INT).selection()
                 .done();
         tag("TreeItem", "cell", Children.MANY).only("TreeItem").parents("Tree", "TreeTable", "TreeItem")
                 .attr("text", "value", AttrType.STRING, true).attr("expanded", "expanded", AttrType.BOOLEAN, true)
@@ -533,7 +541,7 @@ public final class JxmlSchema {
                 .attr("type", "type", AttrType.STRING, false).attr("rows", "rows", AttrType.INT, true)
                 .attr("first", "first", AttrType.INT, true).attr("cellHeight", "cellHeight", AttrType.DOUBLE, true)
                 .def("first", Integer.valueOf(0)).def("cellHeight", Double.valueOf(24))
-                .handler("onScroll", AttrType.DOUBLES).change("first", AttrType.INT)
+                .handler("onScroll", AttrType.DOUBLES).change("first", AttrType.INT).selection()
                 .done();
         tag("TableView", "table", Children.TEMPLATE).virtual().finish()
                 .attr("items", "itemCount", AttrType.COUNT, true).attr("var", "var", AttrType.STRING, false)
@@ -543,7 +551,7 @@ public final class JxmlSchema {
                 .attr("constrained", "constrained", AttrType.BOOLEAN, false)
                 .def("first", Integer.valueOf(0)).def("rowHeight", Double.valueOf(24)).def("columns", new String[0])
                 .def("constrained", Boolean.FALSE)
-                .handler("onScroll", AttrType.DOUBLES).change("first", AttrType.INT)
+                .handler("onScroll", AttrType.DOUBLES).change("first", AttrType.INT).selection()
                 .done();
         tag("TableRow", "tablerow", Children.MANY)
                 .attr("selected", "selected", AttrType.BOOLEAN, true).attr("odd", "odd", AttrType.BOOLEAN, true)
@@ -639,6 +647,7 @@ public final class JxmlSchema {
         b.attrs.putAll(of.attrs);
         b.changeAttr = of.changeAttr;
         b.changeType = of.changeType;
+        b.twoWay.putAll(of.twoWay);
         for (int i = 0; i < defaults.length; i += 2) {
             if (of.attr(defaults[i]) == null) {
                 throw new IllegalStateException(name + " defaults an attribute " + target + " lacks: " + defaults[i]);
@@ -663,6 +672,7 @@ public final class JxmlSchema {
         private String changeAttr;
         private AttrType changeType;
         private final java.util.List<String> required = new java.util.ArrayList<String>();
+        private final Map<String, String> twoWay = new LinkedHashMap<String, String>();
         private boolean tree;
         private java.util.List<String> only;
         private java.util.List<String> parents;
@@ -752,12 +762,30 @@ public final class JxmlSchema {
             attrs.put("onChange", new Attr("onChange", "onChange", AttrType.CHANGE, false, null, type));
             changeAttr = attr;
             changeType = type;
+            twoWay.put(attr, "onChange");
+            return this;
+        }
+
+        /**
+         * The selection of the rows of a list, table or tree, which the renderer handles (JXSelection): {@code selected}
+         * (the index of the row, -1 for none; {@code @{...}} binds it two ways through {@code onSelect}),
+         * {@code selectionMode}, and in multiple mode {@code selection} (the indices, bound two ways through
+         * {@code onSelection}, which gets them as a {@code double[]}, like the other lists of numbers of the schema).
+         */
+        TagBuilder selection() {
+            attr("selected", "selected", AttrType.INT, true);
+            choice("selectionMode", "selectionMode", SELECTION_MODES);
+            attr("selection", "selection", AttrType.DOUBLES, true);
+            handler("onSelect", AttrType.INT);
+            handler("onSelection", AttrType.DOUBLES);
+            twoWay.put("selected", "onSelect");
+            twoWay.put("selection", "onSelection");
             return this;
         }
 
         void done() {
             TAGS.put(name, new Tag(name, nativeType, children, attrs, defaults, control, changeAttr, changeType,
-                    composite, alias, aliasAttrs, virtual, finish, required, tree, only, parents));
+                    composite, alias, aliasAttrs, virtual, finish, required, tree, only, parents, twoWay));
         }
     }
 }

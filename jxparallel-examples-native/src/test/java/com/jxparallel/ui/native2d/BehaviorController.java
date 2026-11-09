@@ -115,6 +115,15 @@ public class BehaviorController {
     public void toggleSrc() { srcOpen = !srcOpen; }
     public List<String> getRows() { return rows; }
 
+    /** The selection of the lists, tables and trees: the row (-1 for none) and, in multiple mode, the rows, and what was told. */
+    private int selected = -1;
+    private double[] chosen = new double[0];
+    public final List<String> told = new ArrayList<String>();
+    public int getSelected() { return selected; }
+    public void setSelected(int v) { selected = v; told.add("select " + v); }
+    public double[] getChosen() { return chosen; }
+    public void setChosen(double[] v) { chosen = v; told.add("selection " + java.util.Arrays.toString(v)); }
+
     private int top;
     public double[] scrolled;
     public int getTop() { return top; }

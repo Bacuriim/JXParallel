@@ -1,5 +1,6 @@
 package com.jxparallel.ui.native2d;
 
+import static org.junit.jupiter.api.Assertions.assertArrayEquals;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertNull;
@@ -69,9 +70,14 @@ class JxmlComponentBehaviorTest {
 
         /** GLFW mouse button callback, press (primary 0, secondary 1). */
         JXNativeNode press(int x, int y, int button) {
+            return press(x, y, button, 0);
+        }
+
+        /** The press with Shift ({@link JXInputEvent#SHIFT}) and Ctrl ({@link JXInputEvent#CONTROL}) held. */
+        JXNativeNode press(int x, int y, int button, int modifiers) {
             pointerX = x;
             pointerY = y;
-            JXNativeNode hit = root.pressPointer(new JXPointerEvent(x, y, button));
+            JXNativeNode hit = root.pressPointer(new JXPointerEvent(x, y, button, 1, modifiers));
             if (hit != null && button == 0) {
                 focused = hit;
                 JXNativeNode.setFocusOwner(hit);
@@ -134,6 +140,20 @@ class JxmlComponentBehaviorTest {
             JXNativeNode hit = press(x, y);
             release();
             return hit;
+        }
+
+        /** A click with modifier keys held. */
+        JXNativeNode click(int x, int y, int modifiers) {
+            JXNativeNode hit = press(x, y, 0, modifiers);
+            release();
+            return hit;
+        }
+
+        /** What the screen paints at (x, y): the whole window is painted with the software painter. */
+        int pixel(int x, int y) {
+            int[] argb = new int[w * h];
+            JXWindow.paintSoftware(root, argb, w, h);
+            return argb[y * w + x];
         }
 
         JXNativeNode click(JXNativeNode node) {
@@ -1179,6 +1199,303 @@ class JxmlComponentBehaviorTest {
             ui.moveTo(ui.w - 3, ui.h - 3);
             assertNull(ui.find("button").getProperty("pressed"), "slid off: drawn up again");
             ui.release();
+        }
+    }
+
+    // ---- selection of the rows of lists, tables and trees --------------------------------------------
+
+    @Nested
+    class RowSelection {
+        private static final int SHIFT = JXInputEvent.SHIFT;
+        private static final int CTRL = JXInputEvent.CONTROL;
+        private static final int PAGE_UP = 266;
+        private static final int PAGE_DOWN = 267;
+        private static final int KEY_A = 65;
+        private static final int SELECTED = 0xFF0096C9;
+        private static final int UNFOCUSED = 0xFFD3D3D3;
+
+        private static final String LIST = "<ListView items=\"${rows}\" var=\"r\" type=\"java.lang.String\" first=\"@{top}\""
+                + " rows=\"30\" prefHeight=\"240\" selected=\"@{selected}\"><ListItem text=\"${r}\" onAction=\"#pick(r)\"/></ListView>";
+        private static final String MULTIPLE = "<ListView items=\"${rows}\" var=\"r\" type=\"java.lang.String\" first=\"@{top}\""
+                + " rows=\"30\" prefHeight=\"240\" selectionMode=\"multiple\" selection=\"@{chosen}\" selected=\"${selected}\""
+                + " onSelect=\"#setSelected\"><ListItem text=\"${r}\" onAction=\"#pick(r)\"/></ListView>";
+        private static final String TABLE = "<TableView items=\"${rows}\" var=\"r\" type=\"java.lang.String\" first=\"@{top}\""
+                + " rows=\"30\" prefHeight=\"240\" columns=\"Name\" columnWidths=\"-1\" constrained=\"true\" selected=\"@{selected}\">"
+                + "<TableRow><TableCell text=\"${r}\" onAction=\"#pick(r)\"/></TableRow></TableView>";
+
+        private double item(JXNativeNode list) {
+            return "table".equals(list.getType()) ? JXControlLayout.rowHeight(list) : JXControlLayout.cellHeight(list);
+        }
+
+        /** The window y of the middle of the row at {@code index} of the model, as the list is scrolled now. */
+        private int rowY(Ui ui, String type, int index) {
+            JXNativeNode list = ui.find(type);
+            JXControlLayout.ScrollGeometry g = JXControlLayout.scrollGeometry(list);
+            return (int) (g.viewY + index * item(list) - g.scrollY + item(list) / 2);
+        }
+
+        private int rowX(Ui ui, String type) {
+            return ui.find(type).getX() + 60;
+        }
+
+        /** A pixel of the row at {@code index} that no text reaches. */
+        private int paintedRow(Ui ui, String type, int index) {
+            JXNativeNode list = ui.find(type);
+            return ui.pixel(list.getX() + list.getWidth() - 60, rowY(ui, type, index));
+        }
+
+        private void clickRow(Ui ui, int index, int modifiers) {
+            ui.click(rowX(ui, "list"), rowY(ui, "list", index), modifiers);
+        }
+
+        private void clickRow(Ui ui, int index) {
+            clickRow(ui, index, 0);
+        }
+
+        private double[] chosen(Ui ui) {
+            return ui.c.getChosen();
+        }
+
+        @Test
+        void aClickSelectsTheRowAndTheApplicationIsToldItsIndex() {
+            Ui ui = new Ui(LIST);
+            clickRow(ui, 3);
+            assertEquals(3, ui.c.getSelected());
+            assertEquals(SELECTED, paintedRow(ui, "list", 3), "the selected row is drawn with the selection colour");
+            assertTrue(paintedRow(ui, "list", 4) != SELECTED, "and only that one");
+            clickRow(ui, 5);
+            assertEquals(5, ui.c.getSelected());
+            assertTrue(paintedRow(ui, "list", 3) != SELECTED, "the row before is no longer selected");
+        }
+
+        @Test
+        void aListThatIsNotFocusedDrawsItsSelectionGrey() {
+            Ui ui = new Ui("<TextField text=\"@{name}\"/>\n" + LIST);
+            ui.c.setSelected(2);
+            ui.refresh();
+            ui.click(ui.find("input"));
+            assertEquals(UNFOCUSED, paintedRow(ui, "list", 2), "the selection of an unfocused list");
+            clickRow(ui, 2);
+            assertEquals(SELECTED, paintedRow(ui, "list", 2), "focused: the selection colour");
+            assertEquals(1, ui.c.told.size(), "only the setSelected(2) the test made; the click on a selected row tells nothing");
+        }
+
+        @Test
+        void aClickDoesNotRunTheRowsActionButEnterAndADoubleClickDo() {
+            Ui ui = new Ui(LIST);
+            clickRow(ui, 3);
+            assertTrue(ui.c.picked.isEmpty(), "a single click only selects");
+            ui.key(ENTER);
+            assertEquals("Row 3", ui.c.picked.get(0), "Enter runs the action of the selected row");
+            ui.clicks(rowX(ui, "list"), rowY(ui, "list", 6), 2);
+            assertEquals(6, ui.c.getSelected(), "the double click selects");
+            assertEquals("Row 6", ui.c.picked.get(1), "and runs the action");
+        }
+
+        @Test
+        void upDownHomeEndAndThePagesMoveTheSelectionOfTheFocusedList() {
+            Ui ui = new Ui(LIST);
+            clickRow(ui, 3);
+            ui.key(DOWN);
+            assertEquals(4, ui.c.getSelected());
+            ui.key(UP);
+            ui.key(UP);
+            assertEquals(2, ui.c.getSelected());
+            ui.key(HOME);
+            assertEquals(0, ui.c.getSelected());
+            int told = ui.c.told.size();
+            ui.key(UP);
+            assertEquals(0, ui.c.getSelected(), "not above the first row");
+            assertEquals(told, ui.c.told.size(), "and nothing to tell");
+            ui.key(END);
+            assertEquals(199, ui.c.getSelected());
+            ui.key(DOWN);
+            assertEquals(199, ui.c.getSelected(), "not below the last row");
+            int page = (int) Math.floor(JXControlLayout.scrollGeometry(ui.find("list")).viewH / 24);
+            ui.key(PAGE_UP);
+            assertEquals(199 - page, ui.c.getSelected(), "Page Up moves the rows the viewport shows");
+            ui.key(PAGE_DOWN);
+            assertEquals(199, ui.c.getSelected());
+        }
+
+        @Test
+        void theMovedSelectionIsScrolledIntoView() {
+            Ui ui = new Ui(LIST);
+            clickRow(ui, 0);
+            ui.key(END);
+            JXNativeNode list = ui.find("list");
+            assertEquals("Row 199", ui.deepestTextAt(list.getX() + 40, list.getY() + list.getHeight() - 6),
+                    "End shows the last row at the bottom");
+            assertTrue(ui.c.getTop() > 150, "the application was told the window moved, to " + ui.c.getTop());
+            assertEquals(SELECTED, paintedRow(ui, "list", 199), "and the row is drawn selected there");
+            ui.key(HOME);
+            assertEquals(0, ui.c.getTop(), "Home goes back to the top");
+            for (int i = 0; i < 12; i++) {
+                ui.key(DOWN);
+            }
+            assertTrue(ui.c.getTop() >= 3, "going down past the bottom row scrolls one row at a time, top " + ui.c.getTop());
+            int y = rowY(ui, "list", ui.c.getSelected());
+            assertTrue(y > list.getY() && y < list.getY() + list.getHeight(), "the selected row is inside the list");
+        }
+
+        @Test
+        void aSelectedRowOutsideTheWindowIsKeptAndTheKeysMoveFromIt() {
+            Ui ui = new Ui(LIST);
+            ui.c.setSelected(150);
+            ui.refresh();
+            for (int k = 0; k < 10; k++) {
+                int pixel = paintedRow(ui, "list", k);
+                assertTrue(pixel != SELECTED && pixel != UNFOCUSED, "no row of the window is drawn selected, row " + k);
+            }
+            ui.click(rowX(ui, "list"), rowY(ui, "list", 0)); // focuses the list, selects row 0
+            ui.c.setSelected(150);
+            ui.refresh();
+            ui.key(DOWN);
+            assertEquals(151, ui.c.getSelected(), "the keys move from the row, wherever it is");
+            assertTrue(ui.c.getTop() >= 142 && ui.c.getTop() <= 151, "and the window follows it, top " + ui.c.getTop());
+            assertEquals(SELECTED, paintedRow(ui, "list", 151));
+        }
+
+        @Test
+        void tabGivesTheFocusToAListWithASelectionAndNotToOneWithout() {
+            Ui ui = new Ui("<TextField text=\"@{name}\"/>\n" + LIST);
+            ui.click(ui.find("input"));
+            ui.key(TAB);
+            assertEquals(ui.find("list"), ui.focused, "Tab reaches the list");
+            ui.key(DOWN);
+            assertEquals(0, ui.c.getSelected());
+            Ui plain = new Ui("<TextField text=\"@{name}\"/>\n<ListView items=\"${rows}\" var=\"r\" type=\"java.lang.String\""
+                    + " rows=\"30\" prefHeight=\"240\"><ListItem text=\"${r}\"/></ListView>");
+            plain.click(plain.find("input"));
+            plain.key(TAB);
+            assertEquals(plain.find("input"), plain.focused, "a list with no selection is not in the order, as before");
+        }
+
+        @Test
+        void ctrlClickTogglesAndShiftClickExtendsARangeInMultipleMode() {
+            Ui ui = new Ui(MULTIPLE);
+            clickRow(ui, 2);
+            assertArrayEquals(new double[] {2}, chosen(ui));
+            clickRow(ui, 5, CTRL);
+            clickRow(ui, 9, CTRL);
+            assertArrayEquals(new double[] {2, 5, 9}, chosen(ui), "Ctrl+click adds");
+            clickRow(ui, 5, CTRL);
+            assertArrayEquals(new double[] {2, 9}, chosen(ui), "and takes off a row selected");
+            assertEquals(SELECTED, paintedRow(ui, "list", 9));
+            assertEquals(SELECTED, paintedRow(ui, "list", 2), "every selected row is drawn so");
+            clickRow(ui, 4);
+            assertArrayEquals(new double[] {4}, chosen(ui), "a click without keys selects that row only");
+            clickRow(ui, 7, SHIFT);
+            assertArrayEquals(new double[] {4, 5, 6, 7}, chosen(ui), "Shift+click selects from the row clicked last");
+            clickRow(ui, 2, SHIFT);
+            assertArrayEquals(new double[] {2, 3, 4}, chosen(ui), "the range keeps its start");
+            clickRow(ui, 9, SHIFT | CTRL);
+            assertArrayEquals(new double[] {2, 3, 4, 5, 6, 7, 8, 9}, chosen(ui), "Ctrl+Shift adds the range");
+            assertEquals(9, ui.c.getSelected(), "onSelect hears of the row last clicked");
+        }
+
+        @Test
+        void shiftWithTheArrowsExtendsAndCtrlASelectsAllInMultipleMode() {
+            Ui ui = new Ui(MULTIPLE);
+            clickRow(ui, 3);
+            ui.key(DOWN, SHIFT);
+            ui.key(DOWN, SHIFT);
+            assertArrayEquals(new double[] {3, 4, 5}, chosen(ui));
+            ui.key(UP, SHIFT);
+            assertArrayEquals(new double[] {3, 4}, chosen(ui), "Shift+Up takes the last row back");
+            ui.key(UP, SHIFT);
+            ui.key(UP, SHIFT);
+            assertArrayEquals(new double[] {2, 3}, chosen(ui), "past the start of the range it grows the other way");
+            ui.key(KEY_A, CTRL);
+            assertEquals(200, chosen(ui).length, "Ctrl+A selects every row of the model, also the ones not shown");
+            assertEquals(199, chosen(ui)[199], 0);
+            ui.key(DOWN);
+            assertEquals(1, chosen(ui).length, "an arrow without Shift collapses the selection to one row");
+        }
+
+        @Test
+        void inSingleModeShiftCtrlAndCtrlAAreOrdinary() {
+            Ui ui = new Ui(LIST);
+            clickRow(ui, 2);
+            clickRow(ui, 6, CTRL);
+            assertEquals(6, ui.c.getSelected(), "Ctrl+click is a click");
+            clickRow(ui, 9, SHIFT);
+            assertEquals(9, ui.c.getSelected(), "and so is Shift+click");
+            ui.key(DOWN, SHIFT);
+            assertEquals(10, ui.c.getSelected());
+            int told = ui.c.told.size();
+            ui.key(KEY_A, CTRL);
+            assertEquals(told, ui.c.told.size(), "Ctrl+A selects nothing in single mode");
+        }
+
+        @Test
+        void aTableSelectsItsRowsToo() {
+            Ui ui = new Ui(TABLE);
+            ui.click(rowX(ui, "table"), rowY(ui, "table", 4));
+            assertEquals(4, ui.c.getSelected());
+            assertEquals(SELECTED, paintedRow(ui, "table", 4), "the row of a table is drawn selected");
+            ui.key(DOWN);
+            assertEquals(5, ui.c.getSelected());
+            ui.clicks(rowX(ui, "table"), rowY(ui, "table", 8), 2);
+            assertEquals("Row 8", ui.c.picked.get(0), "a double click runs the action of the cell under it");
+            ui.key(END);
+            JXNativeNode table = ui.find("table");
+            assertEquals("Row 199", ui.deepestTextAt(table.getX() + 20, table.getY() + table.getHeight() - 6));
+        }
+
+        @Test
+        void aTreeSelectsItsRowsAndItsArrowOnlyToggles() {
+            Ui ui = new Ui("<Tree prefHeight=\"120\" selected=\"@{selected}\"><TreeItem text=\"src\" expanded=\"${srcOpen}\""
+                    + " onToggle=\"#toggleSrc\" onAction=\"#click\"><TreeItem text=\"main\"/></TreeItem><TreeItem text=\"docs\"/></Tree>");
+            JXNativeNode row = ui.find("cell");
+            int arrow = -1;
+            for (int x = row.getX(); x < row.getX() + row.getWidth(); x++) {
+                if (JXControlLayout.disclosureAt(row, x)) {
+                    arrow = x + 2;
+                    break;
+                }
+            }
+            ui.click(arrow, center(row)[1]);
+            assertTrue(ui.c.getSrcOpen(), "the arrow expands");
+            assertEquals(-1, ui.c.getSelected(), "and does not select");
+            ui.click(row.getX() + row.getWidth() - 10, center(row)[1]);
+            assertEquals(0, ui.c.getSelected(), "a click on the row selects it");
+            assertEquals(0, ui.c.clicks, "and does not run its action");
+            ui.key(DOWN);
+            assertEquals(1, ui.c.getSelected(), "the rows count the visible items: main, now that src is open");
+            assertEquals(3, ui.find("list").getChildren().size(), "src, main and docs are the rows shown");
+        }
+
+        @Test
+        void aTreeTableSelectsAcrossItsColumns() {
+            Ui ui = new Ui("<TreeTable columns=\"Name, Size\" columnWidths=\"-1, 80\" constrained=\"true\" prefHeight=\"150\""
+                    + " selected=\"@{selected}\"><TreeItem text=\"docs\" values=\"1 KB\"/><TreeItem text=\"notes\" values=\"2 KB\"/>"
+                    + "</TreeTable>");
+            JXNativeNode table = ui.find("table");
+            int y = rowY(ui, "table", 1);
+            ui.click(table.getX() + table.getWidth() - 20, y); // in the second column
+            assertEquals(1, ui.c.getSelected());
+            assertEquals(SELECTED, ui.pixel(table.getX() + 6 + 40, y - 8), "drawn selected");
+        }
+
+        @Test
+        void aButtonInsideARowActsAsItselfAndDoesNotSelect() {
+            Ui ui = new Ui("<ListView items=\"${rows}\" var=\"r\" type=\"java.lang.String\" rows=\"30\" prefHeight=\"240\""
+                    + " selected=\"@{selected}\"><ListItem text=\"${r}\"><Button text=\"x\" onAction=\"#click\"/></ListItem></ListView>");
+            ui.click(ui.find("button"));
+            assertEquals(1, ui.c.clicks, "the button runs");
+            assertEquals(-1, ui.c.getSelected(), "and the row is not selected");
+        }
+
+        @Test
+        void aListWithoutSelectionPropsKeepsItsOldBehaviour() {
+            Ui ui = new Ui("<ListView items=\"${rows}\" var=\"r\" type=\"java.lang.String\" rows=\"30\" prefHeight=\"240\">"
+                    + "<ListItem text=\"${r}\" onAction=\"#pick(r)\"/></ListView>");
+            ui.click(rowX(ui, "list"), rowY(ui, "list", 2));
+            assertEquals("Row 2", ui.c.picked.get(0), "a click still runs the action");
+            assertTrue(paintedRow(ui, "list", 2) != SELECTED, "and draws no selection");
+            ui.key(DOWN);
+            assertTrue(ui.c.told.isEmpty());
         }
     }
 }

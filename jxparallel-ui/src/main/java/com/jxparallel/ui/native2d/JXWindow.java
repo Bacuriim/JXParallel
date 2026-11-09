@@ -727,7 +727,8 @@ public final class JXWindow implements AutoCloseable {
                 return;
             }
             // the overlays first: a press outside an open popup or menu closes it, one inside a dialog stays in it
-            JXNativeNode hit = root.pressPointer(new JXPointerEvent((int) px[0], (int) py[0], glfwButton, clickCount));
+            JXNativeNode hit = root.pressPointer(new JXPointerEvent((int) px[0], (int) py[0], glfwButton, clickCount,
+                    JXKeys.modifiers(mods)));
             if (hit != null && !secondary) {
                 focus(hit);
                 dragNode = hit; // a scroll bar's thumb or a split pane's divider follows the pointer until the release

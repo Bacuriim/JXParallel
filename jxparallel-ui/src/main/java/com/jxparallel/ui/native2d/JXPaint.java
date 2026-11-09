@@ -246,6 +246,9 @@ final class JXPaint {
         }
     }
 
+    /** How the rows being painted are selected when their list handles it ({@link JXSelection#paintState}), 0 when their props decide. */
+    private int rowState;
+
     private void children(JXNativeNode node) {
         if (node.collapsed() || node.overlayContent) {
             return; // only the title bar of a collapsed pane shows; the children of a menu are drawn with its panel
@@ -270,12 +273,21 @@ final class JXPaint {
             clipBottom = Math.min(clipBottom, node.getY() + node.getHeight());
         }
         List<JXNativeNode> kids = node.getChildren();
+        boolean rows = "list".equals(type) || "table".equals(type);
+        int savedRow = rowState;
+        int[] chosen = rows && JXSelection.enabled(node) ? JXSelection.selected(node) : null;
+        int firstRow = chosen == null ? 0 : (int) Math.max(0, number(node, "first", 0));
         for (int i = 0, n = kids.size(); i < n; i++) {
             JXNativeNode kid = kids.get(i);
+            if (rows) {
+                // the rows of a list whose selection the renderer handles are drawn selected or not by the list, not by their props
+                rowState = chosen == null ? 0 : JXSelection.paintState(node, firstRow + i, chosen);
+            }
             if (!outside(kid)) {
                 paint(kid); // indexed: no iterator per node per frame
             }
         }
+        rowState = savedRow;
         clipTop = savedTop;
         clipBottom = savedBottom;
         if (viewport != null && ("list".equals(type) || "table".equals(type)) && node.getProperty("popupOf") == null) {
@@ -696,8 +708,9 @@ final class JXPaint {
                 cell(node, x, y, w, h);
                 break;
             case "tablerow": {
-                boolean selected = Boolean.TRUE.equals(node.getProperty("selected"));
-                int bg = selected ? (Boolean.TRUE.equals(node.getProperty("listFocused")) ? SELECTION : SELECTION_UNFOCUSED)
+                boolean selected = rowState != 0 ? rowState >= 2 : Boolean.TRUE.equals(node.getProperty("selected"));
+                boolean rowFocused = rowState != 0 ? rowState == 3 : Boolean.TRUE.equals(node.getProperty("listFocused"));
+                int bg = selected ? (rowFocused ? SELECTION : SELECTION_UNFOCUSED)
                         : Boolean.TRUE.equals(node.getProperty("odd")) ? ODD_ROW : 0xFFFFFFFF;
                 p.fillRect(x, y, w, h, bg);
                 p.fillRect(x, y + h - 1, w, 1, 0xFFEDEDED);
@@ -1152,8 +1165,8 @@ final class JXPaint {
     }
 
     private void cell(JXNativeNode node, float x, float y, float w, float h) {
-        boolean selected = Boolean.TRUE.equals(node.getProperty("selected"));
-        boolean focusedList = Boolean.TRUE.equals(node.getProperty("listFocused"));
+        boolean selected = rowState != 0 ? rowState >= 2 : Boolean.TRUE.equals(node.getProperty("selected"));
+        boolean focusedList = rowState != 0 ? rowState == 3 : Boolean.TRUE.equals(node.getProperty("listFocused"));
         int bg = selected ? (focusedList ? SELECTION : SELECTION_UNFOCUSED)
                 : Boolean.TRUE.equals(node.getProperty("odd")) ? ODD_ROW : 0xFFFFFFFF;
         if (Boolean.TRUE.equals(node.getProperty("hover")) && !selected) {

@@ -903,6 +903,10 @@ final class JXOverlays {
         if (bar != null) {
             return bar;
         }
+        JXNativeNode list = JXSelection.press(path, event); // a row of a list whose selection the renderer handles
+        if (list != null) {
+            return list; // the list takes the focus, so the arrow keys move its selection
+        }
         JXNativeNode node = path.get(path.size() - 1);
         node.dispatchPointer(event);
         return node;
@@ -933,6 +937,10 @@ final class JXOverlays {
                 parent.openChild = parent.openChild == index ? -1 : index;
             }
         } else {
+            JXNativeNode list = JXSelection.press(path, event);
+            if (list != null) {
+                return list;
+            }
             node.dispatchPointer(event);
         }
         return node;
@@ -1114,6 +1122,9 @@ final class JXOverlays {
                     return;
                 }
             }
+        }
+        if (focused != null && JXSelection.key(root, focused, event)) {
+            return; // a list with a selection moved it, or ran the action of its row
         }
         if (focused != null) {
             focused.dispatchKey(event);
