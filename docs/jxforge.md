@@ -151,7 +151,7 @@ inside a `Border`), and these, which the renderer reads from any node:
 | `Grid` | `grid` | `hgap`, `vgap`, `padding`, `alignment` |
 | `Border` | `border` | `padding`; children placed with `slot` |
 | `Scroll` | `scroll` | `fitToWidth`, `fitToHeight`, `hvalue`, `vvalue` (0 to 1), `onScroll`; one child |
-| `Tabs` / `Tab` | `tabs` | `selected`; each `Tab` has `title`, `closable` and one child |
+| `Tabs` / `Tab` | `tabs` | `selected`, `onChange`, `onClose`; each `Tab` has `title`, `closable` and one child (the selected tab shows a close icon only with `onClose`) |
 | `Flow` | `flow` | `hgap`, `vgap`, `padding`, `alignment`, `orientation`, `prefWrapLength`, `columnHalignment`, `rowValignment` |
 | `Tile` | `tile` | `hgap`, `vgap`, `padding`, `alignment`, `orientation`, `prefColumns`, `prefRows`, `prefTileWidth`, `prefTileHeight`, `tileAlignment` |
 | `Anchor` | `anchor` | `padding`; children placed with `top`, `right`, `bottom`, `left` |
@@ -160,7 +160,7 @@ inside a `Border`), and these, which the renderer reads from any node:
 | `ButtonBar` | `buttonbar` | children are buttons, laid out from the right |
 | `Accordion` | `accordion` | children are `TitledPane`s |
 | `TitledPane` | `titled` | `text`, `expanded`, `collapsible`, `onAction`; one child |
-| `Pagination` | `pagination` | `pageCount`, `current`, `maxPageIndicatorCount`; one child, the page |
+| `Pagination` | `pagination` | `pageCount`, `current`, `maxPageIndicatorCount`, `onChange`; one child, the page |
 | `ToggleButton` | `toggle` | `text`, `selected`, `onAction`, `disabled`, `group`, `value`, `onChange` |
 | `RadioButton` | `radio` | `text`, `selected`, `onAction`, `disabled`, `group`, `value`, `onChange` |
 | `Hyperlink` | `hyperlink` | `text`, `visited`, `onAction`, `disabled` |
@@ -303,7 +303,9 @@ node keeps showing its `value` prop until the screen is built again with the new
 | `Switch`, `Chip` | `boolean` | click (and space for `Switch`) |
 | `ScrollBar` | `double` | click on the track, drag of the thumb |
 | `SplitPane` | `double[]`, all the divider positions | drag of a divider; `@{positions}` needs a setter taking a `double[]` |
-| `TabBar` | `int`, the tab | click on another tab; `onClose` gets the index of the tab whose close icon was clicked |
+| `TabBar`, `Tabs` | `int`, the tab | click on another tab; `onClose` gets the index of the tab whose close icon was clicked |
+| `Pagination` | `int`, the page | click on a page number, or on the arrow before or after |
+| `ListView`, `TableView`, `Tree`, `TreeTable` | `int`, the row at the top (`first`) | the wheel or the scroll bar moved the viewport to another row |
 
 ```xml
 <TextField text="${note}" onChange="#setNote"/>           <!-- controller.setNote(String) -->
@@ -320,7 +322,8 @@ node keeps showing its `value` prop until the screen is built again with the new
   (`#rename(o)` calls `rename(o, value)`). The method must accept the type in the table, as javac
   would for a call: `setVolume(double)` and `setVolume(Double)` do, `setVolume(int)` does not.
 - `@{path}` is the two-way shorthand, on the attribute that holds the edited value: `text` of the
-  text inputs, `selected` of the check box, `value` of the others. It reads like `${path}`, and
+  text inputs, `selected` of the check box, switch, chip, tab bar and tab pane, `current` of a pagination, `first`
+  of the lists, tables and trees, `value` of the others. It reads like `${path}`, and
   on change calls the setter `setX` of the last segment on the object the rest of the path
   returns (evaluated when the value arrives). The setter must take the type in the table.
 - `@{a.b()}` (a record accessor, which has no setter), `@{o}` (nothing to set), `@{}` on other

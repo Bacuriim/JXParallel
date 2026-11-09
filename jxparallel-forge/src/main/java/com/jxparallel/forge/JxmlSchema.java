@@ -182,6 +182,8 @@ public final class JxmlSchema {
         tag("Tabs", "tabs", Children.TABS)
                 .attr("selected", "selected", AttrType.INT, true)
                 .def("selected", Integer.valueOf(0)).def("retainChildren", Boolean.TRUE).def("closingPolicy", "SELECTED_TAB")
+                .handler("onClose", AttrType.INT)
+                .change("selected", AttrType.INT)
                 .done();
         tag("Tab", null, Children.TAB)
                 .attr("title", "title", AttrType.STRING, false).attr("closable", "closable", AttrType.BOOLEAN, false)
@@ -483,6 +485,7 @@ public final class JxmlSchema {
                 .attr("maxPageIndicatorCount", "maxPageIndicatorCount", AttrType.INT, false)
                 .def("pageCount", Integer.valueOf(1)).def("current", Integer.valueOf(0))
                 .def("maxPageIndicatorCount", Integer.valueOf(10))
+                .change("current", AttrType.INT)
                 .done();
 
         // Controls the renderer already draws (JXPaint.self, JXControlLayout.sizes).

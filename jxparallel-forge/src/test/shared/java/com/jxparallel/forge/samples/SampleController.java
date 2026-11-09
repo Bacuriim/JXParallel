@@ -236,6 +236,10 @@ public class SampleController {
         return page;
     }
 
+    public void setPage(int value) {
+        page = value;
+    }
+
     public int getPageCount() {
         return 12;
     }

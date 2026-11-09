@@ -7,7 +7,7 @@
     <Separator orientation="vertical"/>
     <Label text="${title}" wrapText="true" bold="true" fontSize="13" textFill="#336699" hgrow="always" vgrow="never"/>
   </Row>
-  <Tabs slot="center" selected="${tab}">
+  <Tabs slot="center" selected="${tab}" onChange="#setTabIndex" onClose="#closeTab">
     <Tab title="Form" closable="false">
       <Scroll fitToWidth="true" fitToHeight="false" hvalue="0" vvalue="${scroll}" onScroll="#scrolledTo">
         <Grid hgap="8" vgap="6" padding="12" alignment="TOP_LEFT">

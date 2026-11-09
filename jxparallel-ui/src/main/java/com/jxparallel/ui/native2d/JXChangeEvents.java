@@ -51,9 +51,10 @@ final class JXChangeEvents {
             }
             return true;
         }
-        if ("tabbar".equals(node.getType())) {
+        if ("tabbar".equals(node.getType()) || "tabs".equals(node.getType())) {
             boolean[] closeHit = new boolean[1];
-            int tab = JXControlLayout.tabbarAt(node, event.getX(), event.getY(), closeHit);
+            int tab = "tabs".equals(node.getType()) ? JXControlLayout.tabAt(node, event.getX(), event.getY(), closeHit)
+                    : JXControlLayout.tabbarAt(node, event.getX(), event.getY(), closeHit);
             if (tab >= 0 && closeHit[0]) {
                 Object onClose = node.getProperty("onClose");
                 if (onClose instanceof Consumer) {
@@ -74,11 +75,14 @@ final class JXChangeEvents {
             onChange.accept(Boolean.valueOf(!Boolean.TRUE.equals(node.getProperty("checked"))));
         } else if ("chip".equals(node.getType())) {
             onChange.accept(Boolean.valueOf(!Boolean.TRUE.equals(node.getProperty("selected"))));
-        } else if ("tabbar".equals(node.getType())) {
-            int tab = JXControlLayout.tabbarAt(node, event.getX(), event.getY(), null);
+        } else if ("tabbar".equals(node.getType()) || "tabs".equals(node.getType())) {
+            int tab = "tabs".equals(node.getType()) ? JXControlLayout.tabAt(node, event.getX(), event.getY(), null)
+                    : JXControlLayout.tabbarAt(node, event.getX(), event.getY(), null);
             if (tab >= 0 && tab != (int) JXPaint.number(node, "selected", 0)) {
                 onChange.accept(Integer.valueOf(tab));
             }
+        } else if ("pagination".equals(node.getType())) {
+            turnPage(node, event, onChange);
         } else if ("scrollbar".equals(node.getType())) {
             pressBar(node, event, onChange);
         } else if ("splitpane".equals(node.getType())) {
@@ -186,6 +190,22 @@ final class JXChangeEvents {
         node.hexDraft = next;
         if (!next.equals(draft) && JXOverlays.validHex(next)) {
             onChange.accept(next);
+        }
+    }
+
+    /** A press on a page number of a pagination goes to that page, on an arrow to the one before or after. */
+    private static void turnPage(JXNativeNode node, JXPointerEvent event, Consumer<Object> onChange) {
+        int count = Math.max(1, (int) JXPaint.number(node, "pageCount", 1));
+        int current = (int) JXPaint.number(node, "current", 0);
+        for (float[] b : JXControlLayout.pageButtons(node)) {
+            if (event.getX() >= b[0] && event.getX() < b[0] + b[2] && event.getY() >= b[1] && event.getY() < b[1] + b[3]) {
+                int page = b[4] == -1 ? current - 1 : b[4] == -2 ? current + 1 : (int) b[4];
+                page = Math.max(0, Math.min(count - 1, page));
+                if (page != current) {
+                    onChange.accept(Integer.valueOf(page));
+                }
+                return;
+            }
         }
     }
 
