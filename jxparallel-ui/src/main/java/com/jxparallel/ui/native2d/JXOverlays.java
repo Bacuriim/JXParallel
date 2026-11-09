@@ -74,6 +74,18 @@ final class JXOverlays {
     static final int SNACK_GAP = 24;
     private static final int ESCAPE = 256;
     private static final int ENTER = 257;
+    private static final int SPACE = 32;
+    private static final int RIGHT = 262;
+    private static final int LEFT = 263;
+    private static final int DOWN = 264;
+    private static final int UP = 265;
+    private static final int PAGE_UP = 266;
+    private static final int PAGE_DOWN = 267;
+    private static final int HOME = 268;
+    private static final int END = 269;
+    private static final int F4 = 293;
+    /** A popup or menu opened with the keyboard, which highlights its first item as soon as it is open (see {@link #resolve}). */
+    private static final int PENDING = -2;
 
     /** The 40 swatches of the color picker, row by row: grays, then eight hues in five shades. */
     static final int[] PALETTE = {
@@ -169,7 +181,9 @@ final class JXOverlays {
         if (open == isOpen(node)) {
             return;
         }
-        node.openChild = -1;
+        resetMenus(node);
+        node.highlight = -1;
+        node.popupFirst = -1;
         if (!(node.getProperty("showing") instanceof Boolean)) {
             node.localOpen = open;
         }
@@ -222,6 +236,10 @@ final class JXOverlays {
             } else {
                 node.overlayState = null;
                 node.shownAt = 0;
+                if (node.highlight != PENDING) { // closed: nothing is highlighted, unless the keyboard just asked to open it
+                    clearHighlights(node);
+                }
+                node.popupFirst = -1;
             }
         }
         // the children of a menu are its items; the children of an open dialog or drawer are ordinary content
@@ -343,6 +361,13 @@ final class JXOverlays {
         int rows = Math.min(options.length, SELECT_ROWS);
         int chosen = Arrays.asList(options).indexOf(JXPaint.text(host, "value"));
         int first = Math.max(0, Math.min(options.length - rows, chosen < 0 ? 0 : chosen - rows / 2));
+        resolve(host, chosen, options.length);
+        if (host.highlight >= 0 && options.length > rows) {
+            // the keys move the highlight: the window stays where it is and follows only to keep it in view
+            int from = host.popupFirst < 0 ? first : Math.max(0, Math.min(options.length - rows, host.popupFirst));
+            host.popupFirst = host.highlight < from ? host.highlight : Math.max(from, host.highlight - rows + 1);
+            first = host.popupFirst;
+        }
         JXTextEngine engine = JXTextEngine.get(false);
         double widest = 0;
         for (String option : options) {
@@ -621,6 +646,9 @@ final class JXOverlays {
     }
 
     private static Popup menus(JXNativeNode host, int width, int height) {
+        if (host.highlight == PENDING) { // opened with the keyboard: the first item is highlighted
+            host.highlight = "menubar".equals(host.getType()) ? -1 : step(host.getChildren(), -1, 1, false);
+        }
         Popup po = new Popup();
         po.windowW = width;
         po.windowH = height;
@@ -840,8 +868,21 @@ final class JXOverlays {
         request(node, false);
     }
 
+    /** Nothing highlighted in {@code node}, nor in the menus below it. */
+    private static void clearHighlights(JXNativeNode node) {
+        node.highlight = -1;
+        if (overlayContainer(node.getType())) {
+            for (JXNativeNode child : node.getChildren()) {
+                if ("menu".equals(child.getType())) {
+                    clearHighlights(child);
+                }
+            }
+        }
+    }
+
     private static void resetMenus(JXNativeNode node) {
         node.openChild = -1;
+        node.highlight = -1;
         if (JXOverlays.overlayContainer(node.getType())) {
             for (JXNativeNode child : node.getChildren()) {
                 if ("menu".equals(child.getType())) {
@@ -1097,40 +1138,410 @@ final class JXOverlays {
 
     // ---- keys ----------------------------------------------------------------------------------------
 
-    /** See {@link JXNativeNode#routeKey}. */
-    static void key(JXNativeNode root, JXKeyEvent event, JXNativeNode focused) {
-        List<Entry> open = collect(root);
-        if (!open.isEmpty()) {
-            Entry top = open.get(open.size() - 1);
-            for (int i = open.size() - 1; i >= 0; i--) {
-                if (!"snackbar".equals(open.get(i).node.getType())) {
-                    top = open.get(i); // a snack bar is not modal: the dialog or popup under it gets the keys
-                    break;
-                }
+    /** The open overlay the keys go to: the topmost, but not a snack bar (it is not modal), unless nothing else is open. */
+    private static Entry keyTarget(List<Entry> open) {
+        for (int i = open.size() - 1; i >= 0; i--) {
+            if (!"snackbar".equals(open.get(i).node.getType())) {
+                return open.get(i);
             }
+        }
+        return open.isEmpty() ? null : open.get(open.size() - 1);
+    }
+
+    /** See {@link JXNativeNode#routeKey}. */
+    static JXNativeNode key(JXNativeNode root, JXKeyEvent event, JXNativeNode focused) {
+        List<Entry> open = collect(root);
+        Entry top = keyTarget(open);
+        if (top != null) {
             int code = event.getKeyCode();
             if (code == ESCAPE) {
                 close(top.node);
-                return;
+                return afterClose(top.node, focused);
+            }
+            if (navigate(top.node, event)) {
+                return focused;
             }
             if (code == ENTER) {
                 if ("dialog".equals(top.node.getType()) && runDefaultButton(top.node)) {
-                    return;
+                    return focused;
                 }
                 if (popupHost(top.node.getType()) && focused == top.node) {
                     request(top.node, false);
-                    return;
+                    return focused;
                 }
             }
         }
+        if (focused != null && !(top != null && (popupHost(top.node.getType()) || menuHost(top.node.getType())))
+                && opensWithKey(focused, event)) {
+            return focused; // a closed select, picker or menu button that has the focus opened
+        }
         if (focused != null && JXSelection.key(root, focused, event)) {
-            return; // a list with a selection moved it, or ran the action of its row
+            return focused; // a list with a selection moved it, or ran the action of its row
         }
         if (focused != null) {
             focused.dispatchKey(event);
         }
         if (event.getKeyCode() == ENTER && open.isEmpty() && (focused == null || !focused.takesEnter())) {
             runScreenDefault(root); // like JavaFX: Enter in a field presses the default button of the screen
+        }
+        return focused;
+    }
+
+    /** Whether an open popup list or menu takes the keys (see {@link JXNativeNode#capturesKeys}). */
+    static boolean capturesKeys(JXNativeNode root) {
+        Entry top = keyTarget(collect(root));
+        return top != null && ("select".equals(top.node.getType()) || menuHost(top.node.getType()));
+    }
+
+    private static boolean menuHost(String type) {
+        return "menubutton".equals(type) || "contextmenu".equals(type) || "menubar".equals(type);
+    }
+
+    /** Controls the focus belongs to while their popup is open and after it closes: a menu bar and a context menu have none. */
+    private static boolean selectsFocus(JXNativeNode node) {
+        return popupHost(node.getType()) || "menubutton".equals(node.getType());
+    }
+
+    /** Escape closed {@code node}: the control that owned the popup or menu has the focus again. */
+    private static JXNativeNode afterClose(JXNativeNode node, JXNativeNode focused) {
+        return selectsFocus(node) ? node : focused;
+    }
+
+    // ---- highlight: hover and the keys inside a popup or a menu --------------------------------------
+
+    /** Gives a popup opened with the keyboard its first highlight: the chosen option of a select, else the first. */
+    private static void resolve(JXNativeNode host, int chosen, int count) {
+        if (host.highlight == PENDING) {
+            host.highlight = count == 0 ? -1 : chosen >= 0 ? chosen : 0;
+        }
+    }
+
+    private static boolean selectable(JXNativeNode row) {
+        return !separator(row) && !Boolean.TRUE.equals(row.getProperty("disabled"));
+    }
+
+    /**
+     * The row of a menu panel {@code dir} (1 down, -1 up) from row {@code from} (-1: before the first, or after the last when
+     * going up) that can be chosen, skipping separators and disabled rows; menus wrap around (JavaFX's do). {@code from}
+     * when there is none.
+     */
+    private static int step(List<JXNativeNode> rows, int from, int dir, boolean wrap) {
+        int n = rows.size();
+        int i = from < 0 ? (dir > 0 ? -1 : n) : from;
+        for (int k = 0; k < n; k++) {
+            i += dir;
+            if (i < 0 || i >= n) {
+                if (!wrap && from >= 0) {
+                    return from;
+                }
+                i = (i % n + n) % n;
+            }
+            if (selectable(rows.get(i))) {
+                return i;
+            }
+        }
+        return from;
+    }
+
+    /**
+     * The pointer moved to (x, y): the item under it in the topmost open popup list or menu panel that covers the point
+     * is highlighted. True when that changed what is highlighted. Leaving the popup leaves the highlight where it is.
+     */
+    static boolean hover(JXNativeNode root, int x, int y) {
+        if (x < 0 || y < 0 || !root.overlaysBelow) {
+            return false;
+        }
+        List<Entry> open = collect(root);
+        for (int i = open.size() - 1; i >= 0; i--) {
+            JXNativeNode node = open.get(i).node;
+            Popup po = popup(node);
+            if (po == null || !po.contains(x, y)) {
+                continue;
+            }
+            if ("select".equals(node.getType())) {
+                for (int[] cell : po.cells) {
+                    if (x >= cell[0] && y >= cell[1] && x < cell[0] + cell[2] && y < cell[1] + cell[3]) {
+                        boolean changed = node.highlight != cell[5];
+                        node.highlight = cell[5];
+                        return changed;
+                    }
+                }
+            } else if (menuHost(node.getType())) {
+                for (int k = po.panels.size() - 1; k >= 0; k--) {
+                    Panel panel = po.panels.get(k);
+                    if (!panel.contains(x, y)) {
+                        continue;
+                    }
+                    List<JXNativeNode> rows = panel.container.getChildren();
+                    for (int r = 0; r < rows.size(); r++) {
+                        if (rows.get(r).contains(x, y) && selectable(rows.get(r))) {
+                            boolean changed = panel.container.highlight != r;
+                            panel.container.highlight = r;
+                            return changed;
+                        }
+                    }
+                    return false;
+                }
+            }
+            return false;
+        }
+        return false;
+    }
+
+    /** The character a key types (a letter or a digit, no Ctrl, Alt or Meta), or 0. */
+    private static char typed(JXKeyEvent event) {
+        if ((event.getModifiers() & (JXInputEvent.CONTROL | JXInputEvent.ALT | JXInputEvent.META)) != 0) {
+            return 0;
+        }
+        char c = event.getKeyChar();
+        int code = event.getKeyCode();
+        if (c == 0 && (code >= 'A' && code <= 'Z' || code >= '0' && code <= '9')) {
+            c = (char) code; // GLFW key codes of letters and digits are their capital letters
+        }
+        return Character.isLetterOrDigit(c) ? c : 0;
+    }
+
+    /** The index after {@code from} (wrapping) of the label that starts with {@code c}, any case; -1 when none does. */
+    private static int typeAhead(List<String> labels, List<JXNativeNode> rows, int from, char c) {
+        int n = labels.size();
+        for (int k = 1; k <= n; k++) {
+            int i = ((from + k) % n + n) % n;
+            String label = labels.get(i);
+            if (!label.isEmpty() && Character.toLowerCase(label.charAt(0)) == Character.toLowerCase(c)
+                    && (rows == null || selectable(rows.get(i)))) {
+                return i;
+            }
+        }
+        return -1;
+    }
+
+    private static boolean altDown(JXKeyEvent event) {
+        return (event.getModifiers() & JXInputEvent.ALT) != 0;
+    }
+
+    private static boolean plain(JXKeyEvent event) {
+        return (event.getModifiers() & (JXInputEvent.CONTROL | JXInputEvent.ALT | JXInputEvent.META | JXInputEvent.SHIFT)) == 0;
+    }
+
+    /** A closed popup host or menu button that has the focus opens with Alt+Down, F4 or Space (and Enter, a menu button). */
+    private static boolean opensWithKey(JXNativeNode focused, JXKeyEvent event) {
+        String type = focused.getType();
+        if (!(popupHost(type) || "menubutton".equals(type)) || !canOpen(focused) || isOpen(focused)
+                || Boolean.TRUE.equals(focused.getProperty("disabled"))) {
+            return false;
+        }
+        int code = event.getKeyCode();
+        boolean opens = code == DOWN && altDown(event) || plain(event) && (code == F4 || code == SPACE
+                || code == ENTER && "menubutton".equals(type));
+        if (!opens) {
+            return false;
+        }
+        request(focused, true);
+        if ("select".equals(type) || "menubutton".equals(type)) {
+            focused.highlight = PENDING; // set after the request, which clears it; resolved once the popup is open
+        }
+        return true;
+    }
+
+    /**
+     * A key for the popup or menu that is open: Alt+Down and F4 close it; in a select Up, Down, Home, End, Page Up and Page Down
+     * move the highlight (and stop at the ends), Enter and Space choose the highlighted option, a letter jumps to the next
+     * option that starts with it; in a menu the same keys move over the rows that can be chosen (and wrap), Enter and Space run an
+     * item or open a submenu, Right opens a submenu (in a menu bar, goes to the next menu), Left closes one (in a menu bar, goes to
+     * the one before). A menu takes every key while it is open. True when the key was taken.
+     */
+    private static boolean navigate(JXNativeNode host, JXKeyEvent event) {
+        String type = host.getType();
+        int code = event.getKeyCode();
+        if ((popupHost(type) || "menubutton".equals(type)) && (code == F4 && plain(event) || code == DOWN && altDown(event))) {
+            request(host, false);
+            return true;
+        }
+        if ("select".equals(type)) {
+            return navigateSelect(host, event);
+        }
+        return menuHost(type) && navigateMenus(host, event);
+    }
+
+    @SuppressWarnings("unchecked")
+    private static boolean navigateSelect(JXNativeNode host, JXKeyEvent event) {
+        String[] options = JXPaint.strings(host.getProperty("options"));
+        int n = options.length;
+        int code = event.getKeyCode();
+        if (n == 0 || (event.getModifiers() & (JXInputEvent.CONTROL | JXInputEvent.ALT | JXInputEvent.META)) != 0) {
+            return false;
+        }
+        int chosen = Arrays.asList(options).indexOf(JXPaint.text(host, "value"));
+        resolve(host, chosen, n);
+        int at = host.highlight >= 0 ? host.highlight : chosen; // where the keys move from
+        int rows = Math.min(n, SELECT_ROWS);
+        int target;
+        switch (code) {
+            case UP:
+                target = at < 0 ? n - 1 : at - 1;
+                break;
+            case DOWN:
+                target = at < 0 ? 0 : at + 1;
+                break;
+            case PAGE_UP:
+                target = (at < 0 ? n : at) - rows;
+                break;
+            case PAGE_DOWN:
+                target = (at < 0 ? -1 : at) + rows;
+                break;
+            case HOME:
+                target = 0;
+                break;
+            case END:
+                target = n - 1;
+                break;
+            case ENTER:
+            case SPACE:
+                if (host.highlight < 0 || host.highlight >= n) {
+                    return code == SPACE; // Enter with nothing highlighted closes the popup, as before
+                }
+                Object handler = host.getProperty("onChange");
+                if (handler instanceof Consumer) {
+                    ((Consumer<Object>) handler).accept(options[host.highlight]);
+                }
+                request(host, false);
+                return true;
+            default:
+                char c = typed(event);
+                if (c == 0) {
+                    return false;
+                }
+                int found = typeAhead(Arrays.asList(options), null, at < 0 ? -1 : at, c);
+                if (found < 0) {
+                    return true;
+                }
+                target = found;
+                break;
+        }
+        host.highlight = Math.max(0, Math.min(n - 1, target));
+        return true;
+    }
+
+    /** The containers whose rows are open as panels, from the first: the host (the open menu of a bar), then each open submenu. */
+    private static List<JXNativeNode> chain(JXNativeNode host) {
+        List<JXNativeNode> out = new ArrayList<JXNativeNode>();
+        JXNativeNode c = host;
+        if ("menubar".equals(host.getType())) {
+            c = host.openChild >= 0 && host.openChild < host.getChildren().size() ? host.getChildren().get(host.openChild) : null;
+        }
+        while (c != null) {
+            out.add(c);
+            JXNativeNode next = null;
+            if (c.openChild >= 0 && c.openChild < c.getChildren().size()) {
+                JXNativeNode row = c.getChildren().get(c.openChild);
+                if ("menu".equals(row.getType()) && !row.getChildren().isEmpty()) {
+                    next = row;
+                }
+            }
+            c = next;
+        }
+        return out;
+    }
+
+    private static boolean navigateMenus(JXNativeNode host, JXKeyEvent event) {
+        List<JXNativeNode> chain = chain(host);
+        if (chain.isEmpty()) {
+            return true;
+        }
+        if (host.highlight == PENDING) {
+            host.highlight = "menubar".equals(host.getType()) ? -1 : step(host.getChildren(), -1, 1, false);
+        }
+        JXNativeNode panel = chain.get(chain.size() - 1);
+        List<JXNativeNode> rows = panel.getChildren();
+        int at = panel.highlight >= 0 && panel.highlight < rows.size() ? panel.highlight : -1;
+        int code = event.getKeyCode();
+        if ((event.getModifiers() & (JXInputEvent.CONTROL | JXInputEvent.ALT | JXInputEvent.META)) != 0) {
+            return true;
+        }
+        switch (code) {
+            case UP:
+                panel.highlight = step(rows, at, -1, true);
+                break;
+            case DOWN:
+                panel.highlight = step(rows, at, 1, true);
+                break;
+            case HOME:
+            case PAGE_UP:
+                panel.highlight = step(rows, -1, 1, false);
+                break;
+            case END:
+            case PAGE_DOWN:
+                panel.highlight = step(rows, -1, -1, false);
+                break;
+            case ENTER:
+            case SPACE:
+                if (at >= 0) {
+                    choose(host, panel, at);
+                }
+                break;
+            case RIGHT:
+                if (at >= 0 && "menu".equals(rows.get(at).getType())) {
+                    choose(host, panel, at);
+                } else if ("menubar".equals(host.getType()) && chain.size() == 1) {
+                    switchMenu(host, 1);
+                }
+                break;
+            case LEFT:
+                if (chain.size() > 1) {
+                    JXNativeNode parent = chain.get(chain.size() - 2);
+                    clearHighlights(panel);
+                    parent.openChild = -1;
+                } else if ("menubar".equals(host.getType())) {
+                    switchMenu(host, -1);
+                }
+                break;
+            default:
+                char c = typed(event);
+                if (c != 0 && !rows.isEmpty()) {
+                    List<String> labels = new ArrayList<String>(rows.size());
+                    for (JXNativeNode row : rows) {
+                        labels.add(label(row));
+                    }
+                    int found = typeAhead(labels, rows, at, c);
+                    if (found >= 0) {
+                        panel.highlight = found;
+                    }
+                }
+                break;
+        }
+        return true;
+    }
+
+    /** Runs the item at {@code index} of {@code panel} and closes the menu, or opens the submenu there with its first row highlighted. */
+    private static void choose(JXNativeNode host, JXNativeNode panel, int index) {
+        JXNativeNode row = panel.getChildren().get(index);
+        if (!selectable(row)) {
+            return;
+        }
+        if ("menu".equals(row.getType())) {
+            if (!row.getChildren().isEmpty()) {
+                panel.openChild = index;
+                row.highlight = step(row.getChildren(), -1, 1, false);
+            }
+            return;
+        }
+        row.dispatchPointer(new JXPointerEvent(row.getX() + row.getWidth() / 2, row.getY() + row.getHeight() / 2, 0));
+        close(host);
+    }
+
+    /** In a menu bar, opens the next (or previous) menu that is not disabled, with its first row highlighted. */
+    private static void switchMenu(JXNativeNode bar, int dir) {
+        List<JXNativeNode> menus = bar.getChildren();
+        int n = menus.size();
+        for (int k = 1; k <= n; k++) {
+            int i = ((bar.openChild + dir * k) % n + n) % n;
+            JXNativeNode menu = menus.get(i);
+            if (!Boolean.TRUE.equals(menu.getProperty("disabled"))) {
+                resetMenus(bar);
+                bar.openChild = i;
+                menu.highlight = step(menu.getChildren(), -1, 1, false);
+                return;
+            }
         }
     }
 

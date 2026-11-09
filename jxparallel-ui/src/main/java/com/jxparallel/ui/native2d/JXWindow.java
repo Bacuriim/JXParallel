@@ -757,7 +757,11 @@ public final class JXWindow implements AutoCloseable {
                     }
                 } else {
                     // Escape and Enter belong to an open overlay first; Shift and Ctrl select, copy, paste and undo text
-                    root.routeKey(new JXKeyEvent(key, '\0', JXKeys.modifiers(mods)), focusedNode);
+                    keyTaken = root.capturesKeys(); // the character this key types, which GLFW sends next, goes with it
+                    JXNativeNode owner = root.routeKey(new JXKeyEvent(key, '\0', JXKeys.modifiers(mods)), focusedNode);
+                    if (owner != focusedNode) {
+                        focus(owner); // Escape closed a popup or a menu: the control it belongs to has the focus again
+                    }
                 }
                 hideTooltip();
                 requestRender();
@@ -768,12 +772,15 @@ public final class JXWindow implements AutoCloseable {
                 deliver(JXInputEvent.character(codepoint, JXKeys.modifiers(mods)));
                 return;
             }
-            if (focusedNode != null) {
+            if (focusedNode != null && !keyTaken) { // an open menu or popup took the key that typed it already
                 focusedNode.dispatchKey(new JXKeyEvent(0, (char) codepoint));
                 requestRender();
             }
         });
     }
+
+    /** The last key press went to an open popup list or menu (see {@link JXNativeNode#capturesKeys}), not to the focused node. */
+    private boolean keyTaken;
 
     /** How long the pointer rests on a node with a {@code tooltip} before it shows, as JavaFX's default (milliseconds). */
     private static final long TOOLTIP_DELAY = 600;

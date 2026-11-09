@@ -91,11 +91,15 @@ final class JXOverlayPaint {
         for (int i = 0; i < po.cells.length; i++) {
             int[] c = po.cells[i];
             boolean chosen = po.labels[i].equals(value);
-            if (chosen) {
+            // the item under the pointer or the keys is the blue one; the chosen one turns grey while another is highlighted
+            boolean lit = node.highlight >= 0 ? c[5] == node.highlight : chosen;
+            if (lit) {
                 p.fillRect(c[0], c[1], c[2], c[3], JXPaint.SELECTION);
+            } else if (chosen) {
+                p.fillRect(c[0], c[1], c[2], c[3], JXPaint.SELECTION_UNFOCUSED);
             }
             p.text(po.labels[i], c[0] + JXNativeNode.PAD_X, c[1] + engine.baseline(c[3], size), size, false,
-                    chosen ? 0xFFFFFFFF : JXPaint.TEXT);
+                    lit ? 0xFFFFFFFF : JXPaint.TEXT);
         }
     }
 
@@ -175,8 +179,9 @@ final class JXOverlayPaint {
                 }
                 boolean disabled = Boolean.TRUE.equals(row.getProperty("disabled"));
                 int color = disabled ? JXTheme.withAlpha(t.onSurface, 0x66) : t.onSurface;
-                if (i == panel.container.openChild && "menu".equals(row.getType())) {
-                    p.fillRect(x, y, w, h, t.tonal());
+                if (i == panel.container.openChild && "menu".equals(row.getType())
+                        || i == panel.container.highlight && !disabled) {
+                    p.fillRect(x, y, w, h, t.tonal()); // the open submenu's row, and the row under the pointer or the keys
                 }
                 float baseline = y + engine.baseline(h, size);
                 p.text(JXOverlays.label(row), x + JXOverlays.MENU_TEXT, baseline, size, false, color);

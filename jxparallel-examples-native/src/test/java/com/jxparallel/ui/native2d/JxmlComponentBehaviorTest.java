@@ -126,8 +126,16 @@ class JxmlComponentBehaviorTest {
 
         /** A key with Shift ({@link JXInputEvent#SHIFT}) and Ctrl ({@link JXInputEvent#CONTROL}) held. */
         void key(int code, int modifiers) {
-            root.routeKey(new JXKeyEvent(code, '\0', modifiers), focused);
+            focusAfter(root.routeKey(new JXKeyEvent(code, '\0', modifiers), focused));
             refresh();
+        }
+
+        /** As JXWindow: the control a popup or menu belongs to has the focus again once Escape closed it. */
+        private void focusAfter(JXNativeNode owner) {
+            if (owner != focused) {
+                focused = owner;
+                JXNativeNode.setFocusOwner(owner);
+            }
         }
 
         /** The pointer moves to (x, y) with no button held. */
@@ -180,17 +188,18 @@ class JxmlComponentBehaviorTest {
                     JXNativeNode.setFocusOwner(next);
                 }
             } else {
-                root.routeKey(new JXKeyEvent(code, '\0'), focused);
+                focusAfter(root.routeKey(new JXKeyEvent(code, '\0'), focused));
             }
             refresh();
         }
 
-        /** Typing: GLFW sends the key, then the character. */
+        /** Typing: GLFW sends the key, then the character (which an open popup or menu that took the key does not get again). */
         void type(String text) {
             for (char ch : text.toCharArray()) {
-                root.routeKey(new JXKeyEvent(Character.toUpperCase(ch), '\0'), focused);
+                boolean taken = root.capturesKeys();
+                focusAfter(root.routeKey(new JXKeyEvent(Character.toUpperCase(ch), '\0'), focused));
                 refresh();
-                if (focused != null) {
+                if (focused != null && !taken) {
                     focused.dispatchKey(new JXKeyEvent(0, ch));
                 }
                 refresh();
@@ -1496,6 +1505,403 @@ class JxmlComponentBehaviorTest {
             assertTrue(paintedRow(ui, "list", 2) != SELECTED, "and draws no selection");
             ui.key(DOWN);
             assertTrue(ui.c.told.isEmpty());
+        }
+    }
+
+    // ---- hover and keys inside popups and menus ------------------------------------------------------------
+
+    @Nested
+    class PopupsAndMenus {
+        private static final int ALT = JXInputEvent.ALT;
+        private static final int SPACE = 32;
+        private static final int F4 = 293;
+        private static final int PAGE_UP = 266;
+        private static final int PAGE_DOWN = 267;
+        private static final int SELECTION = 0xFF0096C9;
+        private static final int GREY = 0xFFD3D3D3;
+        private static final String FRUITS = "Apple, Banana, Cherry, Date, Elderberry, Fig, Grape";
+        private static final String COMBO = "<ComboBox items=\"" + FRUITS + "\" value=\"@{fruit}\" showing=\"${fruitOpen}\""
+                + " onShowing=\"#setFruitOpen\"/>";
+        /** Open items (0), Save (1), a separator (2), a disabled one (3), a submenu with two items (4), and Quit (5). */
+        private static final String ITEMS = "<MenuItem text=\"Open\" onAction=\"#click\"/><MenuItem text=\"Save\" onAction=\"#click\"/>"
+                + "<MenuSeparator/><MenuItem text=\"Closed\" disabled=\"true\" onAction=\"#click\"/>"
+                + "<Menu text=\"Recent\"><MenuItem text=\"One\" onAction=\"#click\"/><MenuItem text=\"Two\" onAction=\"#toggleBold\"/></Menu>"
+                + "<MenuItem text=\"Quit\" onAction=\"#toggleExpanded\"/>";
+        private static final String MENU = "<MenuButton text=\"Actions\">" + ITEMS + "</MenuButton>";
+
+        private int[] cell(Ui ui, int i) {
+            return center(ui.find("select").getPopupCells()[i]);
+        }
+
+        private int highlight(Ui ui) {
+            return ui.find("select").highlight;
+        }
+
+        private Ui openCombo() {
+            Ui ui = new Ui(COMBO);
+            ui.click(ui.find("select"));
+            assertTrue(ui.c.getFruitOpen());
+            return ui;
+        }
+
+        private JXNativeNode row(JXNativeNode container, int i) {
+            return container.getChildren().get(i);
+        }
+
+        private boolean menuOpen(Ui ui, String type) {
+            return JXOverlays.isOpen(ui.find(type));
+        }
+
+        // ---- the list of a combo box
+
+        @Test
+        void hoverHighlightsTheOptionUnderThePointerAndTheChosenOneTurnsGrey() {
+            Ui ui = openCombo();
+            JXNativeNode combo = ui.find("select");
+            int[][] cells = combo.getPopupCells();
+            int right = cells[0][0] + cells[0][2] - 8;
+            assertEquals(SELECTION, ui.pixel(right, cells[0][1] + 3), "nothing hovered: the chosen option is the blue one");
+            int[] c = cell(ui, 3);
+            ui.hover(c[0], c[1]);
+            assertEquals(3, highlight(ui));
+            assertEquals(SELECTION, ui.pixel(right, cells[3][1] + 3), "the hovered option is drawn blue");
+            assertEquals(GREY, ui.pixel(right, cells[0][1] + 3), "and the chosen one grey");
+            c = cell(ui, 5);
+            ui.hover(c[0], c[1]);
+            assertEquals(5, highlight(ui));
+            assertEquals("Apple", ui.c.getFruit(), "hover chooses nothing");
+            ui.click(c[0], c[1]);
+            assertEquals("Fig", ui.c.getFruit());
+        }
+
+        @Test
+        void upDownHomeEndAndThePagesMoveTheHighlightAndStopAtTheEnds() {
+            Ui ui = openCombo();
+            ui.key(DOWN);
+            assertEquals(1, highlight(ui), "from the chosen option, the next one");
+            ui.key(DOWN);
+            assertEquals(2, highlight(ui));
+            ui.key(UP);
+            ui.key(UP);
+            ui.key(UP);
+            assertEquals(0, highlight(ui), "not above the first");
+            ui.key(END);
+            assertEquals(6, highlight(ui));
+            ui.key(DOWN);
+            assertEquals(6, highlight(ui), "not below the last");
+            ui.key(HOME);
+            assertEquals(0, highlight(ui));
+            ui.key(PAGE_DOWN);
+            assertEquals(6, highlight(ui));
+            ui.key(PAGE_UP);
+            assertEquals(0, highlight(ui));
+            assertEquals("Apple", ui.c.getFruit(), "moving chooses nothing");
+            assertTrue(ui.c.getFruitOpen(), "and the list stays open");
+        }
+
+        @Test
+        void enterAndSpaceChooseTheHighlightedOptionAndClose() {
+            Ui ui = openCombo();
+            ui.key(DOWN);
+            ui.key(DOWN);
+            ui.key(ENTER);
+            assertEquals("Cherry", ui.c.getFruit());
+            assertTrue(!ui.c.getFruitOpen(), "choosing closes the list");
+            assertEquals(ui.find("select"), ui.focused, "the combo box keeps the focus");
+            ui.type(" "); // closed: Space opens it again
+            assertTrue(ui.c.getFruitOpen());
+            ui.key(END);
+            ui.type(" ");
+            assertEquals("Grape", ui.c.getFruit(), "Space chooses too");
+            assertTrue(!ui.c.getFruitOpen());
+        }
+
+        @Test
+        void enterWithNothingHighlightedStillClosesTheList() {
+            Ui ui = openCombo();
+            ui.key(ENTER);
+            assertTrue(!ui.c.getFruitOpen());
+            assertEquals("Apple", ui.c.getFruit());
+        }
+
+        @Test
+        void escapeClosesTheListAndTheComboBoxHasTheFocusAgain() {
+            Ui ui = new Ui("<TextField text=\"@{name}\"/>\n" + COMBO);
+            ui.click(ui.find("input"));
+            ui.c.setFruitOpen(true); // the application opened it: the field keeps the focus
+            ui.refresh();
+            assertEquals(ui.find("input"), ui.focused);
+            ui.key(ESCAPE);
+            assertTrue(!ui.c.getFruitOpen(), "Escape closes");
+            assertEquals(ui.find("select"), ui.focused, "and the owner of the list has the focus");
+            ui.key(DOWN);
+            assertEquals("Banana", ui.c.getFruit(), "so the arrows change its value");
+        }
+
+        @Test
+        void typingALetterJumpsToTheNextOptionThatStartsWithIt() {
+            Ui ui = new Ui("<TextField text=\"@{name}\"/>\n<ComboBox items=\"Apple, Banana, Blueberry, Cherry\" value=\"@{fruit}\""
+                    + " showing=\"${fruitOpen}\" onShowing=\"#setFruitOpen\"/>");
+            ui.click(ui.find("select"));
+            ui.type("b");
+            assertEquals(1, highlight(ui), "the first B after the chosen Apple");
+            ui.type("b");
+            assertEquals(2, highlight(ui), "the next B");
+            ui.type("B");
+            assertEquals(1, highlight(ui), "wraps round to the first");
+            ui.type("c");
+            assertEquals(3, highlight(ui));
+            ui.type("z");
+            assertEquals(3, highlight(ui), "no option starts with Z: it stays");
+            assertEquals("", ui.c.getName(), "the letters were the list's, not a field's");
+            assertEquals("Apple", ui.c.getFruit());
+        }
+
+        @Test
+        void aClosedComboBoxWithTheFocusOpensWithAltDownF4AndSpace() {
+            Ui ui = new Ui(COMBO);
+            ui.click(ui.find("select"));
+            ui.key(ESCAPE);
+            assertTrue(!ui.c.getFruitOpen());
+            ui.key(DOWN, ALT);
+            assertTrue(ui.c.getFruitOpen(), "Alt+Down opens");
+            assertEquals(0, highlight(ui), "with the chosen option highlighted");
+            ui.key(F4, 0);
+            assertTrue(!ui.c.getFruitOpen(), "F4 closes it");
+            ui.key(F4, 0);
+            assertTrue(ui.c.getFruitOpen(), "and opens it");
+            ui.key(ESCAPE);
+            ui.type(" ");
+            assertTrue(ui.c.getFruitOpen(), "Space opens");
+            ui.key(DOWN, ALT);
+            assertTrue(!ui.c.getFruitOpen(), "Alt+Down closes an open one");
+            ui.key(DOWN);
+            assertEquals("Banana", ui.c.getFruit(), "closed, Down changes the value as before");
+        }
+
+        @Test
+        void theListFollowsTheHighlightPastItsTenRows() {
+            Ui ui = new Ui("<ComboBox items=\"1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20\" value=\"@{fruit}\""
+                    + " showing=\"${fruitOpen}\" onShowing=\"#setFruitOpen\"/>");
+            ui.click(ui.find("select"));
+            ui.key(END);
+            JXOverlays.Popup po = JXOverlays.popup(ui.find("select"));
+            assertEquals(10, po.cells.length);
+            assertEquals(19, po.cells[9][5], "the last option is the last row shown");
+            assertEquals(10, po.cells[0][5]);
+            ui.key(HOME);
+            po = JXOverlays.popup(ui.find("select"));
+            assertEquals(0, po.cells[0][5], "and back at the top");
+            for (int i = 0; i < 12; i++) {
+                ui.key(DOWN);
+            }
+            po = JXOverlays.popup(ui.find("select"));
+            assertEquals(12, ui.find("select").highlight);
+            assertEquals(3, po.cells[0][5], "going down scrolls one row at a time, the window moved only as far as needed");
+        }
+
+        // ---- menus
+
+        @Test
+        void hoverHighlightsTheRowsThatCanBeChosen() {
+            Ui ui = new Ui(MENU);
+            ui.click(ui.find("menubutton"));
+            JXNativeNode host = ui.find("menubutton");
+            ui.hover(center(row(host, 1))[0], center(row(host, 1))[1]);
+            assertEquals(1, host.highlight, "Save");
+            ui.hover(center(row(host, 2))[0], center(row(host, 2))[1]);
+            assertEquals(1, host.highlight, "a separator is not highlighted");
+            ui.hover(center(row(host, 3))[0], center(row(host, 3))[1]);
+            assertEquals(1, host.highlight, "nor a disabled row");
+            ui.hover(center(row(host, 5))[0], center(row(host, 5))[1]);
+            assertEquals(5, host.highlight);
+            ui.hover(ui.w - 5, ui.h - 5);
+            assertEquals(5, host.highlight, "leaving the menu leaves the highlight");
+        }
+
+        @Test
+        void theArrowsMoveOverTheRowsThatCanBeChosenAndWrapAround() {
+            Ui ui = new Ui(MENU);
+            ui.click(ui.find("menubutton"));
+            JXNativeNode host = ui.find("menubutton");
+            ui.key(DOWN);
+            assertEquals(0, host.highlight, "Down from nothing: the first row");
+            ui.key(DOWN);
+            assertEquals(1, host.highlight);
+            ui.key(DOWN);
+            assertEquals(4, host.highlight, "the separator and the disabled row are skipped");
+            ui.key(DOWN);
+            assertEquals(5, host.highlight);
+            ui.key(DOWN);
+            assertEquals(0, host.highlight, "after the last, the first");
+            ui.key(UP);
+            assertEquals(5, host.highlight, "before the first, the last");
+            ui.key(HOME);
+            assertEquals(0, host.highlight);
+            ui.key(END);
+            assertEquals(5, host.highlight);
+        }
+
+        @Test
+        void enterAndSpaceRunTheHighlightedItemAndCloseTheMenu() {
+            Ui ui = new Ui(MENU);
+            ui.click(ui.find("menubutton"));
+            ui.key(HOME);
+            ui.key(ENTER);
+            assertEquals(1, ui.c.clicks, "Enter runs the item");
+            assertTrue(!menuOpen(ui, "menubutton"), "and closes the menu");
+            ui.click(ui.find("menubutton"));
+            ui.key(DOWN);
+            ui.key(DOWN);
+            ui.type(" ");
+            assertEquals(2, ui.c.clicks, "Space runs it too");
+            assertTrue(!menuOpen(ui, "menubutton"));
+        }
+
+        @Test
+        void rightOpensASubmenuLeftClosesItAndEscapeClosesTheWholeMenu() {
+            Ui ui = new Ui(MENU);
+            ui.click(ui.find("menubutton"));
+            JXNativeNode host = ui.find("menubutton");
+            ui.key(END);
+            ui.key(UP);
+            assertEquals(4, host.highlight, "Recent");
+            ui.key(RIGHT);
+            assertEquals(4, host.openChild, "Right opens the submenu");
+            assertEquals(0, row(host, 4).highlight, "with its first item highlighted");
+            assertEquals(2, JXOverlays.popup(host).panels.size());
+            ui.key(DOWN);
+            assertEquals(1, row(host, 4).highlight, "the arrows now move in the submenu");
+            assertEquals(4, host.highlight, "the row that opened it keeps its highlight");
+            ui.key(LEFT);
+            assertEquals(-1, host.openChild, "Left closes the submenu");
+            assertEquals(1, JXOverlays.popup(host).panels.size());
+            ui.key(RIGHT);
+            ui.key(DOWN);
+            ui.key(ENTER);
+            assertTrue(ui.c.getBold(), "Enter in the submenu runs its item");
+            assertTrue(!menuOpen(ui, "menubutton"), "and closes every panel");
+            ui.click(ui.find("menubutton"));
+            ui.key(HOME);
+            ui.key(DOWN);
+            ui.key(DOWN);
+            ui.key(RIGHT);
+            ui.key(ESCAPE);
+            assertTrue(!menuOpen(ui, "menubutton"), "Escape closes the menu with its submenu");
+            assertEquals(ui.find("menubutton"), ui.focused, "and the focus is the menu button's");
+            ui.click(ui.find("menubutton"));
+            assertEquals(-1, ui.find("menubutton").highlight, "a menu opened again starts with nothing highlighted");
+            assertEquals(-1, ui.find("menubutton").openChild);
+        }
+
+        @Test
+        void typingALetterJumpsToTheNextRowThatStartsWithIt() {
+            Ui ui = new Ui("<TextField text=\"@{name}\"/>\n<Column prefHeight=\"150\" background=\"#EEEEEE\"><Label text=\"area\"/>"
+                    + "<ContextMenu>" + ITEMS + "</ContextMenu></Column>");
+            ui.click(ui.find("input"));
+            JXNativeNode area = ui.find("column", 1);
+            ui.press(area.getX() + 40, area.getY() + area.getHeight() - 10, 1);
+            ui.release();
+            JXNativeNode menu = ui.find("contextmenu");
+            assertNotNull(JXOverlays.popup(menu), "a right click opens the context menu");
+            ui.type("q");
+            assertEquals(5, menu.highlight, "Quit");
+            ui.type("s");
+            assertEquals(1, menu.highlight, "Save");
+            ui.type("r");
+            assertEquals(4, menu.highlight, "Recent");
+            ui.type("z");
+            assertEquals(4, menu.highlight);
+            assertEquals("", ui.c.getName(), "the letters went to the menu, not to the field that has the focus");
+            ui.key(ESCAPE);
+            assertNull(JXOverlays.popup(ui.find("contextmenu")));
+        }
+
+        @Test
+        void aContextMenuTakesTheKeys() {
+            Ui ui = new Ui("<Column prefHeight=\"150\" background=\"#EEEEEE\"><Label text=\"area\"/>"
+                    + "<ContextMenu>" + ITEMS + "</ContextMenu></Column>");
+            JXNativeNode area = ui.find("column", 1);
+            ui.press(area.getX() + 40, area.getY() + area.getHeight() - 10, 1);
+            ui.release();
+            ui.key(DOWN);
+            ui.key(DOWN);
+            ui.key(ENTER);
+            assertEquals(1, ui.c.clicks, "Down, Down, Enter runs the second item");
+            assertNull(JXOverlays.popup(ui.find("contextmenu")), "and closes the menu");
+        }
+
+        @Test
+        void aMenuBarMovesBetweenItsMenusWithLeftAndRight() {
+            Ui ui = new Ui("<MenuBar><Menu text=\"File\"><MenuItem text=\"Open\" onAction=\"#click\"/></Menu>"
+                    + "<Menu text=\"Edit\"><MenuItem text=\"Copy\" onAction=\"#toggleBold\"/><MenuItem text=\"Paste\"/></Menu></MenuBar>");
+            JXNativeNode bar = ui.find("menubar");
+            ui.click(bar.getX() + 12, center(bar)[1]);
+            assertEquals(0, bar.openChild);
+            ui.key(DOWN);
+            assertEquals(0, row(bar, 0).highlight, "Down highlights the first item of the open menu");
+            ui.key(RIGHT);
+            assertEquals(1, bar.openChild, "Right goes to the next menu");
+            assertEquals(0, row(bar, 1).highlight, "with its first item highlighted");
+            ui.key(RIGHT);
+            assertEquals(0, bar.openChild, "and round the end");
+            ui.key(LEFT);
+            assertEquals(1, bar.openChild, "Left goes back");
+            ui.key(DOWN);
+            ui.key(UP);
+            ui.key(HOME);
+            ui.key(ENTER);
+            assertTrue(ui.c.getBold(), "Enter runs the item of the second menu");
+            assertEquals(-1, bar.openChild, "and closes the bar");
+        }
+
+        @Test
+        void aClosedMenuButtonWithTheFocusOpensWithEnterSpaceAltDownAndF4() {
+            Ui ui = new Ui(MENU);
+            ui.click(ui.find("menubutton"));
+            ui.key(ESCAPE);
+            assertTrue(!menuOpen(ui, "menubutton"));
+            ui.key(ENTER);
+            assertTrue(menuOpen(ui, "menubutton"), "Enter opens");
+            assertEquals(0, ui.find("menubutton").highlight, "with the first item highlighted");
+            ui.key(ESCAPE);
+            ui.type(" ");
+            assertTrue(menuOpen(ui, "menubutton"), "Space opens");
+            ui.key(F4, 0);
+            assertTrue(!menuOpen(ui, "menubutton"), "F4 closes");
+            ui.key(DOWN, ALT);
+            assertTrue(menuOpen(ui, "menubutton"), "Alt+Down opens");
+            assertEquals(0, ui.c.clicks, "opening runs nothing");
+        }
+
+        @Test
+        void otherPopupsOpenWithTheKeyboardAndCloseWithEscape() {
+            Ui ui = new Ui("<DatePicker value=\"@{date}\" showing=\"${dateOpen}\" onShowing=\"#setDateOpen\"/>\n"
+                    + "<TimePicker value=\"@{time}\" showing=\"${timeOpen}\" onShowing=\"#setTimeOpen\"/>");
+            ui.click(ui.find("datepicker"));
+            ui.key(ESCAPE);
+            ui.key(DOWN, ALT);
+            assertTrue(ui.c.getDateOpen(), "Alt+Down opens the calendar");
+            ui.key(F4, 0);
+            assertTrue(!ui.c.getDateOpen(), "F4 closes it");
+            ui.key(TAB);
+            ui.type(" ");
+            assertTrue(ui.c.getTimeOpen(), "Space opens the time picker that has the focus");
+            ui.key(ESCAPE);
+            assertTrue(!ui.c.getTimeOpen());
+            assertEquals(ui.find("timepicker"), ui.focused);
+        }
+
+        @Test
+        void aPopupThatNothingHoveredOrTypedIsDrawnAsBefore() {
+            Ui ui = openCombo();
+            JXNativeNode combo = ui.find("select");
+            assertEquals(-1, combo.highlight, "a popup opened with the pointer has no highlight");
+            ui.hover(5, ui.h - 5);
+            assertEquals(-1, combo.highlight);
+            ui.key(ESCAPE);
+            ui.click(ui.find("select"));
+            assertEquals(-1, ui.find("select").highlight, "and one opened again starts clean");
         }
     }
 }

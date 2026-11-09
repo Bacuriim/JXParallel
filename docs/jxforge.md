@@ -301,7 +301,7 @@ text input its caret, without the screen holding that state.
 | `CheckBox` | `boolean` | click, or space |
 | `Slider` | `double` | click on the track, drag of the thumb, Left / Down and Right / Up (`blockIncrement`), Home / End |
 | `Spinner` | `double` | Up / Down arrows and a click on its arrow buttons (`step`), within `min` and `max` |
-| `ComboBox` | `String`, the option | Up / Down arrows, a press on an option of the open list |
+| `ComboBox` | `String`, the option | Up / Down arrows, a press on an option of the open list, Enter or Space on the highlighted option of the open list |
 | `DatePicker` | `String`, ISO `yyyy-MM-dd` | Up / Down (day), Page Up / Page Down (month), a press on a day of the open calendar |
 | `TimePicker` | `String`, `HH:mm` | Up / Down (the `minuteStep`), Page Up / Page Down (an hour), a press on an hour, a minute or AM / PM of the open popup |
 | `ColorPicker` | `String`, `#RRGGBB` | a press on a swatch of the open popup, or hex digits typed in it once the text reads `#RRGGBB` |
@@ -587,9 +587,33 @@ Everything that opens over the window goes through one mechanism in the renderer
   and otherwise gives the press to the deepest node. A snack bar takes only the presses on it. A host that handles its own input
   (`JXWindow.setInputListener`) calls `routePointer` and `routeKey` itself.
 - **Keys.** `JXNativeNode.routeKey(event, focused)`: Escape closes the topmost open overlay (a snack bar only when it is the
-  only one); Enter presses the `defaultButton` of an open dialog, and closes an open popup of the focused control; every other
+  only one); Enter presses the `defaultButton` of an open dialog, and closes an open popup of the focused control; an open
+  `ComboBox` list and an open menu take the keys described under "Hover and keys in popups and menus" below; every other
   key goes to the focused node. With a color picker open, `#` and hex digits are typed in its hex field (Backspace removes
-  one) and each complete `#RRGGBB` goes to `onChange`.
+  one) and each complete `#RRGGBB` goes to `onChange`. The method returns the node that has the focus afterwards: the one it
+  was given, or the control whose popup or menu Escape just closed.
+- **Hover and keys in popups and menus.** The item under the pointer is highlighted (a `ComboBox` option blue, the chosen one
+  turning grey meanwhile; a menu row with the tonal fill of an open submenu's row); a separator and a disabled row never are,
+  and leaving the popup leaves the highlight where it was. Hover chooses nothing. Keys, for the topmost open list or menu:
+
+  | Key | `ComboBox` list | `MenuButton`, `ContextMenu`, `MenuBar` panel |
+  |---|---|---|
+  | Down, Up | next / previous option (from the chosen one, when nothing is highlighted); stops at the ends | next / previous row that can be chosen; wraps round |
+  | Home, End (Page Up, Page Down) | first / last option (ten rows up or down) | first / last row that can be chosen |
+  | Enter, Space | chooses the highlighted option (`onChange`) and closes; Enter with nothing highlighted just closes | runs the highlighted item (`onAction`) and closes every panel; on a `Menu` row opens its submenu |
+  | Right | | opens the submenu of the highlighted row, highlighting its first item; in a `MenuBar`, otherwise, the next menu |
+  | Left | | closes the open submenu; in a `MenuBar`, from its first panel, the menu before |
+  | a letter or digit | the next option that starts with it (any case), wrapping; none: stays | the same over the rows of the panel |
+  | Alt+Down, F4 | close | (`MenuButton`) close |
+  | Escape | closes; the control has the focus again | closes every panel; a `MenuButton` has the focus again |
+
+  A closed `ComboBox`, `DatePicker`, `TimePicker`, `ColorPicker` or `MenuButton` that has the focus opens with Alt+Down, F4 or Space
+  (also Enter, for a `MenuButton`); a `ComboBox` or `MenuButton` opened so starts with the chosen option or the first item
+  highlighted. Closed, a `ComboBox` still changes its value with Up and Down. An open menu takes every key, and
+  the characters of the keys it took are not typed into the focused field (`JXNativeNode.capturesKeys()`; `JXWindow` does it). The highlight is renderer state
+  (`JXNativeNode.highlight`), not a prop; it is cleared when the overlay closes. A `MenuBar` opens with the pointer only.
+  The calendar of a `DatePicker`, the cells of a `TimePicker` and the swatches of a `ColorPicker` have no hover or arrow
+  navigation of their own: they keep the arrows (Up, Down, Page Up, Page Down) that change their value, a press picks.
 - **Dialog.** `Dialog` is a `Modal` (a column: use `padding`, `gap`, `alignment`, `prefWidth`... on it as on a `Column`)
   with the title, the content and the buttons; `AlertDialog` adds the usual two buttons. Each button has its own `onAction`.
   The dialog is as wide as its content (at least 280 as a `Dialog`) and at most the window less 24 px on each side.
@@ -748,7 +772,8 @@ JXML screen with `new XView().build(controller)`, and JXML places a Java compone
 - SVG (and other vector formats) for `Image`: `src` reads the raster formats of stb_image only.
 - Shadows (for `Card`) and the Material look of the bars: they are rows with a background.
 - A `ListView` with columns, and rows of different heights.
-- Keyboard navigation and hover in the popups and menus (see [Overlays](#overlays)), and a recursive model for `Tree`
+- Hover and arrow-key navigation in the calendar of a `DatePicker`, the cells of a `TimePicker` and the swatches of a
+  `ColorPicker`, opening a `MenuBar` with the keyboard (see [Overlays](#overlays)), and a recursive model for `Tree`
   (see [Trees](#trees)).
 - `<For>` over a `Map`, and the loop index as a variable.
 - An XSD for autocompletion in IDEs.

@@ -129,6 +129,13 @@ public final class JXNativeNode {
      */
     int selAnchor = -1;
     int selCursor = -1;
+    /**
+     * The item an open popup or menu has highlighted, -1 for none (see {@link JXOverlays}): the index of the option of a
+     * select, of the row of a menu panel (kept on the node whose children are the rows). Hover and the arrow keys move it.
+     */
+    int highlight = -1;
+    /** First option a select's popup shows while its highlight moves with the keys, -1 while it follows the chosen one. */
+    int popupFirst = -1;
 
     java.util.Deque<Object[]> undo() {
         if (undo == null) {
@@ -519,9 +526,13 @@ public final class JXNativeNode {
      * a button lightens) and the others no longer are. Returns whether that changed, so the window paints again.
      */
     public boolean hoverPointer(int px, int py) {
+        boolean highlighted = JXOverlays.hover(this, px, py); // the item of an open popup or menu under the pointer
+        if (highlighted) {
+            revision++;
+        }
         List<JXNativeNode> path = px < 0 || py < 0 ? new ArrayList<JXNativeNode>() : hitPath(px, py);
         if (path.equals(hoverPath)) {
-            return false;
+            return highlighted;
         }
         for (JXNativeNode node : hoverPath) {
             node.hovered = false;
@@ -625,11 +636,22 @@ public final class JXNativeNode {
 
     /**
      * A key went down while {@code focused} (may be null) has the focus: Escape closes the topmost open overlay, Enter
-     * runs the default button of an open dialog (or closes an open popup); otherwise the focused node gets the key.
+     * runs the default button of an open dialog (or closes an open popup); an open select or menu takes the arrows,
+     * Home, End, Page Up, Page Down, Enter, Space and letters to move its highlight and choose; a closed one that has the
+     * focus opens with Alt+Down, F4 or Space; otherwise the focused node gets the key. Returns the node that has the focus
+     * now: {@code focused}, or the control whose popup or menu Escape or Enter closed (the window gives it the focus).
      */
-    public void routeKey(JXKeyEvent event, JXNativeNode focused) {
+    public JXNativeNode routeKey(JXKeyEvent event, JXNativeNode focused) {
         revision++;
-        JXOverlays.key(this, event, focused);
+        return JXOverlays.key(this, event, focused);
+    }
+
+    /**
+     * Whether an open popup list or menu takes the keys, so typed characters belong to it and not to the focused node
+     * (a text field behind a context menu); the window then does not send them on.
+     */
+    public boolean capturesKeys() {
+        return JXOverlays.capturesKeys(this);
     }
 
     /**
