@@ -256,6 +256,7 @@ public final class JxmlSchema {
         tag("Spinner", "spinner", Children.NONE)
                 .attr("value", "value", AttrType.STRING, true)
                 .attr("min", "min", AttrType.DOUBLE, false).attr("max", "max", AttrType.DOUBLE, false)
+                .attr("step", "step", AttrType.DOUBLE, false)
                 .def("value", "")
                 .change("value", AttrType.DOUBLE)
                 .done();
@@ -276,6 +277,7 @@ public final class JxmlSchema {
         tag("Slider", "slider", Children.NONE)
                 .attr("min", "min", AttrType.DOUBLE, false).attr("max", "max", AttrType.DOUBLE, false)
                 .attr("value", "value", AttrType.DOUBLE, true)
+                .attr("blockIncrement", "blockIncrement", AttrType.DOUBLE, false)
                 .def("min", Double.valueOf(0)).def("max", Double.valueOf(100)).def("value", Double.valueOf(0))
                 .change("value", AttrType.DOUBLE)
                 .done();

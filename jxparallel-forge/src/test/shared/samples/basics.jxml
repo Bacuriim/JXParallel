@@ -20,7 +20,7 @@
           <Label text="Since" row="3" column="0"/>
           <DatePicker value="${date}" prompt="Date" onChange="#setDate" row="3" column="1"/>
           <Label text="Rating" row="4" column="0"/>
-          <Spinner value="${rating}" min="0" max="5" onChange="#setRating" row="4" column="1"/>
+          <Spinner value="${rating}" min="0" max="5" step="0.5" onChange="#setRating" row="4" column="1"/>
           <CheckBox text="Active" selected="@{agree}" row="5" column="1"/>
         </Grid>
       </Scroll>
@@ -32,7 +32,7 @@
         <ProgressBar progress="${progress}" prefWidth="200" minHeight="4" prefHeight="8" maxHeight="12"/>
         <TextField text="${name}" onChange="#setName"/>
         <CheckBox text="Agree" selected="${agree}" onChange="#setAgree"/>
-        <Slider min="0" max="10" value="${volume}" onChange="#setVolume"/>
+        <Slider min="0" max="10" value="${volume}" blockIncrement="2" onChange="#setVolume"/>
         <Slot content="${banner}"/>
       </Column>
     </Tab>

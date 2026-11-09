@@ -88,13 +88,39 @@ final class JXChangeEvents {
         } else if ("splitpane".equals(node.getType())) {
             pressDivider(node, event);
         } else if ("slider".equals(node.getType())) {
-            double min = JXPaint.number(node, "min", 0.0);
-            double max = JXPaint.number(node, "max", 100.0);
-            double fraction = node.vertical()
-                    ? 1 - (event.getY() - node.getY() - 7.0) / (node.getHeight() - 14)
-                    : (event.getX() - node.getX() - 7.0) / (node.getWidth() - 14);
-            fraction = Math.max(0, Math.min(1, fraction));
-            onChange.accept(Double.valueOf(min + fraction * (max - min)));
+            node.dragThumb = true; // the thumb follows the pointer until the release
+            slide(node, event, onChange);
+        } else if ("spinner".equals(node.getType()) && event.getX() >= node.getX() + node.getWidth() - JXControlLayout.SPINNER_BUTTON) {
+            stepBy(node, event.getY() < node.getY() + node.getHeight() / 2 ? 1 : -1, onChange); // its arrow buttons
+        }
+    }
+
+    /** Puts a slider's value under the pointer (a press on the track, or the drag of its thumb). */
+    private static void slide(JXNativeNode node, JXPointerEvent event, Consumer<Object> onChange) {
+        double min = JXPaint.number(node, "min", 0.0);
+        double max = JXPaint.number(node, "max", 100.0);
+        double fraction = node.vertical()
+                ? 1 - (event.getY() - node.getY() - 7.0) / (node.getHeight() - 14)
+                : (event.getX() - node.getX() - 7.0) / (node.getWidth() - 14);
+        fraction = Math.max(0, Math.min(1, fraction));
+        onChange.accept(Double.valueOf(min + fraction * (max - min)));
+    }
+
+    /**
+     * Keys on a slider, as JavaFX's: Left and Down take a {@code blockIncrement} (a tenth of the range when not set), Right
+     * and Up add one, Home and End go to {@code min} and {@code max}.
+     */
+    private static void slideKey(JXNativeNode node, JXKeyEvent event, Consumer<Object> onChange) {
+        double min = JXPaint.number(node, "min", 0.0);
+        double max = JXPaint.number(node, "max", 100.0);
+        double value = JXPaint.number(node, "value", min);
+        double block = JXPaint.number(node, "blockIncrement", (max - min) / 10);
+        int code = event.getKeyCode();
+        double next = code == RIGHT || code == UP ? value + block : code == LEFT || code == DOWN ? value - block
+                : code == HOME ? min : code == END ? max : value;
+        next = Math.max(min, Math.min(max, next));
+        if (next != value) {
+            onChange.accept(Double.valueOf(next));
         }
     }
 
@@ -117,6 +143,9 @@ final class JXChangeEvents {
                 break;
             case "spinner":
                 step(node, event, onChange);
+                break;
+            case "slider":
+                slideKey(node, event, onChange);
                 break;
             case "select":
                 choose(node, event, onChange);
@@ -270,7 +299,9 @@ final class JXChangeEvents {
         if (onChange == null) {
             return;
         }
-        if ("scrollbar".equals(node.getType()) && node.dragThumb) {
+        if ("slider".equals(node.getType()) && node.dragThumb) {
+            slide(node, event, onChange);
+        } else if ("scrollbar".equals(node.getType()) && node.dragThumb) {
             float[] g = JXControlLayout.scrollBarGeometry(node);
             report(node, barValue(node, g, along(node, event) - node.dragOffset), onChange);
         } else if ("splitpane".equals(node.getType()) && node.dragDivider >= 0) {
@@ -328,16 +359,20 @@ final class JXChangeEvents {
     /** Up and Down change a spinner by its {@code step} (1 if none) within {@code min} and {@code max}. */
     private static void step(JXNativeNode node, JXKeyEvent event, Consumer<Object> onChange) {
         int code = event.getKeyCode();
-        if (code != UP && code != DOWN) {
-            return;
+        if (code == UP || code == DOWN) {
+            stepBy(node, code == UP ? 1 : -1, onChange);
         }
+    }
+
+    /** Adds {@code sign} steps to a spinner (its arrow keys and its arrow buttons). */
+    private static void stepBy(JXNativeNode node, int sign, Consumer<Object> onChange) {
         double current;
         try {
             current = Double.parseDouble(JXPaint.text(node, "value").trim());
         } catch (NumberFormatException e) {
             current = JXPaint.number(node, "min", 0.0);
         }
-        double next = current + (code == UP ? 1 : -1) * JXPaint.number(node, "step", 1.0);
+        double next = current + sign * JXPaint.number(node, "step", 1.0);
         next = Math.max(JXPaint.number(node, "min", -Double.MAX_VALUE), Math.min(JXPaint.number(node, "max", Double.MAX_VALUE), next));
         onChange.accept(Double.valueOf(next));
     }

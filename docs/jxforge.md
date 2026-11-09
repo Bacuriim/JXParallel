@@ -178,7 +178,7 @@ inside a `Border`), and these, which the renderer reads from any node:
 | `TextArea` | `textarea` | `text`, `prompt`, `wrapText`, `columns`, `rows` |
 | `CheckBox` | `checkbox` | `text`, `selected` |
 | `ComboBox` | `select` | `items` (a list or `A, B, C`), `value`, `prompt`, `showing`, `onShowing` |
-| `Spinner` | `spinner` | `value`, `min`, `max` |
+| `Spinner` | `spinner` | `value`, `min`, `max`, `step` (1 when not written) |
 | `DatePicker` | `datepicker` | `value`, `prompt`, `showing`, `onShowing` |
 | `TimePicker` | `timepicker` | `value` (`HH:mm`), `prompt`, `hour24`, `minuteStep`, `disabled`, `showing`, `onShowing` |
 | `ColorPicker` | `colorpicker` | `value` (`#RRGGBB`), `prompt`, `disabled`, `showing`, `onShowing` |
@@ -195,7 +195,7 @@ inside a `Border`), and these, which the renderer reads from any node:
 | `TreeItem` | `cell` | `text`, `expanded`, `selected`, `listFocused`, `values`, `onAction`, `onToggle`; children are `TreeItem`s |
 | `Separator` | `separator` | `orientation` |
 | `ProgressBar` | `progress` | `progress` |
-| `Slider` | `slider` | `min`, `max`, `value` |
+| `Slider` | `slider` | `min`, `max`, `value`, `blockIncrement` (what an arrow key moves; a tenth of the range when not written) |
 | `Switch` | `switch` | `text`, `selected`, `disabled`; `onChange` (Boolean) |
 | `Icon` | `icon` | `name` (required), `size`, `color` |
 | `Chip` | `chip` | `text`, `kind`, `icon`, `selected`, `closable`, `onClose`, `disabled`; `onChange` (Boolean) |
@@ -294,8 +294,8 @@ node keeps showing its `value` prop until the screen is built again with the new
 |---|---|---|
 | `TextField`, `PasswordField`, `TextArea` | `String`, the whole text | typing, Backspace, Delete (the caret moves with the arrows, Home and End; Enter adds a line in a `TextArea`; no selection yet) |
 | `CheckBox` | `boolean` | click, or space |
-| `Slider` | `double` | click on the track |
-| `Spinner` | `double` | Up / Down arrows, within `min` and `max` |
+| `Slider` | `double` | click on the track, drag of the thumb, Left / Down and Right / Up (`blockIncrement`), Home / End |
+| `Spinner` | `double` | Up / Down arrows and a click on its arrow buttons (`step`), within `min` and `max` |
 | `ComboBox` | `String`, the option | Up / Down arrows, a press on an option of the open list |
 | `DatePicker` | `String`, ISO `yyyy-MM-dd` | Up / Down (day), Page Up / Page Down (month), a press on a day of the open calendar |
 | `TimePicker` | `String`, `HH:mm` | Up / Down (the `minuteStep`), Page Up / Page Down (an hour), a press on an hour, a minute or AM / PM of the open popup |
