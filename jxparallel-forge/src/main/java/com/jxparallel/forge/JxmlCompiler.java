@@ -353,6 +353,8 @@ public final class JxmlCompiler {
                         return "JxmlValues.asElement(" + call + ")";
                     case OBJECT:
                         return call;
+                    case IMAGE_SOURCE:
+                        return "JxmlValues.imageSource(" + literal(p.source) + ", " + call + ")";
                     default:
                         return "JxmlValues.bound(com.jxparallel.forge.AttrType." + p.attr.type.name() + ", " + call + ")";
                 }

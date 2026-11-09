@@ -167,7 +167,7 @@ inside a `Border`), and these, which the renderer reads from any node:
 | `Hyperlink` | `hyperlink` | `text`, `visited`, `onAction`, `disabled` |
 | `ProgressIndicator` | `indicator` | `progress` (negative: indeterminate) |
 | `Tooltip` | `tooltip` | `text` |
-| `Image` | `image` | `pixels` (an `int[]` of ARGB), `imageWidth`, `imageHeight`, `fitWidth`, `fitHeight`, `preserveRatio` |
+| `Image` | `image` | `src` (a picture file), `pixels` (an `int[]` of ARGB), `imageWidth`, `imageHeight`, `fitWidth`, `fitHeight`, `preserveRatio` |
 | `ListView` | `list` | `items`, `var`, `type`, `key`, `first` (two ways: see [Lists and tables](#lists-and-tables)), `rows`, `cellHeight`, `onScroll`; one child, the row template |
 | `ListItem` | `cell` | `text`, `selected`, `odd`, `listFocused`, `alignment`, `onAction`; optionally one child, a graphic |
 | `TableView` | `table` | `items`, `var`, `type`, `key`, `first` (two ways), `onScroll`, `rows`, `rowHeight`, `columns`, `columnWidths`, `constrained`; one `TableRow` |
@@ -464,6 +464,15 @@ every painter draws it, because it uses only the primitives of `JXPainter`.
   nothing), `text`, or `dot="true"`; `color` defaults to `error`.
 - `Avatar`: a circle of `size` (40): `initials` on `color` (a tint of the primary color), or `pixels` with `imageWidth` / `imageHeight` (as
   `Image`), cut to a circle with a soft edge.
+- `Image` `src`: PNG, JPEG, and the first frame of GIF and BMP, decoded by `JXImages` (stb_image, the same on Skia, NanoVG and the software
+  painter, on Java 8 and 32-bit). A relative `src="logo.png"` is resolved against the folder of the `.jxml` file it is written in, so in
+  `screens/main.jxml` it is `screens/logo.png`: a class path resource if one has that name, else a file of that path; `../` works, and `file:...`,
+  `classpath:...` and absolute paths are kept as written. `src="${photoPath}"` is bound (the value is resolved the same way, relative to the file
+  that has the `<Image>`; the interpreter and the generated class do the same). The picture's own size is the size of the node when `fitWidth`,
+  `fitHeight` and `preserveRatio` say nothing else (they scale that size as they do for `pixels`). `pixels`, when given, wins over `src`. The
+  decoded picture is cached (64 pictures, 64 MB), so one file is decoded once; the cache does not watch the file (`JXImages.invalidate`). A missing
+  or corrupt file draws nothing, keeps the size the screen asked for with `fitWidth` / `fitHeight` (else 0 x 0), and is reported once on
+  `System.err` as `JXParallel: cannot load image ...`. The first use decodes on the UI thread; `JXImages.preload(src)` does it earlier on another one.
 - `Stepper`: `titles` (or `steps`, a count) and `current`: the circles before `current` are filled with a check mark, `current` is filled with its
   number, the later ones are outlined; lines join them.
 - `ScrollBar`: `value` between `min` and `max`; the thumb is `visibleAmount` of the range plus itself, at least 24 px. A click on the track puts the
@@ -685,7 +694,7 @@ JXML screen with `new XView().build(controller)`, and JXML places a Java compone
   tables (use a row's `onAction`). A `TitledPane` collapses when the application changes `expanded`
   (its `onAction` tells it was clicked). The `Tooltip` tag is a box drawn in place; the `tooltip` attribute is the one
   that shows on hover.
-- Loading an image file for `Image`: it takes the pixels an application decoded.
+- SVG (and other vector formats) for `Image`: `src` reads the raster formats of stb_image only.
 - Shadows (for `Card`) and the Material look of the bars: they are rows with a background.
 - A `ListView` with columns, and rows of different heights.
 - Keyboard navigation and hover in the popups and menus (see [Overlays](#overlays)), and a recursive model for `Tree`

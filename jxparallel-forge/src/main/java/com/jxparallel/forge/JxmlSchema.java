@@ -521,6 +521,7 @@ public final class JxmlSchema {
                 .done();
         tag("Image", "image", Children.NONE)
                 .attr("pixels", "pixels", AttrType.PIXELS, true)
+                .attr("src", "src", AttrType.IMAGE_SOURCE, true)
                 .attr("imageWidth", "imageWidth", AttrType.DOUBLE, true).attr("imageHeight", "imageHeight", AttrType.DOUBLE, true)
                 .attr("fitWidth", "fitWidth", AttrType.DOUBLE, true).attr("fitHeight", "fitHeight", AttrType.DOUBLE, true)
                 .attr("preserveRatio", "preserveRatio", AttrType.BOOLEAN, false)

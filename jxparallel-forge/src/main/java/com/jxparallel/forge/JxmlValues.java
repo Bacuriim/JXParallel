@@ -14,6 +14,7 @@ public final class JxmlValues {
         switch (type) {
             case STRING:
             case HANDLER:
+            case IMAGE_SOURCE:
                 return text;
             case DOUBLE:
                 return Double.valueOf(text.trim());
@@ -161,6 +162,24 @@ public final class JxmlValues {
         throw new IllegalArgumentException("pixels must be an int[] of ARGB values, not " + value.getClass().getName());
     }
 
+    /**
+     * The name of a picture as the native {@code Image} takes it in {@code src}: a relative path is resolved
+     * against the folder of the {@code .jxml} file it is written in ({@code from}, the name the file was read
+     * under), so {@code src="logo.png"} in {@code screens/main.jxml} is {@code screens/logo.png}, a class path
+     * resource (or, when none has that name, a file). An absolute path, {@code file:...} and
+     * {@code classpath:...} are kept as written; null or blank is "no picture" (the empty string). The interpreter
+     * and generated code both call this, for written and for bound values.
+     */
+    public static String imageSource(String from, Object value) {
+        String text = value == null ? "" : String.valueOf(value).trim();
+        if (text.isEmpty() || text.startsWith("classpath:") || text.startsWith("file:") || text.startsWith("/")
+                || text.startsWith("\\") || (text.length() > 2 && text.charAt(1) == ':')) {
+            return text;
+        }
+        String joined = from == null ? text : JxmlLoader.join(from, text);
+        return joined == null ? text : joined; // null: it climbs out of the top; the loader will report it as missing
+    }
+
     public static double[] asDoubles(Object value) {
         if (value instanceof double[]) {
             return (double[]) value;
@@ -232,6 +251,8 @@ public final class JxmlValues {
                 return asCount(value);
             case PIXELS:
                 return asPixels(value);
+            case IMAGE_SOURCE:
+                return imageSource("", value);
             case ELEMENT:
                 return asElement(value);
             case OBJECT:

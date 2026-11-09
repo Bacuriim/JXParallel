@@ -649,7 +649,8 @@ public final class JxmlTemplate implements JxmlView<Object> {
             text = String.format("#%08X", JxmlThemes.color(theme, text)); // a theme token, resolved now: both modes get the same color
         }
         try {
-            out.add(new Prop(attr, Kind.LITERAL, JxmlValues.literal(attr.type, text), null, null, null, null, false, source, line));
+            Object literal = attr.type == AttrType.IMAGE_SOURCE ? JxmlValues.imageSource(source, text) : JxmlValues.literal(attr.type, text);
+            out.add(new Prop(attr, Kind.LITERAL, literal, null, null, null, null, false, source, line));
         } catch (IllegalArgumentException e) {
             throw new JxmlException(source, line, attr.name + "=\"" + value + "\" is not a valid "
                     + attr.type.name().toLowerCase() + ": " + e.getMessage());
@@ -849,7 +850,8 @@ public final class JxmlTemplate implements JxmlView<Object> {
                 Object value = walk(p, controller, scope, p.path.length);
                 Object bound;
                 try {
-                    bound = JxmlValues.bound(p.attr.type, value);
+                    bound = p.attr.type == AttrType.IMAGE_SOURCE ? JxmlValues.imageSource(p.source, value)
+                            : JxmlValues.bound(p.attr.type, value);
                 } catch (IllegalArgumentException ex) {
                     throw new JxmlException(p.source, p.line, p.attr.name + "=\"${" + String.join(".", p.path) + "}\": " + ex.getMessage(), ex);
                 }

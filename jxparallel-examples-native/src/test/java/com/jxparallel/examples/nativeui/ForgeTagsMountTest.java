@@ -219,6 +219,24 @@ class ForgeTagsMountTest {
         assertTrue(top.getWidth() > 0 && body.getWidth() > 0 && bottom.getWidth() > 0);
     }
 
+    @Test
+    void anImageWithSrcShowsTheFileNextToItsJxml() throws Exception {
+        JXNativeNode column = mount("controls", new SampleController());
+        int withSrc = 0;
+        for (JXNativeNode child : column.getChildren()) {
+            if ("image".equals(child.getType()) && child.getProperty("src") != null) {
+                withSrc++;
+                assertEquals("samples/swatch.png", child.getProperty("src"), "resolved against samples/controls.jxml");
+                if (withSrc == 1) { // fitWidth="16", no ratio: the file's own height of 2 stays
+                    assertEquals(2, child.getHeight());
+                } else { // fitHeight (the sample's gap) and preserveRatio on a 2:1 file
+                    assertTrue(child.getHeight() > 0, "sized from the file, not 0");
+                }
+            }
+        }
+        assertEquals(2, withSrc);
+    }
+
     // ---- ListView ------------------------------------------------------------------------------------
 
     @Test

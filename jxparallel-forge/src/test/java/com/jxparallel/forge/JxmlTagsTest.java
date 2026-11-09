@@ -177,6 +177,8 @@ class JxmlTagsTest {
                 return new Class<?>[] {JXElement.class};
             case PIXELS:
                 return new Class<?>[] {int[].class};
+            case IMAGE_SOURCE:
+                return new Class<?>[] {String.class};
             default:
                 return new Class<?>[] {Object.class};
         }
@@ -857,6 +859,41 @@ class JxmlTagsTest {
             // the renderer tells a changed image by the identity of the array: building again must not copy it
             assertSame(c.pixels, view.build(c).getProps().get("pixels"));
         }
+    }
+
+    @Test
+    void anImageSrcIsResolvedAgainstTheFolderOfItsJxmlFileTheSameWayInterpretedAndCompiled() throws Exception {
+        String xml = "<Column controller=\"" + CTRL + "\">"
+                + "<Image src=\"logo.png\"/><Image src=\"../img/a.png\"/><Image src=\"/abs/b.png\"/><Image src=\"file:c.png\"/>"
+                + "<Image src=\"classpath:d/e.png\"/><Image src=\"${photo}\"/><Image src=\"${title}\"/><Image src=\"\"/></Column>";
+        SampleController c = new SampleController();
+        c.photo = "sub/p.png";
+        for (String source : new String[] {"screens/main.jxml", "main.jxml"}) {
+            String folder = source.startsWith("screens/") ? "screens/" : "";
+            List<JxmlView<Object>> views = new ViewCompiler(dir).views(xml, source);
+            for (JxmlView<Object> view : views) {
+                List<JXElement> images = view.build(c).getChildren();
+                String[] expected = {folder + "logo.png", source.startsWith("screens/") ? "img/a.png" : null, "/abs/b.png",
+                        "file:c.png", "classpath:d/e.png", folder + "sub/p.png", folder + c.getTitle(), ""};
+                for (int i = 0; i < expected.length; i++) {
+                    if (expected[i] == null) {
+                        continue; // "../img" above the top of a root-level file: kept as written
+                    }
+                    assertEquals(expected[i], images.get(i).getProps().get("src"), source + " image " + i);
+                }
+            }
+            for (int i = 1; i < views.size(); i++) {
+                assertNull(JxmlTrees.diff(views.get(0).build(c), views.get(i).build(c)), source + ", view " + i);
+            }
+        }
+    }
+
+    @Test
+    void anImageKeepsItsPixelsAttributeAlongsideSrc() throws Exception {
+        JXElement image = screen("<Image pixels=\"${pixels}\" imageWidth=\"2\" imageHeight=\"2\" src=\"p.png\"/>");
+        assertEquals(Double.valueOf(2), image.getProps().get("imageWidth"));
+        assertEquals(4, ((int[]) image.getProps().get("pixels")).length);
+        assertEquals("p.png", image.getProps().get("src"));
     }
 
     @Test

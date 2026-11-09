@@ -264,6 +264,13 @@ public class SampleController {
         return pixels;
     }
 
+    /** A picture file as the screen writes it, next to the samples. */
+    public String photo = "swatch.png";
+
+    public String getPhoto() {
+        return photo;
+    }
+
     public String getName() {
         return name;
     }
