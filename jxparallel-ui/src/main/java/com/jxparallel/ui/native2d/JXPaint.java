@@ -894,7 +894,7 @@ final class JXPaint {
         JXTextEngine engine = JXTextEngine.get(bold);
         float line = engine.lineHeight(size);
         float left = x + 1 + JXNativeNode.FIELD_PAD_X;
-        float top = y + 1 + JXNativeNode.PAD_Y - (float) number(node, "scrollTop", 0);
+        float top = y + 1 + JXNativeNode.PAD_Y - (float) JXScrolling.textScroll(node);
         boolean focused = Boolean.TRUE.equals(node.getProperty("focused"));
         p.clip(x + 1, y + 1, w - 2, h - 2);
         if (value.isEmpty() && !focused) {

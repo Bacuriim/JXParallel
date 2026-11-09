@@ -20,7 +20,26 @@ import com.jxparallel.ui.JXProps;
  * kept when the application renders again with the row it was told.
  */
 final class JXScrolling {
-    private static final String[] STATE = {"hvalue", "vvalue", "scrollX", "scrollY", "first", "itemCount"};
+    private static final String[] STATE = {"hvalue", "vvalue", "scrollX", "scrollY", "first", "itemCount", "scrollTop"};
+
+    /** How far a text area's lines are scrolled up, in pixels: the wheel's offset, or its {@code scrollTop}. */
+    static double textScroll(JXNativeNode node) {
+        return Double.isNaN(node.userScrollY) ? JXPaint.number(node, "scrollTop", 0) : node.userScrollY;
+    }
+
+    /** The wheel over a text area moves its lines, within the text; false when it is at that end already. */
+    private static boolean scrollText(JXNativeNode node, double dy) {
+        double view = node.getHeight() - 2 - 2 * JXNativeNode.PAD_Y;
+        double max = Math.max(0, JXTextHit.areaLineCount(node) * JXTextHit.lineHeight(node) - view);
+        double now = textScroll(node);
+        double next = Math.max(0, Math.min(max, now + dy));
+        if (next == now) {
+            return false;
+        }
+        node.userScrollY = next;
+        JXNativeNode.revision++;
+        return true;
+    }
 
     private JXScrolling() {
     }
@@ -73,6 +92,9 @@ final class JXScrolling {
         }
         for (int i = path.size() - 1; i >= low; i--) {
             JXNativeNode node = path.get(i);
+            if ("textarea".equals(node.getType()) && node.contains(x, y) && dy != 0 && scrollText(node, dy)) {
+                return true;
+            }
             if (!scrollable(node) || !node.contains(x, y)) { // the hit path also holds content that sticks out of its pane
                 continue;
             }

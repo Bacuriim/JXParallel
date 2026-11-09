@@ -711,7 +711,74 @@ public final class JXNativeNode {
     }
 
     public Object getProperty(String name) {
-        return props.get(name);
+        Object value = props.get(name);
+        if (value == null && this == focusOwner) { // the window's focus, when the application does not draw its own
+            if ("focused".equals(name)) {
+                return Boolean.TRUE;
+            }
+            if ("caret".equals(name) && ("input".equals(type) || "password".equals(type) || "textarea".equals(type))) {
+                String text = String.valueOf(props.get("value") == null ? "" : props.get("value"));
+                return Integer.valueOf(caret < 0 ? text.length() : Math.min(caret, text.length()));
+            }
+        }
+        return value;
+    }
+
+    /** The node that has the keyboard focus of the window (see {@link #setFocusOwner}); display thread only. */
+    private static JXNativeNode focusOwner;
+
+    /**
+     * The window gave the keyboard focus to {@code node} (null: none). A node that has it answers {@code focused} true,
+     * and a text input its caret as {@code caret}, when its props do not say otherwise, so the focus ring and the caret
+     * are drawn for screens that do not hold that state themselves.
+     */
+    public static void setFocusOwner(JXNativeNode node) {
+        if (focusOwner != node) {
+            focusOwner = node;
+            revision++;
+        }
+    }
+
+    /** Types that take the keyboard focus, in tree order with Tab. */
+    private static final java.util.Set<String> FOCUSABLE = new java.util.HashSet<String>(java.util.Arrays.asList(
+            "input", "password", "textarea", "button", "toggle", "radio", "hyperlink", "checkbox", "switch", "chip", "select",
+            "spinner", "slider", "datepicker", "timepicker", "colorpicker", "menubutton", "scrollbar"));
+
+    /**
+     * The node Tab ({@code backward}: Shift+Tab) moves the focus to from {@code from}: the next focusable control in tree
+     * order that is shown and enabled, wrapping around; inside the topmost open dialog or drawer when there is one. Null
+     * when there is none.
+     */
+    public JXNativeNode nextFocus(JXNativeNode from, boolean backward) {
+        JXNativeNode scope = this;
+        for (JXNativeNode layer : JXOverlays.openLayers(this)) {
+            scope = layer; // the last one is on top
+        }
+        List<JXNativeNode> order = new ArrayList<JXNativeNode>();
+        scope.collectFocusable(order, scope);
+        if (order.isEmpty()) {
+            return null;
+        }
+        int at = order.indexOf(from);
+        int next = at < 0 ? (backward ? order.size() - 1 : 0) : (at + (backward ? order.size() - 1 : 1)) % order.size();
+        return order.get(next);
+    }
+
+    private void collectFocusable(List<JXNativeNode> out, JXNativeNode scope) {
+        if (Boolean.TRUE.equals(props.get("hidden")) || Boolean.TRUE.equals(props.get("disabled"))) {
+            return;
+        }
+        String t = type;
+        if (this != scope && ("dialog".equals(t) || "drawer".equals(t) || "snackbar".equals(t) || "contextmenu".equals(t))) {
+            return; // a layer is its own focus scope, and a closed one has nothing to focus
+        }
+        if (FOCUSABLE.contains(t) && width > 0 && height > 0) {
+            out.add(this);
+            return;
+        }
+        for (JXNativeNode child : children) {
+            child.collectFocusable(out, scope);
+        }
     }
 
     public List<JXNativeNode> getChildren() {
@@ -888,6 +955,11 @@ public final class JXNativeNode {
         if (pressing && CLICKED_ON_RELEASE.contains(type)) {
             armed = this; // acts on the release (releasePointer)
             return;
+        }
+        if ("input".equals(type) || "password".equals(type)) {
+            caret = JXTextHit.fieldIndex(this, event.getX()); // the caret goes where the text was clicked
+        } else if ("textarea".equals(type)) {
+            caret = JXTextHit.areaIndex(this, event.getX(), event.getY());
         }
         if (JXChangeEvents.close(this, event)) {
             return; // the close icon of a chip or a tab is not a click on the chip or the bar

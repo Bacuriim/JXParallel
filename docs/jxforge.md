@@ -290,9 +290,13 @@ The native renderer reports edits through the `onChange` prop of the node: a
 `java.util.function.Consumer` that gets the new value. Inputs are controlled, as in React: the
 node keeps showing its `value` prop until the screen is built again with the new one.
 
+The keyboard goes to the control clicked last; Tab and Shift+Tab move it through the controls in the order of the
+file (inside the topmost open dialog or drawer, when one is open). The focused control draws its focus ring, and a
+text input its caret, without the screen holding that state.
+
 | Tag | New value passed | Reported when |
 |---|---|---|
-| `TextField`, `PasswordField`, `TextArea` | `String`, the whole text | typing, Backspace, Delete (the caret moves with the arrows, Home and End; Enter adds a line in a `TextArea`; no selection yet) |
+| `TextField`, `PasswordField`, `TextArea` | `String`, the whole text | typing, Backspace, Delete (a click puts the caret there; it moves with the arrows, Home and End, and Up / Down change the line of a `TextArea`; Enter adds a line in a `TextArea`, and the wheel scrolls its lines; no selection yet) |
 | `CheckBox` | `boolean` | click, or space |
 | `Slider` | `double` | click on the track, drag of the thumb, Left / Down and Right / Up (`blockIncrement`), Home / End |
 | `Spinner` | `double` | Up / Down arrows and a click on its arrow buttons (`step`), within `min` and `max` |

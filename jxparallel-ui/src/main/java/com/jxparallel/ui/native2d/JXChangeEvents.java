@@ -341,6 +341,8 @@ final class JXChangeEvents {
             caret--;
         } else if (code == DELETE && caret < text.length()) {
             next = text.substring(0, caret) + text.substring(caret + 1);
+        } else if ((code == UP || code == DOWN) && "textarea".equals(node.getType())) {
+            caret = JXTextHit.areaVertical(node, caret, code == UP ? -1 : 1); // the line above or below, same x
         } else if (code == LEFT) {
             caret = Math.max(0, caret - 1);
         } else if (code == RIGHT) {

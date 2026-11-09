@@ -117,7 +117,7 @@ public final class JXWindow implements AutoCloseable {
         }
         if (root == null || !root.reconcile(element)) {
             root = JXNativeNode.createBackendNode(element);
-            focusedNode = null;
+            focus(null);
         }
         requestRender();
     }
@@ -136,11 +136,11 @@ public final class JXWindow implements AutoCloseable {
         externalLock = lock;
         if (JXDisplay.isDisplayThread()) {
             root = tree;
-            focusedNode = null;
+            focus(null);
         } else {
             JXDisplay.post(() -> {
                 root = tree;
-                focusedNode = null;
+                focus(null);
             });
         }
         requestRender();
@@ -575,7 +575,7 @@ public final class JXWindow implements AutoCloseable {
             // the overlays first: a press outside an open popup or menu closes it, one inside a dialog stays in it
             JXNativeNode hit = root.pressPointer(new JXPointerEvent((int) px[0], (int) py[0], glfwButton));
             if (hit != null && !secondary) {
-                focusedNode = hit;
+                focus(hit);
                 dragNode = hit; // a scroll bar's thumb or a split pane's divider follows the pointer until the release
             }
             requestRender();
@@ -595,7 +595,14 @@ public final class JXWindow implements AutoCloseable {
                 return;
             }
             if (action != GLFW.GLFW_RELEASE && root != null) {
-                root.routeKey(new JXKeyEvent(key, '\0'), focusedNode); // Escape and Enter belong to an open overlay first
+                if (key == GLFW.GLFW_KEY_TAB) { // Tab and Shift+Tab move the focus through the controls
+                    JXNativeNode next = root.nextFocus(focusedNode, (mods & GLFW.GLFW_MOD_SHIFT) != 0);
+                    if (next != null) {
+                        focus(next);
+                    }
+                } else {
+                    root.routeKey(new JXKeyEvent(key, '\0'), focusedNode); // Escape and Enter belong to an open overlay first
+                }
                 requestRender();
             }
         });
@@ -609,6 +616,12 @@ public final class JXWindow implements AutoCloseable {
                 requestRender();
             }
         });
+    }
+
+    /** Gives the keyboard focus to {@code node} (null: none): keys go there, and it draws its focus ring and caret. */
+    private void focus(JXNativeNode node) {
+        focusedNode = node;
+        JXNativeNode.setFocusOwner(node);
     }
 
     private static int currentModifiers(long handle) {
