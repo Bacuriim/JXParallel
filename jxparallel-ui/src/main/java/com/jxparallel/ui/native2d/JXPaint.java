@@ -77,7 +77,28 @@ final class JXPaint {
         }
         if (outermost) {
             paintOverlays();
+            paintTooltip(node);
         }
+    }
+
+    /** The tooltip the window shows ({@link JXNativeNode#shownTooltip}), kept inside the window, over everything. */
+    private void paintTooltip(JXNativeNode root) {
+        Object[] tip = JXNativeNode.shownTooltip;
+        if (tip == null) {
+            return;
+        }
+        String label = String.valueOf(tip[0]);
+        JXTextEngine engine = JXTextEngine.get(false);
+        float size = JXTextEngine.DEFAULT_SIZE;
+        float w = (float) Math.ceil(engine.width(label, size)) + 18;
+        float h = (float) Math.ceil(engine.lineHeight(size)) + 8;
+        float x = Math.max(0, Math.min((Integer) tip[1], root.getX() + root.getWidth() - w));
+        float y = (Integer) tip[2];
+        if (y + h > root.getY() + root.getHeight()) {
+            y = Math.max(0, y - h - 28); // no room below the pointer: above it
+        }
+        p.fillRoundRect(x, y, w, h, 6, 0xCC1E1E1E);
+        p.text(label, x + 9, y + engine.baseline(h, size), size, false, 0xFFFFFFFF);
     }
 
     private void paintOverlays() {
@@ -894,7 +915,7 @@ final class JXPaint {
         JXTextEngine engine = JXTextEngine.get(bold);
         float line = engine.lineHeight(size);
         float left = x + 1 + JXNativeNode.FIELD_PAD_X;
-        float top = y + 1 + JXNativeNode.PAD_Y - (float) number(node, "scrollTop", 0);
+        float top = y + 1 + JXNativeNode.PAD_Y - (float) JXScrolling.textScroll(node);
         boolean focused = Boolean.TRUE.equals(node.getProperty("focused"));
         p.clip(x + 1, y + 1, w - 2, h - 2);
         if (value.isEmpty() && !focused) {

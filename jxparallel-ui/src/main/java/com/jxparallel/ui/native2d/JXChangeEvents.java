@@ -51,9 +51,10 @@ final class JXChangeEvents {
             }
             return true;
         }
-        if ("tabbar".equals(node.getType())) {
+        if ("tabbar".equals(node.getType()) || "tabs".equals(node.getType())) {
             boolean[] closeHit = new boolean[1];
-            int tab = JXControlLayout.tabbarAt(node, event.getX(), event.getY(), closeHit);
+            int tab = "tabs".equals(node.getType()) ? JXControlLayout.tabAt(node, event.getX(), event.getY(), closeHit)
+                    : JXControlLayout.tabbarAt(node, event.getX(), event.getY(), closeHit);
             if (tab >= 0 && closeHit[0]) {
                 Object onClose = node.getProperty("onClose");
                 if (onClose instanceof Consumer) {
@@ -74,23 +75,52 @@ final class JXChangeEvents {
             onChange.accept(Boolean.valueOf(!Boolean.TRUE.equals(node.getProperty("checked"))));
         } else if ("chip".equals(node.getType())) {
             onChange.accept(Boolean.valueOf(!Boolean.TRUE.equals(node.getProperty("selected"))));
-        } else if ("tabbar".equals(node.getType())) {
-            int tab = JXControlLayout.tabbarAt(node, event.getX(), event.getY(), null);
+        } else if ("tabbar".equals(node.getType()) || "tabs".equals(node.getType())) {
+            int tab = "tabs".equals(node.getType()) ? JXControlLayout.tabAt(node, event.getX(), event.getY(), null)
+                    : JXControlLayout.tabbarAt(node, event.getX(), event.getY(), null);
             if (tab >= 0 && tab != (int) JXPaint.number(node, "selected", 0)) {
                 onChange.accept(Integer.valueOf(tab));
             }
+        } else if ("pagination".equals(node.getType())) {
+            turnPage(node, event, onChange);
         } else if ("scrollbar".equals(node.getType())) {
             pressBar(node, event, onChange);
         } else if ("splitpane".equals(node.getType())) {
             pressDivider(node, event);
         } else if ("slider".equals(node.getType())) {
-            double min = JXPaint.number(node, "min", 0.0);
-            double max = JXPaint.number(node, "max", 100.0);
-            double fraction = node.vertical()
-                    ? 1 - (event.getY() - node.getY() - 7.0) / (node.getHeight() - 14)
-                    : (event.getX() - node.getX() - 7.0) / (node.getWidth() - 14);
-            fraction = Math.max(0, Math.min(1, fraction));
-            onChange.accept(Double.valueOf(min + fraction * (max - min)));
+            node.dragThumb = true; // the thumb follows the pointer until the release
+            slide(node, event, onChange);
+        } else if ("spinner".equals(node.getType()) && event.getX() >= node.getX() + node.getWidth() - JXControlLayout.SPINNER_BUTTON) {
+            stepBy(node, event.getY() < node.getY() + node.getHeight() / 2 ? 1 : -1, onChange); // its arrow buttons
+        }
+    }
+
+    /** Puts a slider's value under the pointer (a press on the track, or the drag of its thumb). */
+    private static void slide(JXNativeNode node, JXPointerEvent event, Consumer<Object> onChange) {
+        double min = JXPaint.number(node, "min", 0.0);
+        double max = JXPaint.number(node, "max", 100.0);
+        double fraction = node.vertical()
+                ? 1 - (event.getY() - node.getY() - 7.0) / (node.getHeight() - 14)
+                : (event.getX() - node.getX() - 7.0) / (node.getWidth() - 14);
+        fraction = Math.max(0, Math.min(1, fraction));
+        onChange.accept(Double.valueOf(min + fraction * (max - min)));
+    }
+
+    /**
+     * Keys on a slider, as JavaFX's: Left and Down take a {@code blockIncrement} (a tenth of the range when not set), Right
+     * and Up add one, Home and End go to {@code min} and {@code max}.
+     */
+    private static void slideKey(JXNativeNode node, JXKeyEvent event, Consumer<Object> onChange) {
+        double min = JXPaint.number(node, "min", 0.0);
+        double max = JXPaint.number(node, "max", 100.0);
+        double value = JXPaint.number(node, "value", min);
+        double block = JXPaint.number(node, "blockIncrement", (max - min) / 10);
+        int code = event.getKeyCode();
+        double next = code == RIGHT || code == UP ? value + block : code == LEFT || code == DOWN ? value - block
+                : code == HOME ? min : code == END ? max : value;
+        next = Math.max(min, Math.min(max, next));
+        if (next != value) {
+            onChange.accept(Double.valueOf(next));
         }
     }
 
@@ -113,6 +143,9 @@ final class JXChangeEvents {
                 break;
             case "spinner":
                 step(node, event, onChange);
+                break;
+            case "slider":
+                slideKey(node, event, onChange);
                 break;
             case "select":
                 choose(node, event, onChange);
@@ -189,6 +222,22 @@ final class JXChangeEvents {
         }
     }
 
+    /** A press on a page number of a pagination goes to that page, on an arrow to the one before or after. */
+    private static void turnPage(JXNativeNode node, JXPointerEvent event, Consumer<Object> onChange) {
+        int count = Math.max(1, (int) JXPaint.number(node, "pageCount", 1));
+        int current = (int) JXPaint.number(node, "current", 0);
+        for (float[] b : JXControlLayout.pageButtons(node)) {
+            if (event.getX() >= b[0] && event.getX() < b[0] + b[2] && event.getY() >= b[1] && event.getY() < b[1] + b[3]) {
+                int page = b[4] == -1 ? current - 1 : b[4] == -2 ? current + 1 : (int) b[4];
+                page = Math.max(0, Math.min(count - 1, page));
+                if (page != current) {
+                    onChange.accept(Integer.valueOf(page));
+                }
+                return;
+            }
+        }
+    }
+
     // ---- scroll bar and split pane -----------------------------------------------------------
 
     /** The pointer's position along the axis of a scroll bar or split pane, in window pixels. */
@@ -250,7 +299,9 @@ final class JXChangeEvents {
         if (onChange == null) {
             return;
         }
-        if ("scrollbar".equals(node.getType()) && node.dragThumb) {
+        if ("slider".equals(node.getType()) && node.dragThumb) {
+            slide(node, event, onChange);
+        } else if ("scrollbar".equals(node.getType()) && node.dragThumb) {
             float[] g = JXControlLayout.scrollBarGeometry(node);
             report(node, barValue(node, g, along(node, event) - node.dragOffset), onChange);
         } else if ("splitpane".equals(node.getType()) && node.dragDivider >= 0) {
@@ -273,51 +324,143 @@ final class JXChangeEvents {
         }
     }
 
+    private static final int KEY_A = 65;
+    private static final int KEY_C = 67;
+    private static final int KEY_V = 86;
+    private static final int KEY_X = 88;
+    private static final int KEY_Y = 89;
+    private static final int KEY_Z = 90;
+    /** Edits a text input remembers for Ctrl+Z. */
+    private static final int UNDO_LIMIT = 100;
+
+    /**
+     * Editing a text input: typing, Backspace, Delete and Enter (a text area) replace the selection, if any; the arrows,
+     * Home and End move the caret, and with Shift extend the selection from where it started; Ctrl+A selects everything,
+     * Ctrl+C, Ctrl+X and Ctrl+V copy, cut and paste (not the text of a password field), Ctrl+Z undoes and Ctrl+Y (or
+     * Ctrl+Shift+Z) redoes.
+     */
     private static void edit(JXNativeNode node, JXKeyEvent event, Consumer<Object> onChange) {
         String text = JXPaint.text(node, "value");
+        boolean area = "textarea".equals(node.getType());
+        boolean password = "password".equals(node.getType());
         int caret = Math.max(0, Math.min(text.length(), node.caret < 0 ? text.length() : node.caret));
+        int anchor = node.anchor < 0 ? caret : Math.min(node.anchor, text.length());
+        int from = Math.min(caret, anchor);
+        int to = Math.max(caret, anchor);
         char typed = event.getKeyChar();
         int code = event.getKeyCode();
+        boolean shift = event.isShiftDown();
+        String insert = null;
+        boolean move = true; // a key that moves the caret: Shift keeps the anchor, otherwise it follows
         String next = text;
-        if (typed >= 32 && typed != 127) {
-            next = text.substring(0, caret) + typed + text.substring(caret);
-            caret++;
-        } else if (code == ENTER && "textarea".equals(node.getType())) {
-            next = text.substring(0, caret) + '\n' + text.substring(caret);
-            caret++;
-        } else if (code == BACKSPACE && caret > 0) {
-            next = text.substring(0, caret - 1) + text.substring(caret);
-            caret--;
-        } else if (code == DELETE && caret < text.length()) {
-            next = text.substring(0, caret) + text.substring(caret + 1);
+        if (event.isControlDown()) {
+            move = false;
+            if (code == KEY_A) {
+                anchor = 0;
+                caret = text.length();
+            } else if ((code == KEY_C || code == KEY_X) && from < to && !password) {
+                clipboard().setText(text.substring(from, to));
+                if (code == KEY_X) {
+                    insert = "";
+                }
+            } else if (code == KEY_V) {
+                String pasted = clipboard().getText();
+                insert = pasted == null ? "" : area ? pasted : pasted.replace("\r", "").replace('\n', ' ');
+            } else if (code == KEY_Z || code == KEY_Y) {
+                boolean undoing = code == KEY_Z && !shift; // Ctrl+Shift+Z and Ctrl+Y redo
+                java.util.Deque<Object[]> source = undoing ? node.undo() : node.redo();
+                java.util.Deque<Object[]> target = undoing ? node.redo() : node.undo();
+                if (!source.isEmpty()) {
+                    Object[] state = source.pop();
+                    target.push(new Object[] {text, Integer.valueOf(caret)});
+                    node.caret = (Integer) state[1];
+                    node.anchor = -1;
+                    onChange.accept(state[0]);
+                }
+                return;
+            }
+        } else if (typed >= 32 && typed != 127) {
+            insert = String.valueOf(typed);
+        } else if (code == ENTER && area) {
+            insert = "\n";
+        } else if (code == BACKSPACE) {
+            if (from < to) {
+                insert = "";
+            } else if (caret > 0) {
+                from = caret - 1;
+                to = caret;
+                insert = "";
+            }
+        } else if (code == DELETE) {
+            if (from < to) {
+                insert = "";
+            } else if (caret < text.length()) {
+                from = caret;
+                to = caret + 1;
+                insert = "";
+            }
+        } else if ((code == UP || code == DOWN) && area) {
+            caret = JXTextHit.areaVertical(node, caret, code == UP ? -1 : 1); // the line above or below, same x
         } else if (code == LEFT) {
-            caret = Math.max(0, caret - 1);
+            caret = !shift && from < to ? from : Math.max(0, caret - 1); // a selection collapses to its start
         } else if (code == RIGHT) {
-            caret = Math.min(text.length(), caret + 1);
+            caret = !shift && from < to ? to : Math.min(text.length(), caret + 1);
         } else if (code == HOME) {
-            caret = 0;
+            caret = area ? JXTextHit.areaLineOf(node, caret)[1] : 0;
         } else if (code == END) {
-            caret = text.length();
+            caret = area ? lineEnd(text, caret) : text.length();
+        } else {
+            move = false;
+        }
+        if (insert != null) {
+            next = text.substring(0, from) + insert + text.substring(to);
+            caret = from + insert.length();
+            anchor = caret;
+        } else if (move && !shift) {
+            anchor = caret;
         }
         node.caret = caret;
+        node.anchor = anchor == caret ? -1 : anchor;
         if (!next.equals(text)) {
+            java.util.Deque<Object[]> undo = node.undo();
+            undo.push(new Object[] {text, Integer.valueOf(Math.min(from, text.length()))});
+            if (undo.size() > UNDO_LIMIT) {
+                undo.removeLast();
+            }
+            node.redo().clear();
             onChange.accept(next);
         }
+    }
+
+    /** The index of the end of the line of a text area that {@code index} is on (the next line break, or the end). */
+    private static int lineEnd(String text, int index) {
+        int end = text.indexOf('\n', index);
+        return end < 0 ? text.length() : end;
+    }
+
+    /** The clipboard Ctrl+C, Ctrl+X and Ctrl+V use: the system's, unless a host or a test set another. */
+    static com.jxparallel.ui.input.JXClipboard clipboard() {
+        com.jxparallel.ui.input.JXClipboard c = JXNativeNode.clipboard;
+        return c != null ? c : JXWindow.systemClipboard();
     }
 
     /** Up and Down change a spinner by its {@code step} (1 if none) within {@code min} and {@code max}. */
     private static void step(JXNativeNode node, JXKeyEvent event, Consumer<Object> onChange) {
         int code = event.getKeyCode();
-        if (code != UP && code != DOWN) {
-            return;
+        if (code == UP || code == DOWN) {
+            stepBy(node, code == UP ? 1 : -1, onChange);
         }
+    }
+
+    /** Adds {@code sign} steps to a spinner (its arrow keys and its arrow buttons). */
+    private static void stepBy(JXNativeNode node, int sign, Consumer<Object> onChange) {
         double current;
         try {
             current = Double.parseDouble(JXPaint.text(node, "value").trim());
         } catch (NumberFormatException e) {
             current = JXPaint.number(node, "min", 0.0);
         }
-        double next = current + (code == UP ? 1 : -1) * JXPaint.number(node, "step", 1.0);
+        double next = current + sign * JXPaint.number(node, "step", 1.0);
         next = Math.max(JXPaint.number(node, "min", -Double.MAX_VALUE), Math.min(JXPaint.number(node, "max", Double.MAX_VALUE), next));
         onChange.accept(Double.valueOf(next));
     }

@@ -47,7 +47,7 @@ public final class JXTextHit {
         JXTextEngine engine = JXTextEngine.get(bold);
         float line = engine.lineHeight(size);
         float left = node.getX() + 1 + JXNativeNode.FIELD_PAD_X;
-        float top = node.getY() + 1 + JXNativeNode.PAD_Y - (float) JXPaint.number(node, "scrollTop", 0);
+        float top = node.getY() + 1 + JXNativeNode.PAD_Y - (float) JXScrolling.textScroll(node);
         List<String> lines = lines(node, value, size, bold);
         int row = (int) Math.floor((windowY - top) / line);
         row = Math.max(0, Math.min(lines.size() - 1, row));

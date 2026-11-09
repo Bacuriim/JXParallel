@@ -14,10 +14,32 @@ import com.jxparallel.ui.JXProps;
  * A node with an {@code onScroll} handler (a Consumer that gets {@code double[] {x, y}}, in pixels) also reports it, so the
  * application can move the window of a virtual list ({@code first}).
  *
- * <p>A virtual list or table has only the rows it was given: without {@code onScroll} it scrolls within them.
+ * <p>A virtual list or table has only the rows it was given: without {@code onScroll} or {@code onChange} it scrolls within
+ * them. With {@code onChange} (a Consumer that gets an Integer) it scrolls over the whole model and reports the row now at
+ * the top whenever that changes, so the application gives the window from there ({@code first}); the offset in pixels is
+ * kept when the application renders again with the row it was told.
  */
 final class JXScrolling {
-    private static final String[] STATE = {"hvalue", "vvalue", "scrollX", "scrollY", "first", "itemCount"};
+    private static final String[] STATE = {"hvalue", "vvalue", "scrollX", "scrollY", "first", "itemCount", "scrollTop"};
+
+    /** How far a text area's lines are scrolled up, in pixels: the wheel's offset, or its {@code scrollTop}. */
+    static double textScroll(JXNativeNode node) {
+        return Double.isNaN(node.userScrollY) ? JXPaint.number(node, "scrollTop", 0) : node.userScrollY;
+    }
+
+    /** The wheel over a text area moves its lines, within the text; false when it is at that end already. */
+    private static boolean scrollText(JXNativeNode node, double dy) {
+        double view = node.getHeight() - 2 - 2 * JXNativeNode.PAD_Y;
+        double max = Math.max(0, JXTextHit.areaLineCount(node) * JXTextHit.lineHeight(node) - view);
+        double now = textScroll(node);
+        double next = Math.max(0, Math.min(max, now + dy));
+        if (next == now) {
+            return false;
+        }
+        node.userScrollY = next;
+        JXNativeNode.revision++;
+        return true;
+    }
 
     private JXScrolling() {
     }
@@ -30,14 +52,25 @@ final class JXScrolling {
         return "scroll".equals(type) || "list".equals(type) || "table".equals(type);
     }
 
+    private static double itemHeight(JXNativeNode node) {
+        return "list".equals(node.getType()) ? JXControlLayout.cellHeight(node) : JXControlLayout.rowHeight(node);
+    }
+
+    /** A list or table whose {@code onChange} hears of the row at the top: it moves its window itself. */
+    @SuppressWarnings("unchecked")
+    private static Consumer<Object> firstHandler(JXNativeNode node) {
+        Object handler = node.getProperty("onChange");
+        return !"scroll".equals(node.getType()) && handler instanceof Consumer ? (Consumer<Object>) handler : null;
+    }
+
     /** {minX, maxX, minY, maxY} the node can scroll to now. */
     private static double[] range(JXNativeNode node) {
         JXControlLayout.ScrollGeometry g = JXControlLayout.scrollGeometry(node);
         double minY = 0;
         double maxY = g.maxScrollY();
         String type = node.getType();
-        if (!"scroll".equals(type) && !(node.getProperty("onScroll") instanceof Consumer)) {
-            double item = "list".equals(type) ? JXControlLayout.cellHeight(node) : JXControlLayout.rowHeight(node);
+        if (!"scroll".equals(type) && !(node.getProperty("onScroll") instanceof Consumer) && firstHandler(node) == null) {
+            double item = itemHeight(node);
             double first = Math.max(0, JXPaint.number(node, "first", 0));
             minY = Math.min(first * item, maxY);
             maxY = Math.max(minY, Math.min(maxY, (first + node.getChildren().size()) * item - g.viewH));
@@ -59,6 +92,9 @@ final class JXScrolling {
         }
         for (int i = path.size() - 1; i >= low; i--) {
             JXNativeNode node = path.get(i);
+            if ("textarea".equals(node.getType()) && node.contains(x, y) && dy != 0 && scrollText(node, dy)) {
+                return true;
+            }
             if (!scrollable(node) || !node.contains(x, y)) { // the hit path also holds content that sticks out of its pane
                 continue;
             }
@@ -95,6 +131,14 @@ final class JXScrolling {
             @SuppressWarnings("unchecked")
             Consumer<Object> onScroll = (Consumer<Object>) handler;
             onScroll.accept(new double[] {nx, ny});
+        }
+        Consumer<Object> onFirst = firstHandler(node);
+        if (onFirst != null) {
+            int top = (int) Math.max(0, Math.floor(ny / itemHeight(node)));
+            if (top != (int) JXPaint.number(node, "first", 0)) {
+                node.reportedFirst = top;
+                onFirst.accept(Integer.valueOf(top));
+            }
         }
         return true;
     }
@@ -191,7 +235,13 @@ final class JXScrolling {
         if (Double.isNaN(node.userScrollX) && Double.isNaN(node.userScrollY)) {
             return;
         }
+        // the application moved the window to the row it was told: its first and scrollY follow the gesture, not undo it
+        Object first = next.get("first");
+        boolean followed = node.reportedFirst >= 0 && first instanceof Number && ((Number) first).intValue() == node.reportedFirst;
         for (String key : STATE) {
+            if (followed && ("first".equals(key) || "scrollY".equals(key))) {
+                continue;
+            }
             if (!Objects.deepEquals(previous.get(key), next.get(key))) {
                 node.userScrollX = Double.NaN;
                 node.userScrollY = Double.NaN;

@@ -148,6 +148,7 @@ public final class JxmlSchema {
         layout("opacity", "opacity", AttrType.DOUBLE, true);
         layout("hidden", "hidden", AttrType.BOOLEAN, true);
         layout("mouseTransparent", "mouseTransparent", AttrType.BOOLEAN, false);
+        layout("tooltip", "tooltip", AttrType.STRING, true); // shown when the pointer rests on the element
         // a click: the renderer calls the handler of the deepest element under the pointer (JXNativeNode.dispatchPointer)
         layout("onAction", "onAction", AttrType.HANDLER, false);
         layout("background", "background", AttrType.COLOR, true);
@@ -176,10 +177,14 @@ public final class JxmlSchema {
                 .done();
         tag("Scroll", "scroll", Children.ONE)
                 .attr("fitToWidth", "fitToWidth", AttrType.BOOLEAN, false).attr("fitToHeight", "fitToHeight", AttrType.BOOLEAN, false)
+                .attr("hvalue", "hvalue", AttrType.DOUBLE, true).attr("vvalue", "vvalue", AttrType.DOUBLE, true)
+                .handler("onScroll", AttrType.DOUBLES)
                 .done();
         tag("Tabs", "tabs", Children.TABS)
                 .attr("selected", "selected", AttrType.INT, true)
                 .def("selected", Integer.valueOf(0)).def("retainChildren", Boolean.TRUE).def("closingPolicy", "SELECTED_TAB")
+                .handler("onClose", AttrType.INT)
+                .change("selected", AttrType.INT)
                 .done();
         tag("Tab", null, Children.TAB)
                 .attr("title", "title", AttrType.STRING, false).attr("closable", "closable", AttrType.BOOLEAN, false)
@@ -252,6 +257,7 @@ public final class JxmlSchema {
         tag("Spinner", "spinner", Children.NONE)
                 .attr("value", "value", AttrType.STRING, true)
                 .attr("min", "min", AttrType.DOUBLE, false).attr("max", "max", AttrType.DOUBLE, false)
+                .attr("step", "step", AttrType.DOUBLE, false)
                 .def("value", "")
                 .change("value", AttrType.DOUBLE)
                 .done();
@@ -272,6 +278,7 @@ public final class JxmlSchema {
         tag("Slider", "slider", Children.NONE)
                 .attr("min", "min", AttrType.DOUBLE, false).attr("max", "max", AttrType.DOUBLE, false)
                 .attr("value", "value", AttrType.DOUBLE, true)
+                .attr("blockIncrement", "blockIncrement", AttrType.DOUBLE, false)
                 .def("min", Double.valueOf(0)).def("max", Double.valueOf(100)).def("value", Double.valueOf(0))
                 .change("value", AttrType.DOUBLE)
                 .done();
@@ -410,6 +417,7 @@ public final class JxmlSchema {
                 .attr("rowHeight", "cellHeight", AttrType.DOUBLE, true).attr("first", "first", AttrType.INT, true)
                 .attr("rows", "rows", AttrType.INT, true)
                 .def("first", Integer.valueOf(0)).def("cellHeight", Double.valueOf(24))
+                .change("first", AttrType.INT)
                 .done();
         tag("TreeTable", "table", Children.MANY).tree().only("TreeItem")
                 .attr("rowHeight", "rowHeight", AttrType.DOUBLE, true).attr("first", "first", AttrType.INT, true)
@@ -418,6 +426,7 @@ public final class JxmlSchema {
                 .attr("constrained", "constrained", AttrType.BOOLEAN, false)
                 .def("first", Integer.valueOf(0)).def("rowHeight", Double.valueOf(24)).def("columns", new String[0])
                 .def("constrained", Boolean.FALSE)
+                .change("first", AttrType.INT)
                 .done();
         tag("TreeItem", "cell", Children.MANY).only("TreeItem").parents("Tree", "TreeTable", "TreeItem")
                 .attr("text", "value", AttrType.STRING, true).attr("expanded", "expanded", AttrType.BOOLEAN, true)
@@ -479,6 +488,7 @@ public final class JxmlSchema {
                 .attr("maxPageIndicatorCount", "maxPageIndicatorCount", AttrType.INT, false)
                 .def("pageCount", Integer.valueOf(1)).def("current", Integer.valueOf(0))
                 .def("maxPageIndicatorCount", Integer.valueOf(10))
+                .change("current", AttrType.INT)
                 .done();
 
         // Controls the renderer already draws (JXPaint.self, JXControlLayout.sizes).
@@ -522,6 +532,7 @@ public final class JxmlSchema {
                 .attr("type", "type", AttrType.STRING, false).attr("rows", "rows", AttrType.INT, true)
                 .attr("first", "first", AttrType.INT, true).attr("cellHeight", "cellHeight", AttrType.DOUBLE, true)
                 .def("first", Integer.valueOf(0)).def("cellHeight", Double.valueOf(24))
+                .handler("onScroll", AttrType.DOUBLES).change("first", AttrType.INT)
                 .done();
         tag("TableView", "table", Children.TEMPLATE).virtual().finish()
                 .attr("items", "itemCount", AttrType.COUNT, true).attr("var", "var", AttrType.STRING, false)
@@ -531,6 +542,7 @@ public final class JxmlSchema {
                 .attr("constrained", "constrained", AttrType.BOOLEAN, false)
                 .def("first", Integer.valueOf(0)).def("rowHeight", Double.valueOf(24)).def("columns", new String[0])
                 .def("constrained", Boolean.FALSE)
+                .handler("onScroll", AttrType.DOUBLES).change("first", AttrType.INT)
                 .done();
         tag("TableRow", "tablerow", Children.MANY)
                 .attr("selected", "selected", AttrType.BOOLEAN, true).attr("odd", "odd", AttrType.BOOLEAN, true)

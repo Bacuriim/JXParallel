@@ -193,6 +193,17 @@ final class JXOverlays {
     }
 
     /** The open overlays in tree order, so the last one is on top. Closed ones lose the geometry they had. */
+    /** The open dialogs and drawers, in drawing order (the last is on top): the focus stays in the topmost. */
+    static List<JXNativeNode> openLayers(JXNativeNode root) {
+        List<JXNativeNode> out = new ArrayList<JXNativeNode>();
+        for (Entry e : collect(root)) {
+            if ("dialog".equals(e.node.getType()) || "drawer".equals(e.node.getType())) {
+                out.add(e.node);
+            }
+        }
+        return out;
+    }
+
     static List<Entry> collect(JXNativeNode root) {
         List<Entry> out = new ArrayList<Entry>();
         walk(root, new ArrayList<JXNativeNode>(), out);
@@ -1107,6 +1118,26 @@ final class JXOverlays {
         if (focused != null) {
             focused.dispatchKey(event);
         }
+        if (event.getKeyCode() == ENTER && open.isEmpty() && (focused == null || !focused.takesEnter())) {
+            runScreenDefault(root); // like JavaFX: Enter in a field presses the default button of the screen
+        }
+    }
+
+    /** The default button of the screen, outside the dialogs, drawers and snack bars (open or not). */
+    private static boolean runScreenDefault(JXNativeNode node) {
+        String type = node.getType();
+        if ("dialog".equals(type) || "drawer".equals(type) || "snackbar".equals(type)) {
+            return false;
+        }
+        if ("button".equals(type)) {
+            return runDefaultButton(node);
+        }
+        for (JXNativeNode child : node.getChildren()) {
+            if (runScreenDefault(child)) {
+                return true;
+            }
+        }
+        return false;
     }
 
     private static boolean runDefaultButton(JXNativeNode node) {

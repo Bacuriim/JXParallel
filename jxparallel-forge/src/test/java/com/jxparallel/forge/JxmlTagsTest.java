@@ -397,8 +397,8 @@ class JxmlTagsTest {
         // only the row height must be positive: the layout sizes of the list itself may be 0
         ViewCompiler.read("<Column>\n<ListView items=\"${rows}\" var=\"r\" minHeight=\"0\" prefHeight=\"0\" maxHeight=\"0\">"
                 + "<ListItem/></ListView>\n<TableView items=\"${rows}\" var=\"r\" minHeight=\"0\"><TableRow/></TableView></Column>", "t.jxml");
-        assertError(2, "first cannot be bound two ways",
-                "<Column>\n<ListView items=\"${rows}\" var=\"r\" first=\"@{top}\"><ListItem/></ListView></Column>");
+        assertError(2, "cannot be bound two ways",
+                "<Column>\n<ListView items=\"${rows}\" var=\"r\" rows=\"@{top}\"><ListItem/></ListView></Column>");
         assertError(3, "takes one <TableRow>",
                 "<Column>\n<TableView items=\"${rows}\" var=\"r\">\n<ListItem/></TableView></Column>");
         assertError(2, "is not a valid doubles", "<Column>\n<TableView items=\"${rows}\" var=\"r\" columnWidths=\"a, b\">"

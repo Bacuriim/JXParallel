@@ -280,6 +280,9 @@ public final class JxmlRuntime {
         }
         props.set("selected", Integer.valueOf(shown)).set("titles", titles).set("closable", closable)
                 .set("deferredTabs", deferred);
+        if (props.build().get("onClose") == null) {
+            props.set("closingPolicy", "UNAVAILABLE"); // no close icon that nothing would answer
+        }
         return count == 0 ? JXElement.of("tabs", props.build()) : JXElement.of("tabs", props.build(), contents[shown]);
     }
 }

@@ -880,9 +880,10 @@ class JXOverlaysTest {
         JXNativeNode closed = mount(e("stack", p(), button("Behind"), dialog(false, true)));
         calls.clear();
         press(closed, ENTER, '\0', closed.getChildren().get(0));
-        assertTrue(calls.isEmpty(), "no dialog is open: the key goes to the focused node");
+        assertEquals(Arrays.asList("Behind"), calls, "no dialog is open: the key goes to the focused node, a button that it presses");
         JXElement plain = e("dialog", p().set("showing", true).set("onShowing", onShowing), button("Only"));
         JXNativeNode noDefault = mount(e("stack", p(), plain));
+        calls.clear();
         press(noDefault, ENTER, '\0', noDefault);
         assertTrue(calls.isEmpty(), "a dialog without a default button leaves Enter alone");
     }

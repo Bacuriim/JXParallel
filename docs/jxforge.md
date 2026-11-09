@@ -140,7 +140,8 @@ inside a `Border`), and these, which the renderer reads from any node:
 | `opacity` | number 0..1 | how opaque the node and everything below it is painted |
 | `hidden` | `true` / `false` | not painted and not hit, but it keeps its place in the layout |
 | `mouseTransparent` | `true` / `false` | the pointer goes through it to what is behind |
-| `onAction` | `#method` | a click on it; the renderer calls the handler of the deepest element under the pointer |
+| `tooltip` | text | shown in a box by the pointer when it rests on the element for 600 ms (the deepest element that has one), until the pointer moves off, presses or a key goes down |
+| `onAction` | `#method` | a click on it; the renderer calls the handler of the deepest element under the pointer. A `Button`, `ToggleButton`, `RadioButton`, `Hyperlink`, `CheckBox`, `Switch` or `Chip` acts when the mouse button is released over it (sliding off cancels); Space or Enter on a focused button, toggle, radio button or hyperlink is a click, and Enter elsewhere (but in a `TextArea`) presses the screen's `defaultButton` |
 | `background`, `borderColor` | color | `#RGB`, `#RRGGBB` or `#AARRGGBB` (a binding returns an ARGB `Integer`, or text like that) |
 | `backgroundRadius`, `borderRadius`, `borderWidth` | number | corner radii and border width of the two above |
 
@@ -151,7 +152,7 @@ inside a `Border`), and these, which the renderer reads from any node:
 | `Grid` | `grid` | `hgap`, `vgap`, `padding`, `alignment` |
 | `Border` | `border` | `padding`; children placed with `slot` |
 | `Scroll` | `scroll` | `fitToWidth`, `fitToHeight`, `hvalue`, `vvalue` (0 to 1), `onScroll`; one child |
-| `Tabs` / `Tab` | `tabs` | `selected`; each `Tab` has `title`, `closable` and one child |
+| `Tabs` / `Tab` | `tabs` | `selected`, `onChange`, `onClose`; each `Tab` has `title`, `closable` and one child (the selected tab shows a close icon only with `onClose`) |
 | `Flow` | `flow` | `hgap`, `vgap`, `padding`, `alignment`, `orientation`, `prefWrapLength`, `columnHalignment`, `rowValignment` |
 | `Tile` | `tile` | `hgap`, `vgap`, `padding`, `alignment`, `orientation`, `prefColumns`, `prefRows`, `prefTileWidth`, `prefTileHeight`, `tileAlignment` |
 | `Anchor` | `anchor` | `padding`; children placed with `top`, `right`, `bottom`, `left` |
@@ -160,16 +161,16 @@ inside a `Border`), and these, which the renderer reads from any node:
 | `ButtonBar` | `buttonbar` | children are buttons, laid out from the right |
 | `Accordion` | `accordion` | children are `TitledPane`s |
 | `TitledPane` | `titled` | `text`, `expanded`, `collapsible`, `onAction`; one child |
-| `Pagination` | `pagination` | `pageCount`, `current`, `maxPageIndicatorCount`; one child, the page |
+| `Pagination` | `pagination` | `pageCount`, `current`, `maxPageIndicatorCount`, `onChange`; one child, the page |
 | `ToggleButton` | `toggle` | `text`, `selected`, `onAction`, `disabled`, `group`, `value`, `onChange` |
 | `RadioButton` | `radio` | `text`, `selected`, `onAction`, `disabled`, `group`, `value`, `onChange` |
 | `Hyperlink` | `hyperlink` | `text`, `visited`, `onAction`, `disabled` |
 | `ProgressIndicator` | `indicator` | `progress` (negative: indeterminate) |
 | `Tooltip` | `tooltip` | `text` |
 | `Image` | `image` | `pixels` (an `int[]` of ARGB), `imageWidth`, `imageHeight`, `fitWidth`, `fitHeight`, `preserveRatio` |
-| `ListView` | `list` | `items`, `var`, `type`, `key`, `first`, `rows`, `cellHeight`, `onScroll`; one child, the row template |
+| `ListView` | `list` | `items`, `var`, `type`, `key`, `first` (two ways: see [Lists and tables](#lists-and-tables)), `rows`, `cellHeight`, `onScroll`; one child, the row template |
 | `ListItem` | `cell` | `text`, `selected`, `odd`, `listFocused`, `alignment`, `onAction`; optionally one child, a graphic |
-| `TableView` | `table` | `items`, `var`, `type`, `key`, `first`, `rows`, `rowHeight`, `columns`, `columnWidths`, `constrained`; one `TableRow` |
+| `TableView` | `table` | `items`, `var`, `type`, `key`, `first` (two ways), `onScroll`, `rows`, `rowHeight`, `columns`, `columnWidths`, `constrained`; one `TableRow` |
 | `TableRow` | `tablerow` | `selected`, `odd`, `listFocused`; children are `TableCell`s |
 | `TableCell` | `cell` | like `ListItem`, with the table's cell look |
 | `Label` | `#text` | `text`, `wrapText`, `bold`, `fontSize`, `textFill` |
@@ -178,7 +179,7 @@ inside a `Border`), and these, which the renderer reads from any node:
 | `TextArea` | `textarea` | `text`, `prompt`, `wrapText`, `columns`, `rows` |
 | `CheckBox` | `checkbox` | `text`, `selected` |
 | `ComboBox` | `select` | `items` (a list or `A, B, C`), `value`, `prompt`, `showing`, `onShowing` |
-| `Spinner` | `spinner` | `value`, `min`, `max` |
+| `Spinner` | `spinner` | `value`, `min`, `max`, `step` (1 when not written) |
 | `DatePicker` | `datepicker` | `value`, `prompt`, `showing`, `onShowing` |
 | `TimePicker` | `timepicker` | `value` (`HH:mm`), `prompt`, `hour24`, `minuteStep`, `disabled`, `showing`, `onShowing` |
 | `ColorPicker` | `colorpicker` | `value` (`#RRGGBB`), `prompt`, `disabled`, `showing`, `onShowing` |
@@ -190,12 +191,12 @@ inside a `Border`), and these, which the renderer reads from any node:
 | `Modal` | `dialog` | `dismissible`, `padding`, `gap`, `alignment`, `fillWidth`, `showing`, `onShowing`; a column over a scrim; takes no room |
 | `Drawer` | `drawer` | `side` (`left`, `right`), `padding`, `gap`, `alignment`, `fillWidth`, `showing`, `onShowing`; a column over a scrim; takes no room |
 | `SnackBar` | `snackbar` | `message`, `action`, `onAction`, `duration`, `showing`, `onShowing`; takes no room |
-| `Tree` | `list` | `rowHeight`, `first`, `rows`; children are `TreeItem`s |
-| `TreeTable` | `table` | `rowHeight`, `first`, `rows`, `columns`, `columnWidths`, `constrained`; children are `TreeItem`s |
+| `Tree` | `list` | `rowHeight`, `first` (two ways), `rows`; children are `TreeItem`s |
+| `TreeTable` | `table` | `rowHeight`, `first` (two ways), `rows`, `columns`, `columnWidths`, `constrained`; children are `TreeItem`s |
 | `TreeItem` | `cell` | `text`, `expanded`, `selected`, `listFocused`, `values`, `onAction`, `onToggle`; children are `TreeItem`s |
 | `Separator` | `separator` | `orientation` |
 | `ProgressBar` | `progress` | `progress` |
-| `Slider` | `slider` | `min`, `max`, `value` |
+| `Slider` | `slider` | `min`, `max`, `value`, `blockIncrement` (what an arrow key moves; a tenth of the range when not written) |
 | `Switch` | `switch` | `text`, `selected`, `disabled`; `onChange` (Boolean) |
 | `Icon` | `icon` | `name` (required), `size`, `color` |
 | `Chip` | `chip` | `text`, `kind`, `icon`, `selected`, `closable`, `onClose`, `disabled`; `onChange` (Boolean) |
@@ -290,12 +291,16 @@ The native renderer reports edits through the `onChange` prop of the node: a
 `java.util.function.Consumer` that gets the new value. Inputs are controlled, as in React: the
 node keeps showing its `value` prop until the screen is built again with the new one.
 
+The keyboard goes to the control clicked last; Tab and Shift+Tab move it through the controls in the order of the
+file (inside the topmost open dialog or drawer, when one is open). The focused control draws its focus ring, and a
+text input its caret, without the screen holding that state.
+
 | Tag | New value passed | Reported when |
 |---|---|---|
-| `TextField`, `PasswordField`, `TextArea` | `String`, the whole text | typing, Backspace, Delete (the caret moves with the arrows, Home and End; Enter adds a line in a `TextArea`; no selection yet) |
+| `TextField`, `PasswordField`, `TextArea` | `String`, the whole text | typing, Backspace, Delete (a click puts the caret there; it moves with the arrows, Home and End, and Up / Down change the line of a `TextArea`; Enter adds a line in a `TextArea`, and the wheel scrolls its lines; Shift with the arrows, Home and End, a drag, a double click (a word) and a triple click (everything, or a line of a `TextArea`) select, and typing replaces the selection; Ctrl+A selects all, Ctrl+C / Ctrl+X / Ctrl+V copy, cut and paste with the system clipboard, but not a password; Ctrl+Z undoes, Ctrl+Y or Ctrl+Shift+Z redoes) |
 | `CheckBox` | `boolean` | click, or space |
-| `Slider` | `double` | click on the track |
-| `Spinner` | `double` | Up / Down arrows, within `min` and `max` |
+| `Slider` | `double` | click on the track, drag of the thumb, Left / Down and Right / Up (`blockIncrement`), Home / End |
+| `Spinner` | `double` | Up / Down arrows and a click on its arrow buttons (`step`), within `min` and `max` |
 | `ComboBox` | `String`, the option | Up / Down arrows, a press on an option of the open list |
 | `DatePicker` | `String`, ISO `yyyy-MM-dd` | Up / Down (day), Page Up / Page Down (month), a press on a day of the open calendar |
 | `TimePicker` | `String`, `HH:mm` | Up / Down (the `minuteStep`), Page Up / Page Down (an hour), a press on an hour, a minute or AM / PM of the open popup |
@@ -303,7 +308,9 @@ node keeps showing its `value` prop until the screen is built again with the new
 | `Switch`, `Chip` | `boolean` | click (and space for `Switch`) |
 | `ScrollBar` | `double` | click on the track, drag of the thumb |
 | `SplitPane` | `double[]`, all the divider positions | drag of a divider; `@{positions}` needs a setter taking a `double[]` |
-| `TabBar` | `int`, the tab | click on another tab; `onClose` gets the index of the tab whose close icon was clicked |
+| `TabBar`, `Tabs` | `int`, the tab | click on another tab; `onClose` gets the index of the tab whose close icon was clicked |
+| `Pagination` | `int`, the page | click on a page number, or on the arrow before or after |
+| `ListView`, `TableView`, `Tree`, `TreeTable` | `int`, the row at the top (`first`) | the wheel or the scroll bar moved the viewport to another row |
 
 ```xml
 <TextField text="${note}" onChange="#setNote"/>           <!-- controller.setNote(String) -->
@@ -320,7 +327,8 @@ node keeps showing its `value` prop until the screen is built again with the new
   (`#rename(o)` calls `rename(o, value)`). The method must accept the type in the table, as javac
   would for a call: `setVolume(double)` and `setVolume(Double)` do, `setVolume(int)` does not.
 - `@{path}` is the two-way shorthand, on the attribute that holds the edited value: `text` of the
-  text inputs, `selected` of the check box, `value` of the others. It reads like `${path}`, and
+  text inputs, `selected` of the check box, switch, chip, tab bar and tab pane, `current` of a pagination, `first`
+  of the lists, tables and trees, `value` of the others. It reads like `${path}`, and
   on change calls the setter `setX` of the last segment on the object the rest of the path
   returns (evaluated when the value arrives). The setter must take the type in the table.
 - `@{a.b()}` (a record accessor, which has no setter), `@{o}` (nothing to set), `@{}` on other
@@ -336,11 +344,11 @@ a window of the model:
 
 ```xml
 <ListView items="${orders}" var="o" type="com.acme.Order" key="${o.id}"
-          first="${top}" rows="30" cellHeight="24" prefHeight="300">
+          first="@{top}" rows="30" cellHeight="24" prefHeight="300">
   <ListItem text="${o.name}" selected="${o.selected}" onAction="#select(o)"/>
 </ListView>
 
-<TableView items="${orders}" var="o" type="com.acme.Order" key="${o.id}" first="${top}" rowHeight="24"
+<TableView items="${orders}" var="o" type="com.acme.Order" key="${o.id}" first="@{top}" rowHeight="24"
            columns="Id, Name, Total" columnWidths="60, -1, 80">
   <TableRow selected="${o.selected}">
     <TableCell text="${o.id}"/>
@@ -358,7 +366,11 @@ a window of the model:
   and `rows` choose the window, `rows` is 30 when not written. Build more rows than the viewport shows.
 - `first` is the index of the row at the top of the viewport (the application's scroll state; the mouse wheel
   moves the viewport, see below). It is kept within the model, and `scrollY` (the renderer's offset in pixels) is
-  set to `first * height`. Keep `first` at most `itemCount` minus the rows the viewport shows: the renderer
+  set to `first * height`. **Bind it two ways (`first="@{top}"`, or `${top}` with `onChange="#setTop"`, an `int`)
+  so the user can scroll the whole model:** the wheel and the scroll bar then range over every item, the renderer
+  reports the row now at the top, and the next build gives the window from there. The offset in pixels is kept when
+  the application renders again with that row, so scrolling stays smooth. Read only (`${top}` alone), the list scrolls
+  within the `rows` it was given. The same holds for `Tree` and `TreeTable`. Keep `first` at most `itemCount` minus the rows the viewport shows: the renderer
   clamps `scrollY` to the scroll range, and a window that starts later would be drawn below the top.
 - `cellHeight` (list) and `rowHeight` (table) are fixed, 24 when not written, and must be greater than 0: the
   renderer needs them to place rows without measuring the first one, and `scrollY` is computed from the same number.
@@ -670,13 +682,12 @@ JXML screen with `new XView().build(controller)`, and JXML places a Java compone
 ## Not done yet
 
 - Events the renderer does not report, so no attribute exists for them: selection of lists and
-  tables (use a row's `onAction`), clicks on the buttons of a `Pagination`, and the
-  hover that would show a `Tooltip`. A `TitledPane` collapses when the application changes `expanded`
-  (its `onAction` tells it was clicked).
+  tables (use a row's `onAction`). A `TitledPane` collapses when the application changes `expanded`
+  (its `onAction` tells it was clicked). The `Tooltip` tag is a box drawn in place; the `tooltip` attribute is the one
+  that shows on hover.
 - Loading an image file for `Image`: it takes the pixels an application decoded.
 - Shadows (for `Card`) and the Material look of the bars: they are rows with a background.
 - A `ListView` with columns, and rows of different heights.
-- Selection in text inputs.
 - Keyboard navigation and hover in the popups and menus (see [Overlays](#overlays)), and a recursive model for `Tree`
   (see [Trees](#trees)).
 - `<For>` over a `Map`, and the loop index as a variable.

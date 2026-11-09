@@ -108,12 +108,43 @@ public final class JXNativeNode {
     /** Scroll offsets in pixels the wheel set (see {@link JXScrolling}), NaN while the props decide. */
     double userScrollX = Double.NaN;
     double userScrollY = Double.NaN;
+    /** The first row a virtual list or table last reported through {@code onChange} (see {@link JXScrolling}), -1 for none. */
+    int reportedFirst = -1;
     /** A press on the scroll bar of a pane, list or table grabbed its thumb: 1 vertical, 2 horizontal (see {@link JXScrolling#pressBar}). */
     int barDrag;
     /** The path from the root to this node when the thumb was grabbed: the layout of its ancestors follows the drag. */
     java.util.List<JXNativeNode> dragPath;
     /** Where typing goes in a text input (see {@link JXChangeEvents}); -1 is the end. */
     int caret = -1;
+    /** The other end of the selection of a text input, from the caret; -1 when nothing is selected. */
+    int anchor = -1;
+    /** Text and caret before each edit of a text input (Ctrl+Z), and the ones undone (Ctrl+Y); made on the first edit. */
+    private java.util.Deque<Object[]> undo;
+    private java.util.Deque<Object[]> redo;
+    /** The pointer is over this node, or over a node inside it (see {@link #hoverPointer}). */
+    boolean hovered;
+
+    java.util.Deque<Object[]> undo() {
+        if (undo == null) {
+            undo = new java.util.ArrayDeque<Object[]>();
+        }
+        return undo;
+    }
+
+    java.util.Deque<Object[]> redo() {
+        if (redo == null) {
+            redo = new java.util.ArrayDeque<Object[]>();
+        }
+        return redo;
+    }
+
+    /** The clipboard of Ctrl+C, Ctrl+X and Ctrl+V in text inputs; null is the system's. Display thread only. */
+    static com.jxparallel.ui.input.JXClipboard clipboard;
+
+    /** Sets the clipboard text inputs copy to and paste from (null: the system's, through GLFW). */
+    public static void setClipboard(com.jxparallel.ui.input.JXClipboard value) {
+        clipboard = value;
+    }
     /** A press on a scroll bar grabbed its thumb; the drag that follows moves it (see {@link JXChangeEvents#drag}). */
     boolean dragThumb;
     /** Distance from the start of the grabbed thumb or divider to the pointer, along the axis. */
@@ -458,6 +489,134 @@ public final class JXNativeNode {
         return JXOverlays.pointer(this, event);
     }
 
+    /** Types that act when the button is released over them, as JavaFX's buttons do, rather than on the press. */
+    private static final java.util.Set<String> CLICKED_ON_RELEASE = new java.util.HashSet<String>(java.util.Arrays.asList(
+            "button", "toggle", "radio", "hyperlink", "checkbox", "switch", "chip"));
+    /** Types that Space (and Enter) on the focused node act on, as a click does. */
+    private static final java.util.Set<String> PRESSED_BY_KEY = new java.util.HashSet<String>(java.util.Arrays.asList(
+            "button", "toggle", "radio", "hyperlink"));
+    private static final int KEY_ENTER = 257;
+
+    /** A press of {@link #pressPointer} is being routed: a button only arms. Display thread only. */
+    private static boolean pressing;
+    /** The button the last press armed; the release over it clicks it. */
+    private static JXNativeNode armed;
+    /** The pointer is over {@link #armed}: it is drawn pressed. */
+    private static boolean armedInside;
+    /** The tooltip a window shows over everything ({text, x, y}, the window's coordinates), or null; see {@link JXPaint}. */
+    static Object[] shownTooltip;
+    /** The nodes {@link #hoverPointer} marked, the outermost first. */
+    private static List<JXNativeNode> hoverPath = new ArrayList<JXNativeNode>();
+
+    /**
+     * The pointer moved to (x, y) with no button held: the nodes under it are hovered (they answer {@code hover} true, so
+     * a button lightens) and the others no longer are. Returns whether that changed, so the window paints again.
+     */
+    public boolean hoverPointer(int px, int py) {
+        List<JXNativeNode> path = px < 0 || py < 0 ? new ArrayList<JXNativeNode>() : hitPath(px, py);
+        if (path.equals(hoverPath)) {
+            return false;
+        }
+        for (JXNativeNode node : hoverPath) {
+            node.hovered = false;
+        }
+        for (JXNativeNode node : path) {
+            node.hovered = true;
+        }
+        hoverPath = path;
+        revision++;
+        return true;
+    }
+
+    /** The deepest node under the pointer's last {@link #hoverPointer} that has a {@code tooltip}, or null. */
+    public static JXNativeNode hoveredTooltip() {
+        for (int i = hoverPath.size() - 1; i >= 0; i--) {
+            Object tip = hoverPath.get(i).props.get("tooltip");
+            if (tip instanceof String && !((String) tip).isEmpty()) {
+                return hoverPath.get(i);
+            }
+        }
+        return null;
+    }
+
+    /** The pointer moved to (x, y) with the button held: an armed button is drawn pressed only while the pointer is on it. */
+    public void movePointer(int px, int py) {
+        boolean inside = armed != null && armed.contains(px, py);
+        if (inside != armedInside) {
+            armedInside = inside;
+            revision++;
+        }
+    }
+
+    /**
+     * As {@link #routePointer}, for a window that also reports the release ({@link #releasePointer}): a button, toggle,
+     * radio button, hyperlink, check box, switch or chip under the pointer is only armed, and acts when the button is
+     * released over it, so the user can still slide off to cancel. Everything else acts on the press.
+     */
+    public JXNativeNode pressPointer(JXPointerEvent event) {
+        armed = null;
+        pressing = true;
+        try {
+            return routePointer(event);
+        } finally {
+            pressing = false;
+            armedInside = armed != null;
+        }
+    }
+
+    /** The button was released: clicks what {@link #pressPointer} armed, when the pointer is still over it. */
+    public void releasePointer(JXPointerEvent event) {
+        JXNativeNode node = armed;
+        armed = null;
+        armedInside = false;
+        if (node != null && node.contains(event.getX(), event.getY())) {
+            revision++;
+            node.dispatchPointer(event);
+        }
+    }
+
+    /** The caret index of a text input under the event's position. */
+    private int textIndexAt(JXPointerEvent event) {
+        return "textarea".equals(type) ? JXTextHit.areaIndex(this, event.getX(), event.getY()) : JXTextHit.fieldIndex(this, event.getX());
+    }
+
+    /**
+     * A press in a text input: one click puts the caret where it lands, a double click selects the word there (the
+     * password field: everything), a triple click everything (a line of a text area). The drag that follows selects.
+     */
+    private void placeCaret(JXPointerEvent event) {
+        String text = props.get("value") == null ? "" : String.valueOf(props.get("value"));
+        int at = textIndexAt(event);
+        if (event.getClickCount() == 2 && !"password".equals(type)) {
+            int start = at;
+            int end = at;
+            while (start > 0 && Character.isLetterOrDigit(text.charAt(start - 1))) {
+                start--;
+            }
+            while (end < text.length() && Character.isLetterOrDigit(text.charAt(end))) {
+                end++;
+            }
+            anchor = start;
+            caret = end;
+        } else if (event.getClickCount() >= 2) {
+            int start = "textarea".equals(type) ? text.lastIndexOf('\n', Math.max(0, at - 1)) + 1 : 0;
+            int end = "textarea".equals(type) && text.indexOf('\n', at) >= 0 ? text.indexOf('\n', at) : text.length();
+            anchor = start;
+            caret = end;
+        } else {
+            caret = at;
+            anchor = -1;
+        }
+        if (anchor == caret) {
+            anchor = -1;
+        }
+    }
+
+    /** Whether Enter goes to this focused node itself (a new line, or a button that presses) rather than the default button. */
+    boolean takesEnter() {
+        return "textarea".equals(type) || PRESSED_BY_KEY.contains(type);
+    }
+
     /**
      * A key went down while {@code focused} (may be null) has the focus: Escape closes the topmost open overlay, Enter
      * runs the default button of an open dialog (or closes an open popup); otherwise the focused node gets the key.
@@ -666,7 +825,85 @@ public final class JXNativeNode {
     }
 
     public Object getProperty(String name) {
-        return props.get(name);
+        Object value = props.get(name);
+        if (value != null) {
+            return value;
+        }
+        if (this == focusOwner) { // the window's focus, when the application does not draw its own
+            if ("focused".equals(name)) {
+                return Boolean.TRUE;
+            }
+            boolean text = "input".equals(type) || "password".equals(type) || "textarea".equals(type);
+            if (text && ("caret".equals(name) || "anchor".equals(name) && anchor >= 0)) {
+                int length = props.get("value") == null ? 0 : String.valueOf(props.get("value")).length();
+                int at = "anchor".equals(name) ? anchor : caret < 0 ? length : caret;
+                return Integer.valueOf(Math.min(at, length));
+            }
+        }
+        if (hovered && "hover".equals(name)) {
+            return Boolean.TRUE;
+        }
+        if (this == armed && armedInside && "pressed".equals(name)) {
+            return Boolean.TRUE;
+        }
+        return null;
+    }
+
+    /** The node that has the keyboard focus of the window (see {@link #setFocusOwner}); display thread only. */
+    private static JXNativeNode focusOwner;
+
+    /**
+     * The window gave the keyboard focus to {@code node} (null: none). A node that has it answers {@code focused} true,
+     * and a text input its caret as {@code caret}, when its props do not say otherwise, so the focus ring and the caret
+     * are drawn for screens that do not hold that state themselves.
+     */
+    public static void setFocusOwner(JXNativeNode node) {
+        if (focusOwner != node) {
+            focusOwner = node;
+            revision++;
+        }
+    }
+
+    /** Types that take the keyboard focus, in tree order with Tab. */
+    private static final java.util.Set<String> FOCUSABLE = new java.util.HashSet<String>(java.util.Arrays.asList(
+            "input", "password", "textarea", "button", "toggle", "radio", "hyperlink", "checkbox", "switch", "chip", "select",
+            "spinner", "slider", "datepicker", "timepicker", "colorpicker", "menubutton", "scrollbar"));
+
+    /**
+     * The node Tab ({@code backward}: Shift+Tab) moves the focus to from {@code from}: the next focusable control in tree
+     * order that is shown and enabled, wrapping around; inside the topmost open dialog or drawer when there is one. Null
+     * when there is none.
+     */
+    public JXNativeNode nextFocus(JXNativeNode from, boolean backward) {
+        JXNativeNode scope = this;
+        for (JXNativeNode layer : JXOverlays.openLayers(this)) {
+            scope = layer; // the last one is on top
+        }
+        List<JXNativeNode> order = new ArrayList<JXNativeNode>();
+        scope.collectFocusable(order, scope);
+        if (order.isEmpty()) {
+            return null;
+        }
+        int at = order.indexOf(from);
+        int next = at < 0 ? (backward ? order.size() - 1 : 0) : (at + (backward ? order.size() - 1 : 1)) % order.size();
+        return order.get(next);
+    }
+
+    private void collectFocusable(List<JXNativeNode> out, JXNativeNode scope) {
+        if (Boolean.TRUE.equals(props.get("hidden")) || Boolean.TRUE.equals(props.get("disabled"))) {
+            return;
+        }
+        String t = type;
+        if (this != scope && ("dialog".equals(t) || "drawer".equals(t) || "snackbar".equals(t) || "contextmenu".equals(t))) {
+            return; // a layer is its own focus scope, and a closed one has nothing to focus
+        }
+        if (FOCUSABLE.contains(t) && width > 0 && height > 0) {
+            out.add(this);
+            return;
+        }
+        for (JXNativeNode child : children) {
+            child.collectFocusable(out, scope);
+        }
     }
 
     public List<JXNativeNode> getChildren() {
@@ -840,6 +1077,13 @@ public final class JXNativeNode {
         if (Boolean.TRUE.equals(props.get("disabled"))) {
             return; // like JavaFX: disabled nodes get no mouse events
         }
+        if (pressing && CLICKED_ON_RELEASE.contains(type)) {
+            armed = this; // acts on the release (releasePointer)
+            return;
+        }
+        if ("input".equals(type) || "password".equals(type) || "textarea".equals(type)) {
+            placeCaret(event);
+        }
         if (JXChangeEvents.close(this, event)) {
             return; // the close icon of a chip or a tab is not a click on the chip or the bar
         }
@@ -873,6 +1117,13 @@ public final class JXNativeNode {
             JXScrolling.dragBar(this, event); // a pane's bar needs no onChange
             return;
         }
+        if ("input".equals(type) || "password".equals(type) || "textarea".equals(type)) {
+            if (anchor < 0) {
+                anchor = caret; // the drag selects from where the press put the caret
+            }
+            caret = textIndexAt(event);
+            return;
+        }
         JXChangeEvents.drag(this, event);
     }
 
@@ -882,6 +1133,10 @@ public final class JXNativeNode {
         Object handler = props.get("onKeyPressed");
         if (handler instanceof JXNativeEventHandler) {
             ((JXNativeEventHandler<JXKeyEvent>) handler).handle(event);
+        }
+        if (PRESSED_BY_KEY.contains(type) && (event.getKeyChar() == ' ' || event.getKeyCode() == KEY_ENTER)) {
+            dispatchPointer(new JXPointerEvent(x + width / 2, y + height / 2, 0)); // Space or Enter on the focused button: a click
+            return;
         }
         JXChangeEvents.key(this, event);
     }

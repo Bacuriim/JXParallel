@@ -9,7 +9,7 @@
       <Label text="second"/>
     </TitledPane>
   </Accordion>
-  <Pagination pageCount="${pageCount}" current="${page}" maxPageIndicatorCount="5">
+  <Pagination pageCount="${pageCount}" current="${page}" onChange="#setPage" maxPageIndicatorCount="5">
     <Label text="page"/>
   </Pagination>
 </Column>
