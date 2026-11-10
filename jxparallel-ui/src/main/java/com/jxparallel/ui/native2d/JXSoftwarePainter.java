@@ -1,6 +1,7 @@
 package com.jxparallel.ui.native2d;
 
 import com.jxparallel.ui.text.JXGlyphs;
+import com.jxparallel.ui.text.JXShapedText;
 import com.jxparallel.ui.text.JXTextEngine;
 
 /**
@@ -34,7 +35,6 @@ final class JXSoftwarePainter implements JXPainter {
     /** Saved clips and opacities, five ints per {@link #clip} or {@link #layer}. */
     private int[] saved = new int[5 * 32];
     private int depth;
-    private final Object[] shaped = new Object[3];
 
     JXSoftwarePainter(int[] pixels, int width, int height, float scale) {
         reset(pixels, width, height, scale, 0, 0, width, height);
@@ -351,39 +351,45 @@ final class JXSoftwarePainter implements JXPainter {
 
     @Override
     public void text(String value, float x, float baseline, float size, boolean bold, int argb) {
-        JXTextEngine engine = JXTextEngine.get(bold);
-        int n = engine.glyphs(value, size, shaped);
-        if (n == 0) {
+        text(value, x, baseline, size, com.jxparallel.ui.text.JXFont.of(bold), argb);
+    }
+
+    @Override
+    public void text(String value, float x, float baseline, float size, com.jxparallel.ui.text.JXFont font, int argb) {
+        JXShapedText shapedText = JXTextEngine.get(font).shape(value);
+        if (shapedText == null) {
             return;
         }
-        int[] ids = (int[]) shaped[0];
-        float[] xs = (float[]) shaped[1];
-        float[] ys = (float[]) shaped[2];
         float px0 = x * scale + ox;
         float py0 = baseline * scale + oy;
-        JXGlyphs cache = JXGlyphs.get(bold);
-        for (int i = 0; i < n; i++) {
-            JXGlyphs.Glyph g = cache.glyph(ids[i], size * scale);
-            if (g == null || g.width == 0) {
-                continue;
-            }
-            int gx = Math.round(px0 + xs[i] * scale) + g.left;
-            int gy = Math.round(py0 + ys[i] * scale) - g.top;
-            for (int row = 0; row < g.height; row++) {
-                int yy = gy + row;
-                if (yy < cy0 || yy >= cy1) {
+        float pen = 0; // logical pixels from x to the start of the run
+        for (JXShapedText.Run run : shapedText.runs()) {
+            JXGlyphs cache = JXGlyphs.get(run.face());
+            int n = run.glyphCount();
+            for (int i = 0; i < n; i++) {
+                JXGlyphs.Glyph g = cache.glyph(run.glyphId(i), size * scale);
+                if (g == null || g.width == 0) {
                     continue;
                 }
-                int dst = yy * width;
-                int src = row * g.width;
-                for (int col = 0; col < g.width; col++) {
-                    int xx = gx + col;
-                    int a = g.alpha[src + col] & 0xFF;
-                    if (a != 0 && xx >= cx0 && xx < cx1) {
-                        blend(dst + xx, argb, a + (a >> 7));
+                int gx = Math.round(px0 + (pen + run.glyphX(i, size)) * scale) + g.left;
+                int gy = Math.round(py0 + run.glyphY(i, size) * scale) - g.top;
+                for (int row = 0; row < g.height; row++) {
+                    int yy = gy + row;
+                    if (yy < cy0 || yy >= cy1) {
+                        continue;
+                    }
+                    int dst = yy * width;
+                    int src = row * g.width;
+                    for (int col = 0; col < g.width; col++) {
+                        int xx = gx + col;
+                        int a = g.alpha[src + col] & 0xFF;
+                        if (a != 0 && xx >= cx0 && xx < cx1) {
+                            blend(dst + xx, argb, a + (a >> 7));
+                        }
                     }
                 }
             }
+            pen += run.advance(size);
         }
     }
 

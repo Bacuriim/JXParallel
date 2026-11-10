@@ -349,6 +349,16 @@ final class JXDamagePainter implements JXPainter {
     }
 
     @Override
+    public void text(String value, float x, float baseline, float size, com.jxparallel.ui.text.JXFont font, int argb) {
+        long hash = mix(mix(mix(box(10, x, baseline, size, font.isBold() ? 1 : 0), argb), value.length()),
+                font.hashCode());
+        for (int i = 0; i < value.length(); i++) {
+            hash = mix(hash, value.charAt(i));
+        }
+        record(hash, x - size, baseline - 1.5f * size, x + size * (1.25f * value.length() + 1), baseline + size);
+    }
+
+    @Override
     public void image(int[] pixels, int imageWidth, int imageHeight, float x, float y, float w, float h) {
         long hash = mix(mix(mix(box(11, x, y, w, h), imageWidth), imageHeight), System.identityHashCode(pixels));
         // the content too, as an application may change the pixels of the same array

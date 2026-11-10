@@ -181,6 +181,32 @@ window.show();
 The loader is intentionally independent of FXML and JavaFX. It produces JXParallel elements,
 which are then mounted by `JXSkiaRenderer`.
 
+## Fonts and text
+
+Text goes through one pipeline: `JXTextEngine.shape(text)` splits the string into runs (a bidi level from
+`java.text.Bidi`, a script, and the font face that has each character), HarfBuzz shapes each run, and the runs come back in
+visual order as a `JXShapedText`. `JXTextEngine.width` is the sum of the run advances and the painters draw those same
+runs, so a label measures what it draws.
+
+- families: `JXFonts.register(family, File | InputStream)`, `registerResource(family, "/fonts/x.ttf")`; installed fonts are
+  found by family name in the system font folders (scan once, cached; `-Djx.font.dirs=a;b` adds folders). A request is
+  `JXFont(family, weight, italic)`; the nearest face wins (italic first, then weight). No synthesized bold or italic, no
+  variable-font axes (the default instance is used)
+- props: `fontFamily`, `fontWeight`, `italic` next to `bold` and `fontSize`, per node, **not inherited** (neither are
+  `fontSize` and `textFill`; there is no inheritance mechanism for text props in the renderer)
+- Skia: simple text (one left-to-right run in the requested face) is drawn exactly as before; other text is drawn from
+  the HarfBuzz glyph ids and positions, one font per run; colour emoji work where the system has a colour font (Segoe UI
+  Emoji on Windows seen)
+- software renderer: the same runs through FreeType; outlines only, so bitmap-only emoji fonts (Noto Color Emoji) draw nothing
+- NanoVG: one font per run placed at the HarfBuzz pen position; it does not shape, so ligatures and Arabic joining are
+  missing, and a right-to-left run is fed in reverse character order (right for Hebrew, unjoined for Arabic). Not run on
+  32-bit
+- fallback: registered fonts first, then well-known system families for the kind of character (emoji, CJK, other), then one
+  face of every installed family; the result is cached per code point, bold and italic. Marks, joiners, variation selectors
+  and skin tone modifiers stay with the character before them
+- right-to-left: the base direction is the first strong character; the text is not aligned differently. Caret movement,
+  selection and hit testing inside right-to-left runs still follow the logical order (left out)
+
 ## Text editing
 
 ```java

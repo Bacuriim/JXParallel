@@ -68,6 +68,11 @@ final class JXNonNegativePainter implements JXPainter {
     }
 
     @Override
+    public void text(String value, float x, float baseline, float size, com.jxparallel.ui.text.JXFont font, int argb) {
+        p.text(value, x, baseline, size, font, argb);
+    }
+
+    @Override
     public void image(int[] pixels, int imageWidth, int imageHeight, float x, float y, float w, float h) {
         p.image(pixels, imageWidth, imageHeight, x, y, size(w), size(h));
     }

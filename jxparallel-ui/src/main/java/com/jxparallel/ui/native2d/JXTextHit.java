@@ -2,6 +2,7 @@ package com.jxparallel.ui.native2d;
 
 import java.util.List;
 
+import com.jxparallel.ui.text.JXFont;
 import com.jxparallel.ui.text.JXTextEngine;
 
 /**
@@ -19,7 +20,7 @@ public final class JXTextHit {
             value = JXPaint.bullets(value.length());
         }
         float size = JXPaint.fontSize(node);
-        JXTextEngine engine = JXTextEngine.get(JXPaint.bold(node));
+        JXTextEngine engine = JXTextEngine.get(JXPaint.font(node));
         float[] pad = JXPaint.insetsOr(node, JXNativeNode.PAD_Y, JXNativeNode.FIELD_PAD_X);
         float[] sides = JXControlLayout.sideWidths(node);
         float left = node.getX() + pad[3] + sides[0];
@@ -43,7 +44,7 @@ public final class JXTextHit {
     public static int areaIndex(JXNativeNode node, double windowX, double windowY) {
         String value = JXPaint.text(node, "value");
         float size = JXPaint.fontSize(node);
-        boolean bold = JXPaint.bold(node);
+        JXFont bold = JXPaint.font(node);
         JXTextEngine engine = JXTextEngine.get(bold);
         float line = engine.lineHeight(size);
         float left = node.getX() + 1 + JXNativeNode.FIELD_PAD_X;
@@ -61,7 +62,7 @@ public final class JXTextHit {
     /** Line and column of a caret index in a text area: {line, index of the line's first character}. */
     public static int[] areaLineOf(JXNativeNode node, int index) {
         String value = JXPaint.text(node, "value");
-        List<String> lines = lines(node, value, JXPaint.fontSize(node), JXPaint.bold(node));
+        List<String> lines = lines(node, value, JXPaint.fontSize(node), JXPaint.font(node));
         int offset = 0;
         for (int i = 0; i < lines.size(); i++) {
             int end = offset + lines.get(i).length();
@@ -77,7 +78,7 @@ public final class JXTextHit {
     public static int areaVertical(JXNativeNode node, int fromIndex, int lineDelta) {
         String value = JXPaint.text(node, "value");
         float size = JXPaint.fontSize(node);
-        boolean bold = JXPaint.bold(node);
+        JXFont bold = JXPaint.font(node);
         JXTextEngine engine = JXTextEngine.get(bold);
         List<String> lines = lines(node, value, size, bold);
         int[] at = areaLineOf(node, fromIndex);
@@ -99,15 +100,15 @@ public final class JXTextHit {
 
     /** Number of lines a text area shows its value in (after wrapping). */
     public static int areaLineCount(JXNativeNode node) {
-        return lines(node, JXPaint.text(node, "value"), JXPaint.fontSize(node), JXPaint.bold(node)).size();
+        return lines(node, JXPaint.text(node, "value"), JXPaint.fontSize(node), JXPaint.font(node)).size();
     }
 
     /** Height of one text line of the node. */
     public static float lineHeight(JXNativeNode node) {
-        return JXTextEngine.get(JXPaint.bold(node)).lineHeight(JXPaint.fontSize(node));
+        return JXTextEngine.get(JXPaint.font(node)).lineHeight(JXPaint.fontSize(node));
     }
 
-    private static List<String> lines(JXNativeNode node, String value, float size, boolean bold) {
+    private static List<String> lines(JXNativeNode node, String value, float size, JXFont bold) {
         float width = Boolean.TRUE.equals(node.getProperty("wrapText"))
                 ? node.getWidth() - 2 - 2 * JXNativeNode.FIELD_PAD_X : Float.MAX_VALUE;
         return JXTextLayout.lines(value, width, size, bold);
@@ -118,12 +119,17 @@ public final class JXTextHit {
             return 0;
         }
         float previous = 0;
+        int before = 0;
         for (int i = 1; i <= text.length(); i++) {
+            if (JXTextLayout.splitsPair(text, i)) {
+                continue; // a surrogate pair is one character: the caret is never between its halves
+            }
             float w = engine.width(text.substring(0, i), size);
             if (x < (previous + w) / 2) {
-                return i - 1;
+                return before;
             }
             previous = w;
+            before = i;
         }
         return text.length();
     }

@@ -40,6 +40,14 @@ interface JXPainter {
     /** Shaped text starting at x with its baseline at {@code baseline}. */
     void text(String value, float x, float baseline, float size, boolean bold, int argb);
 
+    /**
+     * Shaped text in a font family, weight and italic. The default draws the UI font, bold from weight 600;
+     * painters that can draw the other faces override it.
+     */
+    default void text(String value, float x, float baseline, float size, com.jxparallel.ui.text.JXFont font, int argb) {
+        text(value, x, baseline, size, font.isBold(), argb);
+    }
+
     /** Draws ARGB pixels (row by row) scaled into the box; {@code pixels} identity is the cache key. */
     void image(int[] pixels, int imageWidth, int imageHeight, float x, float y, float w, float h);
 

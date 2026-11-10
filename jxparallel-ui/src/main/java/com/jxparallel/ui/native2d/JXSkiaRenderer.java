@@ -49,6 +49,24 @@ public final class JXSkiaRenderer {
         return current;
     }
 
+    private static final Map<JXTextEngine, Typeface> TYPEFACES = new java.util.concurrent.ConcurrentHashMap<JXTextEngine, Typeface>();
+
+    /** The typeface of a text engine's face (any family, weight or fallback face); display thread. */
+    static Typeface typeface(JXTextEngine engine) {
+        if (engine == JXTextEngine.get()) {
+            return typeface();
+        }
+        if (engine == JXTextEngine.get(true)) {
+            return JXSkiaPainter.boldTypeface();
+        }
+        Typeface face = TYPEFACES.get(engine);
+        if (face == null) {
+            face = engine.getFontFile() == null ? typeface() : Typeface.makeFromFile(engine.getFontFile(), engine.getFaceIndex());
+            TYPEFACES.put(engine, face);
+        }
+        return face;
+    }
+
     /** Unhinted, subpixel-positioned: advances match HarfBuzz's, which the layout uses. */
     static Font font() {
         return new Font(typeface(), JXTextEngine.DEFAULT_SIZE).setSubpixel(true).setHinting(FontHinting.NONE);

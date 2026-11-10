@@ -3,6 +3,7 @@ package com.jxparallel.ui.native2d;
 import java.util.ArrayList;
 import java.util.List;
 
+import com.jxparallel.ui.text.JXFont;
 import com.jxparallel.ui.text.JXTextEngine;
 
 /**
@@ -650,7 +651,7 @@ final class JXPaint {
                     }
                 } else {
                     float[] group = JXControlLayout.buttonContent(node);
-                    String shown = JXTextLayout.ellipsize(text(node, "label"), x + w - pad[1] - group[1], fontSize(node), bold(node));
+                    String shown = JXTextLayout.ellipsize(text(node, "label"), x + w - pad[1] - group[1], fontSize(node), font(node));
                     drawText(node, shown, group[1], y, h, color(node, textColor), Boolean.TRUE.equals(node.getProperty("underline")));
                 }
                 break;
@@ -911,13 +912,13 @@ final class JXPaint {
             value = bullets(value.length());
         }
         float size = fontSize(node);
-        boolean bold = bold(node);
-        JXTextEngine engine = JXTextEngine.get(bold);
+        JXFont font = font(node);
+        JXTextEngine engine = JXTextEngine.get(font);
         boolean focused = Boolean.TRUE.equals(node.getProperty("focused"));
         if (value.isEmpty()) {
             String prompt = text(node, "prompt");
             if (!prompt.isEmpty() && !focused) {
-                p.text(prompt, left, y + engine.baseline(h, size), size, bold, PROMPT);
+                p.text(prompt, left, y + engine.baseline(h, size), size, font, PROMPT);
             }
         }
         int caret = (int) number(node, "caret", -1);
@@ -946,7 +947,7 @@ final class JXPaint {
             p.fillRect(sx, y + (h - lineH) / 2, ex - sx, lineH, SELECTION);
         }
         if (!value.isEmpty()) {
-            p.text(value, left - shift, y + engine.baseline(h, size), size, bold, color(node, TEXT));
+            p.text(value, left - shift, y + engine.baseline(h, size), size, font, color(node, TEXT));
         }
         if (caret >= 0 && focused) {
             float cx = left - shift + engine.width(value.substring(0, caret), size);
@@ -959,18 +960,18 @@ final class JXPaint {
     private void textAreaText(JXNativeNode node, float x, float y, float w, float h) {
         String value = text(node, "value");
         float size = fontSize(node);
-        boolean bold = bold(node);
-        JXTextEngine engine = JXTextEngine.get(bold);
+        JXFont font = font(node);
+        JXTextEngine engine = JXTextEngine.get(font);
         float line = engine.lineHeight(size);
         float left = x + 1 + JXNativeNode.FIELD_PAD_X;
         float top = y + 1 + JXNativeNode.PAD_Y - (float) JXScrolling.textScroll(node);
         boolean focused = Boolean.TRUE.equals(node.getProperty("focused"));
         p.clip(x + 1, y + 1, w - 2, h - 2);
         if (value.isEmpty() && !focused) {
-            p.text(text(node, "prompt"), left, top + engine.ascent(size), size, bold, PROMPT);
+            p.text(text(node, "prompt"), left, top + engine.ascent(size), size, font, PROMPT);
         }
         List<String> lines = JXTextLayout.lines(value, Boolean.TRUE.equals(node.getProperty("wrapText"))
-                ? w - 2 - 2 * JXNativeNode.FIELD_PAD_X : Float.MAX_VALUE, size, bold);
+                ? w - 2 - 2 * JXNativeNode.FIELD_PAD_X : Float.MAX_VALUE, size, font);
         int caret = (int) number(node, "caret", -1);
         int anchor = (int) number(node, "anchor", caret);
         int offset = 0;
@@ -987,7 +988,7 @@ final class JXPaint {
                         p.fillRect(sx, lineTop, Math.max(ex - sx, 2), line, SELECTION);
                     }
                 }
-                p.text(text, left, lineTop + engine.ascent(size), size, bold, color(node, TEXT));
+                p.text(text, left, lineTop + engine.ascent(size), size, font, color(node, TEXT));
                 if (focused && caret >= offset && caret <= offset + text.length()) {
                     float cx = left + engine.width(text.substring(0, caret - offset), size);
                     p.fillRect((float) Math.floor(cx), lineTop, 1, line, TEXT);
@@ -1237,7 +1238,7 @@ final class JXPaint {
             float left = x + pad[3] + tree + (graphic > 0 ? graphic + 4 : 0);
             char align = alignmentH(node, 'L');
             if (align != 'L') {
-                float tw = JXTextEngine.get(bold(node)).width(value, fontSize(node));
+                float tw = JXTextEngine.get(font(node)).width(value, fontSize(node));
                 float space = w - pad[1] - pad[3] - (graphic > 0 ? graphic + 4 : 0);
                 left += align == 'C' ? (space - tw) / 2 : space - tw;
             }
@@ -1420,10 +1421,10 @@ final class JXPaint {
             return;
         }
         float size = fontSize(node);
-        boolean bold = bold(node);
-        JXTextEngine engine = JXTextEngine.get(bold);
+        JXFont font = font(node);
+        JXTextEngine engine = JXTextEngine.get(font);
         float available = w - pad[1] - pad[3];
-        String shown = JXTextLayout.ellipsize(value, available, size, bold);
+        String shown = JXTextLayout.ellipsize(value, available, size, font);
         float tw = engine.width(shown, size);
         float left = x + pad[3];
         if (align == 'C') {
@@ -1435,14 +1436,14 @@ final class JXPaint {
         int color = color(node, fallbackColor != null ? fallbackColor
                 : "tooltip".equals(node.getType()) ? 0xFFFFFFFF : theme != null ? theme.onSurface : TEXT);
         if (wrap && engine.width(value, size) > available + 0.01f) {
-            List<String> lines = JXTextLayout.lines(value, available, size, bold);
+            List<String> lines = JXTextLayout.lines(value, available, size, font);
             float line = engine.lineHeight(size);
             float top = y + pad[0] + Math.max(0, (h - pad[0] - pad[2] - lines.size() * line) / 2);
             for (int i = 0; i < lines.size(); i++) {
                 String shownLine = lines.get(i).replaceAll("\\s+$", "");
                 float lw = engine.width(shownLine, size);
                 float lx = x + pad[3] + (align == 'C' ? (available - lw) / 2 : align == 'R' ? available - lw : 0);
-                p.text(shownLine, lx, top + i * line + engine.ascent(size), size, bold, color);
+                p.text(shownLine, lx, top + i * line + engine.ascent(size), size, font, color);
             }
             return;
         }
@@ -1453,7 +1454,7 @@ final class JXPaint {
         float baseline = valign == 'T' ? innerTop + engine.ascent(size)
                 : valign == 'B' ? innerTop + innerH - lineH + engine.ascent(size)
                 : innerTop + engine.baseline(innerH, size);
-        p.text(shown, left, baseline, size, bold, color);
+        p.text(shown, left, baseline, size, font, color);
         if (Boolean.TRUE.equals(node.getProperty("underline"))) {
             p.fillRect(left, baseline + 2, tw, 1, color);
         }
@@ -1465,10 +1466,10 @@ final class JXPaint {
             return;
         }
         float size = fontSize(node);
-        boolean bold = bold(node);
-        JXTextEngine engine = JXTextEngine.get(bold);
+        JXFont font = font(node);
+        JXTextEngine engine = JXTextEngine.get(font);
         float baseline = boxTop + engine.baseline(boxHeight, size);
-        p.text(value, x, baseline, size, bold, color);
+        p.text(value, x, baseline, size, font, color);
         if (underline) {
             p.fillRect(x, baseline + 2, engine.width(value, size), 1, color);
         }
@@ -1481,6 +1482,18 @@ final class JXPaint {
 
     static boolean bold(JXNativeNode node) {
         return Boolean.TRUE.equals(node.getProperty("bold"));
+    }
+
+    /**
+     * The font a node's text asks for: {@code fontFamily}, {@code fontWeight} (else 700 for {@code bold}, 400
+     * otherwise) and {@code italic}. Like {@code fontSize} and {@code bold}, each node's own props: nothing is
+     * inherited from a parent. Without any of them it is the UI font as always.
+     */
+    static JXFont font(JXNativeNode node) {
+        Object family = node.getProperty("fontFamily");
+        Object weight = node.getProperty("fontWeight");
+        int w = weight instanceof Number ? ((Number) weight).intValue() : bold(node) ? 700 : 400;
+        return JXFont.of(family == null ? null : String.valueOf(family), w, Boolean.TRUE.equals(node.getProperty("italic")));
     }
 
     static int color(JXNativeNode node, int fallback) {

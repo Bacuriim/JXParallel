@@ -20,9 +20,13 @@ import io.github.humbleui.skija.PaintMode;
 import io.github.humbleui.skija.Path;
 import io.github.humbleui.skija.Shader;
 import io.github.humbleui.skija.TextBlob;
+import io.github.humbleui.skija.TextBlobBuilder;
 import io.github.humbleui.skija.Typeface;
+import io.github.humbleui.types.Point;
 import io.github.humbleui.types.Rect;
 
+import com.jxparallel.ui.text.JXFont;
+import com.jxparallel.ui.text.JXShapedText;
 import com.jxparallel.ui.text.JXTextEngine;
 
 /** {@link JXPainter} on a Skia canvas. */
@@ -172,7 +176,33 @@ final class JXSkiaPainter implements JXPainter, AutoCloseable {
 
     @Override
     public void text(String value, float x, float baseline, float size, boolean bold, int argb) {
+        text(value, x, baseline, size, JXFont.of(bold), argb);
+    }
+
+    @Override
+    public void text(String value, float x, float baseline, float size, JXFont requested, int argb) {
         if (value == null || value.isEmpty()) {
+            return;
+        }
+        JXTextEngine engine = JXTextEngine.get(requested);
+        JXShapedText shaped = engine.shape(value);
+        if (shaped != null && !shaped.simple(engine)) {
+            runs(shaped, x, baseline, size, argb); // fallback faces or right-to-left: the glyphs HarfBuzz placed
+            return;
+        }
+        boolean bold = engine != JXTextEngine.get() && engine == JXTextEngine.get(true);
+        if (engine != JXTextEngine.get() && !bold) {
+            // another family, weight or italic: its typeface, shaped by Skia like the UI font
+            try (Font sized = new Font(JXSkiaRenderer.typeface(engine), size).setSubpixel(true).setHinting(FontHinting.NONE)) {
+                TextBlob blob = JXSkiaRenderer.shapedUncached(value, sized);
+                if (blob != null) {
+                    try {
+                        canvas.drawTextBlob(blob, x, baseline - blob.getPositions()[1], fill.setColor(argb));
+                    } finally {
+                        blob.close();
+                    }
+                }
+            }
             return;
         }
         // The shaper places glyphs on a baseline at the blob's first y position; move that onto ours.
@@ -190,6 +220,37 @@ final class JXSkiaPainter implements JXPainter, AutoCloseable {
                     canvas.drawTextBlob(blob, x, baseline - blob.getPositions()[1], fill.setColor(argb));
                 } finally {
                     blob.close();
+                }
+            }
+        }
+    }
+
+    /** Draws shaped runs (visual order) from the glyph ids and positions of the text engine, one font per run. */
+    private void runs(JXShapedText shaped, float x, float baseline, float size, int argb) {
+        try (TextBlobBuilder builder = new TextBlobBuilder()) {
+            float pen = 0;
+            boolean any = false;
+            for (JXShapedText.Run run : shaped.runs()) {
+                int n = run.glyphCount();
+                if (n > 0) {
+                    short[] ids = new short[n];
+                    Point[] at = new Point[n];
+                    for (int i = 0; i < n; i++) {
+                        ids[i] = (short) run.glyphId(i);
+                        at[i] = new Point(pen + run.glyphX(i, size), run.glyphY(i, size));
+                    }
+                    try (Font f = new Font(JXSkiaRenderer.typeface(run.face()), size).setSubpixel(true).setHinting(FontHinting.NONE)) {
+                        builder.appendRunPos(f, ids, at);
+                        any = true;
+                    }
+                }
+                pen += run.advance(size);
+            }
+            if (any) {
+                try (TextBlob blob = builder.build()) {
+                    if (blob != null) {
+                        canvas.drawTextBlob(blob, x, baseline, fill.setColor(argb));
+                    }
                 }
             }
         }

@@ -58,7 +58,7 @@ public final class JXNativeNode {
             "topAnchor", "bottomAnchor", "orientation", "prefWrapLength", "columnHalignment", "rowValignment",
             "prefColumns", "prefRows", "prefTileWidth", "prefTileHeight", "tileAlignment", "expanded", "collapsible",
             // control geometry: text size, scroll offsets, virtual rows, tabs, pages, images
-            "fontSize", "bold", "hvalue", "vvalue", "scrollX", "scrollY", "first", "itemCount", "cellHeight", "rowHeight",
+            "fontSize", "bold", "fontFamily", "fontWeight", "italic", "hvalue", "vvalue", "scrollX", "scrollY", "first", "itemCount", "cellHeight", "rowHeight",
             "columnWidths", "constrained", "titles", "selected", "closingPolicy", "closable", "pageCount", "current",
             "maxPageIndicatorCount", "fitToWidth", "fitToHeight", "hbarPolicy", "vbarPolicy", "side", "fitWidth",
             "fitHeight", "preserveRatio", "imageWidth", "imageHeight", "src", "prefColumnCount", "fixedHeight", "wrapText",
@@ -1671,7 +1671,7 @@ public final class JXNativeNode {
                 || kind == PANE || kind == ANCHOR || !children.isEmpty()) {
             return JXBoxLayout.containerSizes(this);
         }
-        boolean bold = JXPaint.bold(this);
+        com.jxparallel.ui.text.JXFont bold = JXPaint.font(this);
         JXTextEngine text = JXTextEngine.get(bold);
         float size = JXPaint.fontSize(this);
         double line = text.lineHeight(size);
@@ -1744,9 +1744,9 @@ public final class JXNativeNode {
     }
 
     /** Labeled: max = pref; the width can shrink to an ellipsis, like JavaFX's Labeled. */
-    private static double[] labeled(double textWidth, double extraWidth, double height, boolean bold, float size) {
+    private static double[] labeled(double textWidth, double extraWidth, double height, com.jxparallel.ui.text.JXFont bold, float size) {
         double ellipsis = ellipsisWidth;
-        if (bold || size != JXTextEngine.DEFAULT_SIZE) {
+        if (bold != com.jxparallel.ui.text.JXFont.DEFAULT || size != JXTextEngine.DEFAULT_SIZE) {
             ellipsis = JXTextEngine.get(bold).width("...", size);
         } else if (ellipsis < 0) {
             ellipsis = JXTextEngine.get().width("...", JXTextEngine.DEFAULT_SIZE);

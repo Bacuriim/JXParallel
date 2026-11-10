@@ -8,6 +8,10 @@ import org.lwjgl.nanovg.NVGColor;
 import org.lwjgl.nanovg.NVGPaint;
 import org.lwjgl.system.MemoryUtil;
 
+import com.jxparallel.ui.text.JXFont;
+import com.jxparallel.ui.text.JXShapedText;
+import com.jxparallel.ui.text.JXTextEngine;
+
 import static org.lwjgl.nanovg.NanoVG.NVG_ALIGN_BASELINE;
 import static org.lwjgl.nanovg.NanoVG.NVG_ALIGN_LEFT;
 import static org.lwjgl.nanovg.NanoVG.NVG_CW;
@@ -26,7 +30,10 @@ import static org.lwjgl.nanovg.NanoVG.nvgEllipse;
 import static org.lwjgl.nanovg.NanoVG.nvgFill;
 import static org.lwjgl.nanovg.NanoVG.nvgFillColor;
 import static org.lwjgl.nanovg.NanoVG.nvgFillPaint;
+import static org.lwjgl.nanovg.NanoVG.nvgCreateFontAtIndex;
+import static org.lwjgl.nanovg.NanoVG.nvgFindFont;
 import static org.lwjgl.nanovg.NanoVG.nvgFontFace;
+import static org.lwjgl.nanovg.NanoVG.nvgFontFaceId;
 import static org.lwjgl.nanovg.NanoVG.nvgFontSize;
 import static org.lwjgl.nanovg.NanoVG.nvgGlobalAlpha;
 import static org.lwjgl.nanovg.NanoVG.nvgImagePattern;
@@ -212,14 +219,63 @@ final class JXNanoVGPainter implements JXPainter {
 
     @Override
     public void text(String value, float x, float baseline, float size, boolean bold, int argb) {
-        if (!hasFont || value == null || value.isEmpty()) {
-            return;
-        }
+        text(value, x, baseline, size, JXFont.of(bold), argb);
+    }
+
+    private void plain(String value, float x, float baseline, float size, boolean bold, int argb) {
         nvgFontFace(vg, bold && hasBold ? JXNanoVGRenderer.FONT_BOLD : JXNanoVGRenderer.FONT);
         nvgFontSize(vg, size);
         nvgTextAlign(vg, NVG_ALIGN_LEFT | NVG_ALIGN_BASELINE);
         nvgFillColor(vg, rgba(color, argb));
         nvgText(vg, x, baseline, value);
+    }
+
+    @Override
+    public void text(String value, float x, float baseline, float size, JXFont requested, int argb) {
+        if (!hasFont || value == null || value.isEmpty()) {
+            return;
+        }
+        JXTextEngine engine = JXTextEngine.get(requested);
+        JXShapedText shaped = engine.shape(value);
+        if (shaped == null || shaped.simple(engine) && (engine == JXTextEngine.get() || engine == JXTextEngine.get(true))) {
+            plain(value, x, baseline, size, engine != JXTextEngine.get() && engine == JXTextEngine.get(true), argb);
+            return;
+        }
+        // Another face, fallback faces or right-to-left text. NanoVG does not shape: each run is drawn with its
+        // own face from the pen position HarfBuzz measured, and a right-to-left run is fed in visual order
+        // (characters reversed: right to left scripts that join, like Arabic, are drawn unjoined).
+        nvgFontSize(vg, size);
+        nvgTextAlign(vg, NVG_ALIGN_LEFT | NVG_ALIGN_BASELINE);
+        nvgFillColor(vg, rgba(color, argb));
+        float pen = x;
+        for (JXShapedText.Run run : shaped.runs()) {
+            String piece = shaped.text(run);
+            if (run.rtl()) {
+                piece = new StringBuilder(piece).reverse().toString();
+            }
+            int id = fontId(run.face());
+            if (id >= 0) {
+                nvgFontFaceId(vg, id);
+                nvgText(vg, pen, baseline, piece);
+            }
+            pen += run.advance(size);
+        }
+    }
+
+    /** The NanoVG font of a face, created in this context on first use; -1 if it cannot be loaded. */
+    private int fontId(JXTextEngine engine) {
+        if (engine == JXTextEngine.get()) {
+            return nvgFindFont(vg, JXNanoVGRenderer.FONT);
+        }
+        if (engine == JXTextEngine.get(true)) {
+            return hasBold ? nvgFindFont(vg, JXNanoVGRenderer.FONT_BOLD) : nvgFindFont(vg, JXNanoVGRenderer.FONT);
+        }
+        String name = "f:" + engine.getFontFile() + "#" + engine.getFaceIndex();
+        int id = nvgFindFont(vg, name);
+        if (id < 0 && engine.getFontFile() != null) {
+            id = nvgCreateFontAtIndex(vg, name, engine.getFontFile(), engine.getFaceIndex());
+        }
+        return id;
     }
 
     @Override
