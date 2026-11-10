@@ -1908,6 +1908,98 @@ class JxmlComponentBehaviorTest {
     // ---- desktop window behaviours: mouse cursor, file drop, keyboard menus, accelerators -----------
 
     @Nested
+    class Accelerators {
+        private static final int S = 83;
+        private static final int C = 67;
+        private static final int F5 = 294;
+        private static final int CTRL_ = JXInputEvent.CONTROL;
+
+        @Test
+        void aButtonRunsOnItsAcceleratorFromAnywhere() {
+            Ui ui = new Ui("<Button text=\"Save\" accelerator=\"Ctrl+S\" onAction=\"#save\"/>\n<CheckBox text=\"x\" selected=\"@{agree}\"/>");
+            ui.click(ui.find("checkbox"));
+            ui.key(S, CTRL_);
+            assertEquals(1, ui.c.saves, "Ctrl+S with another control focused");
+            ui.key(S, 0);
+            ui.key(S, CTRL_ | JXInputEvent.SHIFT);
+            assertEquals(1, ui.c.saves, "other modifiers are other shortcuts");
+        }
+
+        @Test
+        void aMenuItemRunsWithItsMenuClosed() {
+            Ui ui = new Ui("<MenuBar><Menu text=\"File\"><MenuItem text=\"Save\" accelerator=\"Ctrl+S\" onAction=\"#save\"/>"
+                    + "<MenuItem text=\"Off\" accelerator=\"F5\" disabled=\"true\" onAction=\"#click\"/></Menu>"
+                    + "<Menu text=\"Dead\" disabled=\"true\"><MenuItem text=\"Never\" accelerator=\"Ctrl+D\" onAction=\"#click\"/></Menu></MenuBar>");
+            ui.key(S, CTRL_);
+            assertEquals(1, ui.c.saves);
+            ui.key(F5, 0);
+            ui.key(68, CTRL_);
+            assertEquals(0, ui.c.clicks, "a disabled item and the item of a disabled menu do not run");
+            assertTrue(!JXOverlays.isOpen(ui.find("menubar")), "and the menu stays closed");
+        }
+
+        @Test
+        void aTextFieldKeepsItsOwnShortcutsButNotTheOthers() {
+            Ui ui = new Ui("<TextField text=\"@{name}\"/>\n<Button text=\"Save\" accelerator=\"Ctrl+S\" onAction=\"#save\"/>"
+                    + "\n<Button text=\"Copy\" accelerator=\"Ctrl+C\" onAction=\"#click\"/>\n<Button text=\"Reload\" accelerator=\"F5\" onAction=\"#toggleBold\"/>");
+            ui.click(ui.find("input"));
+            ui.key(C, CTRL_);
+            assertEquals(0, ui.c.clicks, "Ctrl+C copies in a text field");
+            ui.key(S, CTRL_);
+            assertEquals(1, ui.c.saves, "Ctrl+S is nobody's there");
+            ui.key(F5, 0);
+            assertTrue(ui.c.getBold(), "F5 neither");
+        }
+
+        @Test
+        void anOpenMenuAndAHeldKeyAreLeftAlone() {
+            Ui ui = new Ui("<Button text=\"Save\" accelerator=\"Ctrl+S\" onAction=\"#save\"/>\n"
+                    + "<MenuButton text=\"Actions\"><MenuItem text=\"Open\" onAction=\"#click\"/></MenuButton>");
+            ui.root.routeKey(new JXKeyEvent(S, '\0', CTRL_, true), null);
+            assertEquals(0, ui.c.saves, "auto-repeat does not run it again");
+            ui.click(ui.find("menubutton"));
+            ui.key(S, CTRL_);
+            assertEquals(0, ui.c.saves, "an open menu takes every key");
+        }
+
+        @Test
+        void aDialogOnlyAllowsItsOwnAcceleratorsAndAClosedOneNone() {
+            Ui ui = new Ui("<Button text=\"Save\" accelerator=\"Ctrl+S\" onAction=\"#save\"/>\n"
+                    + "<Modal showing=\"${dialog}\"><Button text=\"In\" accelerator=\"Ctrl+I\" onAction=\"#click\"/></Modal>");
+            assertTrue(ui.c.getDialog(), "the dialog starts open");
+            ui.key(S, CTRL_);
+            assertEquals(0, ui.c.saves, "behind an open dialog");
+            ui.key(73, CTRL_);
+            assertEquals(1, ui.c.clicks, "inside it");
+            ui.c.setDialog(false);
+            ui.refresh();
+            ui.key(73, CTRL_);
+            assertEquals(1, ui.c.clicks, "a closed dialog's buttons are not in the window");
+            ui.key(S, CTRL_);
+            assertEquals(1, ui.c.saves);
+        }
+
+        @Test
+        void theTextOfAnAcceleratorParses() {
+            assertEquals(83, JXAccelerator.parse("Ctrl+S").code);
+            assertEquals(JXInputEvent.CONTROL, JXAccelerator.parse("ctrl+s").modifiers);
+            assertEquals(JXInputEvent.CONTROL | JXInputEvent.SHIFT, JXAccelerator.parse("Ctrl + Shift + Z").modifiers);
+            assertEquals(JXInputEvent.CONTROL, JXAccelerator.parse("Shortcut+O").modifiers);
+            assertEquals(JXInputEvent.ALT, JXAccelerator.parse("Alt+Enter").modifiers);
+            assertEquals(257, JXAccelerator.parse("Alt+Enter").code);
+            assertEquals(290, JXAccelerator.parse("F1").code);
+            assertEquals(301, JXAccelerator.parse("F12").code);
+            assertEquals(261, JXAccelerator.parse("Delete").code);
+            assertEquals(JXInputEvent.META, JXAccelerator.parse("Cmd+Q").modifiers);
+            assertNull(JXAccelerator.parse("Ctrl+"));
+            assertNull(JXAccelerator.parse("Ctrl+Sparkle"));
+            assertNull(JXAccelerator.parse("Hyper+S"));
+            assertNull(JXAccelerator.parse(""));
+            assertNull(JXAccelerator.parse(null));
+        }
+    }
+
+    @Nested
     class MenusByKeyboard {
         private static final int F10 = 299;
         private static final int MENU_KEY = 348;

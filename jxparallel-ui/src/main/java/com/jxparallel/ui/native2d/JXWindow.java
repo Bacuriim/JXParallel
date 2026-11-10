@@ -1023,7 +1023,8 @@ public final class JXWindow implements AutoCloseable {
                 } else {
                     // Escape and Enter belong to an open overlay first; Shift and Ctrl select, copy, paste and undo text
                     keyTaken = root.capturesKeys(); // the character this key types, which GLFW sends next, goes with it
-                    JXNativeNode owner = root.routeKey(new JXKeyEvent(key, '\0', JXKeys.modifiers(mods)), focusedNode);
+                    JXNativeNode owner = root.routeKey(new JXKeyEvent(key, '\0', JXKeys.modifiers(mods),
+                            action == GLFW.GLFW_REPEAT), focusedNode);
                     if (owner != focusedNode) {
                         focus(owner); // Escape closed a popup or a menu: the control it belongs to has the focus again
                     }

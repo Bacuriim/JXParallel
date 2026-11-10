@@ -1278,6 +1278,9 @@ final class JXOverlays {
         if (focused != null && JXSelection.key(root, focused, event)) {
             return focused; // a list with a selection moved it, or ran the action of its row
         }
+        if (JXAccelerators.run(root, event, focused)) {
+            return focused; // an item or button with that accelerator ran
+        }
         if (focused != null) {
             focused.dispatchKey(event);
         }

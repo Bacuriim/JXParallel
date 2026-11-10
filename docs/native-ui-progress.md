@@ -118,6 +118,10 @@ a real window (see the changelog entry of each).
   opens the first enabled menu of the first `MenuBar` with its first row highlighted (`JXNativeNode.toggleMenuBar()`); the
   popup navigation of `JXOverlays` does the rest. The Menu key and Shift+F10 open the `ContextMenu` of the focused node.
   There is no mnemonic notion in the menu titles, so no Alt+letter.
+- **Accelerators.** `accelerator="Ctrl+S"` on a `menuitem` or `button` (`JXAccelerator` parses it, `JXAccelerators.run`
+  finds the item): called from `JXOverlays.key` after an open menu or popup and a selecting list, and unless a focused text
+  field edits with the key; the action runs from anywhere in the window. The menu draws the text at the right of its
+  row (`JXOverlayPaint`), as before.
 
 ## Current limitations
 

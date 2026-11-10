@@ -11,10 +11,20 @@ public final class JXKeyEvent {
 
     /** {@code modifiers}: {@link JXInputEvent#SHIFT}, {@link JXInputEvent#CONTROL} and {@link JXInputEvent#ALT}, or-ed. */
     public JXKeyEvent(int keyCode, char keyChar, int modifiers) {
+        this(keyCode, keyChar, modifiers, false);
+    }
+
+    /** {@code repeat}: the key is held and the system repeats it (accelerators ignore these). */
+    public JXKeyEvent(int keyCode, char keyChar, int modifiers, boolean repeat) {
         this.keyCode = keyCode;
         this.keyChar = keyChar;
         this.modifiers = modifiers;
+        this.repeat = repeat;
     }
+
+    private final boolean repeat;
+
+    public boolean isRepeat() { return repeat; }
 
     public int getKeyCode() { return keyCode; }
     public char getKeyChar() { return keyChar; }

@@ -247,6 +247,7 @@ public final class JxmlSchema {
                 .choice("variant", "variant", VARIANTS)
                 .attr("round", "round", AttrType.BOOLEAN, false).attr("padding", "padding", AttrType.INSETS, false)
                 .attr("textFill", "textFill", AttrType.COLOR, true)
+                .attr("accelerator", "accelerator", AttrType.STRING, true)
                 .def("label", "")
                 .done();
         tag("TextField", "input", Children.NONE)

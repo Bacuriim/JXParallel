@@ -180,7 +180,7 @@ inside a `Border`), and these, which the renderer reads from any node:
 | `TableRow` | `tablerow` | `selected`, `odd`, `listFocused`; children are `TableCell`s |
 | `TableCell` | `cell` | like `ListItem`, with the table's cell look |
 | `Label` | `#text` | `text`, `wrapText`, `bold`, `fontSize`, `textFill` |
-| `Button` | `button` | `text`, `onAction`, `disabled`, `defaultButton`, `variant`, `round`, `padding`, `textFill`; an optional child is the graphic left of the text |
+| `Button` | `button` | `text`, `onAction`, `disabled`, `defaultButton`, `variant`, `round`, `padding`, `textFill`, `accelerator`; an optional child is the graphic left of the text |
 | `TextField`, `PasswordField` | `input`, `password` | `text`, `prompt`, `columns` |
 | `TextArea` | `textarea` | `text`, `prompt`, `wrapText`, `columns`, `rows` |
 | `CheckBox` | `checkbox` | `text`, `selected` |
@@ -629,8 +629,14 @@ Everything that opens over the window goes through one mechanism in the renderer
   The dialog is as wide as its content (at least 280 as a `Dialog`) and at most the window less 24 px on each side.
 - **Menus.** A `MenuItem` runs its `onAction` and closes the menu; a disabled one and a `MenuSeparator` do nothing and the menu
   stays open; a `Menu` inside a `Menu` opens a submenu to the right of its row (to the left when there is no room); a
-  `MenuBar` opens the menu of the pressed title, another title switches, the same title closes. `accelerator` is only text
-  (`Ctrl+O`): nothing binds the key.
+  `MenuBar` opens the menu of the pressed title, another title switches, the same title closes. `accelerator="Ctrl+O"` on a `MenuItem` or a `Button`
+  runs its `onAction` when the key comes, from anywhere in the window, even with its menu closed: modifiers `Ctrl`
+  (`Shortcut`), `Shift`, `Alt`, `Meta`, then a letter, digit, `, . - / ; =` or a name (`F1`..`F12`, `Enter`, `Esc`, `Tab`,
+  `Space`, `Backspace`, `Delete`, `Insert`, `Home`, `End`, `PageUp`, `PageDown`, the arrows); the modifiers must match exactly.
+  An open menu or popup that takes the key, a list with a selection, and a focused text field (typing, the caret keys, Ctrl+A,
+  C, X, V, Z, Y) get it first; a held key does not repeat it; disabled and hidden items and buttons, those of a disabled
+  menu and of a closed dialog do not run, and with a dialog or drawer open only its own do. A menu item draws its
+  accelerator text at the right of its row; a button does not.
 - **Snack bar.** `duration` (milliseconds) is read by the node: `JXNativeNode.tickOverlays()` (the window calls it every turn
   of its loop while one waits) asks the snack bar to close through `onShowing` when it has been showing that long. The
   application hides it by setting `showing` false. `action` and `onAction` make a button at the right end; the message is not
