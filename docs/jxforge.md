@@ -549,6 +549,28 @@ a window of the model:
   list does not have the focus. In a list with a selection the list decides: the `selected` and `listFocused` of a row template
   (`ListItem`, `TableRow`, `TreeItem`) are ignored; in a list without one they are drawn as before.
 
+### Sorting a table by its columns
+
+`TableView` headers sort when the table has `sortColumn`, `onSort` or `onSortColumn` (or `sortable="true"`; `sortable="false"` turns them off).
+The application keeps the state and sorts its own rows, as with the selection:
+
+```xml
+<TableView items="${rows}" var="r" type="Order" columns="Id, Customer, Total"
+           sortColumn="@{sortCol}" sortAscending="@{sortAsc}" onSort="#sorted"> ... </TableView>
+```
+
+| Attribute | Type | Meaning |
+|---|---|---|
+| `sortColumn` | int, two ways (`onSortColumn`) | the column the data is sorted by, -1 for none; its header draws the arrow |
+| `sortAscending` | boolean, two ways (`onSortAscending`) | the direction, ascending when absent; up arrow for ascending, down for descending |
+| `onSort` | handler, gets a `double[]` | `{column, 1 or 0}` (1 ascending), the whole new state in one call; -1 for no column |
+| `sortable` | boolean | the headers take presses; default true when `onSort`, `onSortColumn` or `sortColumn` is written |
+
+- A press on a header cycles as JavaFX does: ascending, descending, unsorted (`sortColumn` -1, `sortAscending` true); a press on another
+  column starts it ascending. `onSortColumn`, `onSortAscending` and `onSort` are called together, then the application renders again.
+- Controlled: the table does not reorder anything and shows only the `sortColumn` and `sortAscending` it is given. There is no key for it and
+  `sortable` is for the whole table, not per column. A header press does not change the selection.
+
 ## Groups
 
 `RadioButton` and `ToggleButton` choose one value of a group that the application holds:

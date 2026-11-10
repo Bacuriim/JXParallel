@@ -2,6 +2,7 @@ package com.jxparallel.ui.native2d;
 
 import static org.junit.jupiter.api.Assertions.assertArrayEquals;
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertNotEquals;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertNull;
 import static org.junit.jupiter.api.Assertions.assertTrue;
@@ -1505,6 +1506,99 @@ class JxmlComponentBehaviorTest {
             assertTrue(paintedRow(ui, "list", 2) != SELECTED, "and draws no selection");
             ui.key(DOWN);
             assertTrue(ui.c.told.isEmpty());
+        }
+    }
+
+    // ---- sortable columns of a table -------------------------------------------------------------------------
+
+    @Nested
+    class ColumnSorting {
+        private static final String SORTED = "<TableView items=\"${rows}\" var=\"r\" type=\"java.lang.String\" rows=\"30\" prefHeight=\"240\""
+                + " columns=\"Name, Other\" columnWidths=\"160, 100\" selected=\"@{selected}\""
+                + " sortColumn=\"@{sortCol}\" sortAscending=\"@{sortAsc}\" onSort=\"#sorted\">"
+                + "<TableRow><TableCell text=\"${r}\"/><TableCell text=\"x\"/></TableRow></TableView>";
+
+        /** A click in the header of the column: {@code index} 0 is the first, 1 the second (160 px wide). */
+        private void header(Ui ui, int index) {
+            JXNativeNode table = ui.find("table");
+            ui.click(table.getX() + 1 + (index == 0 ? 60 : 160 + 40), table.getY() + 1 + JXControlLayout.TABLE_HEADER / 2);
+        }
+
+        private String firstRow(Ui ui) {
+            JXNativeNode table = ui.find("table");
+            return ui.deepestTextAt(table.getX() + 20, table.getY() + 1 + JXControlLayout.TABLE_HEADER + 10);
+        }
+
+        /** The arrow of a header: its color where the apex of a triangle of 8 x 4 is, and 3 px below it. */
+        private int arrowPixel(Ui ui, int column, int dy) {
+            JXNativeNode table = ui.find("table");
+            float left = table.getX() + 1 + (column == 0 ? 0 : 160);
+            float width = column == 0 ? 160 : 100;
+            return ui.pixel((int) (left + width - 16 + 4 + 4), table.getY() + 1 + (JXControlLayout.TABLE_HEADER - 4) / 2 + dy);
+        }
+
+        @Test
+        void aHeaderCyclesAscendingDescendingAndUnsortedAndTheApplicationSortsItsRows() {
+            Ui ui = new Ui(SORTED);
+            assertEquals("Row 0", firstRow(ui));
+            header(ui, 0);
+            assertEquals(0, ui.c.getSortCol());
+            assertTrue(ui.c.getSortAsc());
+            assertEquals("[0.0, 1.0]", ui.c.sorts.get(0), "onSort gets {column, ascending}");
+            assertEquals("Row 0", firstRow(ui), "ascending: the text sorts Row 0, Row 1, Row 10 ...");
+            assertEquals("Row 1", ui.deepestTextAt(ui.find("table").getX() + 20, ui.find("table").getY() + 1 + JXControlLayout.TABLE_HEADER + 10 + 24));
+            header(ui, 0);
+            assertEquals(0, ui.c.getSortCol());
+            assertEquals(false, ui.c.getSortAsc());
+            assertEquals("Row 99", firstRow(ui), "descending");
+            header(ui, 0);
+            assertEquals(-1, ui.c.getSortCol(), "the third press leaves the sort");
+            assertTrue(ui.c.getSortAsc());
+            assertEquals("[-1.0, 1.0]", ui.c.sorts.get(2));
+            assertEquals("Row 0", firstRow(ui));
+            assertEquals(3, ui.c.sorts.size());
+        }
+
+        @Test
+        void aPressOnAnotherColumnStartsItAscendingAndTheHeaderDrawsTheArrow() {
+            Ui ui = new Ui(SORTED);
+            int none = arrowPixel(ui, 0, 1);
+            header(ui, 0);
+            header(ui, 0); // descending on the first
+            assertNotEquals(none, arrowPixel(ui, 0, 1), "the arrow of the sorted column");
+            assertEquals(JXPaint.ARROW, arrowPixel(ui, 0, 1), "pointing down: wide at the top");
+            header(ui, 1);
+            assertEquals(1, ui.c.getSortCol());
+            assertTrue(ui.c.getSortAsc(), "another column: ascending");
+            assertEquals(JXPaint.ARROW, arrowPixel(ui, 1, 3), "pointing up: wide at the bottom");
+            assertEquals(none, arrowPixel(ui, 0, 1), "and the first column has none");
+        }
+
+        @Test
+        void aTableWithoutSortPropsHasHeadersThatDoNothingAndSortableFalseTurnsThemOff() {
+            Ui plain = new Ui("<TableView items=\"${rows}\" var=\"r\" type=\"java.lang.String\" rows=\"30\" prefHeight=\"240\" columns=\"Name\""
+                    + " columnWidths=\"160\" selected=\"@{selected}\"><TableRow><TableCell text=\"${r}\"/></TableRow></TableView>");
+            JXNativeNode table = plain.find("table");
+            plain.click(table.getX() + 60, table.getY() + 1 + JXControlLayout.TABLE_HEADER / 2);
+            assertEquals(0, plain.c.sorts.size());
+            assertEquals(-1, plain.c.getSelected(), "the header is not a row");
+            Ui off = new Ui(SORTED.replace("onSort=\"#sorted\"", "onSort=\"#sorted\" sortable=\"false\""));
+            header(off, 0);
+            assertEquals(0, off.c.sorts.size());
+            assertEquals(-1, off.c.getSortCol());
+            Ui on = new Ui(SORTED.replace(" sortColumn=\"@{sortCol}\" sortAscending=\"@{sortAsc}\"", ""));
+            header(on, 0);
+            assertEquals(1, on.c.sorts.size(), "onSort alone makes the table sortable");
+        }
+
+        @Test
+        void aClickInTheRowsStillSelectsAndAHeaderPressDoesNot() {
+            Ui ui = new Ui(SORTED);
+            JXNativeNode table = ui.find("table");
+            ui.click(table.getX() + 60, table.getY() + 1 + JXControlLayout.TABLE_HEADER + 10 + 24 * 2);
+            assertEquals(2, ui.c.getSelected());
+            header(ui, 0);
+            assertEquals(2, ui.c.getSelected(), "a header press leaves the selection as it is");
         }
     }
 

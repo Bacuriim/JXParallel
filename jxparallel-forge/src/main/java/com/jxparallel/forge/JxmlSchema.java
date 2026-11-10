@@ -613,7 +613,7 @@ public final class JxmlSchema {
                 .attr("constrained", "constrained", AttrType.BOOLEAN, false)
                 .def("first", Integer.valueOf(0)).def("rowHeight", Double.valueOf(24)).def("columns", new String[0])
                 .def("constrained", Boolean.FALSE)
-                .handler("onScroll", AttrType.DOUBLES).change("first", AttrType.INT).selection()
+                .handler("onScroll", AttrType.DOUBLES).change("first", AttrType.INT).selection().sorting()
                 .done();
         tag("TableRow", "tablerow", Children.MANY)
                 .attr("selected", "selected", AttrType.BOOLEAN, true).attr("odd", "odd", AttrType.BOOLEAN, true)
@@ -863,6 +863,24 @@ public final class JxmlSchema {
             handler("onSelection", AttrType.DOUBLES);
             twoWay.put("selected", "onSelect");
             twoWay.put("selection", "onSelection");
+            return this;
+        }
+
+        /**
+         * Sortable columns of a table (JXTableSort), the application sorting its own data: {@code sortColumn} (the column, -1
+         * for none) and {@code sortAscending}, each bound two ways through {@code onSortColumn} and {@code onSortAscending};
+         * {@code onSort} gets both as a {@code double[]} {column, 1 or 0}; {@code sortable} switches the headers on or off
+         * (on when the table has {@code onSort} or {@code sortColumn}).
+         */
+        TagBuilder sorting() {
+            attr("sortColumn", "sortColumn", AttrType.INT, true);
+            attr("sortAscending", "sortAscending", AttrType.BOOLEAN, true);
+            attr("sortable", "sortable", AttrType.BOOLEAN, true);
+            handler("onSortColumn", AttrType.INT);
+            handler("onSortAscending", AttrType.BOOLEAN);
+            handler("onSort", AttrType.DOUBLES);
+            twoWay.put("sortColumn", "onSortColumn");
+            twoWay.put("sortAscending", "onSortAscending");
             return this;
         }
 

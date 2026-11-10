@@ -3,7 +3,8 @@
 <TableView controller="com.jxparallel.forge.samples.SampleController" items="${rows}" var="r"
            type="com.jxparallel.forge.samples.SampleController.Row" key="${r.id}" first="${top}" onChange="#setTop" onScroll="#scrolledTo" rows="8" rowHeight="24"
            columns="Id, Name, Price" columnWidths="${widths}" constrained="true" prefHeight="150"
-           selectionMode="multiple" selection="${picked}" onSelection="#setPicked" selected="${selected}" onSelect="#setSelected">
+           selectionMode="multiple" selection="${picked}" onSelection="#setPicked" selected="${selected}" onSelect="#setSelected"
+           sortColumn="${sortCol}" onSortColumn="#setSortCol" sortAscending="${sortAsc}" onSortAscending="#setSortAsc" onSort="#sorted" sortable="true">
   <TableRow selected="${r.selected}" odd="false" listFocused="true">
     <TableCell text="${r.id}"/>
     <TableCell text="${r.name}" alignment="LEFT" onAction="#select(r)"/>

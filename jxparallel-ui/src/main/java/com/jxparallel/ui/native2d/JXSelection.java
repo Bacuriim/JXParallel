@@ -147,6 +147,10 @@ final class JXSelection {
      * the press goes no further), or null when the press is not for it: not on a row, or on a control inside the row.
      */
     static JXNativeNode press(List<JXNativeNode> path, JXPointerEvent event) {
+        JXNativeNode sorted = JXTableSort.press(path, event); // a column header of a sortable table
+        if (sorted != null) {
+            return sorted;
+        }
         for (int li = path.size() - 2; li >= 0; li--) {
             JXNativeNode list = path.get(li);
             if (!enabled(list)) {

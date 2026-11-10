@@ -280,6 +280,31 @@ public class SampleController {
         selected = value;
     }
 
+    /** The sort of a table: its column (-1 for none) and direction, and the last {column, 1 or 0} {@code onSort} reported. */
+    public int sortCol = 2;
+    public boolean sortAsc = false;
+    public double[] sortedTo;
+
+    public int getSortCol() {
+        return sortCol;
+    }
+
+    public void setSortCol(int value) {
+        sortCol = value;
+    }
+
+    public boolean getSortAsc() {
+        return sortAsc;
+    }
+
+    public void setSortAsc(boolean value) {
+        sortAsc = value;
+    }
+
+    public void sorted(double[] state) {
+        sortedTo = state;
+    }
+
     public double[] getPicked() {
         return picked;
     }

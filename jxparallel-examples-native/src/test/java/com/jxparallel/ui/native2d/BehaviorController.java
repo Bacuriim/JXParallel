@@ -124,6 +124,29 @@ public class BehaviorController {
     public double[] getChosen() { return chosen; }
     public void setChosen(double[] v) { chosen = v; told.add("selection " + java.util.Arrays.toString(v)); }
 
+    /**
+     * The sort of a table (-1 for no column) and what onSort told; the application sorts its own rows: the text of the
+     * column ascending or descending, or the order of the numbers when there is no sort.
+     */
+    private int sortCol = -1;
+    private boolean sortAsc = true;
+    public final List<String> sorts = new ArrayList<String>();
+    public int getSortCol() { return sortCol; }
+    public void setSortCol(int v) { sortCol = v; }
+    public boolean getSortAsc() { return sortAsc; }
+    public void setSortAsc(boolean v) { sortAsc = v; }
+    public void sorted(double[] v) {
+        sorts.add(java.util.Arrays.toString(v));
+        if (v[0] < 0) {
+            java.util.Collections.sort(rows, (a, b) -> Integer.compare(Integer.parseInt(a.substring(4)), Integer.parseInt(b.substring(4))));
+        } else {
+            java.util.Collections.sort(rows);
+            if (v[1] == 0) {
+                java.util.Collections.reverse(rows);
+            }
+        }
+    }
+
     private int top;
     public double[] scrolled;
     public int getTop() { return top; }

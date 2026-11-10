@@ -1419,6 +1419,9 @@ final class JXPaint {
         }
     }
 
+    /** The width of a column header kept for its sort arrow when the table is sorted by that column. */
+    private static final float SORT_ARROW = 16;
+
     private void tableHeader(JXNativeNode node) {
         float x = node.getX() + 1;
         float y = node.getY() + 1;
@@ -1433,11 +1436,22 @@ final class JXPaint {
         p.clip(x, y, w, h);
         JXTextEngine engine = JXTextEngine.get(true);
         float cx = x - scrollX;
+        int sorted = JXTableSort.column(node);
         for (int i = 0; i < titles.length && i < widths.length; i++) {
             float tw = engine.width(titles[i], JXTextEngine.DEFAULT_SIZE);
-            float left = cx + Math.max(4, (widths[i] - tw) / 2);
+            float room = i == sorted ? widths[i] - SORT_ARROW : widths[i]; // the arrow of the sorted column takes its right end
+            float left = cx + Math.max(4, (room - tw) / 2);
             p.clip(cx, y, widths[i], h);
             p.text(titles[i], left, y + engine.baseline(h, JXTextEngine.DEFAULT_SIZE), JXTextEngine.DEFAULT_SIZE, true, c.text);
+            if (i == sorted) {
+                float ax = cx + widths[i] - SORT_ARROW + 4;
+                float ay = y + (h - 4) / 2;
+                if (JXTableSort.ascending(node)) {
+                    upArrow(ax, ay, c.arrow);
+                } else {
+                    p.fillTriangle(ax, ay, ax + 8, ay, ax + 4, ay + 4, c.arrow);
+                }
+            }
             p.restore();
             cx += widths[i];
             p.fillRect(cx - 1, y, 1, h, c.boxBorder);
