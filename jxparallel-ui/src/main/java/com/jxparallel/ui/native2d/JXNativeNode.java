@@ -249,6 +249,9 @@ public final class JXNativeNode {
         this.overlayContent = JXOverlays.overlayContainer(type);
         this.overlayHost = JXOverlays.popupHost(type) || floatingNode || "menubutton".equals(type) || "menubar".equals(type);
         setProps(element.getProps());
+        if (props.containsKey("enter")) {
+            JXNodeAnimation.entered(this, props);
+        }
         List<JXElement> below = element.getChildren();
         int n = below.size();
         if (n > 0) {
@@ -759,6 +762,9 @@ public final class JXNativeNode {
         boolean placement = vgrow != priority(next.get("vgrow")) || hgrow != priority(next.get("hgrow"));
         boolean relayout = sizeAffected(previous, element.getProps());
         setProps(element.getProps());
+        if (animation != null || next.containsKey("transition")) {
+            JXNodeAnimation.reconciled(this, previous.asMap(), next);
+        }
         JXScrolling.release(this, previous, element.getProps());
         boolean subtree = false;
         List<JXElement> nextChildren = element.getChildren();
@@ -897,6 +903,46 @@ public final class JXNativeNode {
         return padding.clone();
     }
 
+    /** The animated values of the props that are in a transition, null while none is. */
+    private JXNodeAnimation animation;
+
+    JXNodeAnimation animation() {
+        return animation;
+    }
+
+    JXNodeAnimation ensureAnimation() {
+        if (animation == null) {
+            animation = new JXNodeAnimation();
+        }
+        return animation;
+    }
+
+    void clearAnimation() {
+        animation = null;
+    }
+
+    /**
+     * Moves the animations of this subtree to {@code nowNanos} (see {@link JXAnimationClock}). Returns true while any is
+     * still running. What it changed is drawn, not laid out, but an overlay may follow a moved node, so the overlay pass
+     * runs again.
+     */
+    boolean tickAnimations(long nowNanos) {
+        boolean running = false;
+        JXNodeAnimation own = animation;
+        if (own != null) {
+            revision++;
+            if (own.advance(nowNanos)) {
+                running = true;
+            } else {
+                animation = null;
+            }
+        }
+        for (int i = 0, n = children.size(); i < n; i++) {
+            running |= children.get(i).tickAnimations(nowNanos);
+        }
+        return running;
+    }
+
     /** The props this node was last given. */
     public Map<String, Object> getProps() {
         return props;
@@ -907,6 +953,13 @@ public final class JXNativeNode {
     }
 
     public Object getProperty(String name) {
+        JXNodeAnimation moving = animation;
+        if (moving != null) { // a prop in the middle of a transition answers with where it is now
+            Object shown = moving.value(name);
+            if (shown != null) {
+                return shown;
+            }
+        }
         Object value = props.get(name);
         if (value != null) {
             return value;

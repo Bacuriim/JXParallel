@@ -168,6 +168,11 @@ public final class JXWindow implements AutoCloseable {
     /** A snack bar with a duration is open: the loop asks the overlays for its timeout at every turn (display thread). */
     private boolean timedOverlay;
 
+    /** Advances transitions and enters at each frame, and says when another frame is due (see {@link JXAnimationDriver}). */
+    private final JXAnimationDriver animations = new JXAnimationDriver();
+    /** At most one animation frame per this long, whatever the swap interval does (4 ms: 250 per second). */
+    private static final long ANIMATION_FLOOR_NANOS = 4_000_000L;
+
     public void setOnFirstPaint(Runnable callback) {
         onFirstPaint = callback;
     }
@@ -1228,15 +1233,25 @@ public final class JXWindow implements AutoCloseable {
             GL.setCapabilities(capabilities);
         }
         Object lock = externalLock;
+        long frameNanos = JXAnimationClock.now();
+        boolean moving;
         if (lock != null) {
             synchronized (lock) {
+                moving = animations.step(root, frameNanos); // transitions advance to this frame's time, then it paints them
                 backend.render(root, fbWidth, fbHeight, logicalWidth, logicalHeight, frameScale);
             }
         } else {
+            moving = animations.step(root, frameNanos);
             backend.render(root, fbWidth, fbHeight, logicalWidth, logicalHeight, frameScale);
         }
         if (frameIntervalNanos == 0) {
             GLFW.glfwSwapBuffers(window);
+        }
+        if (moving) {
+            // something is still moving: paint again, paced by the swap interval (OpenGL) or the refresh interval (software);
+            // the wake-up bounds the sleep of the loop, so a driver that ignores the swap interval cannot make it spin
+            renderRequested.set(true);
+            JXDisplay.wakeAt(frameIntervalNanos > 0 ? lastFrameNanos + frameIntervalNanos : System.nanoTime() + ANIMATION_FLOOR_NANOS);
         }
         timedOverlay = root != null && lock == null && root.tickOverlays() >= 0;
         if (!firstPaintReported) {

@@ -1,5 +1,13 @@
 package com.jxparallel.ui.animation;
 
+/**
+ * A fixed-length animation stepped by hand.
+ *
+ * @deprecated the renderer animates declaratively: give an element {@code transition} or {@code enter} (see
+ *             {@link com.jxparallel.ui.JXTransitions}); the window advances those on the display thread at every frame.
+ *             Nothing in the renderer uses this class.
+ */
+@Deprecated
 public final class JXAnimation {
     private final long durationMillis;
     private final JXAnimationScheduler.Frame frame;
