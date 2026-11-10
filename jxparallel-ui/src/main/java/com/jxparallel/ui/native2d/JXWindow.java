@@ -470,8 +470,12 @@ public final class JXWindow implements AutoCloseable {
         setIcons(JXWindowIcon.load(sources));
     }
 
+    /** The window's icons, also set on its window class on Windows (see {@link JXWin32ClassIcon}). */
+    private final JXWin32ClassIcon classIcon = new JXWin32ClassIcon();
+
     /** Display thread. */
     private void applyIcons(long handle) {
+        classIcon.restore(); // GLFW frees the window's previous icons below: the class must not keep them
         List<JXWindowIcon> sizes = icons;
         if (sizes.isEmpty()) {
             GLFW.glfwSetWindowIcon(handle, (org.lwjgl.glfw.GLFWImage.Buffer) null);
@@ -488,6 +492,7 @@ public final class JXWindow implements AutoCloseable {
                 images.get(i).set(icon.getWidth(), icon.getHeight(), pixels[i]);
             }
             GLFW.glfwSetWindowIcon(handle, images);
+            classIcon.apply(handle); // the task bar's fallback (Windows) shows the same icon
         } finally {
             images.free();
             for (java.nio.ByteBuffer pixel : pixels) {
@@ -1374,6 +1379,7 @@ public final class JXWindow implements AutoCloseable {
         if (gl) {
             GLFW.glfwMakeContextCurrent(MemoryUtil.NULL);
         }
+        classIcon.restore(); // GLFW frees the window's icons now
         GLFW.glfwDestroyWindow(handle);
         destroyCursors();
         window = MemoryUtil.NULL;
