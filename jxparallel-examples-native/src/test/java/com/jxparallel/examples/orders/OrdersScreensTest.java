@@ -139,7 +139,8 @@ class OrdersScreensTest {
         assertEquals("1", String.valueOf(table.getChildren().get(0).getChildren().get(0).getProperty("value")));
         assertEquals("multiple", table.getProperty("selectionMode"));
         assertEquals(1, all(root, "input").size(), "the search box only: the editor is closed, so its four inputs are not mounted");
-        assertEquals(2, all(root, "select").size(), "status filter and sort; the editor's status is in the closed editor");
+        assertEquals(1, all(root, "select").size(), "the status filter; the editor's status is in the closed editor");
+        assertEquals(0.0, ((Number) table.getProperty("sortColumn")).doubleValue(), "sorted by id: the arrow is on its header");
         assertEquals(1, all(root, "checkbox").size());
         assertTrue(table.getWidth() > 400 && table.getHeight() > 300, table.getWidth() + "x" + table.getHeight());
         assertTrue(hasText(root, "No order selected"));
@@ -247,7 +248,7 @@ class OrdersScreensTest {
         assertEquals(Boolean.TRUE, all(open, "dialog").get(1).getProperty("showing"));
         assertEquals(1, all(open, "datepicker").size());
         assertEquals(1, all(open, "spinner").size());
-        assertEquals(3, all(open, "select").size(), "two filters and the status");
+        assertEquals(2, all(open, "select").size(), "the filter and the status");
     }
 
     // ---- the compiled views against the interpreter -------------------------------------------------------------------

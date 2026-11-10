@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <!--
   The orders screen: a virtual TableView over the whole (filtered) list of orders, with the search, a status filter and
-  a sort, a details panel, and a delete confirmation. The table builds only the rows in view (rows="40") and scrolls over
+  sorting by the column headers, a details panel, and a delete confirmation. The table builds only the rows in view (rows="40") and scrolls over
   all of them through first="@{top}".
 -->
 <Stack controller="com.jxparallel.examples.orders.OrdersController">
@@ -11,51 +11,33 @@
         <TextField text="@{query}" prompt="Search by id, customer, e-mail, date or status" hgrow="always"
                    tooltip="The table is filtered as you type"/>
         <ComboBox items="${statusChoices}" value="${statusFilter}" prefWidth="150" tooltip="Show only one status"
-                  showing="${statusOpen}" onShowing="#setStatusOpen" onChange="#setStatusFilter"/>
-        <ComboBox items="${sortChoices}" value="${sortLabel}" prefWidth="170" tooltip="Sort the table"
-                  showing="${sortOpen}" onShowing="#setSortOpen" onChange="#setSortLabel"/>
+                  onChange="#setStatusFilter"/>
       </Row>
       <Row gap="8" alignment="CENTER_LEFT">
         <Label text="${countText}" fontSize="12" textFill="${palette.muted}" hgrow="always"/>
-        <!-- a CheckBox keeps its classic dark text, unreadable on the dark palette: the words are a themed Label -->
-        <CheckBox selected="@{multiple}" tooltip="Ctrl+click adds a row, Shift+click a range"/>
-        <Label text="Select several rows" margin="0 8 0 0"/>
+        <CheckBox text="Select several rows" selected="@{multiple}" margin="0 8 0 0"
+                  tooltip="Ctrl+click adds a row, Shift+click a range"/>
         <Button text="Edit" variant="outlined" disabled="${noSelection}" onAction="#editSelected" tooltip="Edit the selected order (Enter in the table)"/>
         <Button text="Delete" variant="outlined" disabled="${noSelection}" onAction="#askDelete" tooltip="Delete the selected orders"/>
         <Button text="New order" variant="filled" onAction="#newOrder" tooltip="Ctrl+N"/>
       </Row>
     </Column>
 
-    <!-- selectionMode cannot be bound, so each mode has its own table (the same columns and row) -->
-    <If test="${multiple}">
-      <TableView slot="center" margin="0 0 14 14" items="${visible}" var="o" type="com.jxparallel.examples.orders.Order" key="${o}"
-                 first="@{top}" rows="40" rowHeight="28"
-                 columns="Id, Customer, Date, Status, Total" columnWidths="70, 220, 110, 100, 120" constrained="true"
-                 selectionMode="multiple" selected="${current}" onSelect="#setCurrent"
-                 selection="${picked}" onSelection="#setPicked">
-        <TableRow onAction="#edit(o)">
-          <TableCell text="${o.id}"/>
-          <TableCell text="${o.customer}"/>
-          <TableCell text="${o.dateText}"/>
-          <TableCell text="${o.statusText}"/>
-          <TableCell text="${o.totalText}" alignment="CENTER_RIGHT"/>
-        </TableRow>
-      </TableView>
-    </If>
-    <Else>
-      <TableView slot="center" margin="0 0 14 14" items="${visible}" var="o" type="com.jxparallel.examples.orders.Order" key="${o}"
-                 first="@{top}" rows="40" rowHeight="28"
-                 columns="Id, Customer, Date, Status, Total" columnWidths="70, 220, 110, 100, 120" constrained="true"
-                 selectionMode="single" selected="${current}" onSelect="#setCurrent">
-        <TableRow onAction="#edit(o)">
-          <TableCell text="${o.id}"/>
-          <TableCell text="${o.customer}"/>
-          <TableCell text="${o.dateText}"/>
-          <TableCell text="${o.statusText}"/>
-          <TableCell text="${o.totalText}" alignment="CENTER_RIGHT"/>
-        </TableRow>
-      </TableView>
-    </Else>
+    <!-- one table for both modes (selectionMode is bound); a press on a header sorts: the controller keeps the column and direction -->
+    <TableView slot="center" margin="0 0 14 14" items="${visible}" var="o" type="com.jxparallel.examples.orders.Order" key="${o}"
+               first="@{top}" rows="40" rowHeight="28"
+               columns="Id, Customer, Date, Status, Total" columnWidths="70, 220, 110, 100, 120" constrained="true"
+               selectionMode="${selectionMode}" selected="${current}" onSelect="#setCurrent"
+               selection="${picked}" onSelection="#setPicked"
+               sortColumn="${sortColumn}" sortAscending="${sortAscending}" onSort="#sortBy">
+      <TableRow onAction="#edit(o)">
+        <TableCell text="${o.id}"/>
+        <TableCell text="${o.customer}"/>
+        <TableCell text="${o.dateText}"/>
+        <TableCell text="${o.statusText}"/>
+        <TableCell text="${o.totalText}" alignment="CENTER_RIGHT"/>
+      </TableRow>
+    </TableView>
 
     <Column slot="right" prefWidth="300" margin="0 14 14 14" padding="16" gap="8" fillWidth="true"
             background="${palette.card}" borderColor="${palette.line}" borderRadius="8" backgroundRadius="8">

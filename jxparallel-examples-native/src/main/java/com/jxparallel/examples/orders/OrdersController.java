@@ -26,9 +26,9 @@ public final class OrdersController {
 
     private String query = "";
     private String statusFilter = OrderQuery.ALL_STATUSES;
-    private String sortLabel = SortKey.ID_ASC.label();
-    private boolean statusOpen;
-    private boolean sortOpen;
+    private SortKey sortKey = SortKey.ID_ASC;
+    private int sortColumn = SortKey.ID_ASC.column();
+    private boolean sortAscending = true;
     private boolean multiple = true;
     private boolean confirmDelete;
     private int top;
@@ -54,7 +54,7 @@ public final class OrdersController {
     /** Applies the search, the status and the sort to the store's orders again; call it when any of them changed. */
     public void refresh() {
         visible = Collections.unmodifiableList(OrderQuery.apply(session.store().getOrders(), query, statusFilter,
-                SortKey.fromLabel(sortLabel)));
+                sortKey));
         Map<Integer, Integer> index = new HashMap<Integer, Integer>(visible.size() * 2);
         for (int i = 0; i < visible.size(); i++) {
             index.put(visible.get(i).getId(), i);
@@ -114,37 +114,37 @@ public final class OrdersController {
         session.host().requestRender();
     }
 
-    public boolean getStatusOpen() {
-        return statusOpen;
+    /** The column the table is sorted by (0 Id ... 4 Total), -1 for none: its header draws the arrow. */
+    public int getSortColumn() {
+        return sortColumn;
     }
 
-    public void setStatusOpen(boolean v) {
-        statusOpen = v;
-        session.host().requestRender();
+    public boolean getSortAscending() {
+        return sortAscending;
     }
 
-    public List<String> getSortChoices() {
-        return SortKey.labels();
+    /** The table's {@code onSort}: a press on a header gives {@code {column, 1 or 0}}, -1 for no column. */
+    public void sortBy(double[] state) {
+        int column = (int) state[0];
+        boolean ascending = state[1] != 0;
+        sort(SortKey.of(column, ascending));
+        // unsorted (-1) is shown as no arrow, and lists the orders by id
+        sortColumn = column;
+        sortAscending = ascending;
     }
 
-    public String getSortLabel() {
-        return sortLabel;
-    }
-
-    public void setSortLabel(String v) {
-        sortLabel = v;
+    /** Sorts by {@code key}, as a press on its column header does. */
+    public void sort(SortKey key) {
+        sortKey = key;
+        sortColumn = key.column();
+        sortAscending = key.ascending();
         top = 0;
         refresh();
         session.host().requestRender();
     }
 
-    public boolean getSortOpen() {
-        return sortOpen;
-    }
-
-    public void setSortOpen(boolean v) {
-        sortOpen = v;
-        session.host().requestRender();
+    public SortKey getSortKey() {
+        return sortKey;
     }
 
     // ---- the table's window and selection -----------------------------------------------------------------

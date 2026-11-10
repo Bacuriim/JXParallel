@@ -235,7 +235,9 @@ class OrdersControllersTest {
             assertEquals(Status.CANCELLED, x.getStatus());
         }
         o.setStatusFilter(OrderQuery.ALL_STATUSES);
-        o.setSortLabel(SortKey.TOTAL_HIGH.label());
+        o.sortBy(new double[] {4, 0}); // the Total header pressed twice: descending
+        assertEquals(4, o.getSortColumn());
+        assertFalse(o.getSortAscending());
         List<Order> v = o.getVisible();
         for (int i = 1; i < v.size(); i++) {
             assertTrue(v.get(i - 1).getTotalCents() >= v.get(i).getTotalCents());
@@ -482,7 +484,7 @@ class OrdersControllersTest {
     }
 
     @Test
-    void customersScreenSelectsAndLiftsCards() throws Exception {
+    void customersScreenSelectsAndLiftsCardsUnderThePointer() throws Exception {
         CustomersController c = shell.customers();
         assertTrue(c.getNoCustomers());
         assertFalse(c.getHasSelected());
@@ -496,11 +498,13 @@ class OrdersControllersTest {
         assertEquals(11, c.getCurrent(), "an index past the end is the last customer");
         assertEquals(4, c.getFigures().size());
         assertEquals(0.0, c.getFigures().get(1).getRise());
-        c.lift(c.getFigures().get(1));
+        c.hover(c.getFigures().get(1), true);
         assertEquals(-4.0, c.getFigures().get(1).getRise());
         assertEquals(0.0, c.getFigures().get(0).getRise());
-        c.lift(c.getFigures().get(1));
-        assertEquals(0.0, c.getFigures().get(1).getRise(), "a second click puts it back");
+        c.hover(c.getFigures().get(0), false);
+        assertEquals(-4.0, c.getFigures().get(1).getRise(), "another card being left does not put this one back");
+        c.hover(c.getFigures().get(1), false);
+        assertEquals(0.0, c.getFigures().get(1).getRise(), "leaving the card puts it back");
         assertEquals(5, c.getRecentOrders().size());
     }
 

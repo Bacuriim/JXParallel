@@ -3,12 +3,13 @@
   JX Orders: the main window. A menu, a sidebar, the status bar, and the screen in the middle, which is another JXML
   view built with its own controller and placed with <Slot>. The dialogs (the order editor, About, the "saved" snack
   bar) are overlays: they are written at the root and open over the whole window.
-  The colours of this file's own boxes come from the controller's palette (a theme token is resolved when the file is
-  read, and the root's theme attribute cannot be bound), and ShellController.view() sets the root's theme prop, which
-  switches the controls the renderer themes itself.
+  The root's theme is bound (theme="${themeName}"): View > Light / Dark theme changes it at run time, and the theme
+  tokens (surface, primary, error ...) written in this window's screens follow it, as do the controls the renderer
+  themes itself. The colours that are not one of the six tokens (the page and sidebar greys, the muted text, the
+  lines) come from the controller's palette.
   onDrop on the root: a CSV file dropped anywhere on the window is imported.
 -->
-<Stack controller="com.jxparallel.examples.orders.ShellController" onDrop="#dropFiles">
+<Stack controller="com.jxparallel.examples.orders.ShellController" theme="${themeName}" onDrop="#dropFiles">
   <Border background="${palette.background}">
     <MenuBar slot="top">
       <Menu text="File">
@@ -30,29 +31,13 @@
 
     <Column slot="left" prefWidth="164" padding="14 10" gap="6" fillWidth="true" background="${palette.sidebar}">
       <Label text="JX Orders" bold="true" fontSize="16" margin="0 0 8 4"/>
-      <!-- variant cannot be bound, so the current screen's button is the tonal one of an If / Else pair -->
-      <If test="${onDashboard}">
-        <Button text="Dashboard" variant="tonal" onAction="#showDashboard" tooltip="Totals and bar charts"><Icon name="home" size="18" mouseTransparent="true"/></Button>
-      </If>
-      <Else>
-        <Button text="Dashboard" variant="text" onAction="#showDashboard" tooltip="Totals and bar charts"><Icon name="home" size="18" mouseTransparent="true"/></Button>
-      </Else>
-      <If test="${onOrders}">
-        <Button text="Orders" variant="tonal" onAction="#showOrders" tooltip="Search, filter and edit orders"><Icon name="mail" size="18" mouseTransparent="true"/></Button>
-      </If>
-      <Else>
-        <Button text="Orders" variant="text" onAction="#showOrders" tooltip="Search, filter and edit orders"><Icon name="mail" size="18" mouseTransparent="true"/></Button>
-      </Else>
-      <If test="${onCustomers}">
-        <Button text="Customers" variant="tonal" onAction="#showCustomers" tooltip="Who orders, and how much"><Icon name="person" size="18" mouseTransparent="true"/></Button>
-      </If>
-      <Else>
-        <Button text="Customers" variant="text" onAction="#showCustomers" tooltip="Who orders, and how much"><Icon name="person" size="18" mouseTransparent="true"/></Button>
-      </Else>
+      <!-- the current screen's button is the tonal one: variant is bound to what the controller says -->
+      <Button text="Dashboard" variant="${dashboardVariant}" onAction="#showDashboard" tooltip="Totals and bar charts"><Icon name="home" size="18"/></Button>
+      <Button text="Orders" variant="${ordersVariant}" onAction="#showOrders" tooltip="Search, filter and edit orders"><Icon name="mail" size="18"/></Button>
+      <Button text="Customers" variant="${customersVariant}" onAction="#showCustomers" tooltip="Who orders, and how much"><Icon name="person" size="18"/></Button>
     </Column>
 
-    <!-- a Slot takes no attribute but content, so the slot of the Border is written on a Stack around it -->
-    <Stack slot="center"><Slot content="${content}"/></Stack>
+    <Slot slot="center" content="${content}"/>
 
     <Row slot="bottom" gap="12" padding="6 14" alignment="CENTER_LEFT" background="${palette.sidebar}">
       <Label text="${status}" hgrow="always" fontSize="12"/>

@@ -1,9 +1,11 @@
 package com.jxparallel.examples.orders;
 
 /**
- * The colours the screens bind to (<code>background="${palette.card}"</code>). JXML resolves the theme tokens
- * ({@code surface}, {@code onSurface} ...) once, when the file is read, so a screen that must change theme at run time
- * binds colours like these instead, and sets the {@code theme} of its root for the controls the renderer themes itself.
+ * The colours the screens bind to (<code>background="${palette.card}"</code>). The window's root has a bound
+ * {@code theme="${themeName}"}, which switches the controls the renderer themes itself and the six theme tokens
+ * ({@code surface}, {@code primary} ...) written in {@code shell.jxml}. What the palette still gives is what a token
+ * cannot: the greys of the page, the sidebar, the lines and the muted text are not among the six, and each screen is
+ * its own file (built by its own controller), whose tokens resolve with that file's theme, which is none.
  */
 public final class Palette {
     public static final String LIGHT = "light";

@@ -113,6 +113,24 @@ class OrdersModelTest {
     }
 
     @Test
+    void aColumnHeaderPressPicksTheKeyOfItsColumnAndDirection() {
+        List<Order> all = sample();
+        for (SortKey key : SortKey.values()) {
+            assertEquals(key, SortKey.of(key.column(), key.ascending()), key.label());
+        }
+        assertEquals(SortKey.TOTAL_HIGH, SortKey.of(4, false));
+        assertEquals(SortKey.DATE_OLD, SortKey.of(2, true));
+        assertEquals(SortKey.ID_ASC, SortKey.of(-1, true), "unsorted lists the orders by id");
+        assertEquals(SortKey.ID_ASC, SortKey.of(9, true));
+        assertEquals(Arrays.asList(1, 2, 3, 5, 4), ids(OrderQuery.apply(all, "", null, SortKey.STATUS_ASC)));
+        assertEquals(Arrays.asList(4, 3, 5, 2, 1), ids(OrderQuery.apply(all, "", null, SortKey.STATUS_DESC)));
+        List<Order> desc = OrderQuery.apply(all, "", null, SortKey.CUSTOMER_DESC);
+        for (int i = 1; i < desc.size(); i++) {
+            assertTrue(desc.get(i - 1).getCustomer().compareToIgnoreCase(desc.get(i).getCustomer()) >= 0);
+        }
+    }
+
+    @Test
     void queryDoesNotChangeItsInput() {
         List<Order> all = new ArrayList<Order>(sample());
         OrderQuery.apply(all, "", null, SortKey.TOTAL_HIGH);

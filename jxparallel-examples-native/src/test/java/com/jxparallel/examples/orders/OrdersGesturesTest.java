@@ -124,11 +124,11 @@ class OrdersGesturesTest {
     void theStatusFilterListOpensAndAChoiceFiltersTheTable() {
         JXNativeNode status = ui.find("select", 0);
         ui.click(status);
-        assertTrue(shell.orders().getStatusOpen(), "a press opens the list");
+        assertTrue(ui.root.capturesKeys(), "a press opens the list (the node keeps the open state: no showing binding)");
         ui.key(OrdersUi.DOWN); // New
         ui.key(OrdersUi.DOWN); // Paid
         ui.key(OrdersUi.ENTER);
-        assertFalse(shell.orders().getStatusOpen(), "Enter chooses and closes");
+        assertFalse(ui.root.capturesKeys(), "Enter chooses and closes");
         assertEquals("Paid", shell.orders().getStatusFilter());
         assertTrue(shell.orders().getVisible().size() > 0);
         for (String s : column(3)) {
@@ -138,18 +138,87 @@ class OrdersGesturesTest {
 
     @Test
     void aClosedComboBoxChangesItsValueWithTheArrowKeys() {
-        ui.click(ui.find("select", 1));
+        ui.click(ui.find("select", 0));
         ui.key(OrdersUi.ESCAPE); // close the list; the control keeps the focus
-        assertFalse(shell.orders().getSortOpen());
+        assertFalse(ui.root.capturesKeys());
         ui.key(OrdersUi.DOWN);
-        assertEquals(SortKey.ID_DESC.label(), shell.orders().getSortLabel());
+        assertEquals("New", shell.orders().getStatusFilter());
+        for (String s : column(3)) {
+            assertEquals("New", s);
+        }
+        ui.key(OrdersUi.DOWN);
+        assertEquals("Paid", shell.orders().getStatusFilter());
+    }
+
+    // ---- sorting by the column headers ------------------------------------------------------------------------------
+
+    /** A press and release on the header of column {@code index}: the columns share the table's width as 70:220:110:100:120. */
+    private void clickHeader(int index) {
+        JXNativeNode table = ui.find("table");
+        double[] weights = {70, 220, 110, 100, 120};
+        double sum = 0;
+        for (double w : weights) {
+            sum += w;
+        }
+        double before = 0;
+        for (int i = 0; i < index; i++) {
+            before += weights[i];
+        }
+        double usable = table.getWidth() - 2;
+        int x = table.getX() + 1 + (int) (usable * (before + weights[index] / 2) / sum);
+        ui.click(x, table.getY() + 8);
+    }
+
+    @Test
+    void aPressOnAColumnHeaderSortsAndCyclesAscendingDescendingUnsorted() {
+        assertEquals(0.0, ((Number) ui.find("table").getProperty("sortColumn")).doubleValue(), "sorted by id to begin with");
+        clickHeader(0);
+        assertEquals(SortKey.ID_DESC, shell.orders().getSortKey());
         assertEquals("600", column(0).get(0), "highest id first now");
-        ui.key(OrdersUi.DOWN);
-        assertEquals(SortKey.CUSTOMER.label(), shell.orders().getSortLabel());
+        clickHeader(0);
+        assertEquals(-1, shell.orders().getSortColumn(), "the third press: unsorted");
+        assertEquals("1", column(0).get(0), "unsorted lists the orders by id");
+        assertEquals(-1.0, ((Number) ui.find("table").getProperty("sortColumn")).doubleValue(), "no header draws an arrow");
+
+        clickHeader(1);
+        assertEquals(SortKey.CUSTOMER, shell.orders().getSortKey());
         List<String> names = column(1);
         List<String> sorted = new ArrayList<String>(names);
         Collections.sort(sorted, String.CASE_INSENSITIVE_ORDER);
         assertEquals(sorted, names);
+        clickHeader(1);
+        assertEquals(SortKey.CUSTOMER_DESC, shell.orders().getSortKey());
+        names = column(1);
+        sorted = new ArrayList<String>(names);
+        Collections.sort(sorted, Collections.reverseOrder(String.CASE_INSENSITIVE_ORDER));
+        assertEquals(sorted, names);
+
+        clickHeader(4); // another column starts ascending: the lowest total first
+        assertEquals(SortKey.TOTAL_LOW, shell.orders().getSortKey());
+        clickHeader(4);
+        assertEquals(SortKey.TOTAL_HIGH, shell.orders().getSortKey());
+        List<Order> v = shell.orders().getVisible();
+        for (int i = 1; i < v.size(); i++) {
+            assertTrue(v.get(i - 1).getTotalCents() >= v.get(i).getTotalCents());
+        }
+        clickHeader(2);
+        assertEquals(SortKey.DATE_OLD, shell.orders().getSortKey());
+        clickHeader(3);
+        assertEquals(SortKey.STATUS_ASC, shell.orders().getSortKey());
+    }
+
+    @Test
+    void sortingKeepsTheSelectionAndTheSearch() {
+        ui.click(ui.find("input", 0));
+        ui.type("marlowe");
+        clickRow(2, 0);
+        int id = shell.orders().getOne().getId();
+        clickHeader(4);
+        assertEquals(id, shell.orders().getOne().getId(), "a header press does not change the selection");
+        assertEquals("marlowe", shell.orders().getQuery());
+        for (String customer : column(1)) {
+            assertEquals("Beto Marlowe", customer);
+        }
     }
 
     // ---- selection ----------------------------------------------------------------------------------------------------
@@ -309,10 +378,11 @@ class OrdersGesturesTest {
         assertEquals(3, shell.editor().getDraft().getLines().size());
         assertEquals(3, ui.findAll("spinner").size(), "one Spinner for each line");
         OrderDraft.DraftLine keep = shell.editor().getDraft().getLines().get(2);
-        // one Remove button for each line
+        // one icon-only Remove button for each line
         List<JXNativeNode> removers = new ArrayList<JXNativeNode>();
         for (JXNativeNode b : ui.findAll("button")) {
-            if ("Remove".equals(b.getProperty("label"))) {
+            if ("Remove this item".equals(b.getProperty("tooltip"))) {
+                assertEquals("", String.valueOf(b.getProperty("label") == null ? "" : b.getProperty("label")), "an icon, no text");
                 removers.add(b);
             }
         }
@@ -329,14 +399,14 @@ class OrdersGesturesTest {
         JXNativeNode date = ui.find("datepicker");
         assertEquals(TODAY.toString(), date.getProperty("value"));
         ui.click(date);
-        assertTrue(shell.editor().getDateOpen());
+        // no showing binding: the picker keeps its own open state, and Escape closes the calendar before the dialog
         ui.key(OrdersUi.ESCAPE);
-        assertFalse(shell.editor().getDateOpen());
+        assertTrue(shell.editor().getOpen(), "Escape closed the calendar only, not the dialog");
         ui.key(OrdersUi.DOWN); // closed: a day back
         assertEquals(TODAY.minusDays(1).toString(), shell.editor().getDraft().getDateText());
-        JXNativeNode status = ui.findAll("select").get(2); // after the two filters of the orders screen
+        JXNativeNode status = ui.findAll("select").get(1); // after the status filter of the orders screen
         ui.click(status);
-        assertTrue(shell.editor().getStatusOpen());
+        assertTrue(ui.root.capturesKeys(), "the list opens without a showing binding");
         ui.key(OrdersUi.DOWN);
         ui.key(OrdersUi.ENTER);
         assertEquals("Paid", shell.editor().getDraft().getStatusLabel());
@@ -363,23 +433,46 @@ class OrdersGesturesTest {
     void tabOrderFollowsTheFile() {
         ui.focused = null;
         List<String> stops = new ArrayList<String>();
-        for (int i = 0; i < 9; i++) {
+        for (int i = 0; i < 8; i++) {
             ui.key(OrdersUi.TAB);
             stops.add(ui.focused.getType());
         }
-        // the three sidebar buttons, the search box, the two filters, the check box, New order (Edit and Delete are
+        // the three sidebar buttons, the search box, the status filter, the check box, New order (Edit and Delete are
         // disabled, so they are skipped), and the table
-        assertEquals(Arrays.asList("button", "button", "button", "input", "select", "select", "checkbox", "button", "table"), stops);
+        assertEquals(Arrays.asList("button", "button", "button", "input", "select", "checkbox", "button", "table"), stops);
         ui.key(OrdersUi.TAB, OrdersUi.SHIFT);
         assertEquals("button", ui.focused.getType());
         assertEquals(508, ui.focused.getX() < 600 ? 508 : -1, "Shift+Tab went back to New order");
     }
 
     @Test
+    void figureCardsRiseWhileThePointerIsOverThem() {
+        shell.show(ShellController.Screen.CUSTOMERS);
+        ui.refresh();
+        CustomersController c = shell.customers();
+        assertEquals(0.0, c.getFigures().get(1).getRise());
+        int[] over = OrdersUi.center(ui.findText("#text", "Spent")); // the title label inside the card
+        ui.root.hoverPointer(over[0], over[1]);
+        ui.refresh();
+        assertEquals(-4.0, c.getFigures().get(1).getRise(), "the pointer is over the Spent card");
+        assertEquals(0.0, c.getFigures().get(0).getRise());
+        int[] next = OrdersUi.center(ui.findText("#text", "Average order"));
+        ui.root.hoverPointer(next[0], next[1]);
+        ui.refresh();
+        assertEquals(0.0, c.getFigures().get(1).getRise(), "left the Spent card");
+        assertEquals(-4.0, c.getFigures().get(2).getRise());
+        ui.click(next[0], next[1]);
+        assertEquals(-4.0, c.getFigures().get(2).getRise(), "a click changes nothing");
+        ui.root.hoverPointer(-1, -1); // the pointer left the window
+        ui.refresh();
+        assertEquals(0.0, c.getFigures().get(2).getRise());
+    }
+
+    @Test
     void theSidebarSwitchesScreens() {
         List<JXNativeNode> nav = ui.findAll("button");
-        // a click on the picture of a button counts as a click on the button (the Icon is mouseTransparent in the JXML:
-        // without that the Icon, the deepest element under the pointer, takes the click and nothing happens)
+        // a click on the picture of a button counts as a click on the button (the Icon has no mouseTransparent in the JXML:
+        // the button takes the click the Icon was hit by)
         ui.click(nav.get(2).getChildren().get(0));
         assertEquals(ShellController.Screen.CUSTOMERS, shell.getScreen());
         ui.click(ui.findAll("button").get(1));
@@ -396,7 +489,7 @@ class OrdersGesturesTest {
         assertTrue(ui.hasText(shell.customers().getSelected().getName()));
         ui.key(OrdersUi.DOWN);
         assertEquals(3, shell.customers().getCurrent());
-        // a figure card rises when clicked
+        // the figure cards rise under the pointer, not when clicked (see figureCardsRiseWhileThePointerIsOverThem)
         List<JXNativeNode> before = ui.findAll("stack");
         assertFalse(before.isEmpty());
         ui.click(ui.findAll("button").get(0)); // Dashboard
@@ -405,6 +498,12 @@ class OrdersGesturesTest {
         assertTrue(ui.hasText("Orders by status"));
         ui.click(ui.findAll("button").get(1)); // Orders
         assertEquals(1, ui.findAll("table").size());
+    }
+
+    /** A point in the right half of the Customer cell of the first row, where there is no text. */
+    private int[] emptySpotOfARow() {
+        JXNativeNode cell = row(1).getChildren().get(1);
+        return new int[] {cell.getX() + cell.getWidth() - 10, cell.getY() + cell.getHeight() / 2};
     }
 
     @Test
@@ -419,11 +518,14 @@ class OrdersGesturesTest {
         assertEquals("dark", shell.getThemeName());
         assertEquals("dark", ui.root.getProperty("theme"));
         assertEquals(0xFF23252B, ui.pixel(5, 600), "the sidebar is painted with the dark palette");
+        int[] spot = emptySpotOfARow();
+        assertTrue((ui.pixel(spot[0], spot[1]) & 0xFF) < 0x60, "the orders table is dark too (the classic controls follow the theme)");
         ui.click(ui.find("menu", 1));
         ui.key(OrdersUi.DOWN);
         ui.key(OrdersUi.ENTER);
         assertEquals("light", shell.getThemeName());
         assertEquals(0xFFE8EEF8, ui.pixel(5, 600));
+        assertTrue((ui.pixel(spot[0], spot[1]) & 0xFF) > 0xC0, "and light again");
     }
 
     @Test

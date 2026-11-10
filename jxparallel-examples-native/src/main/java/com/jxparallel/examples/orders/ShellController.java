@@ -22,7 +22,6 @@ import com.jxparallel.examples.orders.gen.EditorView;
 import com.jxparallel.examples.orders.gen.OrdersView;
 import com.jxparallel.examples.orders.gen.ShellView;
 import com.jxparallel.ui.JXElement;
-import com.jxparallel.ui.JXProps;
 
 /**
  * The main window ({@code shell.jxml}): the menu, the sidebar, the status bar, and the screen in the middle, which
@@ -96,18 +95,9 @@ public final class ShellController {
         return session.palette().getName();
     }
 
-    /**
-     * The whole window: the compiled shell view with the root's {@code theme} prop set to the current theme. JXML cannot
-     * bind {@code theme} (it must be the literal {@code light} or {@code dark}), so the prop is set here.
-     */
+    /** The whole window: the compiled shell view; its root's {@code theme="${themeName}"} follows the current theme. */
     public JXElement view() {
-        JXElement root = shellView.build(this);
-        JXProps.Builder props = JXProps.builder();
-        for (int i = 0; i < root.getProps().size(); i++) {
-            props.set(root.getProps().keyAt(i), root.getProps().valueAt(i));
-        }
-        props.set("theme", getThemeName());
-        return JXElement.of(root.getType(), props.build(), root.getChildren().toArray(new JXElement[0]));
+        return shellView.build(this);
     }
 
     /** The screen in the middle, built from the state of its own controller. */
@@ -165,6 +155,19 @@ public final class ShellController {
 
     public boolean getOnCustomers() {
         return screen == Screen.CUSTOMERS;
+    }
+
+    /** The sidebar button of the current screen is the tonal one, the others are plain text (the buttons' {@code variant}). */
+    public String getDashboardVariant() {
+        return screen == Screen.DASHBOARD ? "tonal" : "text";
+    }
+
+    public String getOrdersVariant() {
+        return screen == Screen.ORDERS ? "tonal" : "text";
+    }
+
+    public String getCustomersVariant() {
+        return screen == Screen.CUSTOMERS ? "tonal" : "text";
     }
 
     // ---- menu --------------------------------------------------------------------------------------------------
@@ -407,13 +410,7 @@ public final class ShellController {
 
     /** Files dropped on the window: the first CSV is imported. */
     public CompletableFuture<Void> dropFiles(List<String> paths) {
-        if (editor.getOpen()) {
-            // the window gives a drop over a dialog to the root's onDrop as well (JXOverlays.dispatchDrop): an import
-            // would replace the orders under the form, so it waits until the form is closed
-            status = "Close the order editor before importing a file";
-            session.host().requestRender();
-            return CompletableFuture.completedFuture(null);
-        }
+        // a drop over an open dialog (the order editor) never gets here: only the dialog's own onDrop takes it
         for (String p : paths) {
             if (p.toLowerCase().endsWith(".csv")) {
                 return importFile(new File(p));

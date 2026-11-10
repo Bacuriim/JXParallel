@@ -5,10 +5,10 @@ import java.util.List;
 
 /**
  * State of the customers screen ({@code customers.jxml}): a list with avatars, and for the selected customer a big
- * card, four figure cards that lift when clicked, and the latest orders.
+ * card, four figure cards that rise under the pointer, and the latest orders.
  */
 public final class CustomersController {
-    /** A figure card: a title and a value. {@code lifted} is the card the user clicked last. */
+    /** A figure card: a title and a value. {@code lifted} is the card the pointer is over. */
     public static final class Figure {
         private final String key;
         private final String title;
@@ -115,9 +115,13 @@ public final class CustomersController {
         return out;
     }
 
-    /** A click on a figure card: it rises, and falls back when it is clicked again. */
-    public void lift(Figure figure) {
-        liftedKey = figure.getKey().equals(liftedKey) ? "" : figure.getKey();
+    /** The pointer entered ({@code over}) or left a figure card ({@code onHover}): it rises while the pointer is over it. */
+    public void hover(Figure figure, boolean over) {
+        if (over) {
+            liftedKey = figure.getKey();
+        } else if (figure.getKey().equals(liftedKey)) {
+            liftedKey = "";
+        }
         session.host().requestRender();
     }
 }

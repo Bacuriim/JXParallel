@@ -1,13 +1,12 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <!--
-  The order editor, a Modal (the Dialog tag cannot be given fillWidth): text fields with a validation message under each, a DatePicker, a ComboBox for the status,
+  The order editor, a Dialog (title, padding, gap and fillWidth are its own attributes; the buttons with slot="actions" go in its button bar): text fields with a validation message under each, a DatePicker, a ComboBox for the status,
   line items (a Spinner for the quantity) that can be added and removed, and the computed total.
   Enter presses Save (the defaultButton), Ctrl+S too (accelerator), Escape cancels (onShowing asks for false).
   The inputs are controlled: each change goes to the controller, which re-renders with the new value.
 -->
-<Modal controller="com.jxparallel.examples.orders.EditorController" showing="${open}" onShowing="#setOpen"
+<Dialog controller="com.jxparallel.examples.orders.EditorController" title="${title}" showing="${open}" onShowing="#setOpen"
        dismissible="false" padding="24" gap="6" alignment="TOP_LEFT" fillWidth="true" prefWidth="680">
-  <Label text="${title}" bold="true" fontSize="18" margin="0 0 8 0"/>
   <Row gap="14" fillHeight="false">
     <Column hgrow="always" gap="2" fillWidth="true">
       <Label text="Customer" fontSize="12" textFill="${palette.muted}"/>
@@ -23,14 +22,12 @@
   <Row gap="14" fillHeight="false">
     <Column hgrow="always" gap="2" fillWidth="true">
       <Label text="Date" fontSize="12" textFill="${palette.muted}"/>
-      <DatePicker value="${draft.dateText}" prompt="yyyy-mm-dd" onChange="#setDate"
-                  showing="${dateOpen}" onShowing="#setDateOpen"/>
+      <DatePicker value="${draft.dateText}" prompt="yyyy-mm-dd" onChange="#setDate"/>
       <Label text="${dateError}" fontSize="12" textFill="${palette.error}"/>
     </Column>
     <Column hgrow="always" gap="2" fillWidth="true">
       <Label text="Status" fontSize="12" textFill="${palette.muted}"/>
-      <ComboBox items="${statusChoices}" value="${draft.statusLabel}" onChange="#setStatus"
-                showing="${statusOpen}" onShowing="#setStatusOpen"/>
+      <ComboBox items="${statusChoices}" value="${draft.statusLabel}" onChange="#setStatus"/>
       <Label text=" " fontSize="12"/>
     </Column>
   </Row>
@@ -40,10 +37,10 @@
     <Column gap="1" fillWidth="true">
       <Row gap="8" alignment="CENTER_LEFT">
         <TextField text="${l.description}" prompt="What was ordered" hgrow="always" onChange="#setDescription(l)"/>
-        <Spinner value="${l.quantityText}" min="1" max="999" step="1" prefWidth="90" onChange="#setQuantity(l)"/>
+        <Spinner value="${l.quantity}" integer="true" min="1" max="999" step="1" prefWidth="90" onChange="#setQuantity(l)"/>
         <TextField text="${l.unitPrice}" prompt="Unit price" prefWidth="100" onChange="#setPrice(l)"/>
         <Column prefWidth="90" alignment="CENTER_RIGHT"><Label text="${l.subtotalText}"/></Column>
-        <Button text="Remove" variant="text" tooltip="Remove this item" onAction="#removeLine(l)"/>
+        <IconButton icon="delete" tooltip="Remove this item" onAction="#removeLine(l)"/>
       </Row>
       <Label text="${l.shownError}" fontSize="12" textFill="${palette.error}"/>
     </Column>
@@ -56,9 +53,7 @@
     <Label text="${totalText}" bold="true" fontSize="20"/>
   </Row>
 
-  <ButtonBar margin="8 0 0 0">
-    <Button text="Cancel" variant="outlined" onAction="#cancel" tooltip="Escape"/>
-    <Button text="Save" variant="filled" defaultButton="true" accelerator="Ctrl+S" onAction="#save"
-            tooltip="Enter or Ctrl+S"/>
-  </ButtonBar>
-</Modal>
+  <Button slot="actions" text="Cancel" variant="outlined" onAction="#cancel" tooltip="Escape"/>
+  <Button slot="actions" text="Save" variant="filled" defaultButton="true" accelerator="Ctrl+S" onAction="#save"
+          tooltip="Enter or Ctrl+S"/>
+</Dialog>

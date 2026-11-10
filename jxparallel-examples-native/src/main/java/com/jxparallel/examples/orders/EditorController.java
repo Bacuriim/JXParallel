@@ -18,8 +18,6 @@ public final class EditorController {
     private OrderDraft draft = OrderDraft.blank(java.time.LocalDate.now());
     private boolean submitted;
     private final Set<String> touched = new HashSet<String>();
-    private boolean statusOpen;
-    private boolean dateOpen;
 
     /** @param onSaved called, on the UI thread, with the order that was just saved to the store */
     public EditorController(Session session, Consumer<Order> onSaved) {
@@ -39,8 +37,6 @@ public final class EditorController {
         draft = d;
         submitted = false;
         touched.clear();
-        statusOpen = false;
-        dateOpen = false;
         open = true;
         session.host().requestRender();
     }
@@ -96,24 +92,6 @@ public final class EditorController {
         return Status.labels();
     }
 
-    public boolean getStatusOpen() {
-        return statusOpen;
-    }
-
-    public void setStatusOpen(boolean v) {
-        statusOpen = v;
-        session.host().requestRender();
-    }
-
-    public boolean getDateOpen() {
-        return dateOpen;
-    }
-
-    public void setDateOpen(boolean v) {
-        dateOpen = v;
-        session.host().requestRender();
-    }
-
     private void touch(String field) {
         touched.add(field);
         session.host().requestRender();
@@ -140,9 +118,9 @@ public final class EditorController {
         session.host().requestRender();
     }
 
-    /** The spinner reports a double. */
-    public void setQuantity(OrderDraft.DraftLine line, double v) {
-        line.setQuantity((int) Math.round(v));
+    /** The spinner ({@code integer="true"}) reports an int. */
+    public void setQuantity(OrderDraft.DraftLine line, int v) {
+        line.setQuantity(v);
         line.touch();
         touched.add("lines");
         session.host().requestRender();

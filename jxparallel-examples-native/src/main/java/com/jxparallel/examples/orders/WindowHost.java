@@ -1,7 +1,6 @@
 package com.jxparallel.examples.orders;
 
 import java.io.File;
-import java.time.Duration;
 import java.util.Collections;
 import java.util.List;
 import java.util.concurrent.Callable;
@@ -57,8 +56,7 @@ final class WindowHost implements Host {
 
     @Override
     public <T> CompletableFuture<T> background(Callable<T> work, CancellationToken token) {
-        // Task has a 30 s time limit unless told otherwise, and a save dialog can stay open longer than that
-        return JXParallel.background(Task.of(work).withCancellationToken(token).withTimeout(Duration.ZERO));
+        return JXParallel.background(Task.of(work).withCancellationToken(token));
     }
 
     @Override
