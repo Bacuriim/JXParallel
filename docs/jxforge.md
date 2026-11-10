@@ -853,12 +853,16 @@ A file may start with `<Style>` elements, direct children of its root, which are
 - The theme: `theme="light"` or `"dark"` on the root. The six tokens `primary onPrimary surface onSurface outline error` are accepted wherever a color is
   written, as a literal (`background="surface"`), and become the color of the file's theme when it is read, so the interpreter and the compiler build the same
   props. The root also gets the prop `theme`, which the renderer inherits down the tree: it paints the themed root with `surface`, draws `Label` text in
-  `onSurface` and the Material controls above in the theme's colors.
+  `onSurface` and the Material controls above in the theme's colors. The classic controls (`Button` without `variant`, `CheckBox`, `TextField`,
+  `PasswordField`, `TextArea`, `ComboBox`, `DatePicker`, `Spinner`, `Slider`, `ProgressBar`, `Scroll`, `ListView`, `TableView`, `TabPane`, scroll bars and the popups of
+  the pickers) keep the Modena look in the light theme and are painted in a dark palette derived from the six tokens (bodies from `surface`, text from `onSurface`,
+  borders from `outline`, focus and selection from `primary`) in the dark one. A `background` written on a `Scroll`, `ListView` or `TableView` wins in both themes
+  (the plain rows of a list or table then show it, without stripes).
 - A bound theme: `theme="${themeName}"` on the root (`light`, `dark`; null or empty gives no theme and the light tokens; anything else is an error). The
   tokens written anywhere in the file are then resolved each time the screen is built, from the controller's current value, so changing the property and
   rendering again (a reconcile keeps the nodes) switches every themed color at run time, interpreter and compiled alike. With a written theme the tokens are
   resolved once when the file is read, as before. While the theme is bound a `<For memo="true">` body cannot use a token (it would keep the first theme's
-  color): that is an error. Only the root has a `theme`; colors a binding gives (`textFill="${c}"`) are ARGB values or `#` text and are not tokens. The classic controls (`Button` without `variant`, `CheckBox`, `TextField` ...) keep their Modena look.
+  color): that is an error. Only the root has a `theme`; colors a binding gives (`textFill="${c}"`) are ARGB values or `#` text and are not tokens.
 - Tokens, light / dark: primary `#1565C0` / `#90CAF9`, onPrimary `#FFFFFF` / `#0D2B4A`, surface `#FFFFFF` / `#1C1B1F`, onSurface `#1C1B1F` / `#E6E1E5`, outline
   `#79747E` / `#938F99`, error `#B3261C` / `#F2B8B5`. `JxmlThemes` (here) and `JXTheme` (the renderer) hold the same table; a test compares them.
 
