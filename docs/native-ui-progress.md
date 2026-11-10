@@ -33,7 +33,7 @@ properties, bindings and animations behave as before; only the scene graph is no
   scroll, action, window and drag-and-drop events (custom dragboard with drag views);
   accelerators on the scene (no mnemonics yet); focus traversal with Tab; default and cancel buttons.
 - **CSS subset.** Stylesheets and inline styles with selector specificity, pseudo-classes,
-  default style classes, looked-up colors from `.root`, `derive()` and gradients (first stop);
+  default style classes, looked-up colors from `.root`, `derive()` and gradients (all stops);
   stylesheets override values set in code and inline styles override both, like JavaFX.
 - **Text.** Caret, selection, clipboard and `TextFormatter` filters; JavaFX's own line metrics
   and text widths are measured once from the running JavaFX, so native labels size exactly like
@@ -93,9 +93,9 @@ framebuffer is in physical pixels. `JXWindow.getScale()` is physical pixels per 
 
 ## Current limitations
 
-- translate, scale and rotate are kept as values but not drawn (only opacity is); shape
+- translate, scale and rotate are drawn by Skia and NanoVG (the software renderer moves and scales uniformly, no rotation); shape
   transitions (`FillTransition`, `StrokeTransition`, `PathTransition`) are not supported
-- CSS: no combinators beyond descendant and child, no media queries, gradients use their first stop
+- CSS: no combinators beyond descendant and child, no media queries, gradients keep all stops (repeat/reflect cycles and a radial focus are ignored)
 - a child spanning a fixed-size (`USE_PREF_SIZE`) track in a centred GridPane can be placed 1 px
   off JavaFX (documented in `JXGridLayout`)
 - wrapped labels take the width set on them; JavaFX's content bias (height for the width the

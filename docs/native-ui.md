@@ -141,6 +141,6 @@ booleans and colors and checks names, so screens should use it.
 - Arrow-key navigation and hover in popups and menus; Tab focus traversal in `jxparallel-ui`
   (`JXWindow` sends keys to the last clicked node).
 - A screen-reader adapter for the accessibility tree.
-- Shadows, and loading an image file for `Image` (it takes decoded pixels).
+- Loading an image file for `Image` is done by `JXImages`; shadows are the `elevation` prop.
 
 How the toolkit is tested: [testing-strategy.md](testing-strategy.md).

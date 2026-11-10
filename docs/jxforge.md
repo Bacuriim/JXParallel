@@ -144,6 +144,10 @@ inside a `Border`), and these, which the renderer reads from any node:
 | `onAction` | `#method` | a click on it; the renderer calls the handler of the deepest element under the pointer. A `Button`, `ToggleButton`, `RadioButton`, `Hyperlink`, `CheckBox`, `Switch` or `Chip` acts when the mouse button is released over it (sliding off cancels); Space or Enter on a focused button, toggle, radio button or hyperlink is a click, and Enter elsewhere (but in a `TextArea`) presses the screen's `defaultButton` |
 | `background`, `borderColor` | color | `#RGB`, `#RRGGBB` or `#AARRGGBB` (a binding returns an ARGB `Integer`, or text like that) |
 | `backgroundRadius`, `borderRadius`, `borderWidth` | number | corner radii and border width of the two above |
+| `gradient` | CSS text | `linear-gradient(...)` or `radial-gradient(...)`, painted instead of `background` with all its stops: `linear-gradient(#fff, #000)` (top to bottom), `linear-gradient(from 0% 0% to 100% 0%, #fff 0%, #00f 40%, #000)`, `linear-gradient(to right, ...)`, `linear-gradient(45deg, ...)`, `radial-gradient(center 50% 50%, radius 100%, #fff, #000)`; stop colors are `#RGB`, `#RRGGBB`, `#AARRGGBB`, `rgb()`, `rgba()` or a basic name, stops without a position are spread evenly; `repeat`/`reflect` and a radial focus are read and ignored, a radial gradient is a circle whose radius is a fraction of the shorter side; text that is no gradient leaves the `background` |
+| `elevation` | number | a soft shadow under the box (blurred over twice the elevation, lowered by half of it, in `shadowColor`), drawn with the box's `backgroundRadius`; the box itself is left clear. 0 or absent: none |
+| `shadowColor`, `shadowOffsetX`, `shadowOffsetY` | color, number, number | the shadow's color (default `#40000000`) and offset (default 0 and half the elevation) |
+| `translateX`, `translateY`, `scaleX`, `scaleY`, `rotate` | number | as the JavaFX node properties: the element and everything below it are scaled, then rotated (degrees, clockwise) about the centre of its bounds, then moved. They change where it is drawn and picked (a moved button is clicked where it shows; the handler gets the position in the element's own space), never the layout. Skia and NanoVG draw all of it; the software renderer moves and scales uniformly (equal `scaleX` and `scaleY`) and draws a rotated or unevenly scaled element unrotated or unscaled, though picking still follows the transform. An element with a transform is never skipped for being outside the window; popups opened from inside it are drawn in the window's space |
 
 | Tag | Native element | Attributes |
 |---|---|---|
@@ -770,7 +774,8 @@ JXML screen with `new XView().build(controller)`, and JXML places a Java compone
   the application changes `expanded` (its `onAction` tells it was clicked). The `Tooltip` tag is a box drawn in place; the `tooltip` attribute is the one
   that shows on hover.
 - SVG (and other vector formats) for `Image`: `src` reads the raster formats of stb_image only.
-- Shadows (for `Card`) and the Material look of the bars: they are rows with a background.
+- The Material look of the bars: they are rows with a background. `Card` has no shadow of its own; give it `elevation="4"`. The soft ring of an elevated `Button` is still a ring, not the blurred shadow.
+- Animation of `opacity`, `translate*`, `scale*` and `rotate` over a duration: the renderer draws their values but nothing in JXML changes them over time yet; an application can change them from a binding on each frame it asks for.
 - A `ListView` with columns, and rows of different heights.
 - Hover and arrow-key navigation in the calendar of a `DatePicker`, the cells of a `TimePicker` and the swatches of a
   `ColorPicker`, opening a `MenuBar` with the keyboard (see [Overlays](#overlays)), and a recursive model for `Tree`
