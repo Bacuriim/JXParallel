@@ -172,6 +172,13 @@ public final class JxmlSchema {
         layout("hidden", "hidden", AttrType.BOOLEAN, true);
         layout("mouseTransparent", "mouseTransparent", AttrType.BOOLEAN, false);
         layout("tooltip", "tooltip", AttrType.STRING, true); // shown when the pointer rests on the element
+        // accessibility, read by the screen-reader tree (JXNativeAccessibility): a name and a description, a role that replaces
+        // the detected one, hidden from assistive technology, and labelFor="key": this element names the one with that key
+        layout("accessibleName", "accessibleName", AttrType.STRING, true);
+        layout("accessibleDescription", "accessibleDescription", AttrType.STRING, true);
+        layout("accessibleRole", "accessibleRole", AttrType.STRING, false);
+        layout("accessibleHidden", "accessibleHidden", AttrType.BOOLEAN, true);
+        layout("labelFor", "labelFor", AttrType.STRING, false);
         // the shape of the mouse pointer over the element (an enabled text field, hyperlink and split pane divider have theirs)
         LAYOUT.put("cursor", new Attr("cursor", "cursor", AttrType.STRING, false, CURSORS, null));
         // files dropped on the window from the system: the nearest element under the pointer with onDrop gets the paths

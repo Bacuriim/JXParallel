@@ -554,7 +554,7 @@ JMH gate, ArchUnit, mutation testing): [docs/testing-strategy.md](docs/testing-s
 | Overlays (dialogs, menus, pickers, snack bars) | Implemented; hover and keyboard navigation in combo lists, menus, the calendar and the time and color grids; menus open with F10, Alt and the Menu key; accelerators |
 | JavaFX-compatible API in native mode | Implemented and tested headless; not yet run on a large real application |
 | CSS | Subset: selectors with specificity, pseudo-classes, looked-up colors, inline styles |
-| Accessibility | Tree model only; no screen-reader adapter |
+| Accessibility | Live accessibility tree, actions, events and JXML attributes (platform-neutral, tested); Windows UI Automation adapter is opt-in, see docs/accessibility.md; no AT-SPI or macOS adapter; never used with a screen reader by a person |
 | FXML compiled by JXForge | Partly: `FxmlToJxml` converts the FXML subset in [jxforge-fxml.md](docs/jxforge-fxml.md) to JXML (goal `jxforge:fxml`, command line, `JxmlTemplate.readFxml`) with a report of what it could not map; `fx:id` node injection cannot be converted, and no real application has been migrated yet. FXML on JavaFX is still loaded by `FXMLLoaderService` |
 | Gradle plugin for JXForge | `jxforge-gradle-plugin/` (id `io.github.bacuriim.jxforge`, tasks `jxforgeGenerate`, `jxforgeXsd`, `jxforgeFxml`), tested with TestKit on Gradle 7.5.1, 8.5 and 8.10.2; not yet on the Gradle Plugin Portal, so build it from this repository (`publishToMavenLocal`) for now |
 

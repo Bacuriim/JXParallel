@@ -999,6 +999,22 @@ public final class JXNativeNode {
         }
     }
 
+    /** The node that has the keyboard focus (see {@link #setFocusOwner}), or null; display thread only. */
+    static JXNativeNode focusOwner() {
+        return focusOwner;
+    }
+
+    /** Whether the node asks for the keyboard focus on its own: a control that takes it, or a list or table that selects. */
+    boolean focusable() {
+        return (FOCUSABLE.contains(type) || CLICKED_ON_RELEASE.contains(type) || JXSelection.enabled(this))
+                && !Boolean.TRUE.equals(props.get("disabled")) && !Boolean.TRUE.equals(props.get("hidden"));
+    }
+
+    /** Whether a click is meant to act on a node of this type (it is armed on the press and acts on the release). */
+    static boolean clickedOnRelease(String type) {
+        return CLICKED_ON_RELEASE.contains(type);
+    }
+
     /** Whether a node of this type takes the keyboard focus on its own (lists and tables only do with a selection). */
     static boolean takesFocus(String type) {
         return FOCUSABLE.contains(type) || CLICKED_ON_RELEASE.contains(type);

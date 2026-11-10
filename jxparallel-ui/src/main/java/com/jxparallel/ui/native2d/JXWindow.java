@@ -766,6 +766,7 @@ public final class JXWindow implements AutoCloseable {
             backend = NANOVG.equals(rendererName) ? new NanoVGBackend() : new SkiaBackend();
         }
         JXDisplay.add(this);
+        a11y = new JXWindowAccessibility(this);
         if (!icons.isEmpty()) {
             applyIcons(handle);
         }
@@ -916,8 +917,12 @@ public final class JXWindow implements AutoCloseable {
             }
             requestRender();
         });
-        GLFW.glfwSetWindowFocusCallback(handle, (h, focused) ->
-                deliver(JXInputEvent.window(focused ? JXInputEvent.Kind.FOCUS_GAINED : JXInputEvent.Kind.FOCUS_LOST, width, height)));
+        GLFW.glfwSetWindowFocusCallback(handle, (h, focused) -> {
+            if (a11y != null) {
+                a11y.setActive(focused);
+            }
+            deliver(JXInputEvent.window(focused ? JXInputEvent.Kind.FOCUS_GAINED : JXInputEvent.Kind.FOCUS_LOST, width, height));
+        });
         GLFW.glfwSetWindowCloseCallback(handle, h -> {
             if (inputListener != null) {
                 GLFW.glfwSetWindowShouldClose(h, false);
@@ -1254,6 +1259,9 @@ public final class JXWindow implements AutoCloseable {
             JXDisplay.wakeAt(frameIntervalNanos > 0 ? lastFrameNanos + frameIntervalNanos : System.nanoTime() + ANIMATION_FLOOR_NANOS);
         }
         timedOverlay = root != null && lock == null && root.tickOverlays() >= 0;
+        if (a11y != null && root != null && (com.jxparallel.ui.accessibility.JXAccessibility.isEnabled() || a11y.isAttached())) {
+            publishAccessibility(lock);
+        }
         if (!firstPaintReported) {
             firstPaintReported = true;
             if (backend instanceof NanoVGBackend) {
@@ -1268,10 +1276,64 @@ public final class JXWindow implements AutoCloseable {
         }
     }
 
+    private JXWindowAccessibility a11y;
+
+    /** The native window handle (the HWND on Windows), or 0 elsewhere or when not open. */
+    long nativeHandle() {
+        long handle = window;
+        if (handle == MemoryUtil.NULL || !System.getProperty("os.name", "").startsWith("Windows")) {
+            return 0;
+        }
+        try {
+            return org.lwjgl.glfw.GLFWNativeWin32.glfwGetWin32Window(handle);
+        } catch (Throwable t) {
+            return 0;
+        }
+    }
+
+    /** What an assistive technology's request for the focus does: as a click that focuses does. */
+    void focusFromAccessibility(JXNativeNode node) {
+        focus(node);
+        requestRender();
+    }
+
+    private void publishAccessibility(Object lock) {
+        int[] px = new int[1];
+        int[] py = new int[1];
+        GLFW.glfwGetWindowPos(window, px, py);
+        double unitsX = toLogicalX == 0 ? 1 : 1 / toLogicalX;
+        double unitsY = toLogicalY == 0 ? 1 : 1 / toLogicalY;
+        if (lock != null) {
+            synchronized (lock) {
+                a11y.frame(root, width, height, unitsX, unitsY, px[0], py[0], nativeHandle());
+            }
+        } else {
+            a11y.frame(root, width, height, unitsX, unitsY, px[0], py[0], nativeHandle());
+        }
+    }
+
+    /** The accessibility tree of the content as of now (display thread only; null when nothing is mounted). */
+    public com.jxparallel.ui.accessibility.JXAccessibleNode getAccessibleRoot() {
+        if (root == null) {
+            return null;
+        }
+        int[] px = new int[1];
+        int[] py = new int[1];
+        if (window != MemoryUtil.NULL) {
+            GLFW.glfwGetWindowPos(window, px, py);
+        }
+        return new JXNativeAccessibility().snapshot(root, title, width, height, toLogicalX == 0 ? 1 : 1 / toLogicalX,
+                toLogicalY == 0 ? 1 : 1 / toLogicalY, px[0], py[0]);
+    }
+
     private void release() {
         long handle = window;
         if (handle == MemoryUtil.NULL) {
             return;
+        }
+        if (a11y != null) {
+            a11y.close();
+            a11y = null;
         }
         JXDisplay.remove(this);
         boolean gl = capabilities != null;

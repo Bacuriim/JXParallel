@@ -364,7 +364,7 @@ final class JXSelection {
     }
 
     /** Scrolls the list the least that shows the row at {@code index}. */
-    private static void reveal(JXNativeNode root, JXNativeNode list, int index) {
+    static void reveal(JXNativeNode root, JXNativeNode list, int index) {
         List<JXNativeNode> path = pathTo(root, list, new ArrayList<JXNativeNode>());
         if (path == null) {
             return;

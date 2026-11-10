@@ -138,7 +138,7 @@ a real window (see the changelog entry of each).
 - wrapped labels take the width set on them; JavaFX's content bias (height for the width the
   parent gives) is not modelled in the box layouts
 - no `TreeView` (use `Tree`)
-- platform screen-reader adapters are not implemented
+- accessibility: the live tree, actions and events are platform-neutral (docs/accessibility.md); the only platform adapter is the opt-in Windows UI Automation one; no AT-SPI (Linux) or NSAccessibility (macOS) adapter, and no text-range support
 - `jxparallel-fx` builds with JDK 8 (bundled JavaFX 8); `jxparallel-ui` tests need JDK 9+ for
   Skia (Skija does not load on Java 8, where NanoVG draws)
 
@@ -251,7 +251,7 @@ JXAccessibleNode tree = JXAccessibilityTree.from(screen);
 List<JXAccessibleNode> ordered = tree.flatten();
 ```
 
-The tree exposes stable roles and accessible names to future platform adapters.
+The element tree gives roles and names; the live tree of a window (`JXWindow.getAccessibleRoot()`, `JXNativeAccessibility`) adds states, values, bounds, actions and events: see `docs/accessibility.md`.
 
 ## Styling and animation
 
