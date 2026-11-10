@@ -2179,6 +2179,32 @@ class JxmlComponentBehaviorTest {
         }
 
         @Test
+        void ctrlShiftAcceleratorsReachPastATextField() {
+            Ui ui = new Ui("<TextField text=\"@{name}\"/>\n<Button text=\"Paste plain\" accelerator=\"Ctrl+Shift+V\" onAction=\"#save\"/>"
+                    + "\n<Button text=\"Redo\" accelerator=\"Ctrl+Shift+Z\" onAction=\"#click\"/>");
+            JXNativeNode.setClipboard(new com.jxparallel.ui.input.JXClipboard() {
+                @Override
+                public String getText() {
+                    return "PASTED";
+                }
+
+                @Override
+                public void setText(String value) {
+                }
+            });
+            try {
+                ui.click(ui.find("input"));
+                ui.key(86, CTRL_ | JXInputEvent.SHIFT);
+                assertEquals(1, ui.c.saves, "Ctrl+Shift+V runs the button with a field focused");
+                assertTrue(ui.c.getName() == null || ui.c.getName().isEmpty(), "and nothing was pasted");
+                ui.key(90, CTRL_ | JXInputEvent.SHIFT);
+                assertEquals(0, ui.c.clicks, "Ctrl+Shift+Z stays the field's redo");
+            } finally {
+                JXNativeNode.setClipboard(null);
+            }
+        }
+
+        @Test
         void anOpenMenuAndAHeldKeyAreLeftAlone() {
             Ui ui = new Ui("<Button text=\"Save\" accelerator=\"Ctrl+S\" onAction=\"#save\"/>\n"
                     + "<MenuButton text=\"Actions\"><MenuItem text=\"Open\" onAction=\"#click\"/></MenuButton>");

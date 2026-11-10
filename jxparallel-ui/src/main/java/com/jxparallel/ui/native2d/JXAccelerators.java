@@ -68,7 +68,14 @@ final class JXAccelerators {
         }
         int code = event.getKeyCode();
         if (event.isShortcutDown()) {
-            return code == KEY_A || code == KEY_C || code == KEY_X || code == KEY_V || code == KEY_Z || code == KEY_Y;
+            // only the exact shortcut is the field's: Ctrl+Shift+V or Ctrl+Alt+C are free for accelerators; the one
+            // Shift combination the field edits with is Ctrl+Shift+Z (redo)
+            int others = event.getModifiers() & (JXInputEvent.SHIFT | JXInputEvent.ALT | JXInputEvent.META | JXInputEvent.CONTROL)
+                    & ~JXInputEvent.SHORTCUT;
+            if (others == 0) {
+                return code == KEY_A || code == KEY_C || code == KEY_X || code == KEY_V || code == KEY_Z || code == KEY_Y;
+            }
+            return others == JXInputEvent.SHIFT && code == KEY_Z;
         }
         if ((event.getModifiers() & (JXInputEvent.ALT | JXInputEvent.META)) != 0) {
             return false;
