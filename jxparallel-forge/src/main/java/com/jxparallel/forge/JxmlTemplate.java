@@ -666,6 +666,13 @@ public final class JxmlTemplate implements JxmlView<Object> {
         if (attr.choices != null && !attr.choices.contains(text.trim())) {
             throw new JxmlException(source, line, attr.name + "=\"" + value + "\" is not one of " + attr.choices);
         }
+        if (attr.check != null) {
+            try {
+                attr.check.accept(text);
+            } catch (IllegalArgumentException e) {
+                throw new JxmlException(source, line, attr.name + "=\"" + value + "\": " + e.getMessage());
+            }
+        }
         if (attr.type == AttrType.COLOR && JxmlThemes.isToken(text)) {
             text = String.format("#%08X", JxmlThemes.color(theme, text)); // a theme token, resolved now: both modes get the same color
         }

@@ -2345,4 +2345,54 @@ class JxmlComponentBehaviorTest {
             assertNull(JXCursor.parse(null));
         }
     }
+
+    @Nested
+    class AnimationBehaviour {
+        private static final long MS = 1_000_000L;
+        private static final long T0 = 7_000 * MS;
+
+        @Test
+        void aClickDuringATransitionHitsWhereTheNodeIsDrawn() {
+            Ui ui = new Ui("<Button text=\"Go\" prefWidth=\"40\" translateX=\"${volume}\" transition=\"translateX 100ms linear\""
+                    + " onAction=\"#click\"/>");
+            ui.c.setVolume(0);
+            ui.refresh();
+            ui.root.tickAnimations(T0);
+            ui.root.tickAnimations(T0 + 500 * MS); // settled at 0
+            ui.c.setVolume(100);
+            ui.refresh(); // the application renders again: the button is kept and slides
+            JXNativeNode button = ui.find("button");
+            ui.root.tickAnimations(T0 + 600 * MS);
+            ui.root.tickAnimations(T0 + 650 * MS); // half way: drawn 50 to the right of where it was laid out
+            int[] c = center(button);
+            ui.click(c[0], c[1]);
+            assertEquals(0, ui.c.clicks, "nothing is where the button was laid out any more");
+            ui.click(c[0] + 50, c[1]);
+            assertEquals(1, ui.c.clicks, "it is where it is drawn");
+            ui.root.tickAnimations(T0 + 700 * MS);
+            ui.click(c[0] + 100, c[1]);
+            assertEquals(2, ui.c.clicks, "and where it came to rest");
+            ui.click(c[0], c[1]);
+            assertEquals(2, ui.c.clicks);
+        }
+
+        @Test
+        void aClickDoesNotRestartTheAnimationOfTheRenderThatFollowsIt() {
+            Ui ui = new Ui("<Button text=\"Go\" prefWidth=\"40\" translateX=\"${volume}\" transition=\"translateX 100ms linear\""
+                    + " onAction=\"#click\"/>");
+            ui.c.setVolume(0);
+            ui.refresh();
+            ui.root.tickAnimations(T0);
+            ui.root.tickAnimations(T0 + 500 * MS);
+            ui.c.setVolume(100);
+            ui.refresh();
+            JXNativeNode button = ui.find("button");
+            ui.root.tickAnimations(T0 + 600 * MS);
+            ui.root.tickAnimations(T0 + 650 * MS);
+            int[] c = center(button);
+            ui.click(c[0] + 50, c[1]); // the application renders again after the click
+            ui.root.tickAnimations(T0 + 680 * MS);
+            assertEquals(80.0, ((Number) button.getProperty("translateX")).doubleValue(), 1e-9, "on its own schedule");
+        }
+    }
 }

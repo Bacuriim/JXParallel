@@ -945,4 +945,21 @@ class JxmlTagsTest {
         assertEquals(Double.valueOf(3), label.getProps().get("shadowOffsetY"));
         assertEquals("linear-gradient(#FFF, #000)", label.getProps().get("backgroundGradient"));
     }
+
+    @Test
+    void transitionAndEnterAreOnEveryTag() throws Exception {
+        JXElement label = screen("<Label opacity=\"0.5\" transition=\"opacity 200ms ease-out, translateX 0.3s linear 50ms\" "
+                + "enter=\"opacity 0 200ms, translateY 12 200ms ease-out\"/>");
+        assertEquals("opacity 200ms ease-out, translateX 0.3s linear 50ms", label.getProps().get("transition"));
+        assertEquals("opacity 0 200ms, translateY 12 200ms ease-out", label.getProps().get("enter"));
+        JXElement all = screen("<Button text=\"b\" transition=\"all 150ms\"/>");
+        assertEquals("all 150ms", all.getProps().get("transition"));
+    }
+
+    @Test
+    void aBadTransitionOrEnterIsReportedWithItsLine() {
+        assertError(2, "transition=\"opacity fast\"", "<Column controller=\"" + CTRL + "\">\n<Label transition=\"opacity fast\"/></Column>");
+        assertError(2, "cannot be animated", "<Column controller=\"" + CTRL + "\">\n<Label transition=\"width 1s\"/></Column>");
+        assertError(2, "from-value", "<Column controller=\"" + CTRL + "\">\n<Label enter=\"opacity 200ms\"/></Column>");
+    }
 }

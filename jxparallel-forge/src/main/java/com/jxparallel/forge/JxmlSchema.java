@@ -24,12 +24,24 @@ public final class JxmlSchema {
         public final java.util.List<String> choices;
         /** For a CHANGE attribute: the type of the value the handler gets (STRING, BOOLEAN, DOUBLE, INT, DOUBLES, or STRINGS for a List&lt;String&gt;). */
         public final AttrType valueType;
+        /** For a STRING written as a literal: checks its text (throws IllegalArgumentException with the reason), or null. */
+        public final java.util.function.Consumer<String> check;
 
         Attr(String name, String prop, AttrType type, boolean bindable) {
             this(name, prop, type, bindable, null, null);
         }
 
+        Attr(String name, String prop, AttrType type, boolean bindable, java.util.function.Consumer<String> check) {
+            this(name, prop, type, bindable, null, null, check);
+        }
+
         Attr(String name, String prop, AttrType type, boolean bindable, java.util.List<String> choices, AttrType valueType) {
+            this(name, prop, type, bindable, choices, valueType, null);
+        }
+
+        Attr(String name, String prop, AttrType type, boolean bindable, java.util.List<String> choices, AttrType valueType,
+                java.util.function.Consumer<String> check) {
+            this.check = check;
             this.name = name;
             this.prop = prop;
             this.type = type;
@@ -171,6 +183,10 @@ public final class JxmlSchema {
         layout("borderColor", "borderColor", AttrType.COLOR, true);
         layout("borderWidth", "borderWidth", AttrType.DOUBLE, true);
         layout("borderRadius", "borderRadius", AttrType.DOUBLE, true);
+        // animation (JXTransitions): what a changed prop does on a kept element, and where a new element starts from; both are
+        // checked here, once per literal, with the same parser the renderer uses
+        LAYOUT.put("transition", new Attr("transition", "transition", AttrType.STRING, true, com.jxparallel.ui.JXTransitions::checkTransition));
+        LAYOUT.put("enter", new Attr("enter", "enter", AttrType.STRING, true, com.jxparallel.ui.JXTransitions::checkEnter));
         // drawn and picked, never laid out: the node and its subtree are scaled, then rotated (degrees, clockwise) about the
         // centre of the node's bounds, then moved (JXPaint, JXTransforms)
         layout("translateX", "translateX", AttrType.DOUBLE, true);
