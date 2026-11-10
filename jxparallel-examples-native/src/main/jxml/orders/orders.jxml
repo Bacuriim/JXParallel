@@ -17,7 +17,9 @@
       </Row>
       <Row gap="8" alignment="CENTER_LEFT">
         <Label text="${countText}" fontSize="12" textFill="${palette.muted}" hgrow="always"/>
-        <CheckBox text="Select several rows" selected="@{multiple}" tooltip="Ctrl+click adds a row, Shift+click a range"/>
+        <!-- a CheckBox keeps its classic dark text, unreadable on the dark palette: the words are a themed Label -->
+        <CheckBox selected="@{multiple}" tooltip="Ctrl+click adds a row, Shift+click a range"/>
+        <Label text="Select several rows" margin="0 8 0 0"/>
         <Button text="Edit" variant="outlined" disabled="${noSelection}" onAction="#editSelected" tooltip="Edit the selected order (Enter in the table)"/>
         <Button text="Delete" variant="outlined" disabled="${noSelection}" onAction="#askDelete" tooltip="Delete the selected orders"/>
         <Button text="New order" variant="filled" onAction="#newOrder" tooltip="Ctrl+N"/>

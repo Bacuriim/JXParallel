@@ -309,10 +309,10 @@ class OrdersGesturesTest {
         assertEquals(3, shell.editor().getDraft().getLines().size());
         assertEquals(3, ui.findAll("spinner").size(), "one Spinner for each line");
         OrderDraft.DraftLine keep = shell.editor().getDraft().getLines().get(2);
-        // the remove buttons are the buttons with only an icon, one per line
+        // one Remove button for each line
         List<JXNativeNode> removers = new ArrayList<JXNativeNode>();
         for (JXNativeNode b : ui.findAll("button")) {
-            if (b.getChildren().size() == 1 && "icon".equals(b.getChildren().get(0).getType()) && b.getX() > 700) {
+            if ("Remove".equals(b.getProperty("label"))) {
                 removers.add(b);
             }
         }
@@ -378,7 +378,13 @@ class OrdersGesturesTest {
     @Test
     void theSidebarSwitchesScreens() {
         List<JXNativeNode> nav = ui.findAll("button");
-        ui.click(nav.get(2)); // Customers
+        // a click on the picture of a button counts as a click on the button (the Icon is mouseTransparent in the JXML:
+        // without that the Icon, the deepest element under the pointer, takes the click and nothing happens)
+        ui.click(nav.get(2).getChildren().get(0));
+        assertEquals(ShellController.Screen.CUSTOMERS, shell.getScreen());
+        ui.click(ui.findAll("button").get(1));
+        assertEquals(ShellController.Screen.ORDERS, shell.getScreen());
+        ui.click(ui.findAll("button").get(2)); // Customers
         assertEquals(ShellController.Screen.CUSTOMERS, shell.getScreen());
         assertEquals(0, ui.findAll("table").size());
         JXNativeNode list = ui.find("list");

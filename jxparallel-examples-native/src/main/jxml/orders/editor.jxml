@@ -43,7 +43,7 @@
         <Spinner value="${l.quantityText}" min="1" max="999" step="1" prefWidth="90" onChange="#setQuantity(l)"/>
         <TextField text="${l.unitPrice}" prompt="Unit price" prefWidth="100" onChange="#setPrice(l)"/>
         <Column prefWidth="90" alignment="CENTER_RIGHT"><Label text="${l.subtotalText}"/></Column>
-        <Button variant="text" round="true" tooltip="Remove this item" onAction="#removeLine(l)"><Icon name="delete" size="18" mouseTransparent="true"/></Button>
+        <Button text="Remove" variant="text" tooltip="Remove this item" onAction="#removeLine(l)"/>
       </Row>
       <Label text="${l.shownError}" fontSize="12" textFill="${palette.error}"/>
     </Column>

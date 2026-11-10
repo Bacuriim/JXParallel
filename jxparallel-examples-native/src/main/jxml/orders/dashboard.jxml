@@ -3,7 +3,9 @@
   The dashboard: four figure cards and two bar visuals. There is no chart component, so the bars are SizedBoxes whose
   width or height is bound to a number the controller computed (the value as a fraction of the largest, in pixels).
 -->
-<Scroll controller="com.jxparallel.examples.orders.DashboardController" fitToWidth="true" background="${palette.background}">
+<!-- Not inside a Scroll: a Scroll paints its own light background whatever the theme (JXPaint), which would
+     cover the dark palette; the screen fits the window's minimum size instead. -->
+<Stack controller="com.jxparallel.examples.orders.DashboardController" alignment="TOP_LEFT">
   <Column padding="18" gap="18" fillWidth="true">
     <Label text="Dashboard" bold="true" fontSize="22"/>
     <If test="${noOrders}">
@@ -50,4 +52,4 @@
       </Card>
     </Row>
   </Column>
-</Scroll>
+</Stack>

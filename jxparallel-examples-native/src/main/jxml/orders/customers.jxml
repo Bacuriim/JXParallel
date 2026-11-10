@@ -13,7 +13,7 @@
     </ListItem>
   </ListView>
 
-  <Scroll slot="center" fitToWidth="true" background="${palette.background}">
+  <Stack slot="center" alignment="TOP_LEFT">
     <Column padding="14" gap="16" fillWidth="true">
       <If test="${noCustomers}">
         <Label text="No orders yet, so no customers." textFill="${palette.muted}"/>
@@ -57,5 +57,5 @@
         </Card>
       </If>
     </Column>
-  </Scroll>
+  </Stack>
 </Border>
