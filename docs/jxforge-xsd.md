@@ -61,7 +61,9 @@ for "XML schema association" is the reference.
   Registered Patterns). With `xsi:noNamespaceSchemaLocation` in the file, the IDE reads the schema
   from it. Without it, map the schema by hand in Settings, Languages & Frameworks, Schemas and
   DTDs, with an empty namespace.
-- **VS Code.** Install the XML extension from Red Hat (`redhat.vscode-xml`). Treat `.jxml` as XML
+- **VS Code.** The extension in [`jxforge-vscode`](../jxforge-vscode/README.md) bundles this schema and
+  registers it for `.jxml` files, with highlighting and snippets: no settings needed (built from source, not published).
+  Without it, install the XML extension from Red Hat (`redhat.vscode-xml`). Treat `.jxml` as XML
   with `"files.associations": { "*.jxml": "xml" }`. The extension reads
   `xsi:noNamespaceSchemaLocation`; or associate the schema for all files in `settings.json`:
 
