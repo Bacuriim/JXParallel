@@ -782,8 +782,10 @@ JXML screen with `new XView().build(controller)`, and JXML places a Java compone
   (see [Trees](#trees)).
 - `<For>` over a `Map`, and the loop index as a variable.
 - An XSD for autocompletion in IDEs.
-- Compiling existing `.fxml` files with the same compiler, so a JavaFX application moving to the
-  native UI gets compiled screens without rewriting them.
+- Compiling existing `.fxml` files is done in part: [FXML to JXML](jxforge-fxml.md) converts the FXML subset listed there,
+  and reports the rest. Still open: the `fx:id` / `@FXML` injection of nodes (the native UI has no node objects, so the
+  controller code that uses them has to move to bindings), CSS files, custom controls, column widths of a `GridPane`,
+  and a try-out on a real application's screens.
 - Gradle plugin.
 
 Measurements: [jxforge-benchmark-2026-10-21.md](jxforge-benchmark-2026-10-21.md) (20 form screens: compiled, interpreted, FXML) and [jxforge-components-benchmark-2026-10-21.md](jxforge-components-benchmark-2026-10-21.md) (every component one by one, against JavaFX).
