@@ -68,6 +68,14 @@ cd JXParallel
 mvn install -DskipTests
 ```
 
+To see it first, run the sample order-management app from the clone, without installing anything
+(`-Dapp=hello`, `metrics`, `stress`, `components` and `forge-load` start the other demos; see
+[`docs/example-orders.md`](docs/example-orders.md)):
+
+```powershell
+mvn -pl jxparallel-examples-native -am -Prun compile
+```
+
 ```xml
 <dependencies>
   <dependency>

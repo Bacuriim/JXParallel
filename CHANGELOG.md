@@ -2,6 +2,8 @@
 
 ## Unreleased
 
+- examples: `mvn -pl jxparallel-examples-native -am -Prun compile` starts JX Orders from the reactor (profile `run` of `jxparallel-examples-native`, an `exec-maven-plugin` execution bound to `compile`, so `-am` builds the other modules without running anything); `-Dapp=` picks `orders` (default), `hello`, `metrics`, `stress`, `components` or `forge-load`, `-Dapp.args=` and `-Dapp.jvm=` pass program arguments and JVM options; `scripts/run-orders.ps1` now calls it; started with the software renderer on Windows, not run on other systems
+
 - core: `JXParallel.background(CancellableWork)` runs work that receives its `CancellationToken` (`token -> ...`) and returns a `TaskHandle` (`future()`, `token()`, `cancel()`, `isCancelled()`, `isDone()`); `cancel()` cancels the token and the future at once and does not interrupt the thread; the work must check the token itself; no timeout
 
 - core, behaviour change: a `Task` no longer has a 30-second timeout by default. Before, `Task.of(...)` (and `TaskContext`) carried an implicit 30 s timeout that the pool enforced by interrupting the thread, so a task blocked longer (a native file dialog, a user decision) was killed with a `TimeoutException`. Now a task has no timeout unless `withTimeout(...)` is called; `Duration.ZERO`, a negative duration or `null` mean none, and the new `withoutTimeout()` removes one; `getTimeout()` returns `Duration.ZERO` when there is none. Code that relied on the old 30 s limit must call `.withTimeout(30, TimeUnit.SECONDS)`; nothing in this repository did (`JXParallel.background(Callable)`, `FXMLLoaderService` and the benchmarks never had a timeout)

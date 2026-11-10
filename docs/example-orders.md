@@ -19,17 +19,25 @@ below, not from a mock-up.
 
 From the repository root, with JDK 8 or later and Maven on the `PATH`:
 
-```powershell
-scripts\run-orders.ps1                      # builds the reactor's classes, then starts the app
-scripts\run-orders.ps1 -Software            # the software renderer (-Djx.renderer=software)
-scripts\run-orders.ps1 -Offline --screen=customers --theme=dark
+```
+mvn -pl jxparallel-examples-native -am -Prun compile
+mvn -pl jxparallel-examples-native -am -Prun "-Dapp.jvm=-Djx.renderer=software" "-Dapp.args=--screen=customers --theme=dark" compile
 ```
 
-The script is these two steps (`-o` is for an offline build, as in the rest of this repository; never `mvn install`):
+The `run` profile of `jxparallel-examples-native` builds the modules it needs (`-am`; nothing runs in them) and then
+starts the program in its own JVM with the module's runtime classpath, so there is no `install` and no classpath to
+build by hand (add `-o` to build offline). It stops when you close the window. `-Dapp=` picks the program
+(`orders`, the default; `hello`, `metrics`, `stress`, `components`, `forge-load` are the other demos of this module),
+`-Dapp.args=` gives it its arguments and `-Dapp.jvm=` the JVM's options. The goal is the phase `compile`, because the
+profile binds the launch to it.
+
+`scripts\run-orders.ps1` is the same command with shortcuts (`-Software`, `-Offline`, and the rest of the arguments go
+to the app):
 
 ```powershell
-mvn -o -q -pl jxparallel-examples-native -am compile dependency:build-classpath "-Dmdep.outputFile=target/orders-classpath.txt"
-java -cp "jxparallel-examples-native\target\classes;$(Get-Content jxparallel-examples-native\target\orders-classpath.txt)" com.jxparallel.examples.orders.OrdersApp
+scripts\run-orders.ps1                      # the app
+scripts\run-orders.ps1 -Software            # the software renderer (-Djx.renderer=software)
+scripts\run-orders.ps1 -Offline --screen=customers --theme=dark
 ```
 
 Options of `OrdersApp` (they exist to show a screen without any input, for the pictures above and for trying it out):
