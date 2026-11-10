@@ -131,7 +131,69 @@ unless already there.
 
 ## Windows (UI Automation)
 
-See the section below, written with the adapter.
+Module `jxparallel-a11y-windows` (experimental, 64-bit Windows, not published): a UI Automation *server-side provider*
+written with JNA (`jna` and `jna-platform` 5.14.0; `jxparallel-ui` itself has no JNA dependency). It is **off by default**.
+
+Enable it, with the module on the class path:
+
+```
+java -Djx.accessibility=uia -cp ... YourApp
+```
+
+or in code, before or after the window opens: `JXAccessibility.install(new com.jxparallel.a11y.windows.UiaAdapter());`.
+`JXAccessibility.uninstall()` turns it off (the window procedure is put back).
+
+How it works (checked against Microsoft's UI Automation provider documentation and the interface GUIDs/ids that
+`System.Windows.Automation` itself defines):
+
+* On the display thread, when the window is open, it subclasses the window procedure and answers `WM_GETOBJECT` (for
+  `UiaRootObjectId`) with `UiaReturnRawElementProvider`, returning the root provider.
+* Each node is a COM object with hand-built vtables (JNA callbacks): `IRawElementProviderSimple`,
+  `IRawElementProviderFragment` (navigation by parent, siblings, first and last child; runtime id; screen bounding rectangle;
+  `SetFocus`), `IRawElementProviderFragmentRoot` (window only: `ElementProviderFromPoint`, `GetFocus`), and the patterns
+  Invoke, Toggle, Value, RangeValue, SelectionItem and ExpandCollapse where the node supports them. Properties answered:
+  Name, ControlType, IsEnabled, IsKeyboardFocusable, HasKeyboardFocus, IsControlElement/IsContentElement (layout-only
+  groups are not control elements), IsPassword, IsOffscreen, AutomationId (`jx-<id>`), ClassName, FrameworkId, HelpText.
+  A password's Value is refused (`E_ACCESSDENIED`).
+* `ProviderOptions` is `ServerSideProvider`: UI Automation calls the providers on its own threads. They read the immutable
+  snapshot the window publishes after each frame and never wait for the display thread; actions (`Invoke`, `Toggle`,
+  `SetValue`, `Select`, `Expand`, `SetFocus`) are posted to the display thread and the call returns at once.
+* Events raised after each frame, only while a client is listening (`UiaClientsAreListening`): focus changed
+  (`UiaRaiseAutomationEvent`), value, name, enabled, toggle and expand/collapse state changes
+  (`UiaRaiseAutomationPropertyChangedEvent`), selection item selected, structure changed (children invalidated), and
+  `JXAccessibility.announce` as `UiaRaiseNotificationEvent`.
+
+Control types: button, check box, radio button, hyperlink, text, edit, combo box (also the date, time and color pickers),
+spinner, slider, progress bar, scroll bar, list and list item, tree and tree item, tab and tab item, menu bar, menu and
+menu item, image, separator, status bar, tooltip, pane/group; a table is a group and its rows data items (no Grid or Table
+pattern).
+
+### What was verified, and how
+
+`UiaAdapterTest` (Windows only, skipped elsewhere and when no window can be opened) opens a small window with the software
+renderer and uses the UI Automation *client* API from a PowerShell child process (`System.Windows.Automation`, `-MTA`); no
+mouse or keyboard input is synthesized. It checks that the client reads the tree (window, group, text "Hello JX", button
+"Increment", check box "Agree", edit "Name", password edit "PIN") with control types, names, patterns (Invoke, Toggle, Value),
+enabled/focusable/password flags and bounding rectangles; that `Invoke` runs the button's `onAction`, `Toggle` the check
+box's `onChange(true)`, `SetValue` the field's `onChange("Typed by UIA")`; that the password's text never appears; and that a
+focus change and an application value change reach a client's focus-changed and property-changed handlers.
+
+### Not verified, not done
+
+* **Narrator, NVDA, JAWS and Accessibility Insights have not been tried** (by a person or otherwise). Only the .NET client
+  API was used.
+* The patterns are checked for Invoke, Toggle, Value (and Value on a password) only; RangeValue, SelectionItem and
+  ExpandCollapse are implemented but have no client-side test. Tab items, list rows, menus and the combo box options were
+  checked through the neutral layer, not through UI Automation.
+* No Text pattern (no caret, selection or text ranges), no Grid/Table/Scroll/Window/Transform patterns, no `ItemContainer`
+  or virtualization pattern: a screen reader reads a text field's whole value only.
+* The COM objects are never freed while the process lives (a client may hold a pointer); memory grows with the number of
+  distinct elements clients ask for. `UiaDisconnectProvider` is not called when a node goes away.
+* 64-bit Windows only (the window procedure and the VARIANT layout are coded for 64-bit); the module needs JNA, so a JVM
+  that cannot load it keeps running without accessibility (a message on the error stream).
+* Behaviour with several windows, with a window procedure subclassed by something else, with high contrast, and while the
+  display thread is busy was not tested. The focus-event test lets the window take the system focus when it opens
+  (`setFocusOnShow(true)`); whether a window that is not in the foreground still delivers focus events was not checked.
 
 ## Auditing
 
