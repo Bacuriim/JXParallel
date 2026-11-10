@@ -16,14 +16,17 @@ The default Maven build contains the modules without JavaFX. The JavaFX ones are
 |---|---|---|
 | `jxparallel-core` | worker pool, tasks, configuration, metrics, lifecycle (`com.jxparallel.core`); properties and observable lists (`properties`); events (`events`); the declarative model `JXElement`, `JXComponent`, `JXState` (`ui`, see [docs/ui-model.md](docs/ui-model.md)) | nothing |
 | `jxparallel-ui` | native scene graph, layouts, controls, overlays, text, the GLFW window, and the Skia, NanoVG and software renderers ([docs/native-ui.md](docs/native-ui.md)) | core, LWJGL, Skija |
-| `jxparallel-forge` | JXForge: the JXML schema, interpreter, compiler, live view and XSD generator ([docs/jxforge.md](docs/jxforge.md)) | core |
-| `jxforge-maven-plugin` | goals `jxforge:generate` and `jxforge:xsd` | forge |
+| `jxparallel-forge` | JXForge: the JXML schema, interpreter, compiler, live view, XSD generator and FXML converter ([docs/jxforge.md](docs/jxforge.md)) | core |
+| `jxforge-maven-plugin` | goals `jxforge:generate`, `jxforge:xsd` and `jxforge:fxml` | forge |
 | `jxparallel-examples-native` | native examples, the component benchmark, the UI stress runner | ui, forge |
+| `jxparallel-a11y-windows` | opt-in Windows UI Automation provider for the accessibility tree ([docs/accessibility.md](docs/accessibility.md)) | ui, JNA |
 | `jxparallel-junit4`, `-junit5`, `-mockito`, `-powermock` | test integrations | core |
 | `jxparallel-benchmarks` | JMH and runtime comparison runners | core, ui |
 | `jxparallel-jcstress` (profile `jcstress`) | thread-safety stress tests | core |
 | `jxparallel-fx`, `jxparallel-fx-controlsfx` (profile `javafx8`, on a JDK 8 with JavaFX) | the JavaFX-compatible API, which can run on the native renderer with `-Djx.backend=native` | core, ui |
 | `jxparallel-javafx`, `jxparallel-fxml`, `jxparallel-examples` (profile `legacy-javafx`, OpenJFX 21) | FX thread dispatch and wrappers of JavaFX controls; parallel FXML loading with a cache; JavaFX example apps | core, ui, JavaFX |
+
+`jxforge-gradle-plugin/` is a separate Gradle build, not a Maven module: the Gradle plugin for JXForge.
 
 `ArchitectureTest` in `jxparallel-ui` and in `jxparallel-forge` keeps the rules below from being broken
 quietly.

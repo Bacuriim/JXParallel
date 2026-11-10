@@ -547,7 +547,7 @@ JMH gate, ArchUnit, mutation testing): [docs/testing-strategy.md](docs/testing-s
 | Worker pool, tasks, backpressure, lifecycle | Tested; used by all benchmarks |
 | Properties, events, observable collections | Tested |
 | FX thread dispatch and parallel FXML loading | Tested; pre-parsed templates with `FXMLLoader` fallback |
-| Native window (Skia 64-bit, NanoVG 32-bit) | Working; Modena and Material looks |
+| Native window (Skia 64-bit, NanoVG 32-bit) | Working; Modena and Material looks; HiDPI, picture files, font families with glyph fallback and right-to-left text, transforms, shadows, gradients, implicit animation, cursors, file drop |
 | JXForge (JXML compiler, interpreter, Maven plugin, live view) | Implemented and tested; 91 widgets, loops, conditions, styles, themes, includes |
 | Incremental UI updates | Implemented: memoized render and in-place reconciliation |
 | Virtualized list, table, tree and tree table | Implemented, with single and multiple row selection by mouse and keyboard |

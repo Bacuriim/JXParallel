@@ -37,8 +37,9 @@ each JVM are in [docs/compatibility.md](docs/compatibility.md) and the README ("
 
 Pre-1.0. The scheduler, properties, events, FXML loading, JXForge and the native widgets are tested; the
 JavaFX-compatible API in native mode has not been run on a large real application. The README's "Project
-status" table lists what is done and what is not, among them keyboard navigation and hover inside popups, a
-screen-reader adapter, compiling FXML with JXForge, and a Gradle plugin.
+status" table lists what is done and what is not, among them
+screen-reader adapters beyond Windows, the parts of FXML the converter cannot map, and macOS and ARM64, which are
+configured but not yet run.
 
 ## Why are there multiple runtime modes?
 

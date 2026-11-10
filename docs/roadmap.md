@@ -42,8 +42,7 @@ Native `list`, `table`, `Tree` and `TreeTable` show only a window of rows (`firs
 drawers and snack bars (overlays). The same controls for the JavaFX-compatible API (`jxparallel-fx`) are
 tracked in [native-ui-progress.md](native-ui-progress.md).
 
-Open: arrow-key navigation and hover in popups and menus; selection in text inputs of JXML screens;
-a `ListView` with columns and rows of different heights ([jxforge.md](jxforge.md), "Not done yet").
+Open: a `ListView` with columns and rows of different heights ([jxforge.md](jxforge.md), "Not done yet").
 
 ## Phase 6: FXML loading and the resource cache (done, one item open)
 
@@ -75,18 +74,17 @@ Open: a 1.0 release of JXForge (the README's quick start still builds it locally
 
 ## JXForge (done for the 1.0 widget checklist, further work open)
 
-The JXML language, interpreter, compiler, live view, command line, Maven plugin goals `generate` and
-`xsd`, and the widget checklist of [jxforge-1.0.md](jxforge-1.0.md) are implemented and tested. The
+The JXML language, interpreter, compiler, live view, command line, Maven plugin goals `generate`, `xsd` and
+`fxml`, the Gradle plugin, the FXML converter, and the widget checklist of [jxforge-1.0.md](jxforge-1.0.md) are implemented and tested. The
 XSD for IDEs is described in [jxforge-xsd.md](jxforge-xsd.md).
 
-Open ([jxforge.md](jxforge.md), "Not done yet"): events the renderer does not report, loading an image
-file for `Image`, shadows, `<For>` over a `Map`, a Gradle plugin, and animations and transitions (out of
-scope for 1.0).
+Open ([jxforge.md](jxforge.md), "Not done yet"): events the renderer does not report, SVG images, exit
+animations, `<For>` over a `Map`, `fx:id` injection when converting FXML, and publishing the Gradle plugin.
 
 ## Not planned in this repository's current scope
 
-A platform screen-reader adapter: `JXAccessibilityTree` builds the tree of roles and names, and nothing
-passes it to the operating system yet.
+Screen-reader adapters for Linux (AT-SPI) and macOS (NSAccessibility). Windows has an opt-in UI Automation
+adapter ([accessibility.md](accessibility.md)).
 
 ## Design principle
 

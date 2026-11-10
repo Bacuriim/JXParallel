@@ -114,7 +114,7 @@ Hit testing skips hidden and mouse-transparent nodes, and open overlays are trie
   button), text fields, password fields, text areas, check boxes, radio and toggle buttons, switches,
   combo boxes, spinners, sliders, scroll bars, progress bars and indicators, date, time and color
   pickers, chips, badges, avatars, icons, steppers, tab bars, pagination, titled panes, hyperlinks,
-  tooltips, images (from pixels the application supplies) and the cells of lists and tables. The element
+  tooltips, images (from a PNG, JPEG, GIF or BMP file through `JXImages`, or from pixels the application supplies) and the cells of lists and tables. The element
   types are the ones `JXControlLayout` and `JXPaint` switch on; JXML's tag list is in
   `JxmlSchema` and [jxforge-1.0.md](jxforge-1.0.md).
 - **Looks.** `JXPaint` paints the JavaFX Modena look, with colors and insets measured on JavaFX 21.
@@ -127,7 +127,9 @@ Hit testing skips hidden and mouse-transparent nodes, and open overlays are trie
 - **Overlays** (`JXOverlays`): the popups of combo boxes and of the date, time and color pickers,
   menus (`menubutton`, `contextmenu`, `menubar`, with submenus), dialogs, drawers and snack bars. They
   are drawn after everything else and take the pointer first. Escape closes the topmost one and Enter runs
-  the default button of an open dialog; there is no arrow-key navigation or hover highlight in popups.
+  the default button of an open dialog. The pointer highlights the option or menu row under it, and the arrows,
+  Home/End, letters, Enter and Escape move through combo lists, menus, the calendar and the time and color grids;
+  F10 or Alt opens the menu bar. Tab and Shift+Tab move the focus through the controls.
 - **Text.** `JXTextEngine` measures text with HarfBuzz (kerning, ligatures, complex scripts) from the
   font file both renderers draw with, on the CPU and without a window. It is the only code allowed to
   use HarfBuzz or FreeType, so layout and the renderers agree on text sizes. `JXTextDocument` holds the caret,
@@ -184,9 +186,8 @@ booleans and colors and checks names, so screens should use it.
 
 - Exit animations (a removed node leaves at once), keyframes, `cubic-bezier(...)`, springs and animated layout; the
   implicit `transition` and `enter` above are what exists.
-- Arrow-key navigation and hover in popups and menus; Tab focus traversal in `jxparallel-ui`
-  (`JXWindow` sends keys to the last clicked node).
-- A screen-reader adapter for the accessibility tree.
-- Loading an image file for `Image` is done by `JXImages`; shadows are the `elevation` prop.
+- Screen-reader adapters for Linux (AT-SPI) and macOS: the accessibility tree, actions and events are
+  platform-neutral, and the only platform adapter is the opt-in Windows UI Automation one ([accessibility.md](accessibility.md)).
+- SVG images, and inline IME composition (committed text only, see [native-ui-progress.md](native-ui-progress.md)).
 
 How the toolkit is tested: [testing-strategy.md](testing-strategy.md).

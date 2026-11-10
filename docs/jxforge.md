@@ -15,7 +15,9 @@ which is useful in development and for screens that only exist at runtime.
 ```
 
 Modules: `jxparallel-forge` (schema, interpreter, compiler, command line) and
-`jxforge-maven-plugin` (goal `jxforge:generate`). Both run on Java 8 and later; the generated
+`jxforge-maven-plugin` (goals `jxforge:generate`, `jxforge:xsd` and `jxforge:fxml`; a Gradle plugin is described under
+[Gradle](#gradle)). An XSD generated from the tag table gives IDEs completion and validation
+([jxforge-xsd.md](jxforge-xsd.md)); existing `.fxml` screens convert with [FXML to JXML](jxforge-fxml.md). Both run on Java 8 and later; the generated
 code is Java 8 source, so one build serves every JVM from 8 to the newest.
 
 ## A screen
@@ -908,11 +910,9 @@ implicitly animated widgets).
 - The Material look of the bars: they are rows with a background. `Card` has no shadow of its own; give it `elevation="4"`. The soft ring of an elevated `Button` is still a ring, not the blurred shadow.
 - Exit animations (an element that leaves fading out): a removed element's node is dropped at once, the reconcile keeps no leaving nodes. Keyframes, `cubic-bezier(...)` curves, springs and animating sizes, colours other than `background` and `textFill`, or any attribute not listed under [Animation](#animation) are not provided either.
 - A `ListView` with columns, and rows of different heights.
-- Hover and arrow-key navigation in the calendar of a `DatePicker`, the cells of a `TimePicker` and the swatches of a
-  `ColorPicker`, mnemonics (Alt+letter) in menu titles, and a recursive model for `Tree`
+- Mnemonics (Alt+letter) in menu titles, and a recursive model for `Tree`
   (see [Trees](#trees)).
 - `<For>` over a `Map`, and the loop index as a variable.
-- An XSD for autocompletion in IDEs.
 - Compiling existing `.fxml` files is done in part: [FXML to JXML](jxforge-fxml.md) converts the FXML subset listed there,
   and reports the rest. Still open: the `fx:id` / `@FXML` injection of nodes (the native UI has no node objects, so the
   controller code that uses them has to move to bindings), CSS files, custom controls, column widths of a `GridPane`,
