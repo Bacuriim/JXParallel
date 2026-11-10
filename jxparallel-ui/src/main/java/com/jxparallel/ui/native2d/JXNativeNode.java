@@ -574,13 +574,26 @@ public final class JXNativeNode {
             return false;
         }
         List<JXNativeNode> path = JXOverlays.hitPath(this, px, py);
+        int from = 0;
         if (path == null) {
             if (!JXOverlays.openLayers(this).isEmpty()) {
-                return false; // the scrim: the dialog behind it is not a target
+                return false; // outside the open layer: the screen behind it is not a target
             }
             path = hitPlain(px, py);
+        } else if (!JXOverlays.openLayers(this).isEmpty()) {
+            // a layer is open: only what is inside it can take the files, never its ancestors or the scrim
+            int layer = -1;
+            for (int i = path.size() - 1; i >= 0 && layer < 0; i--) {
+                if (JXOverlays.modal(path.get(i).type) && JXOverlays.isOpen(path.get(i))) {
+                    layer = i;
+                }
+            }
+            if (layer < 0 || layer == path.size() - 1 && !path.get(layer).contains(px, py)) {
+                return false; // a popup over the screen behind the layer, or the scrim
+            }
+            from = layer;
         }
-        for (int i = path.size() - 1; i >= 0; i--) {
+        for (int i = path.size() - 1; i >= from; i--) {
             JXNativeNode node = path.get(i);
             Object handler = node.props.get("onDrop");
             if (handler instanceof java.util.function.Consumer && !Boolean.TRUE.equals(node.props.get("disabled"))) {

@@ -466,13 +466,14 @@ class OrdersGesturesTest {
         ui.key('N', OrdersUi.CONTROL);
         File csv = new File(tmp, "x.csv");
         Files.write(csv.toPath(), "1,Aurelia Voss,aurelia@example.com,2026-01-05,New,Cable,2,3.50\n".getBytes(StandardCharsets.UTF_8));
-        // the window hands a drop over the scrim or the form to the root's onDrop too (docs/jxforge.md says only what is
-        // in the dialog can take it), and the controller declines it
+        // only what is in the dialog can take a drop (docs/jxforge.md): over the scrim or the form, the screen's onDrop
+        // behind it is never reached, so nothing is imported and nothing is said
+        String status = shell.getStatus();
         ui.drop(20, 300, Collections.singletonList(csv.getPath()));
         ui.drop(600, 400, Collections.singletonList(csv.getPath()));
         Thread.sleep(200);
         host.onUi(() -> { });
         assertEquals(600, session.store().size());
-        assertEquals("Close the order editor before importing a file", shell.getStatus());
+        assertEquals(status, shell.getStatus());
     }
 }

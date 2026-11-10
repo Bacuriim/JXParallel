@@ -2264,6 +2264,51 @@ class JxmlComponentBehaviorTest {
         }
 
         @Test
+        void overADialogOnlyWhatIsInsideItTakesTheFilesNotTheScreenBehindIt() {
+            // the Column with onDrop holds the dialog, so it is an ancestor of everything in it
+            Ui ui = new Ui("<Column onDrop=\"#dropped\" prefHeight=\"380\"><Label text=\"behind\"/>"
+                    + "<Modal showing=\"true\"><Label text=\"plain\"/></Modal></Column>");
+            JXNativeNode dialog = ui.find("dialog");
+            int[] scrim = {3, ui.h - 3};
+            int[] form = center(ui.find("#text", 1));
+            assertTrue(dialog.contains(form[0], form[1]));
+            assertTrue(!ui.root.dispatchDrop(scrim[0], scrim[1], files), "the scrim");
+            assertTrue(!ui.root.dispatchDrop(form[0], form[1], files), "a dialog without onDrop: nobody, not its ancestors");
+            assertEquals(0, ui.c.drops.size());
+
+            Ui handled = new Ui("<Column onDrop=\"#dropped\" prefHeight=\"380\"><Label text=\"behind\"/>"
+                    + "<Modal showing=\"true\"><Column onDrop=\"#droppedInner\"><Label text=\"zone\"/></Column></Modal></Column>");
+            int[] zone = center(handled.find("#text", 1));
+            assertTrue(handled.root.dispatchDrop(zone[0], zone[1], files), "the nearest onDrop inside the dialog");
+            assertEquals(1, handled.c.drops2.size());
+            assertEquals(0, handled.c.drops.size());
+            assertTrue(!handled.root.dispatchDrop(3, handled.h - 3, files), "the scrim, even with an onDrop outside");
+            assertEquals(0, handled.c.drops.size());
+
+            Ui onDialog = new Ui("<Column onDrop=\"#dropped\" prefHeight=\"380\">"
+                    + "<Modal showing=\"true\" onDrop=\"#droppedInner\"><Label text=\"x\"/></Modal></Column>");
+            int[] in = center(onDialog.find("#text"));
+            assertTrue(onDialog.root.dispatchDrop(in[0], in[1], files), "onDrop on the dialog itself");
+            assertEquals(1, onDialog.c.drops2.size());
+            assertTrue(!onDialog.root.dispatchDrop(3, onDialog.h - 3, files), "but not on its scrim");
+            assertEquals(0, onDialog.c.drops.size());
+        }
+
+        @Test
+        void aDrawerKeepsTheFilesFromTheScreenBehindItToo() {
+            Ui ui = new Ui("<Column onDrop=\"#dropped\" prefHeight=\"380\"><Label text=\"behind\"/>"
+                    + "<Drawer side=\"left\" showing=\"true\"><Label text=\"menu\"/>"
+                    + "<Column onDrop=\"#droppedInner\"><Label text=\"zone\"/></Column></Drawer></Column>");
+            int[] label = center(ui.find("#text", 1));
+            assertTrue(!ui.root.dispatchDrop(label[0], label[1], files), "in the drawer, outside its drop zone");
+            int[] zone = center(ui.find("#text", 2));
+            assertTrue(ui.root.dispatchDrop(zone[0], zone[1], files), "its drop zone");
+            assertEquals(1, ui.c.drops2.size());
+            assertTrue(!ui.root.dispatchDrop(ui.w - 5, ui.h / 2, files), "the scrim");
+            assertEquals(0, ui.c.drops.size());
+        }
+
+        @Test
         void noFilesTakeNothing() {
             Ui ui = new Ui("<Column onDrop=\"#dropped\" prefHeight=\"120\"><Label text=\"x\"/></Column>");
             int[] in = center(ui.find("#text"));
