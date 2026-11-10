@@ -1,6 +1,7 @@
 package com.jxparallel.forge;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertNotSame;
 import static org.junit.jupiter.api.Assertions.assertNull;
@@ -235,6 +236,8 @@ class JxmlCompilerTest {
     void theFingerprintNamesTheVersionAndIsStable() {
         String fingerprint = JXForge.compilerFingerprint();
         assertEquals(fingerprint, JXForge.compilerFingerprint());
+        // the classes were found and hashed: an "unknown-<time>" fingerprint would regenerate every build
+        assertFalse(fingerprint.contains("unknown"), fingerprint);
         assertTrue(fingerprint.matches("[^:]+:[0-9a-f]{64}"), fingerprint);
     }
 

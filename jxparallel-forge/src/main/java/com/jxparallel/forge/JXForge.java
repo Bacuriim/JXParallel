@@ -81,12 +81,31 @@ public final class JXForge {
         return v == null ? "dev" : v;
     }
 
+    /**
+     * The jar or classes folder this class was loaded from. Found through the class's own resource URL, which every class
+     * loader gives (Maven's plugin class loader does not always give a code source), with the code source as the fallback.
+     */
+    static File classesRoot() throws Exception {
+        java.net.URL self = JXForge.class.getResource("JXForge.class");
+        if (self != null) {
+            String url = self.toString();
+            if (url.startsWith("jar:")) {
+                String jar = url.substring(4, url.indexOf("!/"));
+                return new File(new java.net.URI(jar));
+            }
+            if (url.startsWith("file:")) {
+                File file = new File(self.toURI()); // .../com/jxparallel/forge/JXForge.class
+                return file.getParentFile().getParentFile().getParentFile().getParentFile();
+            }
+        }
+        return new File(JXForge.class.getProtectionDomain().getCodeSource().getLocation().toURI());
+    }
+
     /** SHA-256 over the name and bytes of every class of this package, in a jar or a classes folder. */
     private static String hashClasses() {
         try {
             java.security.MessageDigest digest = java.security.MessageDigest.getInstance("SHA-256");
-            java.net.URL location = JXForge.class.getProtectionDomain().getCodeSource().getLocation();
-            File root = new File(location.toURI());
+            File root = classesRoot();
             Map<String, byte[]> contents = new java.util.TreeMap<String, byte[]>();
             if (root.isFile()) {
                 java.util.zip.ZipFile zip = new java.util.zip.ZipFile(root);
