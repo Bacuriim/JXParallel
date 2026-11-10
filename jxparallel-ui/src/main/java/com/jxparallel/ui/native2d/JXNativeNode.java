@@ -253,7 +253,7 @@ public final class JXNativeNode {
             JXNodeAnimation.entered(this, props);
         }
         List<JXElement> below = element.getChildren();
-        int n = below.size();
+        int n = unmounted() ? 0 : below.size();
         if (n > 0) {
             children = new ArrayList<JXNativeNode>(n); // exactly as many as there are
             for (int i = 0; i < n; i++) {
@@ -261,6 +261,39 @@ public final class JXNativeNode {
             }
         }
         overlaysBelow = findOverlaysBelow();
+    }
+
+    /**
+     * The content of a dialog or drawer is mounted only while it is open: a closed one has no children, so no control of
+     * it is in the tree to be found, focused, read or reconciled. True for a closed one.
+     */
+    private boolean unmounted() {
+        return JXOverlays.modal(type) && !JXOverlays.isOpen(this);
+    }
+
+    /**
+     * Mounts the content of a dialog or drawer that is open and has none (it opened on its own state, or
+     * {@code showing} turned true), and drops it when it is closed. Called by the overlay pass, which sees every open
+     * and closed layer on each layout, so it also covers a layer that opens or closes between two renders.
+     */
+    void syncContent() {
+        if (!JXOverlays.modal(type)) {
+            return;
+        }
+        if (unmounted()) {
+            if (!children.isEmpty()) {
+                children = NO_CHILDREN;
+                childView = null;
+                invalidateLayout();
+            }
+        } else if (children.isEmpty() && !source.getChildren().isEmpty()) {
+            List<JXElement> below = source.getChildren();
+            ownChildren();
+            for (int i = 0, n = below.size(); i < n; i++) {
+                children.add(child(below.get(i)));
+            }
+            invalidateLayout();
+        }
     }
 
     private boolean findOverlaysBelow() {
@@ -810,7 +843,7 @@ public final class JXNativeNode {
         }
         JXScrolling.release(this, previous, element.getProps());
         boolean subtree = false;
-        List<JXElement> nextChildren = element.getChildren();
+        List<JXElement> nextChildren = unmounted() ? Collections.<JXElement>emptyList() : element.getChildren();
         boolean retain = Boolean.TRUE.equals(next.get("retainChildren"));
         if (keyed(nextChildren, retain)) {
             int result = reconcileKeyed(nextChildren, retain);

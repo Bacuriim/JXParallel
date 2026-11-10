@@ -74,6 +74,12 @@ class ForgeTagsMountTest {
     /** The node tree has the element tree's types and child counts; nothing has a negative size. */
     private static void assertMirrors(JXElement element, JXNativeNode node, String where) {
         assertEquals(element.getType(), node.getType(), where);
+        boolean closedLayer = ("dialog".equals(element.getType()) || "drawer".equals(element.getType()))
+                && Boolean.FALSE.equals(element.getProps().get("showing"));
+        if (closedLayer) { // a closed dialog or drawer holds no content in the node tree
+            assertEquals(0, node.getChildren().size(), where + element.getType() + " is closed");
+            return;
+        }
         assertEquals(element.getChildren().size(), node.getChildren().size(), where + element.getType());
         assertTrue(node.getWidth() >= 0 && node.getHeight() >= 0, where + element.getType() + " has a negative size");
         for (int i = 0; i < element.getChildren().size(); i++) {

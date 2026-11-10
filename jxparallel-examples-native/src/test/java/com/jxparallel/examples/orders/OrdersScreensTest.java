@@ -138,8 +138,8 @@ class OrdersScreensTest {
         assertEquals(5, table.getChildren().get(0).getChildren().size(), "id, customer, date, status, total");
         assertEquals("1", String.valueOf(table.getChildren().get(0).getChildren().get(0).getProperty("value")));
         assertEquals("multiple", table.getProperty("selectionMode"));
-        assertEquals(5, all(root, "input").size(), "the search box and the four inputs of the editor, which is built closed");
-        assertEquals(3, all(root, "select").size(), "status filter, sort, and the editor's status");
+        assertEquals(1, all(root, "input").size(), "the search box only: the editor is closed, so its four inputs are not mounted");
+        assertEquals(2, all(root, "select").size(), "status filter and sort; the editor's status is in the closed editor");
         assertEquals(1, all(root, "checkbox").size());
         assertTrue(table.getWidth() > 400 && table.getHeight() > 300, table.getWidth() + "x" + table.getHeight());
         assertTrue(hasText(root, "No order selected"));

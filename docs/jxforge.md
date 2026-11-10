@@ -658,6 +658,12 @@ Everything that opens over the window goes through one mechanism in the renderer
   `ContextMenu` or `MenuBar` written without `showing` opens and closes by itself. `ComboBox`, `DatePicker`, `TimePicker`, `ColorPicker`, `Modal`, `Drawer` and
   `SnackBar` default `showing` to false, so they are controlled; `MenuButton`, `ContextMenu` and `MenuBar` have no default.
   `showing` cannot be bound two ways (`@{...}`): `onShowing` is a separate handler.
+- **Closed means not mounted.** The node tree of a `Modal`, `Dialog`, `AlertDialog` or `Drawer` has no children while it is closed
+  (`showing` false): its inputs, buttons and the rest are built when it opens and dropped when it closes, so nothing of a closed
+  layer is in the tree to be found, focused, read by a screen reader or reconciled, and a text field in it starts fresh (its caret
+  and selection are not kept) each time. The JXML interpreter and compiled views still build the content elements on every render,
+  as they build any other subtree; only the renderer's nodes are saved. A `transition` or `enter` on the content plays when the
+  layer opens, as for any new element. A `SnackBar` has no content nodes, and the rows of a menu stay as they are.
 - **Where it is written.** An overlay is placed over the window, not by its parent: put `Dialog`, `Drawer`, `SnackBar` and
   `ContextMenu` anywhere (a `Stack` at the root is the usual place); they take no room where they are written (size 0 by 0, and
   a `Column` still counts its `gap` for them), and a `ContextMenu` opens on the secondary press on its *parent*, the deepest

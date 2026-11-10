@@ -230,6 +230,7 @@ final class JXOverlays {
             return;
         }
         boolean open = false;
+        node.syncContent(); // a dialog or drawer holds its content only while open
         if (node.overlayHost && canOpen(node)) {
             open = isOpen(node);
             if (open) {

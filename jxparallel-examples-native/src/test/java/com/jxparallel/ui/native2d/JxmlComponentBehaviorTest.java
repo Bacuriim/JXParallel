@@ -2285,6 +2285,67 @@ class JxmlComponentBehaviorTest {
     }
 
     @Nested
+    class ClosedLayers {
+        @Test
+        void theContentOfAClosedDialogOrDrawerIsNotInTheTree() {
+            Ui ui = new Ui("<Button text=\"Open\" onAction=\"#click\"/>\n"
+                    + "<Modal showing=\"${dialog}\" onShowing=\"#setDialog\"><TextField text=\"@{other}\"/><Button text=\"OK\" onAction=\"#click\"/></Modal>\n"
+                    + "<Drawer showing=\"${drawer}\" onShowing=\"#setDrawer\"><TextField text=\"@{notes}\"/></Drawer>");
+            ui.c.setDialog(false);
+            ui.c.setDrawer(false);
+            ui.refresh();
+            assertEquals(0, ui.find("dialog").getChildren().size());
+            assertEquals(0, ui.find("drawer").getChildren().size());
+            assertNull(find(ui.root, "input"), "no field of a closed layer is on the screen");
+
+            ui.c.setDialog(true);
+            ui.refresh();
+            assertEquals(2, ui.find("dialog").getChildren().size(), "it is built when it opens");
+            JXNativeNode field = ui.click(center(ui.find("input"))[0], center(ui.find("input"))[1]);
+            assertEquals("input", field.getType());
+            ui.type("x");
+            assertEquals("x", ui.c.getOther());
+
+            ui.c.setDialog(false);
+            ui.refresh();
+            assertEquals(0, ui.find("dialog").getChildren().size(), "and dropped when it closes");
+            ui.c.setDrawer(true);
+            ui.refresh();
+            assertEquals(1, ui.find("drawer").getChildren().size());
+        }
+
+        @Test
+        void aTabKeyAndAnEnterInADialogThatOpenedLateStillWork() {
+            Ui ui = new Ui("<TextField text=\"@{name}\"/>\n<Modal showing=\"${dialog}\" onShowing=\"#setDialog\">"
+                    + "<TextField text=\"@{other}\"/><Button text=\"OK\" defaultButton=\"true\" onAction=\"#click\"/></Modal>");
+            ui.c.setDialog(true);
+            ui.refresh();
+            ui.key(TAB);
+            assertEquals("input", ui.focused.getType());
+            assertEquals(ui.find("dialog"), ui.find("dialog"));
+            ui.key(ENTER);
+            assertEquals(1, ui.c.clicks, "the default button of the dialog that was built when it opened");
+            ui.key(ESCAPE);
+            assertTrue(!ui.c.getDialog());
+            ui.refresh();
+            assertEquals(0, ui.find("dialog").getChildren().size());
+        }
+
+        private JXNativeNode find(JXNativeNode node, String type) {
+            if (type.equals(node.getType())) {
+                return node;
+            }
+            for (JXNativeNode child : node.getChildren()) {
+                JXNativeNode found = find(child, type);
+                if (found != null) {
+                    return found;
+                }
+            }
+            return null;
+        }
+    }
+
+    @Nested
     class FileDrop {
         private final List<String> files = java.util.Arrays.asList("C:\\a.txt", "C:\\b.png");
 
