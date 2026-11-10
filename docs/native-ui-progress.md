@@ -122,6 +122,11 @@ a real window (see the changelog entry of each).
   finds the item): called from `JXOverlays.key` after an open menu or popup and a selecting list, and unless a focused text
   field edits with the key; the action runs from anywhere in the window. The menu draws the text at the right of its
   row (`JXOverlayPaint`), as before.
+- **Picker popups.** The calendar, the time cells and the color swatches highlight what is under the pointer
+  (`JXOverlays.hover`; the node's `highlight` is the cell index, `highlightDate` the epoch day of the calendar) and take the
+  arrows, Home, End, Page Up / Down, Enter and Space while open (`navigatePicker`; cells move to the nearest neighbour in
+  the direction, `JXOverlays.neighbour`). The calendar draws the highlighted day (`JXOverlayPaint.HOVER`), the time grid
+  as the combo list does, the swatches with a dark frame.
 
 ## Current limitations
 

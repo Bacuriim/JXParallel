@@ -11,6 +11,8 @@ import com.jxparallel.ui.text.JXTextEngine;
  */
 final class JXOverlayPaint {
     static final int SCRIM = 0x66000000;
+    /** The day of a calendar under the pointer or the keys, when it is not the chosen one. */
+    static final int HOVER = 0xFFD6EAF5;
     private static final int SNACK_FACE = 0xFF322F35;
     private static final int SNACK_TEXT = 0xFFF5EFF7;
 
@@ -112,10 +114,14 @@ final class JXOverlayPaint {
         for (int i = 0; i < po.cells.length; i++) {
             int[] c = po.cells[i];
             boolean current = JXOverlays.timeCurrent(node, c);
-            if (current) {
+            // the cell under the pointer or the keys is the blue one; the current one turns grey while another is highlighted
+            boolean lit = node.highlight >= 0 ? i == node.highlight : current;
+            if (lit) {
                 p.fillRect(c[0], c[1], c[2], c[3], JXPaint.SELECTION);
+            } else if (current) {
+                p.fillRect(c[0], c[1], c[2], c[3], JXPaint.SELECTION_UNFOCUSED);
             }
-            centered(p, po.labels[i], c, current ? 0xFFFFFFFF : JXPaint.TEXT);
+            centered(p, po.labels[i], c, lit ? 0xFFFFFFFF : JXPaint.TEXT);
         }
     }
 
@@ -126,11 +132,15 @@ final class JXOverlayPaint {
         }
         box(p, po.x, po.y, po.w, po.h);
         int current = JXOverlays.colorOf(JXPaint.text(node, "value"));
-        for (int[] c : po.cells) {
+        for (int i = 0; i < po.cells.length; i++) {
+            int[] c = po.cells[i];
             p.fillRect(c[0] - 1, c[1] - 1, c[2] + 2, c[3] + 2, JXPaint.BOX_BORDER);
             p.fillRect(c[0], c[1], c[2], c[3], c[5]);
             if (current != 0 && c[5] == current) {
                 p.strokeRoundRect(c[0] - 2, c[1] - 2, c[2] + 4, c[3] + 4, 0, 2, JXPaint.FOCUS);
+            }
+            if (i == node.highlight) { // under the pointer or the keys: a dark frame
+                p.strokeRoundRect(c[0] - 2, c[1] - 2, c[2] + 4, c[3] + 4, 0, 1, JXPaint.TEXT);
             }
         }
         int[] f = po.field;

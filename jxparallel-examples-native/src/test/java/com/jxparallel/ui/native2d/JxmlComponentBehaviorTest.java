@@ -1908,6 +1908,139 @@ class JxmlComponentBehaviorTest {
     // ---- desktop window behaviours: mouse cursor, file drop, keyboard menus, accelerators -----------
 
     @Nested
+    class PickerPopups {
+        private static final int PAGE_DOWN = 267;
+        private static final int SPACE = 32;
+
+        private Ui date() {
+            Ui ui = new Ui("<DatePicker value=\"@{date}\" showing=\"${dateOpen}\" onShowing=\"#setDateOpen\"/>");
+            ui.click(ui.find("datepicker"));
+            assertTrue(ui.c.getDateOpen());
+            return ui;
+        }
+
+        /** The top left pixel of the cell of a day in the open calendar. */
+        private int[] cellOf(Ui ui, int month, int day) {
+            JXNativeNode calendar = JXOverlays.popup(ui.find("datepicker")).calendar;
+            for (int y = calendar.getY(); y < calendar.getY() + calendar.getHeight(); y += 2) {
+                for (int x = calendar.getX(); x < calendar.getX() + calendar.getWidth(); x += 2) {
+                    int[] hit = JXCalendar.hit(calendar, x, y);
+                    if (hit[0] == JXCalendar.DAY && hit[2] == month && hit[3] == day) {
+                        return new int[] {x, y};
+                    }
+                }
+            }
+            throw new AssertionError("no cell for " + month + "/" + day);
+        }
+
+        @Test
+        void thePointerHighlightsTheDayOfTheCalendarItIsOver() {
+            Ui ui = date();
+            JXNativeNode picker = ui.find("datepicker");
+            int[] at = cellOf(ui, 9, 20);
+            assertEquals(JXNativeNode.NO_DATE, picker.highlightDate);
+            ui.hover(at[0] + 3, at[1] + 3);
+            assertEquals(java.time.LocalDate.of(2026, 9, 20).toEpochDay(), picker.highlightDate);
+            assertEquals(JXOverlayPaint.HOVER, ui.pixel(at[0] + 3, at[1] + 3), "the day is drawn highlighted");
+            ui.key(ESCAPE);
+            assertEquals(JXNativeNode.NO_DATE, picker.highlightDate, "closing clears it");
+        }
+
+        @Test
+        void theArrowsMoveTheHighlightedDayAndEnterChoosesIt() {
+            Ui ui = date();
+            JXNativeNode picker = ui.find("datepicker");
+            ui.key(RIGHT);
+            assertEquals(java.time.LocalDate.of(2026, 9, 16).toEpochDay(), picker.highlightDate, "from the chosen day");
+            assertEquals("2026-09-15", ui.c.getDate(), "moving the highlight changes nothing");
+            ui.key(DOWN);
+            assertEquals(java.time.LocalDate.of(2026, 9, 23).toEpochDay(), picker.highlightDate, "a week");
+            ui.key(LEFT);
+            ui.key(UP);
+            assertEquals(java.time.LocalDate.of(2026, 9, 15).toEpochDay(), picker.highlightDate);
+            ui.key(PAGE_DOWN);
+            assertEquals(10, picker.viewMonth, "the calendar turned to October");
+            ui.key(ENTER);
+            assertEquals("2026-10-15", ui.c.getDate());
+            assertTrue(!ui.c.getDateOpen(), "Enter chooses and closes");
+        }
+
+        @Test
+        void enterWithNothingHighlightedStillClosesAndEscapeChangesNothing() {
+            Ui ui = date();
+            ui.key(ENTER);
+            assertTrue(!ui.c.getDateOpen());
+            assertEquals("2026-09-15", ui.c.getDate());
+            ui.click(ui.find("datepicker"));
+            ui.key(RIGHT);
+            ui.key(ESCAPE);
+            assertEquals("2026-09-15", ui.c.getDate());
+        }
+
+        @Test
+        void theTimePickerHighlightsUnderThePointerAndMovesWithTheArrows() {
+            Ui ui = new Ui("<TimePicker value=\"@{time}\" showing=\"${timeOpen}\" onShowing=\"#setTimeOpen\"/>");
+            ui.click(ui.find("timepicker"));
+            JXNativeNode picker = ui.find("timepicker");
+            int[][] cells = picker.getPopupCells();
+            int[] c = center(cells[24 + 3]);
+            ui.hover(c[0], c[1]);
+            assertEquals(24 + 3, picker.highlight, "the minute cell under the pointer");
+            ui.key(ESCAPE);
+            ui.click(ui.find("timepicker"));
+            assertEquals(-1, picker.highlight, "reopened clean");
+            ui.key(DOWN);
+            assertEquals(16, picker.highlight, "from the chosen hour 10 a row down is hour 16");
+            ui.key(RIGHT);
+            assertEquals(17, picker.highlight);
+            ui.key(LEFT);
+            ui.key(LEFT);
+            assertEquals(15, picker.highlight);
+            ui.key(UP);
+            assertEquals(9, picker.highlight);
+            ui.key(ENTER);
+            assertEquals("09:30", ui.c.getTime(), "Enter chooses the hour, like a click");
+            assertTrue(ui.c.getTimeOpen(), "the popup stays, so the minute can follow");
+            ui.key(END);
+            assertEquals(cells.length - 1, picker.highlight);
+        }
+
+        @Test
+        void theColorPickerHighlightsUnderThePointerAndMovesWithTheArrows() {
+            Ui ui = new Ui("<ColorPicker value=\"@{color}\" showing=\"${colorOpen}\" onShowing=\"#setColorOpen\"/>");
+            ui.click(ui.find("colorpicker"));
+            JXNativeNode picker = ui.find("colorpicker");
+            int[][] cells = picker.getPopupCells();
+            int[] c = center(cells[5]);
+            ui.hover(c[0], c[1]);
+            assertEquals(5, picker.highlight);
+            ui.key(RIGHT);
+            assertEquals(6, picker.highlight);
+            ui.key(DOWN);
+            assertEquals(14, picker.highlight, "eight swatches to a row");
+            ui.key(LEFT);
+            ui.key(UP);
+            assertEquals(5, picker.highlight);
+            ui.key(DOWN);
+            ui.key(SPACE);
+            assertEquals(JXOverlays.hex(JXOverlays.PALETTE[13]), ui.c.getColor());
+            ui.key(HOME);
+            assertEquals(0, picker.highlight);
+        }
+
+        @Test
+        void typingHexDigitsInTheColorPickerStillWorks() {
+            Ui ui = new Ui("<ColorPicker value=\"@{color}\" showing=\"${colorOpen}\" onShowing=\"#setColorOpen\"/>");
+            ui.click(ui.find("colorpicker"));
+            for (int i = 0; i < 7; i++) {
+                ui.key(BACKSPACE);
+            }
+            ui.type("#00FF7F");
+            assertEquals("#00FF7F", ui.c.getColor());
+        }
+    }
+
+    @Nested
     class Accelerators {
         private static final int S = 83;
         private static final int C = 67;

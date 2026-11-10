@@ -107,8 +107,16 @@ public final class JXCalendar {
             boolean inMonth = d.getMonthValue() == month(node);
             boolean selected = d.getYear() == selY && d.getMonthValue() == selM && d.getDayOfMonth() == selD;
             boolean today = d.getYear() == todayY && d.getMonthValue() == todayM && d.getDayOfMonth() == todayD;
+            boolean lit = (int) JXPaint.number(node, "highlightYear", 0) == d.getYear()
+                    && (int) JXPaint.number(node, "highlightMonth", 0) == d.getMonthValue()
+                    && (int) JXPaint.number(node, "highlightDay", 0) == d.getDayOfMonth();
             if (selected) {
                 p.fillRect(cx + 1, ry + 1, CELL_W - 2, CELL_H - 2, JXPaint.SELECTION);
+            } else if (lit) { // under the pointer or the keys
+                p.fillRect(cx + 1, ry + 1, CELL_W - 2, CELL_H - 2, JXOverlayPaint.HOVER);
+                if (today) {
+                    p.strokeRoundRect(cx + 1, ry + 1, CELL_W - 2, CELL_H - 2, 0, 1, JXPaint.ACCENT);
+                }
             } else if (today) {
                 p.strokeRoundRect(cx + 1, ry + 1, CELL_W - 2, CELL_H - 2, 0, 1, JXPaint.ACCENT);
             }

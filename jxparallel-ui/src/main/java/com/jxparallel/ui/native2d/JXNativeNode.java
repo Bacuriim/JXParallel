@@ -134,6 +134,9 @@ public final class JXNativeNode {
      * select, of the row of a menu panel (kept on the node whose children are the rows). Hover and the arrow keys move it.
      */
     int highlight = -1;
+    /** The day (epoch day) an open date picker's calendar has highlighted, {@link #NO_DATE} for none; hover and the keys move it. */
+    long highlightDate = NO_DATE;
+    static final long NO_DATE = Long.MIN_VALUE;
     /** First option a select's popup shows while its highlight moves with the keys, -1 while it follows the chosen one. */
     int popupFirst = -1;
 

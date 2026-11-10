@@ -183,6 +183,7 @@ final class JXOverlays {
         }
         resetMenus(node);
         node.highlight = -1;
+        node.highlightDate = JXNativeNode.NO_DATE;
         node.popupFirst = -1;
         if (!(node.getProperty("showing") instanceof Boolean)) {
             node.localOpen = open;
@@ -411,6 +412,11 @@ final class JXOverlays {
                 .set("title", Month.of(host.viewMonth).getDisplayName(TextStyle.FULL, locale) + " " + host.viewYear)
                 .set("todayYear", Integer.valueOf(now.getYear())).set("todayMonth", Integer.valueOf(now.getMonthValue()))
                 .set("todayDay", Integer.valueOf(now.getDayOfMonth()));
+        if (host.highlightDate != JXNativeNode.NO_DATE) {
+            LocalDate lit = LocalDate.ofEpochDay(host.highlightDate);
+            props.set("highlightYear", Integer.valueOf(lit.getYear())).set("highlightMonth", Integer.valueOf(lit.getMonthValue()))
+                    .set("highlightDay", Integer.valueOf(lit.getDayOfMonth()));
+        }
         if (chosen != null) {
             props.set("selectedYear", Integer.valueOf(chosen.getYear())).set("selectedMonth", Integer.valueOf(chosen.getMonthValue()))
                     .set("selectedDay", Integer.valueOf(chosen.getDayOfMonth()));
@@ -1385,10 +1391,179 @@ final class JXOverlays {
                     }
                     return false;
                 }
+            } else if ("timepicker".equals(node.getType()) || "colorpicker".equals(node.getType())) {
+                for (int c = 0; c < po.cells.length; c++) {
+                    int[] cell = po.cells[c];
+                    if (x >= cell[0] && y >= cell[1] && x < cell[0] + cell[2] && y < cell[1] + cell[3]) {
+                        boolean changed = node.highlight != c;
+                        node.highlight = c;
+                        return changed;
+                    }
+                }
+            } else if ("datepicker".equals(node.getType()) && po.calendar != null) {
+                int[] hit = JXCalendar.hit(po.calendar, x, y);
+                if (hit[0] == JXCalendar.DAY) {
+                    long day = LocalDate.of(hit[1], hit[2], hit[3]).toEpochDay();
+                    boolean changed = node.highlightDate != day;
+                    node.highlightDate = day;
+                    return changed;
+                }
             }
             return false;
         }
         return false;
+    }
+
+    // ---- keys in the calendar, the time cells and the color swatches ---------------------------------
+
+    /** The cell the value of a time or color picker is at, or -1. */
+    private static int currentCell(JXNativeNode host, Popup po) {
+        boolean time = "timepicker".equals(host.getType());
+        int color = time ? 0 : colorOf(JXPaint.text(host, "value"));
+        for (int i = 0; i < po.cells.length; i++) {
+            if (time ? po.cells[i][4] == HOUR && timeCurrent(host, po.cells[i]) : color != 0 && po.cells[i][5] == color) {
+                return i;
+            }
+        }
+        return -1;
+    }
+
+    /**
+     * The cell next to {@code from} in the direction of an arrow key: the nearest one in its row to the left or right, or in
+     * the nearest row above or below (the one closest across); {@code from} when there is none.
+     */
+    static int neighbour(int[][] cells, int from, int code) {
+        int[] f = cells[from];
+        int fx = f[0] + f[2] / 2;
+        int fy = f[1] + f[3] / 2;
+        int best = from;
+        for (int i = 0; i < cells.length; i++) {
+            int[] c = cells[i];
+            int cx = c[0] + c[2] / 2;
+            int cy = c[1] + c[3] / 2;
+            boolean sameRow = Math.abs(cy - fy) < f[3] / 2;
+            boolean better;
+            if (code == LEFT || code == RIGHT) {
+                if (!sameRow || (code == LEFT ? cx >= fx : cx <= fx)) {
+                    continue;
+                }
+                better = best == from || Math.abs(cx - fx) < Math.abs(cells[best][0] + cells[best][2] / 2 - fx);
+            } else {
+                if (code == UP ? cy >= fy - f[3] / 2 : cy <= fy + f[3] / 2) {
+                    continue;
+                }
+                int bx = cells[best][0] + cells[best][2] / 2;
+                int by = cells[best][1] + cells[best][3] / 2;
+                better = best == from || Math.abs(cy - fy) < Math.abs(by - fy)
+                        || Math.abs(cy - fy) == Math.abs(by - fy) && Math.abs(cx - fx) < Math.abs(bx - fx);
+            }
+            if (better) {
+                best = i;
+            }
+        }
+        return best;
+    }
+
+    /**
+     * An open date picker, time picker or color picker takes the arrows (a day or a cell at a time; Page Up and Page Down move
+     * the calendar a month, Home and End go to its first or last day or cell) to move its highlight, and Enter or Space to
+     * choose what is highlighted, as a click does. Letters and digits (the hex field of the color picker) are not taken.
+     */
+    @SuppressWarnings("unchecked")
+    private static boolean navigatePicker(JXNativeNode host, JXKeyEvent event) {
+        Popup po = popup(host);
+        int code = event.getKeyCode();
+        if (po == null || (event.getModifiers() & (JXInputEvent.CONTROL | JXInputEvent.ALT | JXInputEvent.META)) != 0) {
+            return false;
+        }
+        Object handler = host.getProperty("onChange");
+        Consumer<Object> onChange = handler instanceof Consumer ? (Consumer<Object>) handler : null;
+        if ("datepicker".equals(host.getType())) {
+            if (code == ENTER || code == SPACE) {
+                if (host.highlightDate == JXNativeNode.NO_DATE) {
+                    return false;
+                }
+                if (onChange != null) {
+                    onChange.accept(LocalDate.ofEpochDay(host.highlightDate).toString());
+                }
+                request(host, false);
+                return true;
+            }
+            LocalDate base;
+            if (host.highlightDate != JXNativeNode.NO_DATE) {
+                base = LocalDate.ofEpochDay(host.highlightDate);
+            } else {
+                base = parseDate(JXPaint.text(host, "value"));
+                if (base == null) {
+                    base = today.get();
+                }
+            }
+            LocalDate next;
+            switch (code) {
+                case LEFT:
+                    next = base.minusDays(1);
+                    break;
+                case RIGHT:
+                    next = base.plusDays(1);
+                    break;
+                case UP:
+                    next = base.minusDays(7);
+                    break;
+                case DOWN:
+                    next = base.plusDays(7);
+                    break;
+                case PAGE_UP:
+                    next = base.minusMonths(1);
+                    break;
+                case PAGE_DOWN:
+                    next = base.plusMonths(1);
+                    break;
+                case HOME:
+                    next = base.withDayOfMonth(1);
+                    break;
+                case END:
+                    next = base.withDayOfMonth(base.lengthOfMonth());
+                    break;
+                default:
+                    return false;
+            }
+            host.highlightDate = next.toEpochDay();
+            host.viewYear = next.getYear(); // the calendar shows the month of the highlighted day
+            host.viewMonth = next.getMonthValue();
+            return true;
+        }
+        if (po.cells.length == 0) {
+            return false;
+        }
+        int at = host.highlight >= 0 && host.highlight < po.cells.length ? host.highlight : -1;
+        if (code == ENTER || code == SPACE) {
+            if (at < 0) {
+                return false;
+            }
+            int[] cell = po.cells[at];
+            if ("timepicker".equals(host.getType())) {
+                if (onChange != null) {
+                    onChange.accept(timeAfter(host, cell));
+                }
+            } else {
+                String color = hex(cell[5]);
+                host.hexDraft = color;
+                if (onChange != null) {
+                    onChange.accept(color);
+                }
+            }
+            return true;
+        }
+        if (code != LEFT && code != RIGHT && code != UP && code != DOWN && code != HOME && code != END) {
+            return false;
+        }
+        if (code == HOME || code == END) {
+            host.highlight = code == HOME ? 0 : po.cells.length - 1;
+            return true;
+        }
+        int from = at >= 0 ? at : currentCell(host, po);
+        host.highlight = from < 0 ? 0 : neighbour(po.cells, from, code);
+        return true;
     }
 
     /** The character a key types (a letter or a digit, no Ctrl, Alt or Meta), or 0. */
@@ -1462,6 +1637,9 @@ final class JXOverlays {
         }
         if ("select".equals(type)) {
             return navigateSelect(host, event);
+        }
+        if (popupHost(type)) {
+            return navigatePicker(host, event);
         }
         return menuHost(type) && navigateMenus(host, event);
     }

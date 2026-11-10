@@ -622,8 +622,12 @@ Everything that opens over the window goes through one mechanism in the renderer
   Alt+letter); F10 again closes it. A `ContextMenu` opens with the Menu key or Shift+F10 on the focused node (the nearest
   context menu among its children and its ancestors' children), just below the node, first row highlighted. Nothing opens
   while another popup, menu or dialog is open.
-  The calendar of a `DatePicker`, the cells of a `TimePicker` and the swatches of a `ColorPicker` have no hover or arrow
-  navigation of their own: they keep the arrows (Up, Down, Page Up, Page Down) that change their value, a press picks.
+  The calendar of a `DatePicker`, the cells of a `TimePicker` and the swatches of a `ColorPicker` highlight what is under
+  the pointer too. Open, a `DatePicker` takes Left, Right, Up and Down (a day, a week), Page Up and Page Down (a month, the
+  calendar turns), Home and End (first and last day of the month), and Enter or Space choose the highlighted day and close
+  it; a `TimePicker` and a `ColorPicker` move the highlight to the neighbouring cell with the arrows (Home, End: first, last),
+  and Enter or Space choose it like a click (the popup stays open). Letters and digits are not taken, so the hex field of the
+  color picker still types. Closed, the pickers keep Up, Down, Page Up and Page Down changing their value.
 - **Dialog.** `Dialog` is a `Modal` (a column: use `padding`, `gap`, `alignment`, `prefWidth`... on it as on a `Column`)
   with the title, the content and the buttons; `AlertDialog` adds the usual two buttons. Each button has its own `onAction`.
   The dialog is as wide as its content (at least 280 as a `Dialog`) and at most the window less 24 px on each side.
