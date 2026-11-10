@@ -2225,6 +2225,34 @@ class JxmlComponentBehaviorTest {
     }
 
     @Nested
+    class GraphicsAndHover {
+        @Test
+        void aClickOnTheIconInsideAButtonClicksTheButton() {
+            Ui ui = new Ui("<Button text=\"Add\" onAction=\"#click\"><Icon name=\"add\"/></Button>");
+            JXNativeNode icon = ui.find("icon");
+            int[] c = center(icon);
+            assertEquals(ui.find("button"), ui.root.hitTest(c[0], c[1]), "the icon does not take the pointer");
+            assertEquals(JXCursor.ARROW, ui.root.cursorAt(c[0], c[1]));
+            ui.press(c[0], c[1]);
+            assertEquals(0, ui.c.clicks, "a press only arms");
+            assertEquals(Boolean.TRUE, ui.find("button").getProperty("pressed"), "drawn pressed");
+            ui.release();
+            assertEquals(1, ui.c.clicks, "the release on the icon runs onAction");
+        }
+
+        @Test
+        void anIconOnlyButtonAndAHoverOnItsIconWork() {
+            Ui ui = new Ui("<Button onAction=\"#click\" cursor=\"hand\"><Icon name=\"add\"/></Button>");
+            int[] c = center(ui.find("icon"));
+            assertEquals(JXCursor.HAND, ui.root.cursorAt(c[0], c[1]), "the cursor of the button, over its graphic");
+            ui.hover(c[0], c[1]);
+            assertEquals(Boolean.TRUE, ui.find("button").getProperty("hover"));
+            ui.click(c[0], c[1]);
+            assertEquals(1, ui.c.clicks);
+        }
+    }
+
+    @Nested
     class FileDrop {
         private final List<String> files = java.util.Arrays.asList("C:\\a.txt", "C:\\b.png");
 

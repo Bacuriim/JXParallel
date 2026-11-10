@@ -586,7 +586,7 @@ every painter draws it, because it uses only the primitives of `JXPainter`.
 - `Button variant`: `filled`, `tonal`, `outlined`, `text` or `elevated` (and `fab`, which `Fab` writes). Without `variant` the button is
   the classic one, unchanged. `round="true"` makes the ends round. Hover and pressed tint the face. `elevated` and `fab` draw a soft darker
   ring below the face (two translucent rings, because not every painter has a blur), kept inside the button's bounds, which are 3 px larger
-  on each side for it. A child of the button (an `Icon`) is its graphic.
+  on each side for it. A child of the button (an `Icon`) is its graphic, and the graphic does not take the pointer: a press, release, hover or cursor on it is on the button (the same for `ToggleButton`, `RadioButton`, `Hyperlink`, `CheckBox`, `Switch` and `Chip`), with no need for `mouseTransparent`.
 - `IconButton icon size color variant`: a `Button` (`variant` `text` unless written, `round`, padding 8) whose graphic is an `Icon` that does
   not take the click, so the button gets it. `Fab icon text`: a `Button variant="fab"` with an icon, a text or both (padding 16, or 16 20 with a
   text).

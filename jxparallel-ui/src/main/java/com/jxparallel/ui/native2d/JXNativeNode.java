@@ -1178,10 +1178,31 @@ public final class JXNativeNode {
     public List<JXNativeNode> hitPath(int x, int y) {
         List<JXNativeNode> overlay = JXOverlays.hitPath(this, x, y); // an open popup, menu or dialog is over everything
         if (overlay != null) {
-            return overlay;
+            return graphicToControl(overlay);
         }
         List<JXNativeNode> path = new ArrayList<JXNativeNode>();
         collectHit(x, y, null, path);
+        return graphicToControl(path);
+    }
+
+    /** Controls whose children are only their graphic: a press on the graphic is a press on the control. */
+    private static final java.util.Set<String> GRAPHIC_HOSTS = new java.util.HashSet<String>(java.util.Arrays.asList(
+            "button", "toggle", "radio", "hyperlink", "checkbox", "switch", "chip"));
+
+    /**
+     * A control's graphic does not take the pointer: when the path goes through a button, toggle button, radio button,
+     * hyperlink, check box, switch or chip and below it, the path ends at the control. This is what the
+     * user expects of an {@code Icon} inside a {@code Button}, without writing {@code mouseTransparent}.
+     */
+    private static List<JXNativeNode> graphicToControl(List<JXNativeNode> path) {
+        for (int i = 0; i < path.size() - 1; i++) {
+            if (GRAPHIC_HOSTS.contains(path.get(i).type)) {
+                while (path.size() > i + 1) {
+                    path.remove(path.size() - 1);
+                }
+                break;
+            }
+        }
         return path;
     }
 
@@ -1216,7 +1237,7 @@ public final class JXNativeNode {
     List<JXNativeNode> hitPlain(int x, int y) {
         List<JXNativeNode> path = new ArrayList<JXNativeNode>();
         collectHit(x, y, null, path);
-        return path;
+        return graphicToControl(path);
     }
 
     /** The nodes at (x, y) from this node down, taking its children as ordinary nodes (the content of an overlay). */
@@ -1225,7 +1246,7 @@ public final class JXNativeNode {
         path.add(this);
         for (int index = children.size() - 1; index >= 0; index--) {
             if (children.get(index).collectHit(px, py, null, path)) {
-                return path;
+                return graphicToControl(path);
             }
             while (path.size() > 1) {
                 path.remove(path.size() - 1);
