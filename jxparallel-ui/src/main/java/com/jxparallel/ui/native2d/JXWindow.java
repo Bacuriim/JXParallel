@@ -248,18 +248,240 @@ public final class JXWindow implements AutoCloseable {
         }
     }
 
+    /** Whether the user can resize the window; applied when the window opens, or at once if open. */
     public void setResizable(boolean value) {
         resizable = value;
+        attribute(GLFW.GLFW_RESIZABLE, value);
     }
 
-    /** Title bar and borders; false for popups and notifications. Set before opening. */
+    public boolean isResizable() {
+        return resizable;
+    }
+
+    /** Title bar and borders; false for popups and notifications. Applied when the window opens, or at once if open. */
     public void setDecorated(boolean value) {
         decorated = value;
+        attribute(GLFW.GLFW_DECORATED, value);
     }
 
-    /** Always on top of other windows. Set before opening. */
+    public boolean isDecorated() {
+        return decorated;
+    }
+
+    /** Always on top of other windows. Applied when the window opens, or at once if open. */
     public void setFloating(boolean value) {
         floating = value;
+        attribute(GLFW.GLFW_FLOATING, value);
+    }
+
+    /** Same as {@link #setFloating}. */
+    public void setAlwaysOnTop(boolean value) {
+        setFloating(value);
+    }
+
+    public boolean isFloating() {
+        return floating;
+    }
+
+    /** Sets a GLFW window attribute on the display thread, if the window is open. */
+    private void attribute(int attrib, boolean value) {
+        if (window != MemoryUtil.NULL) {
+            JXDisplay.post(() -> {
+                if (window != MemoryUtil.NULL) {
+                    GLFW.glfwSetWindowAttrib(window, attrib, value ? GLFW.GLFW_TRUE : GLFW.GLFW_FALSE);
+                }
+            });
+        }
+    }
+
+    /** Screen position of the content area as of the last move (GLFW window units), or what {@link #setPosition} set. */
+    public int getX() {
+        return x;
+    }
+
+    public int getY() {
+        return y;
+    }
+
+    private volatile boolean maximized;
+    private volatile boolean iconified;
+    private volatile boolean fullScreen;
+    private volatile List<JXWindowIcon> icons = new ArrayList<JXWindowIcon>();
+    /** Position and size (GLFW window units) to go back to when the full screen ends; display thread. */
+    private final int[] windowedBounds = new int[4];
+    private boolean inFullScreen;
+
+    /** Maximized: applied when the window opens, or at once if open. */
+    public void setMaximized(boolean value) {
+        maximized = value;
+        if (window != MemoryUtil.NULL) {
+            JXDisplay.post(() -> {
+                if (window != MemoryUtil.NULL) {
+                    if (value) {
+                        GLFW.glfwMaximizeWindow(window);
+                    } else if (!inFullScreen) {
+                        GLFW.glfwRestoreWindow(window);
+                    }
+                }
+            });
+        }
+    }
+
+    /** The window is maximized, as the user or {@link #setMaximized} left it. */
+    public boolean isMaximized() {
+        return maximized;
+    }
+
+    /** Minimized to the task bar: applied when the window opens, or at once if open. */
+    public void setIconified(boolean value) {
+        iconified = value;
+        if (window != MemoryUtil.NULL) {
+            JXDisplay.post(() -> {
+                if (window != MemoryUtil.NULL) {
+                    if (value) {
+                        GLFW.glfwIconifyWindow(window);
+                    } else {
+                        GLFW.glfwRestoreWindow(window);
+                    }
+                }
+            });
+        }
+    }
+
+    /** Same as {@code setIconified(true)}. */
+    public void minimize() {
+        setIconified(true);
+    }
+
+    public boolean isIconified() {
+        return iconified;
+    }
+
+    /** Brings a minimized or maximized window back to its normal size. */
+    public void restore() {
+        if (window != MemoryUtil.NULL) {
+            JXDisplay.post(() -> {
+                if (window != MemoryUtil.NULL) {
+                    GLFW.glfwRestoreWindow(window);
+                }
+            });
+        } else {
+            maximized = false;
+            iconified = false;
+        }
+    }
+
+    /**
+     * Full screen on the primary monitor, at its current video mode; false goes back to the position and size the window
+     * had. Applied when the window opens, or at once if open.
+     */
+    public void setFullScreen(boolean value) {
+        fullScreen = value;
+        if (window != MemoryUtil.NULL) {
+            JXDisplay.post(() -> applyFullScreen());
+        }
+    }
+
+    public boolean isFullScreen() {
+        return fullScreen;
+    }
+
+    /** Display thread. */
+    private void applyFullScreen() {
+        long handle = window;
+        if (handle == MemoryUtil.NULL || fullScreen == inFullScreen) {
+            return;
+        }
+        if (fullScreen) {
+            int[] px = new int[1];
+            int[] py = new int[1];
+            int[] pw = new int[1];
+            int[] ph = new int[1];
+            GLFW.glfwGetWindowPos(handle, px, py);
+            GLFW.glfwGetWindowSize(handle, pw, ph);
+            long monitor = GLFW.glfwGetPrimaryMonitor();
+            org.lwjgl.glfw.GLFWVidMode mode = monitor == MemoryUtil.NULL ? null : GLFW.glfwGetVideoMode(monitor);
+            if (mode == null) {
+                fullScreen = false;
+                return;
+            }
+            windowedBounds[0] = px[0];
+            windowedBounds[1] = py[0];
+            windowedBounds[2] = pw[0];
+            windowedBounds[3] = ph[0];
+            GLFW.glfwSetWindowMonitor(handle, monitor, 0, 0, mode.width(), mode.height(), mode.refreshRate());
+        } else {
+            GLFW.glfwSetWindowMonitor(handle, MemoryUtil.NULL, windowedBounds[0], windowedBounds[1], windowedBounds[2],
+                    windowedBounds[3], GLFW.GLFW_DONT_CARE);
+        }
+        inFullScreen = fullScreen;
+        requestRender();
+    }
+
+    /** Asks the system to give this window the keyboard focus (it may only flash in the task bar). */
+    public void requestFocus() {
+        if (window != MemoryUtil.NULL) {
+            JXDisplay.post(() -> {
+                if (window != MemoryUtil.NULL) {
+                    GLFW.glfwFocusWindow(window);
+                }
+            });
+        }
+    }
+
+    /** One icon size for the title bar and the task bar; applied when the window opens, or at once if open. */
+    public void setIcon(int iconWidth, int iconHeight, int[] argb) {
+        setIcons(java.util.Collections.singletonList(new JXWindowIcon(iconWidth, iconHeight, argb)));
+    }
+
+    /** Several sizes of the icon (16, 32, 48...): the system picks the closest to what it needs. Null or empty: the default icon. */
+    public void setIcons(List<JXWindowIcon> sizes) {
+        icons = sizes == null ? new ArrayList<JXWindowIcon>() : new ArrayList<JXWindowIcon>(sizes);
+        if (window != MemoryUtil.NULL) {
+            JXDisplay.post(() -> {
+                if (window != MemoryUtil.NULL) {
+                    applyIcons(window);
+                }
+            });
+        }
+    }
+
+    /** The icon from a picture file ({@link JXWindowIcon#load}). */
+    public void setIconFile(String source) throws java.io.IOException {
+        setIcons(java.util.Collections.singletonList(JXWindowIcon.load(source)));
+    }
+
+    /** The icon from several picture files, one per size. */
+    public void setIconFiles(String... sources) throws java.io.IOException {
+        setIcons(JXWindowIcon.load(sources));
+    }
+
+    /** Display thread. */
+    private void applyIcons(long handle) {
+        List<JXWindowIcon> sizes = icons;
+        if (sizes.isEmpty()) {
+            GLFW.glfwSetWindowIcon(handle, (org.lwjgl.glfw.GLFWImage.Buffer) null);
+            return;
+        }
+        org.lwjgl.glfw.GLFWImage.Buffer images = org.lwjgl.glfw.GLFWImage.malloc(sizes.size());
+        java.nio.ByteBuffer[] pixels = new java.nio.ByteBuffer[sizes.size()];
+        try {
+            for (int i = 0; i < pixels.length; i++) {
+                JXWindowIcon icon = sizes.get(i);
+                byte[] rgba = icon.rgba();
+                pixels[i] = MemoryUtil.memAlloc(rgba.length);
+                pixels[i].put(rgba).flip();
+                images.get(i).set(icon.getWidth(), icon.getHeight(), pixels[i]);
+            }
+            GLFW.glfwSetWindowIcon(handle, images);
+        } finally {
+            images.free();
+            for (java.nio.ByteBuffer pixel : pixels) {
+                if (pixel != null) {
+                    MemoryUtil.memFree(pixel);
+                }
+            }
+        }
     }
 
     /** Whether showing the window takes the keyboard focus (false for notifications). Set before opening. */
@@ -523,7 +745,19 @@ public final class JXWindow implements AutoCloseable {
             backend = NANOVG.equals(rendererName) ? new NanoVGBackend() : new SkiaBackend();
         }
         JXDisplay.add(this);
+        if (!icons.isEmpty()) {
+            applyIcons(handle);
+        }
+        if (maximized) {
+            GLFW.glfwMaximizeWindow(handle);
+        }
         GLFW.glfwShowWindow(handle);
+        if (iconified) {
+            GLFW.glfwIconifyWindow(handle);
+        }
+        if (fullScreen) {
+            applyFullScreen();
+        }
         requestRender();
     }
 
@@ -646,6 +880,14 @@ public final class JXWindow implements AutoCloseable {
                 syncMetrics(h, true);
             }
             requestRender();
+        });
+        GLFW.glfwSetWindowMaximizeCallback(handle, (h, value) -> maximized = value);
+        GLFW.glfwSetWindowIconifyCallback(handle, (h, value) -> iconified = value);
+        GLFW.glfwSetWindowPosCallback(handle, (h, wx, wy) -> {
+            if (!iconified) { // a minimized window reports a position far off screen
+                x = wx;
+                y = wy;
+            }
         });
         GLFW.glfwSetWindowRefreshCallback(handle, h -> {
             if (backend instanceof SoftwareBackend) {

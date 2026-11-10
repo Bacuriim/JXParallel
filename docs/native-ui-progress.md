@@ -104,6 +104,12 @@ a real window (see the changelog entry of each).
   (a menu, a popup) is asked first. `JXWindow` shows it with the GLFW standard cursors, each created the first time it is
   needed and destroyed with the window; it follows the pointer while no button is held and is recomputed on the release.
   Table column borders are not resizable by the pointer today, so they have no cursor.
+- **Window icon and state.** `setIcon(w, h, argb)`, `setIcons(List<JXWindowIcon>)` and `setIconFile` / `setIconFiles`
+  (pictures decoded by `JXImages`, one per size) set the icon when the window opens or at once. `setResizable`,
+  `setDecorated`, `setFloating` (`setAlwaysOnTop`) now also work on an open window; new: `setMaximized`, `setIconified`
+  / `minimize`, `restore`, `setFullScreen` (primary monitor, back to the windowed bounds), `requestFocus`, and the
+  getters `isMaximized`, `isIconified`, `isFullScreen`, `isResizable`, `isDecorated`, `isFloating`, `getX`, `getY`
+  (kept up to date by the GLFW callbacks). Every setter posts to the display thread like `setTitle`.
 
 ## Current limitations
 
@@ -114,7 +120,7 @@ a real window (see the changelog entry of each).
   off JavaFX (documented in `JXGridLayout`)
 - wrapped labels take the width set on them; JavaFX's content bias (height for the width the
   parent gives) is not modelled in the box layouts
-- no `MenuBar`, `TreeView` or window icons yet
+- no `TreeView` (use `Tree`)
 - platform screen-reader adapters are not implemented
 - `jxparallel-fx` builds with JDK 8 (bundled JavaFX 8); `jxparallel-ui` tests need JDK 9+ for
   Skia (Skija does not load on Java 8, where NanoVG draws)
