@@ -567,6 +567,7 @@ Roadmap: [docs/roadmap.md](docs/roadmap.md). Changes: [CHANGELOG.md](CHANGELOG.m
 | Architecture and design rules | [ARCHITECTURE.md](ARCHITECTURE.md) |
 | JXForge reference | [docs/jxforge.md](docs/jxforge.md) |
 | JXForge 1.0 widget checklist | [docs/jxforge-1.0.md](docs/jxforge-1.0.md) |
+| JX Orders, a sample application (10,000-row table, editor dialog, CSV on the worker pool) | [docs/example-orders.md](docs/example-orders.md) |
 | Every component against JavaFX | [docs/jxforge-components-benchmark-2026-10-21.md](docs/jxforge-components-benchmark-2026-10-21.md) |
 | What was behind JavaFX, and what changed | [docs/jxforge-optimizations-2026-10-21.md](docs/jxforge-optimizations-2026-10-21.md) |
 | 20 form screens: interpreted, cached, compiled | [docs/jxforge-benchmark-2026-10-21.md](docs/jxforge-benchmark-2026-10-21.md) |
