@@ -2,6 +2,8 @@
 
 ## Unreleased
 
+- JXForge: the generator no longer keeps classes compiled by an older JXForge. `JXForge.compileDirectory` (the Maven goal `generate`, the command line) compared only the `.jxml` timestamps with the generated files, so after upgrading JXForge (or changing the compiler, a schema default, say) it said "up to date" and left the old code. It now writes a stamp file (`.jxforge-stamp-*`) in the output folder with a fingerprint (`JXForge.fingerprint`: the JXForge version, a SHA-256 of its classes, and package, suffix and hoisting) and generates every class again when the stamp is missing or differs; the Gradle task `jxforgeGenerate` has the compiler fingerprint (`getCompilerFingerprint()`) as an input too, so a new JXForge reruns it and invalidates the build cache
+
 - examples: `mvn -pl jxparallel-examples-native -am -Prun compile` starts JX Orders from the reactor (profile `run` of `jxparallel-examples-native`, an `exec-maven-plugin` execution bound to `compile`, so `-am` builds the other modules without running anything); `-Dapp=` picks `orders` (default), `hello`, `metrics`, `stress`, `components` or `forge-load`, `-Dapp.args=` and `-Dapp.jvm=` pass program arguments and JVM options; `scripts/run-orders.ps1` now calls it; started with the software renderer on Windows, not run on other systems
 
 - core: `JXParallel.background(CancellableWork)` runs work that receives its `CancellationToken` (`token -> ...`) and returns a `TaskHandle` (`future()`, `token()`, `cancel()`, `isCancelled()`, `isDone()`); `cancel()` cancels the token and the future at once and does not interrupt the thread; the work must check the token itself; no timeout

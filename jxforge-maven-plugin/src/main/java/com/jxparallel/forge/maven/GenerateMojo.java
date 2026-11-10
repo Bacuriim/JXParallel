@@ -59,6 +59,9 @@ public class GenerateMojo extends AbstractMojo {
                 }
                 JXForge.Result result = JXForge.compileDirectory(directory, outputDirectory, packageName,
                         classSuffix, hoistConstants);
+                if (result.regenerated) {
+                    getLog().debug("JXForge: compiler or options differ from the last run, every class is generated again");
+                }
                 getLog().info(String.format("JXForge: %d written, %d up to date, %.1f ms (%s, from %s)", result.written.size(),
                         result.upToDate.size(), result.nanos / 1e6, packageName, directory));
             }

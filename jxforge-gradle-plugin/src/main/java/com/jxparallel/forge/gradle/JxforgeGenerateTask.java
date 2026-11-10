@@ -54,6 +54,16 @@ public abstract class JxforgeGenerateTask extends DefaultTask {
     @Input
     public abstract Property<Boolean> getHoistConstants();
 
+    /**
+     * The compiler: the JXForge version and a hash of its classes. An input, so that a new JXForge (a changed schema
+     * default, say) runs the task again and never keeps classes the old compiler generated, or takes them from the
+     * build cache.
+     */
+    @Input
+    public String getCompilerFingerprint() {
+        return JXForge.compilerFingerprint();
+    }
+
     @Internal
     public abstract DirectoryProperty getSourceDirectory();
 
