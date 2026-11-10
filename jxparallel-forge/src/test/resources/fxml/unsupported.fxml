@@ -1,0 +1,15 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<?import javafx.scene.control.*?>
+<?import javafx.scene.layout.*?>
+<?import com.acme.Gauge?>
+
+<VBox xmlns:fx="http://javafx.com/fxml/1" fx:controller="com.jxparallel.forge.FxmlFormController">
+   <Label fx:id="title" text="%screen.title" />
+   <Label text="${title.text}" />
+   <Label text="${controller.a + controller.b}" />
+   <Button text="Go" onAction="#save" onKeyPressed="#key" managed="false" />
+   <TextField editable="false" onAction="#save" />
+   <Gauge />
+   <Canvas width="10" />
+   <Button text="Style" style="-fx-effect: dropshadow(gaussian, black, 5, 0, 0, 0); -fx-background-color: #ff0000" />
+</VBox>

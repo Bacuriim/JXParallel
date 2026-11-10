@@ -92,7 +92,13 @@ final class JxmlPrepare {
         try {
             InputStream in = loader.open(name);
             try {
-                part = JxmlParser.parse(in, name);
+                if (name.endsWith(".fxml")) { // a JavaFX screen included by a screen read with JxmlTemplate.readFxml
+                    FxmlToJxml.Options options = loader instanceof FxmlToJxml.FxmlLoader
+                            ? ((FxmlToJxml.FxmlLoader) loader).options : new FxmlToJxml.Options();
+                    part = FxmlToJxml.convert(in, name, options, true).node();
+                } else {
+                    part = JxmlParser.parse(in, name);
+                }
             } finally {
                 in.close();
             }

@@ -205,7 +205,25 @@ public final class JxmlTemplate implements JxmlView<Object> {
      * {@code source} is the name of the file for the loader, which resolves each {@code src} against it.
      */
     public static JxmlTemplate read(InputStream input, String source, JxmlLoader loader) {
-        JxmlParser.Node node = JxmlParser.parse(input, source);
+        return read(JxmlParser.parse(input, source), source, loader);
+    }
+
+    /**
+     * Reads an FXML file (a JavaFX screen) by converting it to the tree a JXML file would give, with no text in between;
+     * see {@link FxmlToJxml}. What could not be converted is in {@code options.report()}; an {@code fx:include} of
+     * {@code a.fxml} includes that file, found by {@code loader} (null: the file has none).
+     */
+    public static JxmlTemplate readFxml(InputStream input, String source, JxmlLoader loader, FxmlToJxml.Options options) {
+        JxmlLoader withOptions = loader == null ? null : FxmlToJxml.loader(loader, options);
+        return read(FxmlToJxml.convert(input, source, options, true).node(), source, withOptions);
+    }
+
+    /** Reads an FXML file with the default options: strict off, no resource bundle, no row types. */
+    public static JxmlTemplate readFxml(InputStream input, String source) {
+        return readFxml(input, source, null, new FxmlToJxml.Options());
+    }
+
+    private static JxmlTemplate read(JxmlParser.Node node, String source, JxmlLoader loader) {
         String controller = node.attrs.remove("controller");
         String theme = JxmlPrepare.run(node, controller, loader);
         return new JxmlTemplate(source, controller, resolve(node, source, null, null, null, theme));

@@ -1,0 +1,87 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<?import javafx.geometry.Insets?>
+<?import javafx.scene.control.*?>
+<?import javafx.scene.image.*?>
+<?import javafx.scene.layout.*?>
+
+<VBox xmlns="http://javafx.com/javafx/17" xmlns:fx="http://javafx.com/fxml/1" fx:controller="com.jxparallel.forge.FxmlFormController">
+   <children>
+      <SplitPane dividerPositions="0.3" orientation="HORIZONTAL" prefHeight="160.0">
+        <items>
+          <AnchorPane minHeight="0.0" minWidth="0.0">
+             <children>
+                <Button layoutX="14.0" layoutY="20.0" mnemonicParsing="false" text="Anchored" AnchorPane.rightAnchor="10.0" AnchorPane.topAnchor="10.0" />
+             </children>
+          </AnchorPane>
+          <StackPane>
+             <children>
+                <ImageView fitHeight="32.0" fitWidth="32.0" pickOnBounds="true" preserveRatio="true">
+                   <image>
+                      <Image url="@logo.png" />
+                   </image>
+                </ImageView>
+                <Label text="Over" StackPane.alignment="TOP_LEFT" />
+             </children>
+          </StackPane>
+        </items>
+      </SplitPane>
+      <TabPane tabClosingPolicy="UNAVAILABLE">
+        <tabs>
+          <Tab text="First">
+            <content>
+              <FlowPane hgap="4.0" vgap="4.0">
+                 <children>
+                    <ToggleButton mnemonicParsing="false" text="One" />
+                    <ProgressBar prefWidth="100.0" progress="0.5" />
+                    <Separator orientation="VERTICAL" />
+                    <Slider max="10.0" value="3.0" />
+                 </children>
+              </FlowPane>
+            </content>
+          </Tab>
+          <Tab text="Second">
+            <content>
+              <ScrollPane fitToWidth="true">
+                 <content>
+                    <TilePane prefColumns="2">
+                       <children>
+                          <PasswordField promptText="secret" />
+                          <DatePicker />
+                       </children>
+                    </TilePane>
+                 </content>
+              </ScrollPane>
+            </content>
+          </Tab>
+        </tabs>
+      </TabPane>
+      <Accordion>
+        <panes>
+          <TitledPane animated="false" expanded="true" text="Details">
+            <content>
+              <TreeView showRoot="false">
+                 <root>
+                    <TreeItem value="root" expanded="true">
+                       <children>
+                          <TreeItem value="alpha" />
+                          <TreeItem value="beta" />
+                       </children>
+                    </TreeItem>
+                 </root>
+              </TreeView>
+            </content>
+          </TitledPane>
+        </panes>
+      </Accordion>
+      <ButtonBar>
+        <buttons>
+          <Button mnemonicParsing="false" text="OK" ButtonBar.buttonData="OK_DONE" />
+        </buttons>
+      </ButtonBar>
+      <Region VBox.vgrow="ALWAYS" />
+      <ChoiceBox prefWidth="150.0" />
+      <ProgressIndicator progress="0.2" />
+      <fx:include source="panes-part.fxml" />
+   </children>
+</VBox>
