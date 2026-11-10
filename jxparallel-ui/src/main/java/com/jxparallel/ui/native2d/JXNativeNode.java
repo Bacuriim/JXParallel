@@ -587,6 +587,15 @@ public final class JXNativeNode {
         return false;
     }
 
+    /**
+     * What Alt pressed and released alone does (F10 goes through {@link #routeKey}): opens the first menu of the window's
+     * {@code MenuBar} with its first row highlighted, or closes the bar when it is open. False when it did neither.
+     */
+    public boolean toggleMenuBar() {
+        revision++;
+        return JXOverlays.toggleMenuBar(this);
+    }
+
     /** The mouse pointer shape at (x, y), logical pixels; see {@link JXCursor}. */
     public JXCursor cursorAt(int px, int py) {
         return JXCursor.at(this, px, py);

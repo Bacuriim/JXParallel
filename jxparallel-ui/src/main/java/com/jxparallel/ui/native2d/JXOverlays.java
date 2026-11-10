@@ -1148,10 +1148,110 @@ final class JXOverlays {
         return open.isEmpty() ? null : open.get(open.size() - 1);
     }
 
+    private static final int F10 = 299;
+    private static final int MENU_KEY = 348;
+
+    /** The first menu bar of the tree that is not hidden, or null. */
+    private static JXNativeNode firstMenuBar(JXNativeNode node) {
+        if (Boolean.TRUE.equals(node.getProperty("hidden"))) {
+            return null;
+        }
+        if ("menubar".equals(node.getType())) {
+            return node;
+        }
+        for (JXNativeNode child : node.getChildren()) {
+            JXNativeNode bar = firstMenuBar(child);
+            if (bar != null) {
+                return bar;
+            }
+        }
+        return null;
+    }
+
+    /**
+     * F10, or Alt pressed and released alone: opens the first menu of the window's menu bar with its first row highlighted (the
+     * arrows, Enter, letters and Escape then work as in any open menu), or closes the menu bar if it is open. False when there
+     * is no menu bar, no menu that can open, or another popup, menu or dialog is open.
+     */
+    static boolean toggleMenuBar(JXNativeNode root) {
+        JXNativeNode bar = firstMenuBar(root);
+        if (bar == null) {
+            return false;
+        }
+        for (Entry entry : collect(root)) {
+            if (entry.node != bar) {
+                return false;
+            }
+        }
+        if (isOpen(bar)) {
+            close(bar);
+            return true;
+        }
+        List<JXNativeNode> menus = bar.getChildren();
+        for (int i = 0; i < menus.size(); i++) {
+            JXNativeNode menu = menus.get(i);
+            if ("menu".equals(menu.getType()) && !Boolean.TRUE.equals(menu.getProperty("disabled"))) {
+                resetMenus(bar);
+                bar.openChild = i;
+                menu.highlight = step(menu.getChildren(), -1, 1, false);
+                return true;
+            }
+        }
+        return false;
+    }
+
+    private static boolean pathTo(JXNativeNode node, JXNativeNode target, List<JXNativeNode> path) {
+        path.add(node);
+        if (node == target) {
+            return true;
+        }
+        for (JXNativeNode child : node.getChildren()) {
+            if (pathTo(child, target, path)) {
+                return true;
+            }
+        }
+        path.remove(path.size() - 1);
+        return false;
+    }
+
+    /**
+     * The Menu key, or Shift+F10: opens the context menu of the focused node (the nearest one among its own children and its
+     * ancestors', not disabled) just below it, with its first row highlighted. False when there is none.
+     */
+    static boolean openContextMenuByKey(JXNativeNode root, JXNativeNode focused) {
+        List<JXNativeNode> path = new ArrayList<JXNativeNode>();
+        if (focused == null || !pathTo(root, focused, path)) {
+            path.clear();
+            path.add(root);
+        }
+        JXNativeNode anchor = path.get(path.size() - 1);
+        for (int i = path.size() - 1; i >= 0; i--) {
+            for (JXNativeNode child : path.get(i).getChildren()) {
+                if ("contextmenu".equals(child.getType()) && !Boolean.TRUE.equals(child.getProperty("disabled"))) {
+                    child.overlayX = anchor.getX();
+                    child.overlayY = anchor.getY() + anchor.getHeight();
+                    child.openChild = -1;
+                    request(child, true);
+                    child.highlight = PENDING; // set after the request, which clears it
+                    return true;
+                }
+            }
+        }
+        return false;
+    }
+
     /** See {@link JXNativeNode#routeKey}. */
     static JXNativeNode key(JXNativeNode root, JXKeyEvent event, JXNativeNode focused) {
         List<Entry> open = collect(root);
         Entry top = keyTarget(open);
+        int mods = event.getModifiers() & (JXInputEvent.CONTROL | JXInputEvent.ALT | JXInputEvent.META | JXInputEvent.SHIFT);
+        if (event.getKeyCode() == F10 && mods == 0 && toggleMenuBar(root)) {
+            return focused;
+        }
+        if (top == null && (event.getKeyCode() == MENU_KEY && mods == 0 || event.getKeyCode() == F10 && mods == JXInputEvent.SHIFT)
+                && openContextMenuByKey(root, focused)) {
+            return focused;
+        }
         if (top != null) {
             int code = event.getKeyCode();
             if (code == ESCAPE) {

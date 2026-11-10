@@ -617,7 +617,11 @@ Everything that opens over the window goes through one mechanism in the renderer
   (also Enter, for a `MenuButton`); a `ComboBox` or `MenuButton` opened so starts with the chosen option or the first item
   highlighted. Closed, a `ComboBox` still changes its value with Up and Down. An open menu takes every key, and
   the characters of the keys it took are not typed into the focused field (`JXNativeNode.capturesKeys()`; `JXWindow` does it). The highlight is renderer state
-  (`JXNativeNode.highlight`), not a prop; it is cleared when the overlay closes. A `MenuBar` opens with the pointer only.
+  (`JXNativeNode.highlight`), not a prop; it is cleared when the overlay closes. A `MenuBar` opens with the pointer, or with F10 or Alt pressed and
+  released alone (the first menu that is not disabled, its first row highlighted; the menu titles have no mnemonics, so no
+  Alt+letter); F10 again closes it. A `ContextMenu` opens with the Menu key or Shift+F10 on the focused node (the nearest
+  context menu among its children and its ancestors' children), just below the node, first row highlighted. Nothing opens
+  while another popup, menu or dialog is open.
   The calendar of a `DatePicker`, the cells of a `TimePicker` and the swatches of a `ColorPicker` have no hover or arrow
   navigation of their own: they keep the arrows (Up, Down, Page Up, Page Down) that change their value, a press picks.
 - **Dialog.** `Dialog` is a `Modal` (a column: use `padding`, `gap`, `alignment`, `prefWidth`... on it as on a `Column`)
@@ -780,7 +784,7 @@ JXML screen with `new XView().build(controller)`, and JXML places a Java compone
 - Animation of `opacity`, `translate*`, `scale*` and `rotate` over a duration: the renderer draws their values but nothing in JXML changes them over time yet; an application can change them from a binding on each frame it asks for.
 - A `ListView` with columns, and rows of different heights.
 - Hover and arrow-key navigation in the calendar of a `DatePicker`, the cells of a `TimePicker` and the swatches of a
-  `ColorPicker`, opening a `MenuBar` with the keyboard (see [Overlays](#overlays)), and a recursive model for `Tree`
+  `ColorPicker`, mnemonics (Alt+letter) in menu titles, and a recursive model for `Tree`
   (see [Trees](#trees)).
 - `<For>` over a `Map`, and the loop index as a variable.
 - An XSD for autocompletion in IDEs.

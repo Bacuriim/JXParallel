@@ -1908,6 +1908,98 @@ class JxmlComponentBehaviorTest {
     // ---- desktop window behaviours: mouse cursor, file drop, keyboard menus, accelerators -----------
 
     @Nested
+    class MenusByKeyboard {
+        private static final int F10 = 299;
+        private static final int MENU_KEY = 348;
+        private static final String BAR = "<MenuBar><Menu text=\"File\" disabled=\"true\"><MenuItem text=\"Never\" onAction=\"#toggleBold\"/></Menu>"
+                + "<Menu text=\"Edit\"><MenuItem text=\"Copy\" onAction=\"#save\"/><MenuItem text=\"Paste\" onAction=\"#click\"/></Menu></MenuBar>";
+
+        @Test
+        void f10OpensTheFirstMenuThatCanOpenAndTheArrowsAndEnterWorkInIt() {
+            Ui ui = new Ui(BAR);
+            JXNativeNode bar = ui.find("menubar");
+            ui.key(F10, 0);
+            assertTrue(JXOverlays.isOpen(bar), "F10 opens the menu bar");
+            assertEquals(1, bar.openChild, "the disabled File menu is skipped");
+            assertEquals(0, bar.getChildren().get(1).highlight, "its first row is highlighted");
+            ui.key(DOWN);
+            ui.key(ENTER);
+            assertEquals(1, ui.c.clicks, "Paste ran");
+            assertTrue(!JXOverlays.isOpen(bar), "and the menu closed");
+        }
+
+        @Test
+        void f10AgainAndEscapeCloseTheMenuBar() {
+            Ui ui = new Ui(BAR);
+            JXNativeNode bar = ui.find("menubar");
+            ui.key(F10, 0);
+            ui.key(F10, 0);
+            assertTrue(!JXOverlays.isOpen(bar), "F10 closes it again");
+            ui.key(F10, 0);
+            ui.key(ESCAPE);
+            assertTrue(!JXOverlays.isOpen(bar), "Escape closes it");
+            assertEquals(0, ui.c.saves + ui.c.clicks, "opening and closing run nothing");
+        }
+
+        @Test
+        void anAltTapOpensTheMenuBarAndAltWithAnotherKeyOrAClickDoesNot() {
+            Ui ui = new Ui(BAR);
+            JXAltTap alt = new JXAltTap();
+            assertTrue(!alt.key(342, true));
+            assertTrue(alt.key(342, false), "pressed and released alone is a tap");
+            assertTrue(ui.root.toggleMenuBar());
+            assertTrue(JXOverlays.isOpen(ui.find("menubar")));
+            assertTrue(!alt.key(342, true));
+            assertTrue(!alt.key(70, true), "Alt+F");
+            assertTrue(!alt.key(70, false));
+            assertTrue(!alt.key(342, false), "so the release of Alt is no tap");
+            alt.key(346, true);
+            alt.cancel();
+            assertTrue(!alt.key(346, false), "Alt+click");
+        }
+
+        @Test
+        void withoutAMenuBarOrWithAnotherPopupOpenF10DoesNothing() {
+            Ui none = new Ui("<Button text=\"x\" onAction=\"#click\"/>");
+            none.key(F10, 0);
+            assertTrue(!none.root.toggleMenuBar());
+            Ui ui = new Ui(BAR + "\n<MenuButton text=\"Actions\"><MenuItem text=\"Open\" onAction=\"#click\"/></MenuButton>");
+            ui.click(ui.find("menubutton"));
+            ui.key(F10, 0);
+            assertTrue(!JXOverlays.isOpen(ui.find("menubar")), "a menu button's menu is open: F10 leaves it");
+        }
+
+        @Test
+        void theMenuKeyAndShiftF10OpenTheContextMenuOfTheFocusedNode() {
+            Ui ui = new Ui("<TextField text=\"@{name}\"/>\n<ContextMenu><MenuItem text=\"Copy\" onAction=\"#save\"/>"
+                    + "<MenuItem text=\"Paste\" onAction=\"#click\"/></ContextMenu>");
+            ui.click(ui.find("input"));
+            JXNativeNode menu = ui.find("contextmenu");
+            ui.key(MENU_KEY, 0);
+            assertTrue(JXOverlays.isOpen(menu), "the Menu key opens it");
+            assertEquals(0, menu.highlight, "with the first row highlighted");
+            ui.key(DOWN);
+            ui.key(ENTER);
+            assertEquals(1, ui.c.clicks, "Enter runs Paste");
+            assertTrue(!JXOverlays.isOpen(menu));
+            ui.key(F10, JXInputEvent.SHIFT);
+            assertTrue(JXOverlays.isOpen(menu), "Shift+F10 opens it too");
+            ui.key(ESCAPE);
+            assertTrue(!JXOverlays.isOpen(menu));
+            assertEquals(ui.find("input"), ui.focused, "the field keeps the focus");
+        }
+
+        @Test
+        void aFocusedNodeWithoutAContextMenuOpensNone() {
+            Ui ui = new Ui("<TextField text=\"@{name}\"/>");
+            ui.click(ui.find("input"));
+            ui.key(MENU_KEY, 0);
+            ui.key(F10, JXInputEvent.SHIFT);
+            assertTrue(ui.root.getChildren().size() > 0);
+        }
+    }
+
+    @Nested
     class FileDrop {
         private final List<String> files = java.util.Arrays.asList("C:\\a.txt", "C:\\b.png");
 

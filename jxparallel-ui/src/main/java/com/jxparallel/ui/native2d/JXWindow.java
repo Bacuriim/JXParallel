@@ -958,6 +958,7 @@ public final class JXWindow implements AutoCloseable {
             cursorX = px[0];
             cursorY = py[0];
             if (action == GLFW.GLFW_PRESS) {
+                altTap.cancel();
                 buttonsDown |= 1 << button;
                 long now = System.currentTimeMillis();
                 boolean again = button == lastButton && now - lastPressTime <= MULTI_CLICK_MILLIS
@@ -1010,6 +1011,9 @@ public final class JXWindow implements AutoCloseable {
                         JXKeys.name(key), JXKeys.modifiers(mods)));
                 return;
             }
+            if (altTap.key(key, action != GLFW.GLFW_RELEASE) && root != null && root.toggleMenuBar()) {
+                requestRender(); // Alt pressed and released alone opened (or closed) the menu bar
+            }
             if (action != GLFW.GLFW_RELEASE && root != null) {
                 if (key == GLFW.GLFW_KEY_TAB) { // Tab and Shift+Tab move the focus through the controls
                     JXNativeNode next = root.nextFocus(focusedNode, (mods & GLFW.GLFW_MOD_SHIFT) != 0);
@@ -1039,6 +1043,8 @@ public final class JXWindow implements AutoCloseable {
             }
         });
     }
+
+    private final JXAltTap altTap = new JXAltTap();
 
     /** The last key press went to an open popup list or menu (see {@link JXNativeNode#capturesKeys}), not to the focused node. */
     private boolean keyTaken;

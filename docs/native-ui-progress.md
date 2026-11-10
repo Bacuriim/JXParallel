@@ -114,6 +114,10 @@ a real window (see the changelog entry of each).
   pointer position at the drop): the nearest node at or above the point with an `onDrop` `Consumer` gets an unmodifiable
   `List<String>`; disabled nodes are skipped, and under an open dialog or drawer only its content is a target. A window with
   an input listener gets no drop (there is no drop event in `JXInputEvent`).
+- **Menus by keyboard.** F10, or Alt pressed and released alone (`JXAltTap` tells a tap from Alt+key or Alt+click),
+  opens the first enabled menu of the first `MenuBar` with its first row highlighted (`JXNativeNode.toggleMenuBar()`); the
+  popup navigation of `JXOverlays` does the rest. The Menu key and Shift+F10 open the `ContextMenu` of the focused node.
+  There is no mnemonic notion in the menu titles, so no Alt+letter.
 
 ## Current limitations
 
