@@ -65,6 +65,19 @@ public final class JXParallel {
         return getCurrentPool().submit(callable);
     }
 
+    /**
+     * Runs work that supports cooperative cancellation. The work receives its token; call
+     * {@link TaskHandle#cancel()} to cancel it. There is no timeout.
+     */
+    public static <T> TaskHandle<T> background(CancellableWork<T> work) {
+        if (work == null) {
+            throw new IllegalArgumentException("work cannot be null");
+        }
+        CancellationToken token = new CancellationToken();
+        Task<T> task = Task.of(() -> work.call(token)).withCancellationToken(token);
+        return new TaskHandle<>(getCurrentPool().submit(task), token);
+    }
+
     public static <T> CompletableFuture<T> background(Task<T> task) {
         return getCurrentPool().submit(task);
     }

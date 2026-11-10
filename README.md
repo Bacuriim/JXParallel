@@ -421,6 +421,20 @@ Task.of(() -> remoteService.fetch())
     .thenAccept(result -> JXParallelFx.ui(() -> render(result)));
 ```
 
+Cooperative cancellation: give `background` a function of the token and keep the handle.
+
+```java
+TaskHandle<Report> handle = JXParallel.background(token -> {
+    Report report = new Report();
+    for (Row row : rows) {
+        if (token.isCancelled()) break;      // checked by the work itself
+        report.add(row);
+    }
+    return report;
+});
+cancelButton.setOnAction(e -> handle.cancel());   // handle.future() is cancelled at once
+```
+
 The pool grows from `threads.min` to `threads.max` under load and lets idle workers expire. When
 the queue is full, the configured policy decides whether the caller waits, fails fast or drops work,
 so a burst of requests cannot exhaust memory.
