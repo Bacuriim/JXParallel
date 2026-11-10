@@ -52,7 +52,11 @@ class JxmlComponentBehaviorTest {
         }
 
         Ui(String body, int w, int h) {
-            String xml = "<Stack controller=\"" + CTRL + "\">\n<Column padding=\"10\" gap=\"8\">\n" + body + "\n</Column>\n</Stack>";
+            this(w, h, "<Stack controller=\"" + CTRL + "\">\n<Column padding=\"10\" gap=\"8\">\n" + body + "\n</Column>\n</Stack>");
+        }
+
+        /** A screen written whole: the root is yours, e.g. {@code <Stack controller=...>} with an overlay over the content. */
+        Ui(int w, int h, String xml) {
             this.template = JxmlTemplate.read(new ByteArrayInputStream(xml.getBytes(StandardCharsets.UTF_8)), "behavior.jxml");
             this.w = w;
             this.h = h;
@@ -1996,6 +2000,92 @@ class JxmlComponentBehaviorTest {
             ui.key(ESCAPE);
             ui.click(ui.find("select"));
             assertEquals(-1, ui.find("select").highlight, "and one opened again starts clean");
+        }
+    }
+
+    // ---- empty areas of layout panes ---------------------------------------------------------------
+
+    @Nested
+    class EmptyAreas {
+        private String screen(String overlay) {
+            return "<Stack controller=\"" + CTRL + "\">\n<Column padding=\"10\" gap=\"8\">\n"
+                    + "<Button text=\"Below\" onAction=\"#click\" prefWidth=\"120\"/>\n"
+                    + "<Scroll fitToWidth=\"true\" prefHeight=\"150\"><Column gap=\"4\">"
+                    + "<For items=\"${rows}\" var=\"r\" type=\"java.lang.String\" limit=\"40\">"
+                    + "<Button text=\"${r}\" onAction=\"#pick(r)\" prefHeight=\"30\"/></For></Column></Scroll>\n"
+                    + "</Column>\n" + overlay + "\n</Stack>";
+        }
+
+        private final String closedModals = "<Stack><Modal><Label text=\"a\"/></Modal><Modal><Label text=\"b\"/></Modal></Stack>";
+
+        @Test
+        void anOverlayStackHoldingOnlyClosedModalsLetsThePointerThrough() {
+            Ui ui = new Ui(400, 400, screen(closedModals));
+            int[] c = center(ui.find("button"));
+            ui.click(c[0], c[1]);
+            assertEquals(1, ui.c.clicks, "the click reaches the button under the Stack");
+            ui.hover(c[0], c[1]);
+            assertEquals("button", ui.root.hitTest(c[0], c[1]).getType());
+            JXNativeNode pane = ui.find("scroll");
+            int[] s = center(pane);
+            assertTrue(ui.wheel(s[0], s[1], 2), "the wheel reaches the scroll pane under it");
+            assertTrue(pane.userScrollY > 0);
+            // an empty spot of the window: only the window root is hit, not the overlay Stack above the content
+            assertEquals(1, ui.root.hitPath(390, 390).size());
+        }
+
+        @Test
+        void aFileDroppedThroughTheOverlayReachesWhatIsBelow() {
+            Ui ui = new Ui(400, 400, "<Stack controller=\"" + CTRL + "\">\n<Column onDrop=\"#dropped\" prefHeight=\"300\">"
+                    + "<Label text=\"x\"/></Column>\n" + closedModals + "\n</Stack>");
+            assertTrue(ui.root.dispatchDrop(100, 100, java.util.Arrays.asList("a.txt")));
+            assertEquals(1, ui.c.drops.size());
+        }
+
+        @Test
+        void aStackWithABackgroundOrAHandlerStillTakesItsEmptyArea() {
+            Ui ui = new Ui(400, 400, screen("<Stack background=\"#80000000\" prefWidth=\"300\" prefHeight=\"300\"/>"));
+            JXNativeNode top = ui.root.hitTest(250, 250);
+            assertNotNull(top);
+            assertEquals("stack", top.getType(), "a background makes it a box that takes clicks");
+            int[] b = c(ui, "button");
+            ui.click(b[0], b[1]);
+            assertEquals(0, ui.c.clicks, "so the button under it gets none");
+            Ui handler = new Ui(400, 400, screen("<Column onAction=\"#click\" prefWidth=\"300\" prefHeight=\"300\"/>"));
+            handler.click(250, 250);
+            assertEquals(1, handler.c.clicks, "an onAction on an empty container runs on its empty area");
+        }
+
+        private int[] c(Ui ui, String type) {
+            return center(ui.find(type));
+        }
+
+        @Test
+        void hoverAndDropOnTheEmptyAreaOfAContainerWithHandlersStillWork() {
+            Ui ui = new Ui(400, 400, "<Stack controller=\"" + CTRL + "\">\n<Column onHover=\"#outerHover\" onDrop=\"#dropped\" "
+                    + "prefHeight=\"200\" prefWidth=\"200\"><Label text=\"x\"/></Column>\n</Stack>");
+            ui.hover(150, 150);
+            assertEquals(java.util.Arrays.asList("outer+"), ui.c.hovers);
+            assertTrue(ui.root.dispatchDrop(150, 150, java.util.Arrays.asList("a.txt")));
+        }
+
+        @Test
+        void theWheelOverTheEmptyAreaOfAScrollPaneStillScrollsIt() {
+            Ui ui = new Ui("<Scroll prefHeight=\"150\" prefWidth=\"300\"><Column gap=\"4\">"
+                    + "<For items=\"${rows}\" var=\"r\" type=\"java.lang.String\" limit=\"40\">"
+                    + "<Button text=\"${r}\" prefWidth=\"50\" prefHeight=\"30\"/></For></Column></Scroll>");
+            JXNativeNode pane = ui.find("scroll");
+            assertTrue(ui.wheel(pane.getX() + pane.getWidth() - 40, pane.getY() + 20, 2), "right of the buttons: the empty area of the column");
+            assertTrue(pane.userScrollY > 0);
+        }
+
+        @Test
+        void anOpenDialogKeepsItsScrimOverTheScreen() {
+            Ui ui = new Ui(400, 400, screen("<Modal showing=\"${dialog}\"><Label text=\"in\"/></Modal>"));
+            assertTrue(ui.c.getDialog());
+            int[] c = c(ui, "button");
+            ui.click(c[0], c[1]);
+            assertEquals(0, ui.c.clicks, "the scrim takes the click meant for the button");
         }
     }
 

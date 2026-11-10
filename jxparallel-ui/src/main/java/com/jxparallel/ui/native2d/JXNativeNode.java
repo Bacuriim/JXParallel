@@ -1355,10 +1355,36 @@ public final class JXNativeNode {
                 path.remove(path.size() - 1);
             }
         }
-        if (inside) {
-            return true; // Region picks on its bounds, like JavaFX
+        if (inside && (size == 1 || picksOnBounds())) {
+            return true; // a control or a box with something of its own picks on its bounds (the node the pick starts at, the window root, always does)
         }
         path.remove(path.size() - 1);
+        return false;
+    }
+
+    /** Layout panes that, like JavaFX's {@code Pane} with {@code pickOnBounds=false}, take nothing of their empty area. */
+    private static final java.util.Set<String> LAYOUT_PANES = new java.util.HashSet<String>(java.util.Arrays.asList(
+            "column", "row", "stack", "border", "grid", "pane", "anchor", "flow", "tile"));
+
+    /** What gives a layout pane a reason to take the pointer on its empty area: a box to see, or something to tell. */
+    private static final String[] PICK_PROPS = {"background", "backgroundGradient", "borderColor", "theme", "elevation",
+        "onClick", "onAction", "onHover", "onDrop", "onScroll", "onKeyPressed", "tooltip", "cursor", "focusable"};
+
+    /**
+     * Whether the empty area of this node (where no child is) is hit. A control is; a layout pane (column, row, stack, border,
+     * grid, pane, anchor, flow, tile) only when it has a background, border, theme, handler, tooltip or cursor, so a
+     * transparent {@code Stack} over the screen, holding only closed dialogs, lets the pointer through to what is below.
+     */
+    private boolean picksOnBounds() {
+        if (!LAYOUT_PANES.contains(type)) {
+            return true;
+        }
+        for (String key : PICK_PROPS) {
+            Object value = props.get(key);
+            if (value != null && !Boolean.FALSE.equals(value) && !(value instanceof Number && ((Number) value).doubleValue() == 0)) {
+                return true;
+            }
+        }
         return false;
     }
 

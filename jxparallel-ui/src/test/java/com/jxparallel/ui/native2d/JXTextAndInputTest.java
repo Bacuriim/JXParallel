@@ -204,7 +204,7 @@ class JXTextAndInputTest {
         root.layoutForBackend(100, 100);
         assertEquals(1, root.hitPath(10, 10).size(), "only the stack itself");
 
-        JXElement big = JXElement.of("pane", JXProps.builder().set("prefWidth", 300.0).set("prefHeight", 300.0).build());
+        JXElement big = JXElement.of("pane", JXProps.builder().set("prefWidth", 300.0).set("prefHeight", 300.0).set("onClick", (Runnable) () -> { }).build());
         JXElement clipped = JXElement.of("pane", JXProps.builder().set("clip", true).set("prefWidth", 50.0).set("prefHeight", 50.0).build(), big);
         JXElement unclipped = JXElement.of("pane", JXProps.builder().set("prefWidth", 50.0).set("prefHeight", 50.0).build(), big);
         JXNativeNode a = JXNativeNode.createBackendNode(JXElement.of("pane", JXProps.empty(), clipped));
