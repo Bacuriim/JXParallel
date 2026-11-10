@@ -23,6 +23,32 @@ class TaskTest {
     }
 
     @Test
+    void shouldHaveNoTimeoutByDefault() {
+        Task<String> task = Task.of(() -> "x");
+        assertEquals(Duration.ZERO, task.getTimeout());
+        assertEquals(Duration.ZERO, task.context().getTimeout());
+        assertEquals(Duration.ZERO, task.withTimeout(null).getTimeout());
+        assertEquals(Duration.ZERO, task.withTimeout(Duration.ofSeconds(-1)).getTimeout());
+        assertEquals(Duration.ZERO, task.withTimeout(1, TimeUnit.SECONDS).withoutTimeout().getTimeout());
+    }
+
+    @Test
+    void shouldLetTaskWithoutTimeoutRunToTheEnd() throws Exception {
+        AdaptiveWorkerPool pool = new AdaptiveWorkerPool(JXParallelConfig.builder()
+                .minThreads(1).maxThreads(1).queueCapacity(1).build());
+        pool.start();
+        try {
+            Task<String> task = Task.of(() -> {
+                Thread.sleep(300);
+                return "finished";
+            });
+            assertEquals("finished", pool.submit(task).get(5, TimeUnit.SECONDS));
+        } finally {
+            pool.shutdownNow();
+        }
+    }
+
+    @Test
     void shouldEnforceTimeoutAndInterruptRunningTask() throws Exception {
         AdaptiveWorkerPool pool = new AdaptiveWorkerPool(JXParallelConfig.builder()
                 .minThreads(1)

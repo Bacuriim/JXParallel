@@ -39,9 +39,12 @@ debug=false
 - `DISCARD`: cancel the new task without executing it
 - `DISCARD_OLDEST`: cancel the oldest queued task and accept the new task when possible
 
-`Task.withTimeout(...)` is enforced by the runtime. Timeout completion is exceptional and the
-running thread is interrupted; task code should still cooperate with interruption to release
-resources promptly.
+A task has no timeout unless you set one: `Task.withTimeout(...)` is the only way to get one
+(`Duration.ZERO`, a negative value or `null` mean none, and `withoutTimeout()` removes it). A
+timeout is enforced by the runtime. Timeout completion is exceptional (`TimeoutException`), the
+task's `CancellationToken` is cancelled and the running thread is interrupted; task code should
+still cooperate with interruption to release resources promptly. Do not set a timeout on work
+that waits for the user, such as a file dialog.
 
 ## Runtime modes
 

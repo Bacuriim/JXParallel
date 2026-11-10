@@ -410,7 +410,8 @@ I/O, parsing, computation   ->  JXParallel.background(...)
 Scene graph changes         ->  JXParallelFx.ui(...)   (Platform.runLater semantics)
 ```
 
-Timeouts, priorities and cancellation when you need them:
+Timeouts, priorities and cancellation when you need them (a task has no timeout unless you set
+one; a timeout interrupts the running thread):
 
 ```java
 Task.of(() -> remoteService.fetch())
