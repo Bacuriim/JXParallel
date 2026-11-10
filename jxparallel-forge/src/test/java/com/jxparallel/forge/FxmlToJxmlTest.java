@@ -368,6 +368,44 @@ class FxmlToJxmlTest {
         assertEquals(49, all(bench.node(), "Label").size());
     }
 
+    @Test
+    void smallerFeaturesMapAsDocumented() throws Exception {
+        String fxml = "<VBox xmlns:fx='http://javafx.com/fxml/1' fx:controller='c.C' style='-fx-padding: 4 8; -fx-background-color: rgb(255,0,0)'>"
+                + "<Label text='A' textFill='WHITE' opacity='0.5' layoutX='3'><tooltip><Tooltip text='Hint'/></tooltip></Label>"
+                + "<Text text='T'/><ColorPicker/><ScrollBar max='5'/>"
+                + "<MenuButton text='M'><items><MenuItem text='X' disable='true'/><CheckMenuItem text='Y'/></items></MenuButton>"
+                + "<ComboBox onAction='#pick'/><Label onMouseClicked='#click' text='B' visible='false'/>"
+                + "<HBox><padding><Insets topRightBottomLeft='5'/></padding><Label text='C' HBox.hgrow='SOMETIMES' minWidth='-1' maxWidth='Infinity'/></HBox>"
+                + "</VBox>";
+        FxmlToJxml.Result result = FxmlToJxml.convert(stream(fxml), "s.fxml", new FxmlToJxml.Options());
+        JxmlParser.Node root = result.node();
+        assertEquals("4 8", root.attrs.get("padding"));
+        assertEquals("#FF0000", root.attrs.get("background"));
+        JxmlParser.Node label = root.children.get(0);
+        assertEquals("Hint", label.attrs.get("tooltip"));
+        assertEquals("#FFFFFF", label.attrs.get("textFill"));
+        assertEquals("0.5", label.attrs.get("opacity"));
+        assertEquals("Label", root.children.get(1).tag); // Text
+        assertEquals("ColorPicker", root.children.get(2).tag);
+        assertEquals("5", root.children.get(3).attrs.get("max"));
+        JxmlParser.Node menu = root.children.get(4);
+        assertEquals("true", menu.children.get(0).attrs.get("disabled"));
+        assertEquals("MenuItem", menu.children.get(1).tag);
+        assertEquals("#pick", root.children.get(5).attrs.get("onChange"));
+        JxmlParser.Node clicked = root.children.get(6);
+        assertEquals("#click", clicked.attrs.get("onAction"));
+        assertEquals("true", clicked.attrs.get("hidden"));
+        JxmlParser.Node hbox = root.children.get(7);
+        assertEquals("5", hbox.attrs.get("padding"));
+        assertEquals("sometimes", hbox.children.get(0).attrs.get("hgrow"));
+        assertFalse(hbox.children.get(0).attrs.containsKey("minWidth"));
+        assertFalse(hbox.children.get(0).attrs.containsKey("maxWidth"));
+        assertTrue(has(result.report(), FxmlReport.Level.APPROXIMATE, "ComboBox", "onAction", "onChange"));
+        assertTrue(has(result.report(), FxmlReport.Level.APPROXIMATE, "Label", "onMouseClicked", "onAction"));
+        assertTrue(has(result.report(), FxmlReport.Level.APPROXIMATE, "CheckMenuItem", null, "check state"));
+        assertNull(xsdError(result.jxml()), result.jxml());
+    }
+
     // ---- XSD, interpreter, compiler --------------------------------------------------------------
 
     @Test
