@@ -212,7 +212,7 @@ three catalogs only decide which widgets exist.
 | **Overlays** | `Dialog` `AlertDialog` `Modal` `Drawer` `SnackBar` `ContextMenu` `MenuBar` `Menu` `Tooltip` |
 | **Display** | `Image` `Icon` `Avatar` `Badge` `Chip` `Separator` `ProgressBar` `ProgressIndicator` `Card` `ListTile` `AppBar` `NavigationBar` |
 
-Out of scope for 1.0: animations and transitions, custom painters, WebView and OS dialogs.
+Out of scope for 1.0: exit animations and keyframes (implicit `transition` and `enter` exist), custom painters, WebView and OS dialogs.
 
 ## Native UI
 

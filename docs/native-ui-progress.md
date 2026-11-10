@@ -144,8 +144,9 @@ a real window (see the changelog entry of each).
 
 ## Scalability guarantees
 
-The native UI does not create one thread per animation scheduler. It uses a shared daemon timing
-executor and each scheduler owns only its animation list and cancellation handle.
+The native UI creates no thread for animations: `transition` and `enter` are advanced by the window on the
+display thread, at the time of each frame, and the window stops asking for frames when none is left (the deprecated
+`JXAnimationScheduler` keeps its shared daemon timing executor, one per process).
 
 Layout keeps the last bounds and preferred size for a node. Repeating a render with unchanged
 dimensions does not recalculate that subtree's layout. A future mutable scene API must call
@@ -259,7 +260,16 @@ JXStyleSheet sheet = new JXStyleSheet()
     .add("button", JXStyle.builder().set("radius", 8).build())
     .add("#save", JXStyle.builder().set("primary", true).build());
 
-JXAnimationScheduler scheduler = new JXAnimationScheduler();
-scheduler.add(new JXAnimation(200, progress -> updateOpacity(progress)));
-scheduler.tick(16);
+// animation is declared on the element: a kept node moves from the value it shows to the new prop,
+// a new node from its entry values (JXAnimationScheduler and JXAnimation are deprecated)
+JXElement.of("label", JXProps.builder()
+    .set("opacity", visible ? 1.0 : 0.0)
+    .set("transition", "opacity 200ms ease-out")
+    .set("enter", "opacity 0 200ms, translateY 12 200ms")
+    .build());
 ```
+
+`transition` and `enter` animate `opacity`, `translateX`, `translateY`, `scaleX`, `scaleY`, `rotate`, `background` and
+`textFill` (JXML: `transition="opacity 200ms ease-out"`, `enter="opacity 0 200ms"`; see `jxforge.md`). `JXWindow`
+advances them on the display thread at each frame and asks for another frame only while one runs;
+`-Djx.animations=false` makes every one jump. Exit animations are not provided.

@@ -149,6 +149,8 @@ inside a `Border`), and these, which the renderer reads from any node:
 | `gradient` | CSS text | `linear-gradient(...)` or `radial-gradient(...)`, painted instead of `background` with all its stops: `linear-gradient(#fff, #000)` (top to bottom), `linear-gradient(from 0% 0% to 100% 0%, #fff 0%, #00f 40%, #000)`, `linear-gradient(to right, ...)`, `linear-gradient(45deg, ...)`, `radial-gradient(center 50% 50%, radius 100%, #fff, #000)`; stop colors are `#RGB`, `#RRGGBB`, `#AARRGGBB`, `rgb()`, `rgba()` or a basic name, stops without a position are spread evenly; `repeat`/`reflect` and a radial focus are read and ignored, a radial gradient is a circle whose radius is a fraction of the shorter side; text that is no gradient leaves the `background` |
 | `elevation` | number | a soft shadow under the box (blurred over twice the elevation, lowered by half of it, in `shadowColor`), drawn with the box's `backgroundRadius`; the box itself is left clear. 0 or absent: none |
 | `shadowColor`, `shadowOffsetX`, `shadowOffsetY` | color, number, number | the shadow's color (default `#40000000`) and offset (default 0 and half the elevation) |
+| `transition` | text | what a changed attribute does on an element the screen keeps: `transition="opacity 200ms ease-out, translateX 300ms"` animates those attributes from the value shown to the new one instead of jumping; `all 200ms` stands for every animatable attribute without an item of its own; see [Animation](#animation) |
+| `enter` | text | where a new element starts from: `enter="opacity 0 200ms, translateY 12 200ms"` animates the element, when it is created, from those values to the ones its attributes give; see [Animation](#animation) |
 | `translateX`, `translateY`, `scaleX`, `scaleY`, `rotate` | number | as the JavaFX node properties: the element and everything below it are scaled, then rotated (degrees, clockwise) about the centre of its bounds, then moved. They change where it is drawn and picked (a moved button is clicked where it shows; the handler gets the position in the element's own space), never the layout. Skia and NanoVG draw all of it; the software renderer moves and scales uniformly (equal `scaleX` and `scaleY`) and draws a rotated or unevenly scaled element unrotated or unscaled, though picking still follows the transform. An element with a transform is never skipped for being outside the window; popups opened from inside it are drawn in the window's space |
 
 | Tag | Native element | Attributes |
@@ -812,6 +814,45 @@ JXML screen with `new XView().build(controller)`, and JXML places a Java compone
 - Containers get their own method, so a large screen never hits the 64 KB method limit, and each
   method names the `.jxml` line of its element.
 
+## Animation
+
+Two attributes, on any tag, animate without any code: the screen stays a function of the controller's state, and the
+renderer moves a value from where it is shown to where the state now says it should be (CSS transitions, Flutter's
+implicitly animated widgets).
+
+```xml
+<Label text="Saved" opacity="${alpha}" translateX="${offset}"
+       transition="opacity 200ms ease-out, translateX 300ms"
+       enter="opacity 0 200ms, translateY 12 200ms ease-out"/>
+```
+
+- **`transition`** lists items `property duration [easing] [delay]`, separated by commas. When the screen is built again
+  and the value of one of those attributes changed on an element that is kept (the same position and tag), the element
+  animates from the value it shows now to the new one. A change in the middle of an animation starts from the value
+  shown, so it never jumps; an attribute that did not change does not restart anything. `all` stands for every
+  attribute below that has no item of its own (an item of its own wins, wherever it is written). An attribute without an
+  item jumps as before. Without `transition`, nothing changes.
+- **`enter`** lists items `property from-value duration [easing] [delay]`. A newly created element (also one in the first
+  screen, or one that replaces an element of another tag) starts at the from-values and animates to what its attributes
+  say (an attribute it does not set counts as its default: `opacity` 1, `scaleX` and `scaleY` 1, the others 0). A
+  colour's from-value is written `#RRGGBB` or `#AARRGGBB`, and a colour the element does not set has nothing to settle on,
+  so it does not animate. Elements that are kept never enter again.
+- **Attributes that animate:** `opacity`, `translateX`, `translateY`, `scaleX`, `scaleY`, `rotate` and the colours
+  `background` and `textFill` (each channel, alpha included, is interpolated on its own, not premultiplied; a colour
+  with no previous value, or removed, jumps). Layout (sizes, gaps, positions) does not animate.
+- **Times** are written `200ms` or `0.3s`; the first is the duration, the second (if any) the delay, during which the
+  starting value is held. **Easings:** `linear`, `ease` (the default), `ease-in`, `ease-out`, `ease-in-out`, the CSS curves.
+- The text is checked strictly when the file is read (a bound value, when the renderer first meets it): an
+  unknown attribute (`width`), a time without its unit (`200`), two easings, an attribute given twice, an empty item or
+  a stray comma is an error that quotes the text and says what is wrong.
+- A moving element is drawn and picked where it is drawn: a click during a `translateX` animation reaches the element
+  at its current place, not at its final one and not where the layout put it.
+- **Reduced motion:** start the application with `-Djx.animations=false` and every `transition` and `enter` jumps to its
+  final value (it is read each time an animation would begin).
+- **Frames:** the window advances the animations on its display thread at the time of each frame and asks for the next
+  frame only while something moves; when everything has arrived it stops, and an idle window sleeps as before. The pace is
+  the swap interval of the OpenGL renderers and the refresh interval of the software one; no thread is made per animation.
+
 ## Not done yet
 
 - Events the renderer does not report, so no attribute exists for them: a `TitledPane` collapses when
@@ -819,7 +860,7 @@ JXML screen with `new XView().build(controller)`, and JXML places a Java compone
   that shows on hover.
 - SVG (and other vector formats) for `Image`: `src` reads the raster formats of stb_image only.
 - The Material look of the bars: they are rows with a background. `Card` has no shadow of its own; give it `elevation="4"`. The soft ring of an elevated `Button` is still a ring, not the blurred shadow.
-- Animation of `opacity`, `translate*`, `scale*` and `rotate` over a duration: the renderer draws their values but nothing in JXML changes them over time yet; an application can change them from a binding on each frame it asks for.
+- Exit animations (an element that leaves fading out): a removed element's node is dropped at once, the reconcile keeps no leaving nodes. Keyframes, `cubic-bezier(...)` curves, springs and animating sizes, colours other than `background` and `textFill`, or any attribute not listed under [Animation](#animation) are not provided either.
 - A `ListView` with columns, and rows of different heights.
 - Hover and arrow-key navigation in the calendar of a `DatePicker`, the cells of a `TimePicker` and the swatches of a
   `ColorPicker`, mnemonics (Alt+letter) in menu titles, and a recursive model for `Tree`

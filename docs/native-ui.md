@@ -160,9 +160,16 @@ booleans and colors and checks names, so screens should use it.
 - `JXAccessibilityTree`: builds a tree of roles (`ROOT`, `GROUP`, `BUTTON`, `TEXT`, `TEXT_FIELD`,
   `CHECK_BOX`, `LIST`, `LIST_ITEM`, `UNKNOWN`) and accessible names from an element tree. Nothing
   passes it to the operating system yet.
-- `JXStyleSheet` and `JXAnimationScheduler`: standalone helpers with tests. The renderer does not read
-  a `JXStyleSheet` and does not run a `JXAnimationScheduler`; JXML styles are resolved when a file is read
-  (see [jxforge.md](jxforge.md)).
+- `JXStyleSheet`: a standalone helper with tests. The renderer does not read a `JXStyleSheet`; JXML styles are
+  resolved when a file is read (see [jxforge.md](jxforge.md)).
+- Animation is declarative: the props `transition` and `enter` (parsed by `JXTransitions` in `jxparallel-core`) make a
+  kept node move from the value it shows to its new prop, and a new node from its entry values, for `opacity`,
+  `translateX`, `translateY`, `scaleX`, `scaleY`, `rotate`, `background` and `textFill`. A node holds the animated values
+  (`JXNodeAnimation`), `getProperty` answers with them, so painting, transforms and picking agree; `JXWindow` advances
+  them on the display thread at each frame (`JXAnimationClock`, `JXAnimationDriver`), keeps asking for frames only while
+  one runs, and `-Djx.animations=false` makes everything jump. `JXAnimation` and `JXAnimationScheduler` are deprecated:
+  the scheduler ticks on a thread of its own, and only the display thread may touch nodes. See
+  [jxforge.md](jxforge.md#animation).
 
 ## Rules for new code
 
@@ -175,8 +182,8 @@ booleans and colors and checks names, so screens should use it.
 
 ## Not done
 
-- Animations and transitions in the renderer and in JXML; there is no tween, and `JXAnimationScheduler`
-  is not connected to it.
+- Exit animations (a removed node leaves at once), keyframes, `cubic-bezier(...)`, springs and animated layout; the
+  implicit `transition` and `enter` above are what exists.
 - Arrow-key navigation and hover in popups and menus; Tab focus traversal in `jxparallel-ui`
   (`JXWindow` sends keys to the last clicked node).
 - A screen-reader adapter for the accessibility tree.
