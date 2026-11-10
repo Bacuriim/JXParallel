@@ -1,0 +1,240 @@
+><?xml version="1.0" encoding="UTF-8"?>
+#^^ text.xml.jxml meta.tag.preprocessor.xml punctuation.definition.tag.xml
+#  ^^^ text.xml.jxml meta.tag.preprocessor.xml entity.name.tag.xml
+#     ^^^^^^^^ text.xml.jxml meta.tag.preprocessor.xml entity.other.attribute-name.xml
+#             ^ text.xml.jxml meta.tag.preprocessor.xml
+#              ^ text.xml.jxml meta.tag.preprocessor.xml string.quoted.double.xml punctuation.definition.string.begin.xml
+#               ^^^ text.xml.jxml meta.tag.preprocessor.xml string.quoted.double.xml
+#                  ^ text.xml.jxml meta.tag.preprocessor.xml string.quoted.double.xml punctuation.definition.string.end.xml
+#                   ^^^^^^^^^ text.xml.jxml meta.tag.preprocessor.xml entity.other.attribute-name.xml
+#                            ^ text.xml.jxml meta.tag.preprocessor.xml
+#                             ^ text.xml.jxml meta.tag.preprocessor.xml string.quoted.double.xml punctuation.definition.string.begin.xml
+#                              ^^^^^ text.xml.jxml meta.tag.preprocessor.xml string.quoted.double.xml
+#                                   ^ text.xml.jxml meta.tag.preprocessor.xml string.quoted.double.xml punctuation.definition.string.end.xml
+#                                    ^^ text.xml.jxml meta.tag.preprocessor.xml punctuation.definition.tag.xml
+><!-- A screen: ${not.a.binding} in a comment. -->
+#^^^^ text.xml.jxml comment.block.xml punctuation.definition.comment.xml
+#    ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^ text.xml.jxml comment.block.xml
+#                                              ^^^ text.xml.jxml comment.block.xml punctuation.definition.comment.xml
+><Column xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+#^ text.xml.jxml meta.tag.xml punctuation.definition.tag.xml
+# ^^^^^^ text.xml.jxml meta.tag.xml entity.name.tag.localname.xml
+#       ^ text.xml.jxml meta.tag.xml
+#        ^^^^^ text.xml.jxml meta.tag.xml entity.other.attribute-name.namespace.xml
+#             ^ text.xml.jxml meta.tag.xml entity.other.attribute-name.xml punctuation.separator.namespace.xml
+#              ^^^ text.xml.jxml meta.tag.xml entity.other.attribute-name.localname.xml
+#                 ^ text.xml.jxml meta.tag.xml
+#                  ^ text.xml.jxml meta.tag.xml string.quoted.double.xml punctuation.definition.string.begin.xml
+#                   ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^ text.xml.jxml meta.tag.xml string.quoted.double.xml
+#                                                            ^ text.xml.jxml meta.tag.xml string.quoted.double.xml punctuation.definition.string.end.xml
+>        xsi:noNamespaceSchemaLocation="jxml.xsd"
+#^^^^^^^^ text.xml.jxml meta.tag.xml
+#        ^^^ text.xml.jxml meta.tag.xml entity.other.attribute-name.namespace.xml
+#           ^ text.xml.jxml meta.tag.xml entity.other.attribute-name.xml punctuation.separator.namespace.xml
+#            ^^^^^^^^^^^^^^^^^^^^^^^^^ text.xml.jxml meta.tag.xml entity.other.attribute-name.localname.xml
+#                                     ^ text.xml.jxml meta.tag.xml
+#                                      ^ text.xml.jxml meta.tag.xml string.quoted.double.xml punctuation.definition.string.begin.xml
+#                                       ^^^^^^^^ text.xml.jxml meta.tag.xml string.quoted.double.xml
+#                                               ^ text.xml.jxml meta.tag.xml string.quoted.double.xml punctuation.definition.string.end.xml
+>        controller="com.acme.CustomersController" padding="12" gap="8">
+#^^^^^^^^ text.xml.jxml meta.tag.xml
+#        ^^^^^^^^^^ text.xml.jxml meta.tag.xml entity.other.attribute-name.localname.xml
+#                  ^ text.xml.jxml meta.tag.xml
+#                   ^ text.xml.jxml meta.tag.xml string.quoted.double.xml punctuation.definition.string.begin.xml
+#                    ^^^^^^^^^^^^^^^^^^^^^^^^^^^^ text.xml.jxml meta.tag.xml string.quoted.double.xml
+#                                                ^ text.xml.jxml meta.tag.xml string.quoted.double.xml punctuation.definition.string.end.xml
+#                                                 ^ text.xml.jxml meta.tag.xml
+#                                                  ^^^^^^^ text.xml.jxml meta.tag.xml entity.other.attribute-name.localname.xml
+#                                                         ^ text.xml.jxml meta.tag.xml
+#                                                          ^ text.xml.jxml meta.tag.xml string.quoted.double.xml punctuation.definition.string.begin.xml
+#                                                           ^^ text.xml.jxml meta.tag.xml string.quoted.double.xml
+#                                                             ^ text.xml.jxml meta.tag.xml string.quoted.double.xml punctuation.definition.string.end.xml
+#                                                              ^ text.xml.jxml meta.tag.xml
+#                                                               ^^^ text.xml.jxml meta.tag.xml entity.other.attribute-name.localname.xml
+#                                                                  ^ text.xml.jxml meta.tag.xml
+#                                                                   ^ text.xml.jxml meta.tag.xml string.quoted.double.xml punctuation.definition.string.begin.xml
+#                                                                    ^ text.xml.jxml meta.tag.xml string.quoted.double.xml
+#                                                                     ^ text.xml.jxml meta.tag.xml string.quoted.double.xml punctuation.definition.string.end.xml
+#                                                                      ^ text.xml.jxml meta.tag.xml punctuation.definition.tag.xml
+>  <Label text="${customer.name}" textFill="#336699"/>
+#^^ text.xml.jxml
+#  ^ text.xml.jxml meta.tag.xml punctuation.definition.tag.xml
+#   ^^^^^ text.xml.jxml meta.tag.xml entity.name.tag.localname.xml
+#        ^ text.xml.jxml meta.tag.xml
+#         ^^^^ text.xml.jxml meta.tag.xml entity.other.attribute-name.localname.xml
+#             ^ text.xml.jxml meta.tag.xml
+#              ^ text.xml.jxml meta.tag.xml string.quoted.double.xml punctuation.definition.string.begin.xml
+#               ^ text.xml.jxml meta.tag.xml string.quoted.double.xml meta.binding.read.jxml keyword.operator.binding.read.jxml
+#                ^ text.xml.jxml meta.tag.xml string.quoted.double.xml meta.binding.read.jxml punctuation.definition.binding.begin.jxml
+#                 ^^^^^^^^ text.xml.jxml meta.tag.xml string.quoted.double.xml meta.binding.read.jxml variable.other.readwrite.binding.jxml
+#                         ^ text.xml.jxml meta.tag.xml string.quoted.double.xml meta.binding.read.jxml variable.other.readwrite.binding.jxml punctuation.accessor.jxml
+#                          ^^^^ text.xml.jxml meta.tag.xml string.quoted.double.xml meta.binding.read.jxml variable.other.readwrite.binding.jxml
+#                              ^ text.xml.jxml meta.tag.xml string.quoted.double.xml meta.binding.read.jxml punctuation.definition.binding.end.jxml
+#                               ^ text.xml.jxml meta.tag.xml string.quoted.double.xml punctuation.definition.string.end.xml
+#                                ^ text.xml.jxml meta.tag.xml
+#                                 ^^^^^^^^ text.xml.jxml meta.tag.xml entity.other.attribute-name.localname.xml
+#                                         ^ text.xml.jxml meta.tag.xml
+#                                          ^ text.xml.jxml meta.tag.xml string.quoted.double.xml punctuation.definition.string.begin.xml
+#                                           ^^^^^^^ text.xml.jxml meta.tag.xml string.quoted.double.xml
+#                                                  ^ text.xml.jxml meta.tag.xml string.quoted.double.xml punctuation.definition.string.end.xml
+#                                                   ^^ text.xml.jxml meta.tag.xml punctuation.definition.tag.xml
+>  <Button text="Delete" disabled="${!readOnly}" onAction="#delete"/>
+#^^ text.xml.jxml
+#  ^ text.xml.jxml meta.tag.xml punctuation.definition.tag.xml
+#   ^^^^^^ text.xml.jxml meta.tag.xml entity.name.tag.localname.xml
+#         ^ text.xml.jxml meta.tag.xml
+#          ^^^^ text.xml.jxml meta.tag.xml entity.other.attribute-name.localname.xml
+#              ^ text.xml.jxml meta.tag.xml
+#               ^ text.xml.jxml meta.tag.xml string.quoted.double.xml punctuation.definition.string.begin.xml
+#                ^^^^^^ text.xml.jxml meta.tag.xml string.quoted.double.xml
+#                      ^ text.xml.jxml meta.tag.xml string.quoted.double.xml punctuation.definition.string.end.xml
+#                       ^ text.xml.jxml meta.tag.xml
+#                        ^^^^^^^^ text.xml.jxml meta.tag.xml entity.other.attribute-name.localname.xml
+#                                ^ text.xml.jxml meta.tag.xml
+#                                 ^ text.xml.jxml meta.tag.xml string.quoted.double.xml punctuation.definition.string.begin.xml
+#                                  ^ text.xml.jxml meta.tag.xml string.quoted.double.xml meta.binding.read.jxml keyword.operator.binding.read.jxml
+#                                   ^ text.xml.jxml meta.tag.xml string.quoted.double.xml meta.binding.read.jxml punctuation.definition.binding.begin.jxml
+#                                    ^ text.xml.jxml meta.tag.xml string.quoted.double.xml meta.binding.read.jxml variable.other.readwrite.binding.jxml keyword.operator.logical.jxml
+#                                     ^^^^^^^^ text.xml.jxml meta.tag.xml string.quoted.double.xml meta.binding.read.jxml variable.other.readwrite.binding.jxml
+#                                             ^ text.xml.jxml meta.tag.xml string.quoted.double.xml meta.binding.read.jxml punctuation.definition.binding.end.jxml
+#                                              ^ text.xml.jxml meta.tag.xml string.quoted.double.xml punctuation.definition.string.end.xml
+#                                               ^ text.xml.jxml meta.tag.xml
+#                                                ^^^^^^^^ text.xml.jxml meta.tag.xml entity.other.attribute-name.localname.xml
+#                                                        ^ text.xml.jxml meta.tag.xml punctuation.separator.key-value.xml
+#                                                         ^ text.xml.jxml meta.tag.xml punctuation.definition.string.begin.xml
+#                                                          ^ text.xml.jxml meta.tag.xml string.quoted.double.xml meta.handler.jxml keyword.operator.handler.jxml
+#                                                           ^^^^^^ text.xml.jxml meta.tag.xml string.quoted.double.xml meta.handler.jxml entity.name.function.handler.jxml
+#                                                                 ^ text.xml.jxml meta.tag.xml punctuation.definition.string.end.xml
+#                                                                  ^^ text.xml.jxml meta.tag.xml punctuation.definition.tag.xml
+>  <TextField text="@{customer.name}" prompt="Full name"/>
+#^^ text.xml.jxml
+#  ^ text.xml.jxml meta.tag.xml punctuation.definition.tag.xml
+#   ^^^^^^^^^ text.xml.jxml meta.tag.xml entity.name.tag.localname.xml
+#            ^ text.xml.jxml meta.tag.xml
+#             ^^^^ text.xml.jxml meta.tag.xml entity.other.attribute-name.localname.xml
+#                 ^ text.xml.jxml meta.tag.xml
+#                  ^ text.xml.jxml meta.tag.xml string.quoted.double.xml punctuation.definition.string.begin.xml
+#                   ^ text.xml.jxml meta.tag.xml string.quoted.double.xml meta.binding.two-way.jxml keyword.operator.binding.two-way.jxml
+#                    ^ text.xml.jxml meta.tag.xml string.quoted.double.xml meta.binding.two-way.jxml punctuation.definition.binding.begin.jxml
+#                     ^^^^^^^^ text.xml.jxml meta.tag.xml string.quoted.double.xml meta.binding.two-way.jxml variable.other.constant.binding.two-way.jxml
+#                             ^ text.xml.jxml meta.tag.xml string.quoted.double.xml meta.binding.two-way.jxml variable.other.constant.binding.two-way.jxml punctuation.accessor.jxml
+#                              ^^^^ text.xml.jxml meta.tag.xml string.quoted.double.xml meta.binding.two-way.jxml variable.other.constant.binding.two-way.jxml
+#                                  ^ text.xml.jxml meta.tag.xml string.quoted.double.xml meta.binding.two-way.jxml punctuation.definition.binding.end.jxml
+#                                   ^ text.xml.jxml meta.tag.xml string.quoted.double.xml punctuation.definition.string.end.xml
+#                                    ^ text.xml.jxml meta.tag.xml
+#                                     ^^^^^^ text.xml.jxml meta.tag.xml entity.other.attribute-name.localname.xml
+#                                           ^ text.xml.jxml meta.tag.xml
+#                                            ^ text.xml.jxml meta.tag.xml string.quoted.double.xml punctuation.definition.string.begin.xml
+#                                             ^^^^^^^^^ text.xml.jxml meta.tag.xml string.quoted.double.xml
+#                                                      ^ text.xml.jxml meta.tag.xml string.quoted.double.xml punctuation.definition.string.end.xml
+#                                                       ^^ text.xml.jxml meta.tag.xml punctuation.definition.tag.xml
+>  <Button text="Save" onAction="#save" disabled="${readOnly}"/>
+#^^ text.xml.jxml
+#  ^ text.xml.jxml meta.tag.xml punctuation.definition.tag.xml
+#   ^^^^^^ text.xml.jxml meta.tag.xml entity.name.tag.localname.xml
+#         ^ text.xml.jxml meta.tag.xml
+#          ^^^^ text.xml.jxml meta.tag.xml entity.other.attribute-name.localname.xml
+#              ^ text.xml.jxml meta.tag.xml
+#               ^ text.xml.jxml meta.tag.xml string.quoted.double.xml punctuation.definition.string.begin.xml
+#                ^^^^ text.xml.jxml meta.tag.xml string.quoted.double.xml
+#                    ^ text.xml.jxml meta.tag.xml string.quoted.double.xml punctuation.definition.string.end.xml
+#                     ^ text.xml.jxml meta.tag.xml
+#                      ^^^^^^^^ text.xml.jxml meta.tag.xml entity.other.attribute-name.localname.xml
+#                              ^ text.xml.jxml meta.tag.xml punctuation.separator.key-value.xml
+#                               ^ text.xml.jxml meta.tag.xml punctuation.definition.string.begin.xml
+#                                ^ text.xml.jxml meta.tag.xml string.quoted.double.xml meta.handler.jxml keyword.operator.handler.jxml
+#                                 ^^^^ text.xml.jxml meta.tag.xml string.quoted.double.xml meta.handler.jxml entity.name.function.handler.jxml
+#                                     ^ text.xml.jxml meta.tag.xml punctuation.definition.string.end.xml
+#                                      ^ text.xml.jxml meta.tag.xml
+#                                       ^^^^^^^^ text.xml.jxml meta.tag.xml entity.other.attribute-name.localname.xml
+#                                               ^ text.xml.jxml meta.tag.xml
+#                                                ^ text.xml.jxml meta.tag.xml string.quoted.double.xml punctuation.definition.string.begin.xml
+#                                                 ^ text.xml.jxml meta.tag.xml string.quoted.double.xml meta.binding.read.jxml keyword.operator.binding.read.jxml
+#                                                  ^ text.xml.jxml meta.tag.xml string.quoted.double.xml meta.binding.read.jxml punctuation.definition.binding.begin.jxml
+#                                                   ^^^^^^^^ text.xml.jxml meta.tag.xml string.quoted.double.xml meta.binding.read.jxml variable.other.readwrite.binding.jxml
+#                                                           ^ text.xml.jxml meta.tag.xml string.quoted.double.xml meta.binding.read.jxml punctuation.definition.binding.end.jxml
+#                                                            ^ text.xml.jxml meta.tag.xml string.quoted.double.xml punctuation.definition.string.end.xml
+#                                                             ^^ text.xml.jxml meta.tag.xml punctuation.definition.tag.xml
+>  <For items="${orders}" var="o" type="com.acme.Order">
+#^^ text.xml.jxml
+#  ^ text.xml.jxml meta.tag.xml punctuation.definition.tag.xml
+#   ^^^ text.xml.jxml meta.tag.xml entity.name.tag.localname.xml
+#      ^ text.xml.jxml meta.tag.xml
+#       ^^^^^ text.xml.jxml meta.tag.xml entity.other.attribute-name.localname.xml
+#            ^ text.xml.jxml meta.tag.xml
+#             ^ text.xml.jxml meta.tag.xml string.quoted.double.xml punctuation.definition.string.begin.xml
+#              ^ text.xml.jxml meta.tag.xml string.quoted.double.xml meta.binding.read.jxml keyword.operator.binding.read.jxml
+#               ^ text.xml.jxml meta.tag.xml string.quoted.double.xml meta.binding.read.jxml punctuation.definition.binding.begin.jxml
+#                ^^^^^^ text.xml.jxml meta.tag.xml string.quoted.double.xml meta.binding.read.jxml variable.other.readwrite.binding.jxml
+#                      ^ text.xml.jxml meta.tag.xml string.quoted.double.xml meta.binding.read.jxml punctuation.definition.binding.end.jxml
+#                       ^ text.xml.jxml meta.tag.xml string.quoted.double.xml punctuation.definition.string.end.xml
+#                        ^ text.xml.jxml meta.tag.xml
+#                         ^^^ text.xml.jxml meta.tag.xml entity.other.attribute-name.localname.xml
+#                            ^ text.xml.jxml meta.tag.xml
+#                             ^ text.xml.jxml meta.tag.xml string.quoted.double.xml punctuation.definition.string.begin.xml
+#                              ^ text.xml.jxml meta.tag.xml string.quoted.double.xml
+#                               ^ text.xml.jxml meta.tag.xml string.quoted.double.xml punctuation.definition.string.end.xml
+#                                ^ text.xml.jxml meta.tag.xml
+#                                 ^^^^ text.xml.jxml meta.tag.xml entity.other.attribute-name.localname.xml
+#                                     ^ text.xml.jxml meta.tag.xml
+#                                      ^ text.xml.jxml meta.tag.xml string.quoted.double.xml punctuation.definition.string.begin.xml
+#                                       ^^^^^^^^^^^^^^ text.xml.jxml meta.tag.xml string.quoted.double.xml
+#                                                     ^ text.xml.jxml meta.tag.xml string.quoted.double.xml punctuation.definition.string.end.xml
+#                                                      ^ text.xml.jxml meta.tag.xml punctuation.definition.tag.xml
+>    <Button text="Open ${o.id}" onAction="#open(o, 3)"/>
+#^^^^ text.xml.jxml
+#    ^ text.xml.jxml meta.tag.xml punctuation.definition.tag.xml
+#     ^^^^^^ text.xml.jxml meta.tag.xml entity.name.tag.localname.xml
+#           ^ text.xml.jxml meta.tag.xml
+#            ^^^^ text.xml.jxml meta.tag.xml entity.other.attribute-name.localname.xml
+#                ^ text.xml.jxml meta.tag.xml
+#                 ^ text.xml.jxml meta.tag.xml string.quoted.double.xml punctuation.definition.string.begin.xml
+#                  ^^^^^ text.xml.jxml meta.tag.xml string.quoted.double.xml
+#                       ^ text.xml.jxml meta.tag.xml string.quoted.double.xml meta.binding.read.jxml keyword.operator.binding.read.jxml
+#                        ^ text.xml.jxml meta.tag.xml string.quoted.double.xml meta.binding.read.jxml punctuation.definition.binding.begin.jxml
+#                         ^ text.xml.jxml meta.tag.xml string.quoted.double.xml meta.binding.read.jxml variable.other.readwrite.binding.jxml
+#                          ^ text.xml.jxml meta.tag.xml string.quoted.double.xml meta.binding.read.jxml variable.other.readwrite.binding.jxml punctuation.accessor.jxml
+#                           ^^ text.xml.jxml meta.tag.xml string.quoted.double.xml meta.binding.read.jxml variable.other.readwrite.binding.jxml
+#                             ^ text.xml.jxml meta.tag.xml string.quoted.double.xml meta.binding.read.jxml punctuation.definition.binding.end.jxml
+#                              ^ text.xml.jxml meta.tag.xml string.quoted.double.xml punctuation.definition.string.end.xml
+#                               ^ text.xml.jxml meta.tag.xml
+#                                ^^^^^^^^ text.xml.jxml meta.tag.xml entity.other.attribute-name.localname.xml
+#                                        ^ text.xml.jxml meta.tag.xml punctuation.separator.key-value.xml
+#                                         ^ text.xml.jxml meta.tag.xml punctuation.definition.string.begin.xml
+#                                          ^ text.xml.jxml meta.tag.xml string.quoted.double.xml meta.handler.jxml keyword.operator.handler.jxml
+#                                           ^^^^ text.xml.jxml meta.tag.xml string.quoted.double.xml meta.handler.jxml entity.name.function.handler.jxml
+#                                               ^ text.xml.jxml meta.tag.xml string.quoted.double.xml meta.handler.jxml punctuation.section.parens.begin.jxml
+#                                                ^ text.xml.jxml meta.tag.xml string.quoted.double.xml meta.handler.jxml variable.parameter.handler-argument.jxml
+#                                                 ^ text.xml.jxml meta.tag.xml string.quoted.double.xml meta.handler.jxml punctuation.separator.comma.jxml
+#                                                  ^^ text.xml.jxml meta.tag.xml string.quoted.double.xml meta.handler.jxml
+#                                                    ^ text.xml.jxml meta.tag.xml string.quoted.double.xml meta.handler.jxml punctuation.section.parens.end.jxml
+#                                                     ^ text.xml.jxml meta.tag.xml punctuation.definition.string.end.xml
+#                                                      ^^ text.xml.jxml meta.tag.xml punctuation.definition.tag.xml
+>    <Label text="\#1 literal" onHover='#over'/>
+#^^^^ text.xml.jxml
+#    ^ text.xml.jxml meta.tag.xml punctuation.definition.tag.xml
+#     ^^^^^ text.xml.jxml meta.tag.xml entity.name.tag.localname.xml
+#          ^ text.xml.jxml meta.tag.xml
+#           ^^^^ text.xml.jxml meta.tag.xml entity.other.attribute-name.localname.xml
+#               ^ text.xml.jxml meta.tag.xml
+#                ^ text.xml.jxml meta.tag.xml string.quoted.double.xml punctuation.definition.string.begin.xml
+#                 ^^^^^^^^^^^ text.xml.jxml meta.tag.xml string.quoted.double.xml
+#                            ^ text.xml.jxml meta.tag.xml string.quoted.double.xml punctuation.definition.string.end.xml
+#                             ^ text.xml.jxml meta.tag.xml
+#                              ^^^^^^^ text.xml.jxml meta.tag.xml entity.other.attribute-name.localname.xml
+#                                     ^ text.xml.jxml meta.tag.xml punctuation.separator.key-value.xml
+#                                      ^ text.xml.jxml meta.tag.xml punctuation.definition.string.begin.xml
+#                                       ^ text.xml.jxml meta.tag.xml string.quoted.single.xml meta.handler.jxml keyword.operator.handler.jxml
+#                                        ^^^^ text.xml.jxml meta.tag.xml string.quoted.single.xml meta.handler.jxml entity.name.function.handler.jxml
+#                                            ^ text.xml.jxml meta.tag.xml punctuation.definition.string.end.xml
+#                                             ^^ text.xml.jxml meta.tag.xml punctuation.definition.tag.xml
+>  </For>
+#^^ text.xml.jxml
+#  ^^ text.xml.jxml meta.tag.xml punctuation.definition.tag.xml
+#    ^^^ text.xml.jxml meta.tag.xml entity.name.tag.localname.xml
+#       ^ text.xml.jxml meta.tag.xml punctuation.definition.tag.xml
+></Column>
+#^^ text.xml.jxml meta.tag.xml punctuation.definition.tag.xml
+#  ^^^^^^ text.xml.jxml meta.tag.xml entity.name.tag.localname.xml
+#        ^ text.xml.jxml meta.tag.xml punctuation.definition.tag.xml
+>

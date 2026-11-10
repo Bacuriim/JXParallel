@@ -1,0 +1,62 @@
+{
+  "JXML screen": {
+    "prefix": ["jxml", "screen", "jxmlscreen"],
+    "description": "A JXML screen: a root Column with the controller and the schema line",
+    "body": [
+      "<?xml version=\"1.0\" encoding=\"UTF-8\"?>",
+      "<Column xmlns:xsi=\"http://www.w3.org/2001/XMLSchema-instance\"",
+      "        xsi:noNamespaceSchemaLocation=\"${1:jxml.xsd}\"",
+      "        controller=\"${2:com.acme.MyController}\" padding=\"${3:12}\" gap=\"${4:8}\">",
+      "  $0",
+      "</Column>"
+    ]
+  },
+  "Button with handler": {
+    "prefix": ["button", "jxbutton"],
+    "description": "A Button that calls a controller method",
+    "body": [
+      "<Button text=\"${1:Save}\" onAction=\"#${2:save}\"/>"
+    ]
+  },
+  "TextField with two-way binding": {
+    "prefix": ["textfield", "jxtextfield", "twoway"],
+    "description": "A TextField bound both ways to a controller property: @{...} reads and writes",
+    "body": [
+      "<TextField text=\"@{${1:name}}\" prompt=\"${2:Name}\"/>"
+    ]
+  },
+  "For loop": {
+    "prefix": ["for", "jxfor", "foreach"],
+    "description": "Repeat the children for each item of a controller list",
+    "body": [
+      "<For items=\"\\${${1:items}}\" var=\"${2:item}\" type=\"${3:com.acme.Item}\">",
+      "  <Label text=\"\\${${2:item}.${4:name}}\"/>$0",
+      "</For>"
+    ]
+  },
+  "If / Else": {
+    "prefix": ["if", "jxif"],
+    "description": "Show the children when a boolean binding is true, others otherwise",
+    "body": [
+      "<If test=\"\\${${1:visible}}\">",
+      "  $2",
+      "</If>",
+      "<Else>",
+      "  $0",
+      "</Else>"
+    ]
+  },
+  "Modal dialog": {
+    "prefix": ["dialog", "modal", "jxdialog"],
+    "description": "A Dialog over a scrim, opened and closed by a controller flag",
+    "body": [
+      "<Dialog title=\"${1:Title}\" showing=\"\\${${2:open}}\" onShowing=\"#${3:setOpen}\" padding=\"24\" gap=\"12\">",
+      "  $0",
+      "  <Row gap=\"8\" alignment=\"CENTER_RIGHT\">",
+      "    <Button text=\"Cancel\" onAction=\"#${4:cancel}\"/>",
+      "    <Button text=\"OK\" variant=\"filled\" onAction=\"#${5:confirm}\"/>",
+      "  </Row>",
+      "</Dialog>"
+    ]
+  }
+}

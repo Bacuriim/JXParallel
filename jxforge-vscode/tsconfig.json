@@ -1,0 +1,13 @@
+{
+  "compilerOptions": {
+    "module": "commonjs",
+    "target": "ES2022",
+    "outDir": "out",
+    "rootDir": "src",
+    "lib": ["ES2022"],
+    "sourceMap": false,
+    "strict": true,
+    "types": ["node", "mocha", "vscode"]
+  },
+  "include": ["src"]
+}
