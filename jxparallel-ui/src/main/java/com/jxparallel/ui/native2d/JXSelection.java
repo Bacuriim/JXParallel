@@ -192,9 +192,9 @@ final class JXSelection {
         if (event.isShiftDown()) {
             int from = list.selAnchor >= 0 ? list.selAnchor : cursor(list, now) >= 0 ? cursor(list, now) : index;
             int[] range = range(from, index);
-            next = event.isControlDown() ? union(now, range) : range; // Ctrl+Shift adds the range to what is selected
+            next = event.isShortcutDown() ? union(now, range) : range; // Ctrl+Shift adds the range to what is selected
             list.selAnchor = from;
-        } else if (event.isControlDown()) {
+        } else if (event.isShortcutDown()) {
             next = Arrays.binarySearch(now, index) >= 0 ? without(now, index) : union(now, new int[] {index});
             list.selAnchor = index;
         } else {
@@ -302,7 +302,7 @@ final class JXSelection {
             JXNativeNode row = focused.getChildren().get(at);
             return activate(row, row, new JXPointerEvent(row.getX() + row.getWidth() / 2, row.getY() + row.getHeight() / 2, 0));
         }
-        if (code == KEY_A && event.isControlDown()) {
+        if (code == KEY_A && event.isShortcutDown()) {
             if (!multiple) {
                 return false;
             }

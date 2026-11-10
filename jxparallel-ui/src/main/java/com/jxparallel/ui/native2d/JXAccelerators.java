@@ -67,7 +67,7 @@ final class JXAccelerators {
             return false;
         }
         int code = event.getKeyCode();
-        if (event.isControlDown()) {
+        if (event.isShortcutDown()) {
             return code == KEY_A || code == KEY_C || code == KEY_X || code == KEY_V || code == KEY_Z || code == KEY_Y;
         }
         if ((event.getModifiers() & (JXInputEvent.ALT | JXInputEvent.META)) != 0) {

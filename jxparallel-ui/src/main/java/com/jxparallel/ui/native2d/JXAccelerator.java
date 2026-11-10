@@ -32,8 +32,10 @@ final class JXAccelerator {
             switch (parts[i].toLowerCase(Locale.ROOT)) {
                 case "ctrl":
                 case "control":
-                case "shortcut":
                     modifiers |= JXInputEvent.CONTROL;
+                    break;
+                case "shortcut":
+                    modifiers |= JXInputEvent.SHORTCUT; // Cmd on macOS, Ctrl elsewhere
                     break;
                 case "shift":
                     modifiers |= JXInputEvent.SHIFT;

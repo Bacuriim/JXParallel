@@ -64,8 +64,17 @@ on Java 8, and a CPU renderer on Windows when asked. CI (`.github/workflows/buil
 | Java 8 x64, Linux | `jxparallel-core` |
 | Java 8 x86, Windows | `jxparallel-core`, `jxparallel-ui` |
 | Java 11, 17, 21 x64, Linux; Java 17 and 25 x64, Windows; Java 17 x86, Windows | the whole default reactor (`mvn test`) |
+| Java 17 and 21 arm64, macOS (`macos-latest`); Java 17 x64, macOS (`macos-15-intel`); Java 17 arm64, Linux (`ubuntu-24.04-arm`) and Windows (`windows-11-arm`) | the whole default reactor. **Configured and awaiting CI: no run exists yet, by anyone.** |
 | Java 17, Windows | the JavaFX modules (`-Plegacy-javafx`) |
 | Zulu 8 with JavaFX, Windows | `jxparallel-fx` and `jxparallel-fx-controlsfx` |
+
+macOS (x64, arm64) and ARM64 on Linux and Windows have Maven profiles in `jxparallel-ui` and CI jobs, and
+nothing more: they are **configured and awaiting CI, not run by anyone yet**. The LWJGL natives of all four were
+checked to exist on Maven Central for 3.3.3 and Skija 0.116.4 has macOS x64/arm64 jars; it has no
+`skija-windows-arm64` or `skija-linux-arm64`, so those use NanoVG. On macOS the application must be started with
+`-XstartOnFirstThread` and open its windows through `JXDisplay.runOnMainThread` (see `docs/native-ui.md`);
+tests that need an OpenGL window skip where none can be made. Until the jobs are green, treat these platforms as
+unsupported.
 
 The JavaFX modules have their own JDK needs: `jxparallel-javafx`, `jxparallel-fxml` and
 `jxparallel-examples` use OpenJFX 21 (CI builds them on JDK 17); `jxparallel-fx` extends JavaFX 8

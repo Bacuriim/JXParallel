@@ -49,7 +49,7 @@ GLFW window + OpenGL context        (software renderer: a GDI bitmap, no OpenGL)
 
 | Renderer | Chosen when | Needs |
 |---|---|---|
-| Skia (`skia`) | a 64-bit JVM on Java 9 or newer | Skija 0.116.4; its native library comes with the OS-activated profiles of `jxparallel-ui` (Windows x64, Linux x64) |
+| Skia (`skia`) | a 64-bit JVM on Java 9 or newer | Skija 0.116.4; its native library comes with the OS-activated profiles of `jxparallel-ui` (Windows x64, Linux x64, macOS x64/arm64) |
 | NanoVG (`nanovg`) | a 32-bit JVM, or Java 8 | LWJGL's NanoVG; natives for Windows x64, Windows x86 and Linux x64 come with the same profiles |
 | Software (`software`) | only when asked with `-Djx.renderer=software`, on Windows | GDI; no OpenGL context |
 
@@ -58,6 +58,45 @@ GLFW window + OpenGL context        (software renderer: a GDI bitmap, no OpenGL)
 that changed since the previous frame (`JXDamagePainter`); `-Djx.software.damage=false` repaints
 everything, and `-Djx.software.verify=true` also paints each frame whole and reports a pixel that
 differs. Skija publishes no 32-bit native library, which is why 32-bit JVMs use NanoVG.
+
+### Platforms
+
+| OS and CPU | Maven profile | Renderer | State |
+|---|---|---|---|
+| Windows x64 | `natives-windows-x64` | Skia (Java 9+), NanoVG (Java 8), software | run and measured |
+| Windows x86 | `natives-windows-x86` | NanoVG | run and measured |
+| Linux x64 | `natives-linux-x64` | Skia, NanoVG | unit tests in CI; window not run by the maintainers |
+| macOS x64 | `natives-macos-x64` | Skia, NanoVG | **configured, awaiting CI; not run by anyone yet** |
+| macOS arm64 | `natives-macos-arm64` | Skia, NanoVG | **configured, awaiting CI; not run by anyone yet** |
+| Linux arm64 | `natives-linux-arm64` | NanoVG (Skija 0.116.4 has no artifact) | **configured, awaiting CI; not run by anyone yet** |
+| Windows arm64 | `natives-windows-arm64` | NanoVG (Skija 0.116.4 has no artifact) | **configured, awaiting CI; not run by anyone yet** |
+
+An x64 JVM on an ARM machine (Rosetta, Windows x64 emulation) takes the x64 profile.
+
+**macOS.** GLFW creates windows and runs the event loop only on the process's first thread, which conflicts with
+the dedicated "JX Display" thread used elsewhere. On macOS there is no such thread: start the JVM with
+`-XstartOnFirstThread` and let the main thread be the display thread:
+
+```java
+public static void main(String[] args) {
+    JXDisplay.runOnMainThread(() -> {
+        JXWindow window = new JXWindow("App");
+        window.setContent(screen());
+        window.open();             // not show(): this is already the display thread
+    });                            // returns after the last window is closed
+}
+```
+
+`window.show()` on the main thread does the same for one window and blocks until it closes. Other threads can
+still `JXDisplay.post(...)` and `call(...)`. Without `-XstartOnFirstThread`, or when a window is opened from
+another thread first, the error says what to do instead of crashing in AppKit. `runOnMainThread` is accepted on
+other systems too (it runs the setup and waits for the windows). Do not use AWT or Swing in the same process on
+macOS with `-XstartOnFirstThread`. On macOS the OpenGL context is requested as core profile 3.2, forward
+compatible (the only kind above 2.1 there); Windows and Linux keep GLFW's defaults. The framebuffer is the Retina
+one and `JXScale` converts window units to pixels. "Shortcut" means Cmd there: text editing (copy, cut, paste,
+select all, undo), Cmd+click in lists and `accelerator="Shortcut+S"` use `JXInputEvent.SHORTCUT`; `Ctrl+S` stays
+literally Ctrl, so write `Shortcut+S` for a key that should be Cmd on macOS and Ctrl elsewhere. Fonts: Arial from
+`/System/Library/Fonts/Supplemental` (or `-Djx.font`). None of this has run on a Mac.
 
 Input: without an input listener, a primary click calls the `onClick`/`onAction` handler of the
 deepest node under the pointer and keys go to the node last clicked. With `setInputListener`, every

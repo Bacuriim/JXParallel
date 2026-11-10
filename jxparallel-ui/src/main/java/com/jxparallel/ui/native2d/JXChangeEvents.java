@@ -359,7 +359,7 @@ final class JXChangeEvents {
         String insert = null;
         boolean move = true; // a key that moves the caret: Shift keeps the anchor, otherwise it follows
         String next = text;
-        if (event.isControlDown()) {
+        if (event.isShortcutDown()) {
             move = false;
             if (code == KEY_A) {
                 anchor = 0;

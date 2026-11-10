@@ -47,6 +47,33 @@ jobs:
             java: 25
             arch: x64
             command: mvn --batch-mode --no-transfer-progress test
+          # macOS and ARM64: profiles natives-macos-x64, natives-macos-arm64, natives-linux-arm64 and
+          # natives-windows-arm64 of jxparallel-ui. First configured without any run: if one of these
+          # fails, that platform is not supported yet (docs/compatibility.md). No JVM flag is needed:
+          # the tests that need an OpenGL window skip when no window can be made (on macOS the display
+          # loop needs -XstartOnFirstThread, which a test run does not have).
+          # macos-latest is Apple Silicon; macos-15-intel is the x64 runner (macos-13 has been retired).
+          - os: macos-latest
+            java: 17
+            arch: aarch64
+            command: mvn --batch-mode --no-transfer-progress test
+          - os: macos-latest
+            java: 21
+            arch: aarch64
+            command: mvn --batch-mode --no-transfer-progress test
+          - os: macos-15-intel
+            java: 17
+            arch: x64
+            command: mvn --batch-mode --no-transfer-progress test
+          # Free for public repositories only; remove these two if the repository is private.
+          - os: ubuntu-24.04-arm
+            java: 17
+            arch: aarch64
+            command: mvn --batch-mode --no-transfer-progress test
+          - os: windows-11-arm
+            java: 17
+            arch: aarch64
+            command: mvn --batch-mode --no-transfer-progress test
     steps:
       - uses: actions/checkout@v4
       - uses: actions/setup-java@v4

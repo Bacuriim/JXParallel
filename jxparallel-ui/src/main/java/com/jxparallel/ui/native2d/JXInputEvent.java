@@ -17,6 +17,8 @@ public final class JXInputEvent {
     public static final int CONTROL = 2;
     public static final int ALT = 4;
     public static final int META = 8;
+    /** The modifier of "Shortcut" keys (copy, paste, select all, multi-select): Cmd ({@link #META}) on macOS, Ctrl elsewhere. */
+    public static final int SHORTCUT = JXPlatform.isMac() ? META : CONTROL;
 
     public static final int BUTTON_PRIMARY = 0;
     public static final int BUTTON_SECONDARY = 1;
@@ -103,6 +105,11 @@ public final class JXInputEvent {
 
     public boolean isControlDown() {
         return (modifiers & CONTROL) != 0;
+    }
+
+    /** True when the platform's shortcut key is down: Cmd on macOS, Ctrl elsewhere. */
+    public boolean isShortcutDown() {
+        return (modifiers & SHORTCUT) != 0;
     }
 
     public boolean isAltDown() {

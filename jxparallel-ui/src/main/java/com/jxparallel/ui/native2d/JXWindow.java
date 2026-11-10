@@ -111,7 +111,16 @@ public final class JXWindow implements AutoCloseable {
         // Java 8 keeps NanoVG, the measured configuration. Skija used to crash the JVM there while loading
         // its library: the types 0.1.1 it brings are Java 9 classes; with types 0.2.0 (pom) it loads.
         boolean java8 = System.getProperty("java.specification.version", "").startsWith("1.");
-        return is32Bit || java8 ? NANOVG : SKIA;
+        return is32Bit || java8 || !skijaHasNatives(arch) ? NANOVG : SKIA;
+    }
+
+    /**
+     * Skija 0.116.4 publishes natives for Windows x64, Linux x64 and macOS x64/arm64 only: there is no
+     * skija-windows-arm64 or skija-linux-arm64 before 0.143, so an ARM64 JVM on those systems uses NanoVG.
+     */
+    static boolean skijaHasNatives(String arch) {
+        boolean arm64 = arch.equals("aarch64") || arch.equals("arm64");
+        return !arm64 || JXPlatform.isMac();
     }
 
     /**
@@ -625,7 +634,8 @@ public final class JXWindow implements AutoCloseable {
             GLFW.glfwDefaultWindowHints();
             GLFW.glfwWindowHint(GLFW.GLFW_VISIBLE, GLFW.GLFW_FALSE);
             GLFW.glfwWindowHint(GLFW.GLFW_STENCIL_BITS, 8);
-            long hidden = GLFW.glfwCreateWindow(width, height, "capture", MemoryUtil.NULL, MemoryUtil.NULL);
+            JXPlatform.applyContextHints();
+            long hidden =GLFW.glfwCreateWindow(width, height, "capture", MemoryUtil.NULL, MemoryUtil.NULL);
             if (hidden == MemoryUtil.NULL) {
                 throw new IllegalStateException("Unable to create GLFW window");
             }
@@ -678,6 +688,11 @@ public final class JXWindow implements AutoCloseable {
         if (JXDisplay.isDisplayThread()) {
             throw new IllegalStateException("show() blocks; use open() on the display thread");
         }
+        if (JXDisplay.needsMainThreadEntry()) {
+            // macOS: this (first) thread becomes the display thread and returns when the last window is closed
+            JXDisplay.runOnMainThread(this::open);
+            return;
+        }
         open();
         awaitClosed();
     }
@@ -711,6 +726,7 @@ public final class JXWindow implements AutoCloseable {
                 GLFW.glfwWindowHint(GLFW.GLFW_CLIENT_API, GLFW.GLFW_NO_API); // no OpenGL context: no driver memory
             } else {
                 GLFW.glfwWindowHint(GLFW.GLFW_STENCIL_BITS, 8);
+                JXPlatform.applyContextHints();
             }
             GLFW.glfwWindowHint(GLFW.GLFW_VISIBLE, GLFW.GLFW_FALSE);
             GLFW.glfwWindowHint(GLFW.GLFW_RESIZABLE, resizable ? GLFW.GLFW_TRUE : GLFW.GLFW_FALSE);

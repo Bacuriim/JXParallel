@@ -49,4 +49,6 @@ public final class JXKeyEvent {
     public int getModifiers() { return modifiers; }
     public boolean isShiftDown() { return (modifiers & JXInputEvent.SHIFT) != 0; }
     public boolean isControlDown() { return (modifiers & JXInputEvent.CONTROL) != 0; }
+    /** Cmd on macOS, Ctrl elsewhere. */
+    public boolean isShortcutDown() { return (modifiers & JXInputEvent.SHORTCUT) != 0; }
 }

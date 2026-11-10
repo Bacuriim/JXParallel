@@ -507,7 +507,9 @@ Everything compiles to Java 8 bytecode (`--release 8` on newer JDKs); the code J
 Java 8 source. The newest Windows x86 JDK published by Temurin and Zulu is 17. The JavaFX modules
 build against OpenJFX 21 and need JDK 17 or newer to compile, except `jxparallel-fx` and
 `jxparallel-fx-controlsfx`, which build on a JDK 8 that bundles JavaFX (Zulu FX). `jxparallel-ui` brings the LWJGL
-natives for Windows x64/x86 and Linux x64, and Skija on 64-bit.
+natives for Windows x64/x86 and Linux x64, and Skija on 64-bit. Profiles for macOS (x64, arm64) and ARM64 on
+Linux and Windows are configured too, with CI jobs, but they are awaiting their first CI run and have not been run
+by anyone (macOS needs `-XstartOnFirstThread`; see [docs/native-ui.md](docs/native-ui.md)).
 
 ## Modules
 
