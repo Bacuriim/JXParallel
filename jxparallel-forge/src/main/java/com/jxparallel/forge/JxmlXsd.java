@@ -357,11 +357,19 @@ public final class JxmlXsd {
             open("xs:attribute", "name=\"" + attr.name + "\"" + use);
             documentation(describe(tag, attr));
             open("xs:simpleType");
+            if (attr.bindable) { // one of the choices, or a binding that gives one when the tree is built
+                open("xs:union", "memberTypes=\"binding\"");
+                open("xs:simpleType");
+            }
             open("xs:restriction", "base=\"xs:string\"");
             for (String choice : attr.choices) {
                 line("<xs:enumeration value=\"" + escape(choice) + "\"/>");
             }
             close("xs:restriction");
+            if (attr.bindable) {
+                close("xs:simpleType");
+                close("xs:union");
+            }
             close("xs:simpleType");
             close("xs:attribute");
             return;
@@ -464,6 +472,9 @@ public final class JxmlXsd {
             case COUNT:
             case PIXELS:
                 text.append("Type ").append(attr.type.name().toLowerCase()).append("; a ${...} binding only.");
+                break;
+            case TEXT_OR_NUMBER:
+                text.append("Type string; a ${...} binding may also give a number.");
                 break;
             default:
                 text.append("Type ").append(attr.type.name().toLowerCase()).append('.');

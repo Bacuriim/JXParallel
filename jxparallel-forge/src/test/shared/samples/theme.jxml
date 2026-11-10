@@ -1,0 +1,12 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!-- The root's theme is bound: every theme token below (primary, onPrimary, surface, onSurface, outline, error) follows it. -->
+<Column controller="com.jxparallel.forge.samples.SampleController" theme="${themeName}" background="surface" padding="8" gap="4">
+  <Label text="Themed" textFill="onSurface" bold="true"/>
+  <Row gap="4" background="primary" padding="4" borderColor="outline" borderWidth="1">
+    <Icon name="star" color="onPrimary"/>
+    <Label text="${title}" textFill="onPrimary"/>
+  </Row>
+  <Card background="surface" borderColor="outline"><Label text="card" textFill="error"/></Card>
+  <IconButton icon="add" variant="filled"/>
+  <Button text="Plain" variant="${variant}" textFill="primary"/>
+</Column>

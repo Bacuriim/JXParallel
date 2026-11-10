@@ -5,13 +5,14 @@
     <Label text="Behind"/>
     <Button text="Under" onAction="#save"/>
   </Column>
-  <Dialog title="${title}" showing="${dialogOpen}" onShowing="#setOpen" dismissible="true">
+  <Dialog title="${title}" showing="${dialogOpen}" onShowing="#setOpen" dismissible="true"
+          padding="20 24" gap="${gap}" alignment="TOP_CENTER" fillWidth="true">
     <Label text="This cannot be undone."/>
     <Button slot="actions" text="Cancel" onAction="#save"/>
     <Button slot="actions" text="Delete" defaultButton="true" onAction="#save"/>
   </Dialog>
   <AlertDialog title="Alert" message="${name}" confirmText="Got it" cancelText="Cancel" onConfirm="#save" onCancel="#save"
-               dismissible="false" showing="false" onShowing="#setOpen"/>
+               dismissible="false" showing="false" onShowing="#setOpen" padding="8" gap="${gap}" alignment="CENTER" fillWidth="false"/>
   <AlertDialog message="Plain" showing="false"/>
   <Modal showing="false" dismissible="true" padding="10" gap="4" alignment="TOP_LEFT" fillWidth="true" onShowing="#setOpen">
     <Label text="A modal"/>

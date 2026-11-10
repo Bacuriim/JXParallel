@@ -22,6 +22,9 @@
           <Label text="Rating" row="4" column="0"/>
           <Spinner value="${rating}" min="0" max="5" step="0.5" onChange="#setRating" row="4" column="1"/>
           <CheckBox text="Active" selected="@{agree}" row="5" column="1"/>
+          <Label text="Quantity" row="6" column="0"/>
+          <Spinner value="@{qty}" integer="true" min="0" max="9" row="6" column="1"/>
+          <Spinner value="3" row="7" column="1"/>
         </Grid>
       </Scroll>
     </Tab>
@@ -34,6 +37,7 @@
         <CheckBox text="Agree" selected="${agree}" onChange="#setAgree"/>
         <Slider min="0" max="10" value="${volume}" blockIncrement="2" onChange="#setVolume"/>
         <Slot content="${banner}"/>
+        <Slot content="${banner}" margin="2 4" hgrow="always" halignment="CENTER" prefWidth="${gap}" hidden="${hidden}"/>
       </Column>
     </Tab>
     <Tab title="Loop">
@@ -48,4 +52,5 @@
       </Stack>
     </Tab>
   </Tabs>
+  <Slot slot="bottom" content="${banner}"/>
 </Border>

@@ -8,7 +8,7 @@
               onAction="#select(r)"/>
   </ListView>
   <ListView items="${rows}" var="r" first="${top}" onChange="#setTop" onScroll="#scrolledTo" cellHeight="30" prefHeight="90"
-            selectionMode="multiple" selection="${picked}" onSelection="#setPicked" selected="${selected}" onSelect="#setSelected">
+            selectionMode="${mode}" selection="${picked}" onSelection="#setPicked" selected="${selected}" onSelect="#setSelected">
     <ListItem text="${r}">
       <Label text="*" fontSize="9"/>
     </ListItem>

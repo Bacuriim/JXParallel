@@ -803,7 +803,7 @@ final class JXPaint {
             drawText(node, shown, x + JXNativeNode.FIELD_PAD_X, y, h, color(node, TEXT), false);
         }
         p.restore();
-        buttonBody(node, x + w - bw, y, bw, h, 0, Boolean.TRUE.equals(node.getProperty("showing")));
+        buttonBody(node, x + w - bw, y, bw, h, 0, JXOverlays.isOpen(node));
         float cx = x + w - bw / 2;
         float cy = y + h / 2;
         p.strokeOval(cx - 5, cy - 5, 10, 10, 1.5f, ARROW);
@@ -828,7 +828,7 @@ final class JXPaint {
             drawText(node, hex, left, y, h, color(node, TEXT), false);
         }
         p.restore();
-        buttonBody(node, x + w - bw, y, bw, h, 0, Boolean.TRUE.equals(node.getProperty("showing")));
+        buttonBody(node, x + w - bw, y, bw, h, 0, JXOverlays.isOpen(node));
         downArrow(x + w - bw + (bw - 8) / 2, y + (h - 4) / 2, ARROW);
     }
 
@@ -1035,7 +1035,7 @@ final class JXPaint {
             fieldText(node, x, y, w - JXNativeNode.ARROW, h, false);
             p.fillRect(x + w - JXNativeNode.ARROW, y + 1, 1, h - 2, OUTER_BORDER);
         } else {
-            buttonBody(node, x, y, w, h, 3, Boolean.TRUE.equals(node.getProperty("showing")));
+            buttonBody(node, x, y, w, h, 3, JXOverlays.isOpen(node));
             String value = text(node, "value");
             boolean prompt = value.isEmpty() || Boolean.TRUE.equals(node.getProperty("promptShown"));
             if (value.isEmpty()) {
@@ -1078,7 +1078,7 @@ final class JXPaint {
         field(node, x, y, w, h);
         float bw = JXControlLayout.DATE_BUTTON;
         fieldText(node, x, y, w - bw, h, false);
-        buttonBody(node, x + w - bw, y, bw, h, 0, Boolean.TRUE.equals(node.getProperty("showing")));
+        buttonBody(node, x + w - bw, y, bw, h, 0, JXOverlays.isOpen(node));
         float cx = x + w - bw + (bw - 11) / 2;
         float cy = y + (h - 10) / 2;
         p.fillRect(cx, cy, 11, 10, ARROW);

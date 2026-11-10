@@ -22,6 +22,8 @@ public final class JxmlSchema {
         public final boolean bindable;
         /** For a STRING written as a literal: the only values allowed (checked when the file is read), or null for any. */
         public final java.util.List<String> choices;
+        /** {@link #choices} as an array, one instance per attribute: what a bound value is checked against. */
+        final String[] choiceArray;
         /** For a CHANGE attribute: the type of the value the handler gets (STRING, BOOLEAN, DOUBLE, INT, DOUBLES, or STRINGS for a List&lt;String&gt;). */
         public final AttrType valueType;
         /** For a STRING written as a literal: checks its text (throws IllegalArgumentException with the reason), or null. */
@@ -47,6 +49,7 @@ public final class JxmlSchema {
             this.type = type;
             this.bindable = bindable;
             this.choices = choices;
+            this.choiceArray = choices == null ? null : choices.toArray(new String[0]);
             this.valueType = valueType;
         }
     }
@@ -135,6 +138,12 @@ public final class JxmlSchema {
     /** The looks of a Button; {@code fab} is what a Fab expands to. */
     static final java.util.List<String> VARIANTS = Collections.unmodifiableList(
             java.util.Arrays.asList("filled", "tonal", "outlined", "text", "elevated", "fab"));
+    /**
+     * The {@code onChange} of a {@code <Spinner integer="true">}: the handler or setter gets an int. The renderer reports a
+     * Double, so the interpreter and the generated code convert it ({@link JxmlValues#asInt}); the resolver puts this
+     * attribute in place of the Spinner's own {@code onChange} (a Spinner has one number type at a time).
+     */
+    static final Attr SPINNER_INTEGER_CHANGE = new Attr("onChange", "onChange", AttrType.CHANGE, false, null, AttrType.INT);
     static final java.util.List<String> ORIENTATIONS = Collections.unmodifiableList(java.util.Arrays.asList("horizontal", "vertical"));
     static final java.util.List<String> CHIP_KINDS = Collections.unmodifiableList(
             java.util.Arrays.asList("assist", "filter", "choice", "input"));
@@ -145,7 +154,8 @@ public final class JxmlSchema {
             java.util.Arrays.asList("default", "text", "hand", "crosshair", "h-resize", "v-resize"));
 
     static {
-        layout("theme", "theme", AttrType.STRING, false); // root only: light or dark, inherited by the renderer
+        // root only: light or dark, inherited by the renderer; written or bound (${...}), and the tokens follow a bound one
+        LAYOUT.put("theme", new Attr("theme", "theme", AttrType.STRING, true, JxmlThemes.THEMES, null));
         layout("key", "key", AttrType.STRING, false);
         layout("margin", "margin", AttrType.INSETS, false);
         layout("hgrow", "hgrow", AttrType.STRING, false);
@@ -269,7 +279,7 @@ public final class JxmlSchema {
         tag("Button", "button", Children.ONE) // an optional child is its graphic, left of the text
                 .attr("text", "label", AttrType.STRING, true).attr("onAction", "onAction", AttrType.HANDLER, false)
                 .attr("disabled", "disabled", AttrType.BOOLEAN, true).attr("defaultButton", "defaultButton", AttrType.BOOLEAN, false)
-                .choice("variant", "variant", VARIANTS)
+                .choiceBound("variant", "variant", VARIANTS)
                 .attr("round", "round", AttrType.BOOLEAN, false).attr("padding", "padding", AttrType.INSETS, false)
                 .attr("textFill", "textFill", AttrType.COLOR, true).font()
                 .attr("accelerator", "accelerator", AttrType.STRING, true)
@@ -303,13 +313,13 @@ public final class JxmlSchema {
         tag("ComboBox", "select", Children.NONE)
                 .attr("value", "value", AttrType.STRING, true).attr("prompt", "prompt", AttrType.STRING, true)
                 .attr("items", "options", AttrType.STRINGS, true)
-                .def("value", "").def("prompt", "").def("options", new String[0]).def("showing", Boolean.FALSE)
+                .def("value", "").def("prompt", "").def("options", new String[0])
                 .def("overlay", Boolean.TRUE) // the node draws its own popup over the window (JXOverlays)
                 .overlay()
                 .change("value", AttrType.STRING)
                 .done();
         tag("Spinner", "spinner", Children.NONE)
-                .attr("value", "value", AttrType.STRING, true)
+                .attr("value", "value", AttrType.TEXT_OR_NUMBER, true).attr("integer", "integer", AttrType.BOOLEAN, false)
                 .attr("min", "min", AttrType.DOUBLE, false).attr("max", "max", AttrType.DOUBLE, false)
                 .attr("step", "step", AttrType.DOUBLE, false)
                 .def("value", "")
@@ -317,7 +327,7 @@ public final class JxmlSchema {
                 .done();
         tag("DatePicker", "datepicker", Children.NONE)
                 .attr("value", "value", AttrType.STRING, true).attr("prompt", "prompt", AttrType.STRING, true)
-                .def("value", "").def("prompt", "").def("showing", Boolean.FALSE).def("overlay", Boolean.TRUE)
+                .def("value", "").def("prompt", "").def("overlay", Boolean.TRUE)
                 .overlay()
                 .change("value", AttrType.STRING)
                 .done();
@@ -401,14 +411,13 @@ public final class JxmlSchema {
                 .attr("hour24", "hour24", AttrType.BOOLEAN, true).attr("minuteStep", "minuteStep", AttrType.INT, true)
                 .attr("disabled", "disabled", AttrType.BOOLEAN, true)
                 .def("value", "").def("prompt", "").def("hour24", Boolean.TRUE).def("minuteStep", Integer.valueOf(5))
-                .def("showing", Boolean.FALSE)
                 .overlay()
                 .change("value", AttrType.STRING)
                 .done();
         tag("ColorPicker", "colorpicker", Children.NONE)
                 .attr("value", "value", AttrType.STRING, true).attr("prompt", "prompt", AttrType.STRING, true)
                 .attr("disabled", "disabled", AttrType.BOOLEAN, true)
-                .def("value", "").def("prompt", "").def("showing", Boolean.FALSE)
+                .def("value", "").def("prompt", "")
                 .overlay()
                 .change("value", AttrType.STRING)
                 .done();
@@ -453,8 +462,11 @@ public final class JxmlSchema {
                 .def("message", "").def("showing", Boolean.FALSE)
                 .overlay()
                 .done();
+        // A Dialog and an AlertDialog take what the Modal they become takes, so a dialog can be styled as a Modal is.
         tag("Dialog", null, Children.MANY).composite()
                 .attr("title", "title", AttrType.STRING, true).attr("dismissible", "dismissible", AttrType.BOOLEAN, true)
+                .attr("padding", "padding", AttrType.INSETS, false).attr("gap", "gap", AttrType.DOUBLE, true)
+                .attr("alignment", "alignment", AttrType.STRING, false).attr("fillWidth", "fillWidth", AttrType.BOOLEAN, false)
                 .overlay()
                 .done();
         tag("AlertDialog", null, Children.NONE).composite()
@@ -462,6 +474,8 @@ public final class JxmlSchema {
                 .attr("confirmText", "confirmText", AttrType.STRING, true).attr("cancelText", "cancelText", AttrType.STRING, true)
                 .attr("onConfirm", "onConfirm", AttrType.HANDLER, false).attr("onCancel", "onCancel", AttrType.HANDLER, false)
                 .attr("dismissible", "dismissible", AttrType.BOOLEAN, true)
+                .attr("padding", "padding", AttrType.INSETS, false).attr("gap", "gap", AttrType.DOUBLE, true)
+                .attr("alignment", "alignment", AttrType.STRING, false).attr("fillWidth", "fillWidth", AttrType.BOOLEAN, false)
                 .overlay()
                 .done();
         alias("MenuSeparator", "MenuItem", "separator", "true");
@@ -496,10 +510,12 @@ public final class JxmlSchema {
                 .attr("size", "size", AttrType.DOUBLE, false).attr("color", "color", AttrType.COLOR, false)
                 .choice("variant", "variant", VARIANTS)
                 .attr("disabled", "disabled", AttrType.BOOLEAN, true)
+                .attr("padding", "padding", AttrType.INSETS, false).attr("accelerator", "accelerator", AttrType.STRING, true)
                 .done();
         tag("Fab", null, Children.NONE).composite()
                 .choice("icon", "icon", JxmlThemes.ICONS).attr("text", "text", AttrType.STRING, true)
                 .attr("disabled", "disabled", AttrType.BOOLEAN, true)
+                .attr("padding", "padding", AttrType.INSETS, false).attr("accelerator", "accelerator", AttrType.STRING, true)
                 .done();
 
         // Containers the renderer already lays out (JXFlowLayout, JXBoxLayout).
@@ -655,6 +671,7 @@ public final class JxmlSchema {
                 .done();
         tag("NavigationBar", null, Children.MANY).composite()
                 .attr("gap", "gap", AttrType.DOUBLE, true).attr("padding", "padding", AttrType.INSETS, false)
+                .attr("alignment", "alignment", AttrType.STRING, false)
                 .done();
         tag("Scaffold", null, Children.MANY).composite()
                 .attr("padding", "padding", AttrType.INSETS, false)
@@ -778,6 +795,15 @@ public final class JxmlSchema {
             return this;
         }
 
+        /**
+         * Like {@link #choice}, and a binding may give the value too: it is checked each time the element is built
+         * ({@link JxmlValues#choice}), so a value outside {@code values} is an error then; a null or empty one writes no prop.
+         */
+        TagBuilder choiceBound(String attr, String prop, java.util.List<String> values) {
+            attrs.put(attr, new Attr(attr, prop, AttrType.STRING, true, values, null));
+            return this;
+        }
+
         /** A handler that gets a value of {@code valueType}: {@code onClose="#closeTab"} calls {@code closeTab(int)}. */
         TagBuilder handler(String attr, AttrType valueType) {
             attrs.put(attr, new Attr(attr, attr, AttrType.CHANGE, false, null, valueType));
@@ -831,7 +857,7 @@ public final class JxmlSchema {
          */
         TagBuilder selection() {
             attr("selected", "selected", AttrType.INT, true);
-            choice("selectionMode", "selectionMode", SELECTION_MODES);
+            choiceBound("selectionMode", "selectionMode", SELECTION_MODES);
             attr("selection", "selection", AttrType.DOUBLES, true);
             handler("onSelect", AttrType.INT);
             handler("onSelection", AttrType.DOUBLES);

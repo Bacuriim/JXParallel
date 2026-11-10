@@ -255,7 +255,19 @@ public final class JxmlCompiler {
     /** {@code listed}: the children are in the list {@code k}, which an enclosing statement block filled. */
     private String inline(JxmlTemplate.Element e, String key, boolean constantContext, String indent, boolean listed) {
         if (JxmlTemplate.isSlot(e.tag)) {
-            return value(e.props.get(0), e.tag) + " /* " + where(e.source, e.line) + " */";
+            String shown = null;
+            StringBuilder placement = new StringBuilder("JXProps.builder(").append(e.props.size()).append(')');
+            for (JxmlTemplate.Prop p : e.props) {
+                if ("content".equals(p.attr.name)) {
+                    shown = value(p, e.tag);
+                } else {
+                    placement.append(".set(").append(quote(p.attr.prop)).append(", ").append(value(p, e.tag)).append(')');
+                }
+            }
+            if (e.props.size() == 1) {
+                return shown + " /* " + where(e.source, e.line) + " */";
+            }
+            return "JxmlRuntime.place(" + shown + ", " + placement + ".build()) /* " + where(e.source, e.line) + " */";
         }
         boolean tabs = e.tag.children == JxmlSchema.Children.TABS;
         int expected = e.defaults.size() + e.props.size() + (key == null ? 0 : 1);
@@ -331,12 +343,22 @@ public final class JxmlCompiler {
                 return "(Runnable) () -> c." + p.method + "(" + String.join(", ", arguments(p)) + ")";
             case CHANGE:
                 List<String> args = arguments(p);
-                args.add("v");
-                return consumer(p.attr.valueType) + " v -> c." + p.method + "(" + String.join(", ", args) + ")";
+                boolean whole = p.attr == JxmlSchema.SPINNER_INTEGER_CHANGE; // the renderer reports a Double
+                args.add(whole ? "JxmlValues.asInt(v)" : "v");
+                return (whole ? "(java.util.function.Consumer<Object>)" : consumer(p.attr.valueType)) + " v -> c." + p.method + "("
+                        + String.join(", ", args) + ")";
             case SETTER:
+                if (p.attr == JxmlSchema.SPINNER_INTEGER_CHANGE) {
+                    return "(java.util.function.Consumer<Object>) v -> " + reference(p) + "." + p.method + "(JxmlValues.asInt(v))";
+                }
                 return consumer(p.attr.valueType) + " v -> " + reference(p) + "." + p.method + "(v)";
+            case TOKEN:
+                return "Integer.valueOf(com.jxparallel.forge.JxmlThemes.color(" + value(p.theme, tag) + ", " + quote((String) p.literal) + "))";
             case BINDING:
                 String call = reference(p);
+                if (p.attr.choices != null) { // variant, selectionMode, theme: a bound value must be one of the choices
+                    return "JxmlValues.choice(" + quote(p.attr.name) + ", " + literal(p.attr.choiceArray) + ", " + call + ")";
+                }
                 switch (p.attr.type) {
                     case STRING:
                         return "JxmlValues.asString(" + call + ")";

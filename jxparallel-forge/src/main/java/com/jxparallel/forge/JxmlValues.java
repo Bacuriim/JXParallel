@@ -15,6 +15,7 @@ public final class JxmlValues {
             case STRING:
             case HANDLER:
             case IMAGE_SOURCE:
+            case TEXT_OR_NUMBER:
                 return text;
             case DOUBLE:
                 return Double.valueOf(text.trim());
@@ -200,6 +201,44 @@ public final class JxmlValues {
         return value == null ? "" : String.valueOf(value);
     }
 
+    /**
+     * The text of a spinner's value: a string as it is, null as the empty text, a number as the spinner shows it: a whole
+     * number without a decimal point ({@code 3.0} is {@code "3"}), any other with its digits. A {@code double} or
+     * {@code int} property bound with {@code value="${qty}"} or {@code value="@{qty}"} reads the same.
+     */
+    public static String asNumberText(Object value) {
+        if (value instanceof Double || value instanceof Float) {
+            double d = ((Number) value).doubleValue();
+            if (d == Math.rint(d) && !Double.isInfinite(d) && Math.abs(d) < 1e15) {
+                return String.valueOf((long) d);
+            }
+            return String.valueOf(d);
+        }
+        if (value instanceof java.math.BigDecimal) {
+            return ((java.math.BigDecimal) value).toPlainString();
+        }
+        return asString(value);
+    }
+
+    /**
+     * The value of an attribute that names one of a few choices ({@code variant}, {@code selectionMode}, {@code theme}),
+     * when a binding gives it: the text, which must be one of {@code allowed}. Null or empty is "not written": null, which
+     * writes no prop (a plain button, single selection, no theme). Anything else is an error that names the attribute and
+     * the choices, the same check a literal gets when the file is read. The interpreter and the generated code both call this.
+     */
+    public static String choice(String attribute, String[] allowed, Object value) {
+        String text = value == null ? "" : String.valueOf(value).trim();
+        if (text.isEmpty()) {
+            return null;
+        }
+        for (String choice : allowed) {
+            if (choice.equals(text)) {
+                return choice;
+            }
+        }
+        throw new IllegalArgumentException(attribute + " must be one of " + java.util.Arrays.toString(allowed) + " (or empty, for none), not \"" + text + "\"");
+    }
+
     public static Double asDouble(Object value) {
         return value instanceof Number ? Double.valueOf(((Number) value).doubleValue()) : Double.valueOf(asString(value));
     }
@@ -253,6 +292,8 @@ public final class JxmlValues {
                 return asPixels(value);
             case IMAGE_SOURCE:
                 return imageSource("", value);
+            case TEXT_OR_NUMBER:
+                return asNumberText(value);
             case ELEMENT:
                 return asElement(value);
             case OBJECT:

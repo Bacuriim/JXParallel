@@ -14,7 +14,7 @@
         <Button text="Cut"/>
         <Button text="Copy"/>
       </ToolBar>
-      <NavigationBar gap="2" padding="2">
+      <NavigationBar gap="2" padding="2" alignment="CENTER_LEFT">
         <Button text="a"/>
         <Button text="b"/>
       </NavigationBar>

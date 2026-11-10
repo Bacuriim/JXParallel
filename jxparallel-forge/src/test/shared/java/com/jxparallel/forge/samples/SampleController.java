@@ -87,6 +87,32 @@ public class SampleController {
         return snackOpen;
     }
 
+    /** What the samples bind where a value is one of a few choices, a theme, or a number a spinner holds as an int. */
+    public String themeName = "dark";
+    public String variant = "tonal";
+    public String mode = "multiple";
+    public int qty = 3;
+
+    public String getThemeName() {
+        return themeName;
+    }
+
+    public String getVariant() {
+        return variant;
+    }
+
+    public String getMode() {
+        return mode;
+    }
+
+    public int getQty() {
+        return qty;
+    }
+
+    public void setQty(int value) {
+        qty = value;
+    }
+
     public String time = "09:30";
     public String accent = "#E91E63";
     public final List<Node> folders = new ArrayList<Node>();
@@ -349,6 +375,16 @@ public class SampleController {
                 return JXElement.of("#text", JXProps.builder().set("value", "hand-written").build());
             }
         };
+    }
+
+    /** A hand-written widget with a margin of its own, which a Slot's margin replaces. */
+    public JXElement getMarked() {
+        return JXElement.of("#text", JXProps.builder().set("value", "marked").set("margin", Double.valueOf(1)).build());
+    }
+
+    /** A slot with nothing to show. */
+    public JXElement getNothing() {
+        return null;
     }
 
     public void save() {

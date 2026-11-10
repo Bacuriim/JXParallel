@@ -236,7 +236,7 @@ inside a `Border`), and these, which the renderer reads from any node:
 | `TextArea` | `textarea` | `text`, `prompt`, `wrapText`, `columns`, `rows`, the [font](#fonts) attributes |
 | `CheckBox` | `checkbox` | `text`, `selected`, the [font](#fonts) attributes |
 | `ComboBox` | `select` | `items` (a list or `A, B, C`), `value`, `prompt`, `showing`, `onShowing` |
-| `Spinner` | `spinner` | `value`, `min`, `max`, `step` (1 when not written) |
+| `Spinner` | `spinner` | `value` (text, or a number a binding gives: `value="@{qty}"` with an `int` or `double` property; a whole number is written without `.0`), `integer` (`true`: `onChange` and `@{...}` hand over an `int`, for an `int` property; the default hands over a `double`), `min`, `max`, `step` (1 when not written) |
 | `DatePicker` | `datepicker` | `value`, `prompt`, `showing`, `onShowing` |
 | `TimePicker` | `timepicker` | `value` (`HH:mm`), `prompt`, `hour24`, `minuteStep`, `disabled`, `showing`, `onShowing` |
 | `ColorPicker` | `colorpicker` | `value` (`#RRGGBB`), `prompt`, `disabled`, `showing`, `onShowing` |
@@ -263,7 +263,7 @@ inside a `Border`), and these, which the renderer reads from any node:
 | `ScrollBar` | `scrollbar` | `min`, `max`, `value`, `visibleAmount`, `orientation`; `onChange` (Double) |
 | `SplitPane` | `splitpane` | `orientation`, `dividerPositions`; `onChange` (double[]); children are the panes |
 | `TabBar` | `tabbar` | `titles`, `selected`, `closable`, `onClose` (Integer); `onChange` (Integer) |
-| `Slot` | what the binding returns | `content` |
+| `Slot` | what the binding returns | `content`, and the placement and size of the element it shows: `slot`, `margin`, `hgrow`, `vgrow`, `row`, `column`, `rowSpan`, `columnSpan`, `halignment`, `valignment`, `top`, `right`, `bottom`, `left`, `x`, `y`, `minWidth`, `prefWidth`, `maxWidth`, `minHeight`, `prefHeight`, `maxHeight`, `hidden`, `opacity` (written or bound; they are set on the element, and win over what it set itself). `<Slot slot="center" content="${body}" margin="8"/>` stands in a `Border` with no `Stack` around it |
 | `For`, `If`, `Else` | none: they stand for elements | `items`, `var`, `type`, `key`, `from`, `limit`; `test` |
 | Composites | none: they are rewritten (see [Composites](#composites)) | `Padding`, `Center`, `Align`, `SizedBox`, `Expanded`, `Flexible`, `Spacer`, `Box`, `Container`, `Card`, `ListTile`, `Divider`, `Visibility`, `Opacity`, `Wrap`, `Positioned`, `ChoiceBox`, `Scaffold`, `AppBar`, `BottomAppBar`, `BottomBar`, `ToolBar`, `NavigationBar`, `NavigationRail`, `IconButton`, `Fab`, `Dialog`, `AlertDialog`, `MenuSeparator` |
 
@@ -277,6 +277,26 @@ A `MenuItem` stands only inside a `MenuButton`, `ContextMenu` or `Menu`, a `Menu
 The table lives in one place, `JxmlSchema`, read by both the interpreter and the compiler. Prop
 names and value types are the ones the native renderer reads; a number written as text would be
 ignored by the layout, which is why `JXMarkupLoader` (strings only) is not used here.
+
+### JXML attribute to node prop
+
+A mounted node (`JXNativeNode.getProperty`, `JXElement.getProps()`) has the renderer's prop names, which differ from the JXML attribute for these
+(everything not listed has the same name; handlers keep theirs). Use this table when a test inspects a mounted tree:
+
+| Tag | Native type | Attribute → prop |
+|---|---|---|
+| `Label` | `#text` | `text` → `value` |
+| `Button`, `ToggleButton`, `Hyperlink`, `Tooltip`, `TitledPane`, `MenuButton`, `Menu`, `MenuItem`, `Chip` | `button`, `toggle`, `hyperlink`, `tooltip`, `titled`, `menubutton`, `menu`, `menuitem`, `chip` | `text` → `label` |
+| `CheckBox`, `Switch`, `RadioButton` | `checkbox`, `switch`, `radio` | `text` → `label`, `selected` → `checked` |
+| `TextField`, `PasswordField`, `TextArea` | `input`, `password`, `textarea` | `text` → `value`, `columns` → `prefColumnCount`, (`TextArea`) `rows` → `prefRowCount` |
+| `ListItem`, `TableCell`, `TreeItem` | `cell` | `text` → `value` |
+| `ComboBox` | `select` | `items` → `options` |
+| `ListView`, `TableView` | `list`, `table` | `items` → `itemCount` (the rows are the children) |
+| `Tree` | `list` | `rowHeight` → `cellHeight` |
+| `Badge` / `Avatar` | `badge` / `avatar` | `color` → `badgeColor` / `fill` |
+| any tag | | `slot` → `position`, `top`, `right`, `bottom`, `left` → `topAnchor`, `rightAnchor`, `bottomAnchor`, `leftAnchor`, `x`, `y` → `layoutX`, `layoutY`, `gradient` → `backgroundGradient` |
+
+`Button`'s `text` is `label`, so a test asks `getProperty("label")`; `Label` and every cell say `value`. `Tabs` build their tab titles into `titles`.
 
 ## Fonts
 
@@ -501,7 +521,7 @@ a window of the model:
 |---|---|---|
 | `selected` | `int` | the index of the selected row in the whole model, -1 for none; `@{current}` binds it two ways (`getCurrent()` / `setCurrent(int)`) |
 | `onSelect` | handler, gets an `int` | the row the user selected (-1: none). In multiple mode, the row clicked or moved to last |
-| `selectionMode` | `single` (default) or `multiple` | multiple mode adds Ctrl and Shift selection |
+| `selectionMode` | `single` (default) or `multiple`; may be bound (`selectionMode="${mode}"`, checked each build, empty is single) | multiple mode adds Ctrl and Shift selection. Switching a mounted list to single leaves the renderer reading only `selected`, so at most one row is selected; the application keeps `selection` as it likes |
 | `selection` | `double[]` (a `List` of numbers or `A, B` text also read) | multiple mode: the selected indices; `@{picked}` binds it two ways (`setPicked(double[])`) |
 | `onSelection` | handler, gets a `double[]` | multiple mode: all the selected indices, sorted |
 
@@ -566,8 +586,8 @@ and the compiler never see it. The rewritten tags keep the line of the composite
 | `NavigationBar` | `Row gap="0" padding="4" alignment="CENTER"`; each child gets `hgrow="always"` so they share the width |
 | `ListTile title subtitle onAction` | `Row gap="12" padding="8 12" alignment="CENTER_LEFT"` with the `onAction`: the child with `slot="leading"`, then a `Column` (`hgrow="always"`, `mouseTransparent`) of a `Label` of the title and, if written, a smaller grey one of the subtitle, then the child with `slot="trailing"` |
 | `Scaffold` | `Border`: an `AppBar` child goes to `top`, a `BottomAppBar` or `BottomBar` to `bottom`, the one other child to `center`; a child that writes `slot` keeps it |
-| `Dialog title showing onShowing dismissible` | a `Modal` (`padding="24" gap="16" alignment="TOP_LEFT" minWidth="280"` unless written) of a bold `Label` of the title (size 18), the children, then the children with `slot="actions"` in a `ButtonBar` |
-| `AlertDialog title message confirmText cancelText onConfirm onCancel` | a `Modal` of the title, the message (a wrapping `Label`, at most 320 wide) and a `ButtonBar` of the cancel `Button` (only when `cancelText` is written, its `onAction` is `onCancel`) and the confirm `Button` (`confirmText`, OK when not written; `defaultButton`, its `onAction` is `onConfirm`) |
+| `Dialog title showing onShowing dismissible padding gap alignment fillWidth` | a `Modal` (`padding="24" gap="16" alignment="TOP_LEFT" minWidth="280"` unless written) of a bold `Label` of the title (size 18), the children, then the children with `slot="actions"` in a `ButtonBar` |
+| `AlertDialog title message confirmText cancelText onConfirm onCancel dismissible padding gap alignment fillWidth` | a `Modal` (`padding`, `gap`, `alignment`, `fillWidth` and the layout attributes go to it, as for `Dialog`) of the title, the message (a wrapping `Label`, at most 320 wide) and a `ButtonBar` of the cancel `Button` (only when `cancelText` is written, its `onAction` is `onCancel`) and the confirm `Button` (`confirmText`, OK when not written; `defaultButton`, its `onAction` is `onConfirm`) |
 | `MenuSeparator` | `MenuItem separator="true"` |
 
 Attributes written on a composite that its expansion does not give a tag are errors (`<Center> has no attribute gap`),
@@ -588,7 +608,10 @@ every painter draws it, because it uses only the primitives of `JXPainter`.
   the classic one, unchanged. `round="true"` makes the ends round. Hover and pressed tint the face. `elevated` and `fab` draw a soft darker
   ring below the face (two translucent rings, because not every painter has a blur), kept inside the button's bounds, which are 3 px larger
   on each side for it. A child of the button (an `Icon`) is its graphic, and the graphic does not take the pointer: a press, release, hover or cursor on it is on the button (the same for `ToggleButton`, `RadioButton`, `Hyperlink`, `CheckBox`, `Switch` and `Chip`), with no need for `mouseTransparent`.
-- `IconButton icon size color variant`: a `Button` (`variant` `text` unless written, `round`, padding 8) whose graphic is an `Icon` that does
+- `Button variant` may be bound: `variant="${current}"`. A literal is checked when the file is read; a bound value is checked each time the
+  screen is built and must be one of the list (an error naming it otherwise); null or empty gives the classic button. `IconButton` keeps a literal
+  `variant` (its icon's color is chosen from it when the file is read; binding it is an error).
+- `IconButton icon size color variant disabled padding accelerator` (also `Fab icon text disabled padding accelerator`, and `NavigationBar gap padding alignment`): a `Button` (`variant` `text` unless written, `round`, padding 8) whose graphic is an `Icon` that does
   not take the click, so the button gets it. `Fab icon text`: a `Button variant="fab"` with an icon, a text or both (padding 16, or 16 20 with a
   text).
 - `Chip`: `kind` is `assist` (outlined, 8 px corners), `filter` (outlined pill; selected: tinted, with a check mark as leading icon),
@@ -655,8 +678,11 @@ Everything that opens over the window goes through one mechanism in the renderer
   state the user asked for: a press on the control (open or close), a choice in a popup, a press outside, Escape, a snack bar's
   timeout. With `showing` written, the application holds the state and the node only asks, as inputs do with `onChange`: nothing
   closes until the application renders again with `showing` false. Without it, the node keeps its own state: a `MenuButton`,
-  `ContextMenu` or `MenuBar` written without `showing` opens and closes by itself. `ComboBox`, `DatePicker`, `TimePicker`, `ColorPicker`, `Modal`, `Drawer` and
-  `SnackBar` default `showing` to false, so they are controlled; `MenuButton`, `ContextMenu` and `MenuBar` have no default.
+  `ContextMenu` or `MenuBar` written without `showing` opens and closes by itself, and so do `ComboBox` (and `ChoiceBox`), `DatePicker`,
+  `TimePicker` and `ColorPicker`: the renderer keeps the open state on the node, and `onShowing`, when written, is still told. The rule: the
+  popups of a control (pickers, combo box, menus) are uncontrolled unless `showing` is written; `Modal`, `Dialog`, `AlertDialog`, `Drawer` and
+  `SnackBar` default `showing` to false and stay controlled, because only the application knows when a dialog is open (they never open
+  by themselves).
   `showing` cannot be bound two ways (`@{...}`): `onShowing` is a separate handler.
 - **Closed means not mounted.** The node tree of a `Modal`, `Dialog`, `AlertDialog` or `Drawer` has no children while it is closed
   (`showing` false): its inputs, buttons and the rest are built when it opens and dropped when it closes, so nothing of a closed
@@ -827,7 +853,12 @@ A file may start with `<Style>` elements, direct children of its root, which are
 - The theme: `theme="light"` or `"dark"` on the root. The six tokens `primary onPrimary surface onSurface outline error` are accepted wherever a color is
   written, as a literal (`background="surface"`), and become the color of the file's theme when it is read, so the interpreter and the compiler build the same
   props. The root also gets the prop `theme`, which the renderer inherits down the tree: it paints the themed root with `surface`, draws `Label` text in
-  `onSurface` and the Material controls above in the theme's colors. The classic controls (`Button` without `variant`, `CheckBox`, `TextField` ...) keep their Modena look.
+  `onSurface` and the Material controls above in the theme's colors.
+- A bound theme: `theme="${themeName}"` on the root (`light`, `dark`; null or empty gives no theme and the light tokens; anything else is an error). The
+  tokens written anywhere in the file are then resolved each time the screen is built, from the controller's current value, so changing the property and
+  rendering again (a reconcile keeps the nodes) switches every themed color at run time, interpreter and compiled alike. With a written theme the tokens are
+  resolved once when the file is read, as before. While the theme is bound a `<For memo="true">` body cannot use a token (it would keep the first theme's
+  color): that is an error. Only the root has a `theme`; colors a binding gives (`textFill="${c}"`) are ARGB values or `#` text and are not tokens. The classic controls (`Button` without `variant`, `CheckBox`, `TextField` ...) keep their Modena look.
 - Tokens, light / dark: primary `#1565C0` / `#90CAF9`, onPrimary `#FFFFFF` / `#0D2B4A`, surface `#FFFFFF` / `#1C1B1F`, onSurface `#1C1B1F` / `#E6E1E5`, outline
   `#79747E` / `#938F99`, error `#B3261C` / `#F2B8B5`. `JxmlThemes` (here) and `JXTheme` (the renderer) hold the same table; a test compares them.
 

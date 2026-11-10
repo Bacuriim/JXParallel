@@ -150,7 +150,7 @@ is the whole window.
 
 The app is honest about what the framework does not do yet. The list of what was met while writing it:
 
-- `selectionMode`, `Button variant` and the root `theme` cannot be bound, so `orders.jxml` has one table for each selection
+- (Fixed in JXForge since: these can now be bound, see `docs/jxforge.md`; the app was not rewritten.) `selectionMode`, `Button variant` and the root `theme` cannot be bound, so `orders.jxml` has one table for each selection
   mode in an `If` / `Else`, `shell.jxml` has a pair of buttons for each sidebar entry, and `ShellController.view()` sets the
   root's `theme` prop in Java after the compiled view built the tree.
 - A theme token (`surface`, `onSurface`...) is resolved when the file is read, so the screens bind colours from `Palette`.
