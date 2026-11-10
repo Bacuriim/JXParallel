@@ -921,6 +921,24 @@ public final class JXWindow implements AutoCloseable {
                 hover((int) px, (int) py);
             }
         });
+        // files dropped from the file manager go to the node under the pointer that has an onDrop handler
+        GLFW.glfwSetDropCallback(handle, (h, count, names) -> {
+            if (inputListener != null || root == null) {
+                return;
+            }
+            String[] files = new String[count];
+            for (int i = 0; i < count; i++) {
+                files[i] = org.lwjgl.glfw.GLFWDropCallback.getName(names, i);
+            }
+            double[] dx = new double[1];
+            double[] dy = new double[1];
+            GLFW.glfwGetCursorPos(h, dx, dy);
+            cursorX = dx[0] * toLogicalX;
+            cursorY = dy[0] * toLogicalY;
+            if (root.dispatchDrop((int) cursorX, (int) cursorY, java.util.Arrays.asList(files))) {
+                requestRender();
+            }
+        });
         GLFW.glfwSetCursorEnterCallback(handle, (h, entered) -> {
             if (!entered && inputListener != null) {
                 deliver(JXInputEvent.pointer(JXInputEvent.Kind.EXIT, cursorX, cursorY, 0, 0, 0, buttonsDown != 0,

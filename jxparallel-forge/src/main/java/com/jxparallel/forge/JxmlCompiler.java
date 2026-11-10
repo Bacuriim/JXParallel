@@ -380,7 +380,7 @@ public final class JxmlCompiler {
 
     /** The cast that gives a lambda the type of the value its input passes. */
     private static String consumer(AttrType valueType) {
-        String type = valueType == AttrType.BOOLEAN ? "Boolean" : valueType == AttrType.DOUBLE ? "Double" : valueType == AttrType.INT ? "Integer" : valueType == AttrType.DOUBLES ? "double[]" : "String";
+        String type = valueType == AttrType.BOOLEAN ? "Boolean" : valueType == AttrType.DOUBLE ? "Double" : valueType == AttrType.INT ? "Integer" : valueType == AttrType.DOUBLES ? "double[]" : valueType == AttrType.STRINGS ? "java.util.List<String>" : "String";
         return "(java.util.function.Consumer<" + type + ">)";
     }
 

@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <!-- Samples of the tags that came first: every tag and attribute of them appears at least once. -->
 <Border controller="com.jxparallel.forge.samples.SampleController" padding="2">
-  <Row slot="top" gap="${gap}" padding="4 8" alignment="CENTER_LEFT" fillHeight="true">
+  <Row slot="top" onDrop="#dropFiles" gap="${gap}" padding="4 8" alignment="CENTER_LEFT" fillHeight="true">
     <Button text="Save" onAction="#save" defaultButton="true" tooltip="Save the file (Ctrl+S)" cursor="hand"/>
     <Button text="${title}" onAction="#save" disabled="${busy}"/>
     <Separator orientation="vertical"/>

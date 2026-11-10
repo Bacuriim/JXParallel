@@ -110,6 +110,10 @@ a real window (see the changelog entry of each).
   / `minimize`, `restore`, `setFullScreen` (primary monitor, back to the windowed bounds), `requestFocus`, and the
   getters `isMaximized`, `isIconified`, `isFullScreen`, `isResizable`, `isDecorated`, `isFloating`, `getX`, `getY`
   (kept up to date by the GLFW callbacks). Every setter posts to the display thread like `setTitle`.
+- **File drop.** `glfwSetDropCallback` hands the paths to `JXNativeNode.dispatchDrop(x, y, paths)` (logical pixels, the
+  pointer position at the drop): the nearest node at or above the point with an `onDrop` `Consumer` gets an unmodifiable
+  `List<String>`; disabled nodes are skipped, and under an open dialog or drawer only its content is a target. A window with
+  an input listener gets no drop (there is no drop event in `JXInputEvent`).
 
 ## Current limitations
 

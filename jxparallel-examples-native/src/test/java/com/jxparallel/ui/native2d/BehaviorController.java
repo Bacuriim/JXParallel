@@ -129,4 +129,11 @@ public class BehaviorController {
     public int getTop() { return top; }
     public void setTop(int v) { top = v; }
     public void scrolledTo(double[] v) { scrolled = v; }
+
+    public final List<List<String>> drops = new ArrayList<List<String>>();
+    public void dropped(List<String> paths) { drops.add(paths); }
+    public final List<List<String>> drops2 = new ArrayList<List<String>>();
+    public void droppedInner(List<String> paths) { drops2.add(paths); }
+    public int saves;
+    public void save() { saves++; }
 }

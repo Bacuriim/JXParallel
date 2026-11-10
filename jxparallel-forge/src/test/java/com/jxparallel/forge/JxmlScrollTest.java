@@ -62,6 +62,15 @@ class JxmlScrollTest {
     }
 
     @Test
+    void onDropGetsTheListOfPathsInBothWays() throws Exception {
+        SampleController c = new SampleController();
+        JXElement column = agree("<Column onDrop=\"#dropFiles\" cursor=\"text\"><Label text=\"x\"/></Column>", c);
+        assertEquals("text", column.getProps().get("cursor"));
+        accept(column, "onDrop", java.util.Arrays.asList("a.txt", "b.txt"));
+        assertEquals(java.util.Arrays.asList("a.txt", "b.txt"), c.dropped);
+    }
+
+    @Test
     void aScrollTakesItsValuesAndReportsTheWheel() throws Exception {
         SampleController c = new SampleController();
         JXElement scroll = agree("<Scroll hvalue=\"0.25\" vvalue=\"${scroll}\" onScroll=\"#scrolledTo\"><Label text=\"x\"/></Scroll>", c);

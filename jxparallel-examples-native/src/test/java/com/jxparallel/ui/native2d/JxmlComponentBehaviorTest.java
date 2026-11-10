@@ -1908,6 +1908,53 @@ class JxmlComponentBehaviorTest {
     // ---- desktop window behaviours: mouse cursor, file drop, keyboard menus, accelerators -----------
 
     @Nested
+    class FileDrop {
+        private final List<String> files = java.util.Arrays.asList("C:\\a.txt", "C:\\b.png");
+
+        @Test
+        void theFilesGoToTheNodeUnderThePointerThatHasOnDrop() {
+            Ui ui = new Ui("<Column onDrop=\"#dropped\" prefHeight=\"120\"><Label text=\"inside\"/></Column>\n<Label text=\"outside\"/>");
+            int[] in = center(ui.find("#text", 0));
+            assertTrue(ui.root.dispatchDrop(in[0], in[1], files), "the label has no handler: its column takes the files");
+            assertEquals(1, ui.c.drops.size());
+            assertEquals(files, ui.c.drops.get(0));
+            int[] out = center(ui.find("#text", 1));
+            assertTrue(!ui.root.dispatchDrop(out[0], out[1], files), "nothing there takes files");
+            assertEquals(1, ui.c.drops.size());
+        }
+
+        @Test
+        void theNearestAncestorWinsAndADisabledOneIsSkipped() {
+            Ui ui = new Ui("<Column onDrop=\"#dropped\"><Row onDrop=\"#droppedInner\"><Label text=\"inner\"/></Row>"
+                    + "<Button text=\"b\" disabled=\"true\" onDrop=\"#droppedInner\"/></Column>");
+            int[] label = center(ui.find("#text"));
+            assertTrue(ui.root.dispatchDrop(label[0], label[1], files));
+            assertEquals(1, ui.c.drops2.size(), "the row, nearer than the column");
+            assertEquals(0, ui.c.drops.size());
+            int[] button = center(ui.find("button"));
+            assertTrue(ui.root.dispatchDrop(button[0], button[1], files));
+            assertEquals(1, ui.c.drops2.size(), "a disabled node takes nothing");
+            assertEquals(1, ui.c.drops.size(), "so the column does");
+        }
+
+        @Test
+        void anOpenDialogKeepsTheFilesFromWhatIsBehindIt() {
+            Ui ui = new Ui("<Column onDrop=\"#dropped\" prefHeight=\"380\"><Label text=\"behind\"/></Column>\n"
+                    + "<Modal showing=\"true\"><Label text=\"in the dialog\"/></Modal>");
+            int[] behind = {3, ui.h - 3};
+            assertTrue(!ui.root.dispatchDrop(behind[0], behind[1], files), "over the scrim");
+            assertEquals(0, ui.c.drops.size());
+        }
+
+        @Test
+        void noFilesTakeNothing() {
+            Ui ui = new Ui("<Column onDrop=\"#dropped\" prefHeight=\"120\"><Label text=\"x\"/></Column>");
+            int[] in = center(ui.find("#text"));
+            assertTrue(!ui.root.dispatchDrop(in[0], in[1], new java.util.ArrayList<String>()));
+        }
+    }
+
+    @Nested
     class MouseCursors {
         @Test
         void aTextFieldShowsTheIBeamAndAHyperlinkTheHand() {

@@ -556,6 +556,37 @@ public final class JXNativeNode {
         return null;
     }
 
+    /**
+     * Files were dropped on the window from the system with the pointer at (x, y), logical pixels: the nearest node at or
+     * above that point with an {@code onDrop} handler (a {@code Consumer} that gets the paths, an unmodifiable
+     * {@code List<String>}) takes them; a disabled node does not. With a dialog or drawer open only what is in it can. True
+     * when a handler took them.
+     */
+    @SuppressWarnings("unchecked")
+    public boolean dispatchDrop(int px, int py, List<String> paths) {
+        if (paths == null || paths.isEmpty()) {
+            return false;
+        }
+        List<JXNativeNode> path = JXOverlays.hitPath(this, px, py);
+        if (path == null) {
+            if (!JXOverlays.openLayers(this).isEmpty()) {
+                return false; // the scrim: the dialog behind it is not a target
+            }
+            path = hitPlain(px, py);
+        }
+        for (int i = path.size() - 1; i >= 0; i--) {
+            JXNativeNode node = path.get(i);
+            Object handler = node.props.get("onDrop");
+            if (handler instanceof java.util.function.Consumer && !Boolean.TRUE.equals(node.props.get("disabled"))) {
+                revision++;
+                ((java.util.function.Consumer<Object>) handler).accept(
+                        Collections.unmodifiableList(new ArrayList<String>(paths)));
+                return true;
+            }
+        }
+        return false;
+    }
+
     /** The mouse pointer shape at (x, y), logical pixels; see {@link JXCursor}. */
     public JXCursor cursorAt(int px, int py) {
         return JXCursor.at(this, px, py);

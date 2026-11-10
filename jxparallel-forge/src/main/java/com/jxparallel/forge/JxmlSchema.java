@@ -22,7 +22,7 @@ public final class JxmlSchema {
         public final boolean bindable;
         /** For a STRING written as a literal: the only values allowed (checked when the file is read), or null for any. */
         public final java.util.List<String> choices;
-        /** For a CHANGE attribute: the type of the value the handler gets (STRING, BOOLEAN, DOUBLE, INT or DOUBLES). */
+        /** For a CHANGE attribute: the type of the value the handler gets (STRING, BOOLEAN, DOUBLE, INT, DOUBLES, or STRINGS for a List&lt;String&gt;). */
         public final AttrType valueType;
 
         Attr(String name, String prop, AttrType type, boolean bindable) {
@@ -162,6 +162,8 @@ public final class JxmlSchema {
         layout("tooltip", "tooltip", AttrType.STRING, true); // shown when the pointer rests on the element
         // the shape of the mouse pointer over the element (an enabled text field, hyperlink and split pane divider have theirs)
         LAYOUT.put("cursor", new Attr("cursor", "cursor", AttrType.STRING, false, CURSORS, null));
+        // files dropped on the window from the system: the nearest element under the pointer with onDrop gets the paths
+        LAYOUT.put("onDrop", new Attr("onDrop", "onDrop", AttrType.CHANGE, false, null, AttrType.STRINGS));
         // a click: the renderer calls the handler of the deepest element under the pointer (JXNativeNode.dispatchPointer)
         layout("onAction", "onAction", AttrType.HANDLER, false);
         layout("background", "background", AttrType.COLOR, true);

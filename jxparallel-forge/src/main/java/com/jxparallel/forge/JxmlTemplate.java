@@ -939,6 +939,8 @@ public final class JxmlTemplate implements JxmlView<Object> {
                 return Integer.class;
             case DOUBLES:
                 return double[].class;
+            case STRINGS:
+                return java.util.List.class;
             default:
                 return String.class;
         }

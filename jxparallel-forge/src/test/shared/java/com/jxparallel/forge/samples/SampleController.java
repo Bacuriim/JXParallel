@@ -228,6 +228,13 @@ public class SampleController {
         scrolled = value;
     }
 
+    /** The paths of the files dropped on an element with {@code onDrop}. */
+    public List<String> dropped;
+
+    public void dropFiles(List<String> paths) {
+        dropped = paths;
+    }
+
     /** The selection of the lists, tables and trees: the row (-1 for none) and, in multiple mode, the rows. */
     public int selected = 4;
     public double[] picked = {1, 3};
