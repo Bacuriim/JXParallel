@@ -11,8 +11,15 @@ import org.lwjgl.system.MemoryUtil;
 import static org.lwjgl.nanovg.NanoVG.NVG_ALIGN_BASELINE;
 import static org.lwjgl.nanovg.NanoVG.NVG_ALIGN_LEFT;
 import static org.lwjgl.nanovg.NanoVG.NVG_CW;
+import static org.lwjgl.nanovg.NanoVG.NVG_HOLE;
 import static org.lwjgl.nanovg.NanoVG.nvgArc;
 import static org.lwjgl.nanovg.NanoVG.nvgBeginPath;
+import static org.lwjgl.nanovg.NanoVG.nvgBoxGradient;
+import static org.lwjgl.nanovg.NanoVG.nvgPathWinding;
+import static org.lwjgl.nanovg.NanoVG.nvgRadialGradient;
+import static org.lwjgl.nanovg.NanoVG.nvgRotate;
+import static org.lwjgl.nanovg.NanoVG.nvgScale;
+import static org.lwjgl.nanovg.NanoVG.nvgTranslate;
 import static org.lwjgl.nanovg.NanoVG.nvgClosePath;
 import static org.lwjgl.nanovg.NanoVG.nvgCreateImageRGBA;
 import static org.lwjgl.nanovg.NanoVG.nvgEllipse;
@@ -90,6 +97,60 @@ final class JXNanoVGPainter implements JXPainter {
         nvgRoundedRect(vg, x, y, w, h, radius);
         nvgFillPaint(vg, paint);
         nvgFill(vg);
+    }
+
+    /**
+     * NanoVG gradients have two colors, so a gradient of n stops is n - 1 fills of the same shape: the first goes from the
+     * first to the second stop (and stays the second after it); each next one goes from the previous stop, transparent, to
+     * the next, which over what is already there is the exact blend of the two for opaque stops.
+     */
+    @Override
+    public void fillGradient(float x, float y, float w, float h, float radius, JXGradient gradient) {
+        float[] axis = gradient.radial ? null : gradient.axis(x, y, w, h);
+        float[] circle = gradient.radial ? gradient.circle(x, y, w, h) : null;
+        for (int i = 0; i + 1 < gradient.offsets.length; i++) {
+            float from = gradient.offsets[i];
+            float to = Math.max(gradient.offsets[i + 1], from + 0.0001f);
+            int inner = i == 0 ? gradient.colors[0] : gradient.colors[i] & 0x00FFFFFF;
+            int outer = gradient.colors[i + 1];
+            if (axis != null) {
+                float dx = axis[2] - axis[0];
+                float dy = axis[3] - axis[1];
+                nvgLinearGradient(vg, axis[0] + dx * from, axis[1] + dy * from, axis[0] + dx * to, axis[1] + dy * to,
+                        rgba(color, inner), rgba(color2, outer), paint);
+            } else {
+                nvgRadialGradient(vg, circle[0], circle[1], circle[2] * from, circle[2] * to, rgba(color, inner), rgba(color2, outer), paint);
+            }
+            nvgBeginPath(vg);
+            nvgRoundedRect(vg, x, y, w, h, radius);
+            nvgFillPaint(vg, paint);
+            nvgFill(vg);
+        }
+    }
+
+    /** A box gradient: transparent at the feathered edge of the moved box, around a hole where the box itself is. */
+    @Override
+    public void shadow(float x, float y, float w, float h, float radius, float dx, float dy, float blur, int argb) {
+        if (blur <= 0 || (argb >>> 24) == 0) {
+            return;
+        }
+        nvgBoxGradient(vg, x + dx, y + dy, w, h, Math.max(0, radius), blur * 2, rgba(color, argb), rgba(color2, argb & 0x00FFFFFF), paint);
+        nvgBeginPath(vg);
+        nvgRect(vg, x + dx - blur - 1, y + dy - blur - 1, w + 2 * blur + 2, h + 2 * blur + 2);
+        nvgRoundedRect(vg, x, y, w, h, Math.max(0, radius));
+        nvgPathWinding(vg, NVG_HOLE);
+        nvgFillPaint(vg, paint);
+        nvgFill(vg);
+    }
+
+    @Override
+    public void transform(float tx, float ty, float sx, float sy, float degrees, float cx, float cy) {
+        nvgSave(vg);
+        alphas.push(alphas.peek());
+        nvgTranslate(vg, cx + tx, cy + ty);
+        nvgRotate(vg, (float) Math.toRadians(degrees));
+        nvgScale(vg, sx, sy);
+        nvgTranslate(vg, -cx, -cy);
     }
 
     @Override

@@ -13,6 +13,16 @@ interface JXPainter {
     /** Vertical gradient from {@code top} to {@code bottom}. */
     void fillRoundRectGradient(float x, float y, float w, float h, float radius, int top, int bottom);
 
+    /** A rounded rectangle filled with a linear or radial gradient of any number of stops; the box is the gradient's reference. */
+    void fillGradient(float x, float y, float w, float h, float radius, JXGradient gradient);
+
+    /**
+     * The soft shadow of a rounded box: the same shape moved by ({@code dx}, {@code dy}), blurred over {@code blur}
+     * pixels on each side of its edge, in {@code argb}. The box itself is left clear (a translucent box shows no shadow
+     * under it), like a CSS box-shadow.
+     */
+    void shadow(float x, float y, float w, float h, float radius, float dx, float dy, float blur, int argb);
+
     /** A rectangle outline of {@code width} drawn inside the bounds. */
     void strokeRoundRect(float x, float y, float w, float h, float radius, float width, int argb);
 
@@ -38,6 +48,14 @@ interface JXPainter {
 
     /** Pushes a layer drawn with this opacity (and a Gaussian blur radius where supported); matched by {@link #restore}. */
     void layer(float opacity, float blurRadius);
+
+    /**
+     * Pushes a transform for everything drawn until the matching {@link #restore}: a point q is drawn at
+     * {@code (cx, cy) + (tx, ty) + R(degrees) * S(sx, sy) * (q - (cx, cy))}, that is scaled, then rotated clockwise about
+     * (cx, cy), then moved, as JavaFX's translate, scale and rotate of a node. A painter that cannot rotate (the software
+     * one) draws unrotated.
+     */
+    void transform(float tx, float ty, float sx, float sy, float degrees, float cx, float cy);
 
     void restore();
 }

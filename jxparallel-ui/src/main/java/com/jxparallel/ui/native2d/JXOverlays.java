@@ -949,7 +949,7 @@ final class JXOverlays {
             return list; // the list takes the focus, so the arrow keys move its selection
         }
         JXNativeNode node = path.get(path.size() - 1);
-        node.dispatchPointer(event);
+        node.dispatchPointer(node.localize(event));
         return node;
     }
 
@@ -967,7 +967,7 @@ final class JXOverlays {
         String kind = node.getType();
         if ("menuitem".equals(kind)) {
             boolean acts = !separator(node) && !Boolean.TRUE.equals(node.getProperty("disabled"));
-            node.dispatchPointer(event);
+            node.dispatchPointer(node.localize(event));
             if (acts) {
                 close(entry.node);
             }
@@ -982,7 +982,7 @@ final class JXOverlays {
             if (list != null) {
                 return list;
             }
-            node.dispatchPointer(event);
+            node.dispatchPointer(node.localize(event));
         }
         return node;
     }

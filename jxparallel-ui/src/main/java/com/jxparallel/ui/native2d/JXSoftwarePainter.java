@@ -19,6 +19,11 @@ final class JXSoftwarePainter implements JXPainter {
     private int width;
     private int height;
     private float scale;
+    /** Device offset added after scaling: what {@link #transform} has moved the origin by. */
+    private float ox;
+    private float oy;
+    /** Saved scale, ox, oy: three floats per {@link #push}. */
+    private float[] savedXf = new float[3 * 32];
     /** Current clip, in device pixels: [x0, y0, x1, y1). */
     private int cx0;
     private int cy0;
@@ -44,6 +49,8 @@ final class JXSoftwarePainter implements JXPainter {
         width = frameWidth;
         height = frameHeight;
         scale = frameScale;
+        ox = 0;
+        oy = 0;
         cx0 = Math.max(0, x0);
         cy0 = Math.max(0, y0);
         cx1 = Math.min(frameWidth, x1);
@@ -64,7 +71,7 @@ final class JXSoftwarePainter implements JXPainter {
 
     @Override
     public void fillRect(float x, float y, float w, float h, int argb) {
-        rect(x * scale, y * scale, (x + w) * scale, (y + h) * scale, argb, argb);
+        rect(x * scale + ox, y * scale + oy, (x + w) * scale + ox, (y + h) * scale + oy, argb, argb);
     }
 
     /** An axis-aligned rectangle with fractional edges: exact coverage, rows blended at once inside. */
@@ -114,10 +121,10 @@ final class JXSoftwarePainter implements JXPainter {
      * the corners and, for an outline, the interior between its sides are skipped or filled directly.
      */
     private void roundRect(float x, float y, float w, float h, float radius, int top, int bottom, float stroke) {
-        float x0 = x * scale;
-        float y0 = y * scale;
-        float x1 = (x + w) * scale;
-        float y1 = (y + h) * scale;
+        float x0 = x * scale + ox;
+        float y0 = y * scale + oy;
+        float x1 = (x + w) * scale + ox;
+        float y1 = (y + h) * scale + oy;
         float r = Math.max(0, Math.min(radius * scale, Math.min(x1 - x0, y1 - y0) / 2));
         float s = stroke * scale;
         if (r < 0.5f && stroke < 0) {
@@ -216,8 +223,8 @@ final class JXSoftwarePainter implements JXPainter {
     private void oval(float x, float y, float w, float h, float stroke, int argb, float start, float sweep) {
         float rx = w * scale / 2;
         float ry = h * scale / 2;
-        float mx = x * scale + rx;
-        float my = y * scale + ry;
+        float mx = x * scale + ox + rx;
+        float my = y * scale + oy + ry;
         float s = stroke * scale;
         float pad = s > 0 ? s / 2 + 1 : 1;
         int ix0 = Math.max(cx0, (int) Math.floor(mx - rx - pad));
@@ -268,10 +275,10 @@ final class JXSoftwarePainter implements JXPainter {
 
     @Override
     public void line(float x1, float y1, float x2, float y2, float strokeWidth, int argb) {
-        float ax = x1 * scale;
-        float ay = y1 * scale;
-        float bx = x2 * scale;
-        float by = y2 * scale;
+        float ax = x1 * scale + ox;
+        float ay = y1 * scale + oy;
+        float bx = x2 * scale + ox;
+        float by = y2 * scale + oy;
         float hw = Math.max(0.5f, strokeWidth * scale / 2);
         if (ay == by || ax == bx) { // axis-aligned: a rectangle
             rect(Math.min(ax, bx) - (ax == bx ? hw : 0), Math.min(ay, by) - (ay == by ? hw : 0),
@@ -306,8 +313,8 @@ final class JXSoftwarePainter implements JXPainter {
 
     @Override
     public void fillTriangle(float x0, float y0, float x1, float y1, float x2, float y2, int argb) {
-        float[] xs = {x0 * scale, x1 * scale, x2 * scale};
-        float[] ys = {y0 * scale, y1 * scale, y2 * scale};
+        float[] xs = {x0 * scale + ox, x1 * scale + ox, x2 * scale + ox};
+        float[] ys = {y0 * scale + oy, y1 * scale + oy, y2 * scale + oy};
         float area = (xs[1] - xs[0]) * (ys[2] - ys[0]) - (xs[2] - xs[0]) * (ys[1] - ys[0]);
         float sign = area < 0 ? -1 : 1;
         int ix0 = Math.max(cx0, (int) Math.floor(Math.min(xs[0], Math.min(xs[1], xs[2])) - 1));
@@ -352,8 +359,8 @@ final class JXSoftwarePainter implements JXPainter {
         int[] ids = (int[]) shaped[0];
         float[] xs = (float[]) shaped[1];
         float[] ys = (float[]) shaped[2];
-        float px0 = x * scale;
-        float py0 = baseline * scale;
+        float px0 = x * scale + ox;
+        float py0 = baseline * scale + oy;
         JXGlyphs cache = JXGlyphs.get(bold);
         for (int i = 0; i < n; i++) {
             JXGlyphs.Glyph g = cache.glyph(ids[i], size * scale);
@@ -382,8 +389,8 @@ final class JXSoftwarePainter implements JXPainter {
 
     @Override
     public void image(int[] pixels, int imageWidth, int imageHeight, float x, float y, float w, float h) {
-        float x0 = x * scale;
-        float y0 = y * scale;
+        float x0 = x * scale + ox;
+        float y0 = y * scale + oy;
         float dw = w * scale;
         float dh = h * scale;
         if (dw <= 0 || dh <= 0 || imageWidth <= 0 || imageHeight <= 0) {
@@ -436,10 +443,86 @@ final class JXSoftwarePainter implements JXPainter {
     @Override
     public void clip(float x, float y, float w, float h) {
         push();
-        cx0 = Math.max(cx0, (int) Math.floor(x * scale));
-        cy0 = Math.max(cy0, (int) Math.floor(y * scale));
-        cx1 = Math.min(cx1, (int) Math.ceil((x + w) * scale));
-        cy1 = Math.min(cy1, (int) Math.ceil((y + h) * scale));
+        cx0 = Math.max(cx0, (int) Math.floor(x * scale + ox));
+        cy0 = Math.max(cy0, (int) Math.floor(y * scale + oy));
+        cx1 = Math.min(cx1, (int) Math.ceil((x + w) * scale + ox));
+        cy1 = Math.min(cy1, (int) Math.ceil((y + h) * scale + oy));
+    }
+
+    /** Moves and scales uniformly; a rotation, and a scale that differs on x and y, are left out (see {@link JXTransforms#withoutRotation}). */
+    @Override
+    public void transform(float tx, float ty, float sx, float sy, float degrees, float cx, float cy) {
+        push();
+        float[] t = JXTransforms.withoutRotation(tx, ty, sx, sy, cx, cy);
+        ox += t[1] * scale;
+        oy += t[2] * scale;
+        scale *= t[0];
+    }
+
+    @Override
+    public void fillGradient(float x, float y, float w, float h, float radius, JXGradient gradient) {
+        float x0 = x * scale + ox;
+        float y0 = y * scale + oy;
+        float x1 = (x + w) * scale + ox;
+        float y1 = (y + h) * scale + oy;
+        float r = Math.max(0, Math.min(radius * scale, Math.min(x1 - x0, y1 - y0) / 2));
+        float mx = (x0 + x1) / 2;
+        float my = (y0 + y1) / 2;
+        float hx = (x1 - x0) / 2;
+        float hy = (y1 - y0) / 2;
+        for (int yy = Math.max(cy0, (int) Math.floor(y0)); yy < Math.min(cy1, (int) Math.ceil(y1)); yy++) {
+            int row = yy * width;
+            for (int xx = Math.max(cx0, (int) Math.floor(x0)); xx < Math.min(cx1, (int) Math.ceil(x1)); xx++) {
+                float cov = clamp01(0.5f - roundBox(xx + 0.5f - mx, yy + 0.5f - my, hx, hy, r));
+                if (cov > 0) {
+                    float t = gradient.position(xx + 0.5f, yy + 0.5f, x0, y0, x1 - x0, y1 - y0);
+                    blend(row + xx, gradient.colorAt(t), cov);
+                }
+            }
+        }
+    }
+
+    /**
+     * A cheap soft shadow: coverage falls from 1 to 0 as the distance to the moved box goes from {@code -blur} to
+     * {@code +blur} along a smoothstep (about a Gaussian edge), and the box itself is left clear.
+     */
+    @Override
+    public void shadow(float x, float y, float w, float h, float radius, float dx, float dy, float blur, int argb) {
+        float reach = blur * scale;
+        if (reach <= 0 || (argb >>> 24) == 0) {
+            return;
+        }
+        float bx0 = x * scale + ox;
+        float by0 = y * scale + oy;
+        float bx1 = (x + w) * scale + ox;
+        float by1 = (y + h) * scale + oy;
+        float r = Math.max(0, Math.min(radius * scale, Math.min(bx1 - bx0, by1 - by0) / 2));
+        float sdx = dx * scale;
+        float sdy = dy * scale;
+        float hx = (bx1 - bx0) / 2;
+        float hy = (by1 - by0) / 2;
+        float mx = bx0 + hx;
+        float my = by0 + hy;
+        int ix0 = Math.max(cx0, (int) Math.floor(bx0 + Math.min(0, sdx) - reach));
+        int ix1 = Math.min(cx1, (int) Math.ceil(bx1 + Math.max(0, sdx) + reach));
+        int iy0 = Math.max(cy0, (int) Math.floor(by0 + Math.min(0, sdy) - reach));
+        int iy1 = Math.min(cy1, (int) Math.ceil(by1 + Math.max(0, sdy) + reach));
+        for (int yy = iy0; yy < iy1; yy++) {
+            int row = yy * width;
+            for (int xx = ix0; xx < ix1; xx++) {
+                float qx = xx + 0.5f - mx;
+                float qy = yy + 0.5f - my;
+                float outside = clamp01(0.5f + roundBox(qx, qy, hx, hy, r)); // 0 inside the box itself
+                if (outside <= 0) {
+                    continue;
+                }
+                float t = clamp01((roundBox(qx - sdx, qy - sdy, hx, hy, r) + reach) / (2 * reach));
+                float cov = (1 - t * t * (3 - 2 * t)) * outside;
+                if (cov > 0) {
+                    blend(row + xx, argb, cov);
+                }
+            }
+        }
     }
 
     @Override
@@ -456,12 +539,21 @@ final class JXSoftwarePainter implements JXPainter {
         cx1 = saved[depth + 2];
         cy1 = saved[depth + 3];
         alpha = saved[depth + 4];
+        int xf = depth / 5 * 3;
+        scale = savedXf[xf];
+        ox = savedXf[xf + 1];
+        oy = savedXf[xf + 2];
     }
 
     private void push() {
         if (depth + 5 > saved.length) {
             saved = java.util.Arrays.copyOf(saved, saved.length * 2);
+            savedXf = java.util.Arrays.copyOf(savedXf, savedXf.length * 2);
         }
+        int xf = depth / 5 * 3;
+        savedXf[xf] = scale;
+        savedXf[xf + 1] = ox;
+        savedXf[xf + 2] = oy;
         saved[depth] = cx0;
         saved[depth + 1] = cy0;
         saved[depth + 2] = cx1;

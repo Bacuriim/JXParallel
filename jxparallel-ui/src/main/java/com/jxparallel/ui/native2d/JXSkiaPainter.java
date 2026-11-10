@@ -5,8 +5,11 @@ import java.util.WeakHashMap;
 
 import io.github.humbleui.skija.Canvas;
 import io.github.humbleui.skija.ColorAlphaType;
+import io.github.humbleui.skija.ClipMode;
 import io.github.humbleui.skija.ColorType;
+import io.github.humbleui.skija.FilterBlurMode;
 import io.github.humbleui.skija.FilterTileMode;
+import io.github.humbleui.skija.MaskFilter;
 import io.github.humbleui.skija.Font;
 import io.github.humbleui.skija.FontHinting;
 import io.github.humbleui.skija.Image;
@@ -72,6 +75,57 @@ final class JXSkiaPainter implements JXPainter, AutoCloseable {
             }
             fill.setShader(null);
         }
+    }
+
+    @Override
+    public void fillGradient(float x, float y, float w, float h, float radius, JXGradient gradient) {
+        float[] positions = gradient.offsets;
+        Shader shader;
+        if (gradient.radial) {
+            float[] c = gradient.circle(x, y, w, h);
+            shader = Shader.makeRadialGradient(c[0], c[1], Math.max(c[2], 0.001f), gradient.colors, positions);
+        } else {
+            float[] a = gradient.axis(x, y, w, h);
+            if (a[0] == a[2] && a[1] == a[3]) {
+                a[3] += 0.001f; // Skia rejects an empty axis
+            }
+            shader = Shader.makeLinearGradient(a[0], a[1], a[2], a[3], gradient.colors, positions);
+        }
+        try (Shader s = shader) {
+            fill.setColor(0xFFFFFFFF).setShader(s);
+            if (radius <= 0) {
+                canvas.drawRect(Rect.makeXYWH(x, y, w, h), fill);
+            } else {
+                canvas.drawRRect(Rect.makeXYWH(x, y, w, h).withRadii(radius), fill);
+            }
+            fill.setShader(null);
+        }
+    }
+
+    @Override
+    public void shadow(float x, float y, float w, float h, float radius, float dx, float dy, float blur, int argb) {
+        if (blur <= 0 || (argb >>> 24) == 0) {
+            return;
+        }
+        canvas.save();
+        canvas.clipRRect(Rect.makeXYWH(x, y, w, h).withRadii(Math.max(0, radius)), ClipMode.DIFFERENCE, true); // the box stays clear
+        // a Gaussian whose visible reach is about the blur radius, like JavaFX's DropShadow and CSS blur radii
+        try (MaskFilter soft = MaskFilter.makeBlur(FilterBlurMode.NORMAL, blur / 2f);
+                Paint paint = new Paint().setAntiAlias(true).setColor(argb).setMaskFilter(soft)) {
+            canvas.drawRRect(Rect.makeXYWH(x + dx, y + dy, w, h).withRadii(Math.max(0, radius)), paint);
+        }
+        canvas.restore();
+    }
+
+    @Override
+    public void transform(float tx, float ty, float sx, float sy, float degrees, float cx, float cy) {
+        canvas.save();
+        canvas.translate(cx + tx, cy + ty);
+        if (degrees != 0) {
+            canvas.rotate(degrees);
+        }
+        canvas.scale(sx, sy);
+        canvas.translate(-cx, -cy);
     }
 
     @Override

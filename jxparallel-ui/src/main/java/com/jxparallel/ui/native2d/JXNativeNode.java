@@ -588,7 +588,7 @@ public final class JXNativeNode {
         armedInside = false;
         if (node != null && node.contains(event.getX(), event.getY())) {
             revision++;
-            node.dispatchPointer(event);
+            node.dispatchPointer(node.localize(event));
         }
     }
 
@@ -986,7 +986,30 @@ public final class JXNativeNode {
     }
 
     public boolean contains(int px, int py) {
+        double[] map = hitMap;
+        if (map != null) { // moved, scaled or rotated, itself or an ancestor: the window point in the node's own space
+            double lx = JXTransforms.x(map, px, py);
+            double ly = JXTransforms.y(map, px, py);
+            return lx >= x && ly >= y && lx < x + width && ly < y + height;
+        }
         return px >= x && py >= y && px < x + width && py < y + height;
+    }
+
+    /**
+     * Window to this node's own space, as of the last pick that went through it ({@link #hitPath}); null when neither it
+     * nor an ancestor has a transform. Layout, painting and the handlers use the own space.
+     */
+    private double[] hitMap;
+
+    /** The window event as this node sees it: the position in its own space (the same event when nothing is transformed). */
+    JXPointerEvent localize(JXPointerEvent event) {
+        double[] map = hitMap;
+        if (map == null) {
+            return event;
+        }
+        return new JXPointerEvent((int) Math.round(JXTransforms.x(map, event.getX(), event.getY())),
+                (int) Math.round(JXTransforms.y(map, event.getX(), event.getY())), event.getButton(), event.getClickCount(),
+                event.getModifiers());
     }
 
     /** A titled pane with {@code expanded} false: only its title bar shows, its content is not painted or hit. */
@@ -1022,7 +1045,7 @@ public final class JXNativeNode {
             return overlay;
         }
         List<JXNativeNode> path = new ArrayList<JXNativeNode>();
-        collectHit(x, y, path);
+        collectHit(x, y, null, path);
         return path;
     }
 
@@ -1056,7 +1079,7 @@ public final class JXNativeNode {
     /** {@link #hitPath} without the overlays: the ordinary tree only. */
     List<JXNativeNode> hitPlain(int x, int y) {
         List<JXNativeNode> path = new ArrayList<JXNativeNode>();
-        collectHit(x, y, path);
+        collectHit(x, y, null, path);
         return path;
     }
 
@@ -1065,7 +1088,7 @@ public final class JXNativeNode {
         List<JXNativeNode> path = new ArrayList<JXNativeNode>();
         path.add(this);
         for (int index = children.size() - 1; index >= 0; index--) {
-            if (children.get(index).collectHit(px, py, path)) {
+            if (children.get(index).collectHit(px, py, null, path)) {
                 return path;
             }
             while (path.size() > 1) {
@@ -1075,21 +1098,37 @@ public final class JXNativeNode {
         return path;
     }
 
-    private boolean collectHit(int px, int py, List<JXNativeNode> path) {
+    /**
+     * {@code (wx, wy)} is the point in the window; {@code outer} maps the window to the space this node's parent lays
+     * its children out in (null when no ancestor is moved, scaled or rotated).
+     */
+    private boolean collectHit(double wx, double wy, double[] outer, List<JXNativeNode> path) {
         if (Boolean.TRUE.equals(props.get("hidden")) || Boolean.TRUE.equals(props.get("mouseTransparent"))) {
             return false;
         }
         if (floatingNode) {
             return false; // out of the flow: only the overlay pass reaches it, and only while it is open
         }
-        boolean inside = contains(px, py);
+        double[] map = outer;
+        if (JXTransforms.has(this)) {
+            double[] own = JXTransforms.inverse(this); // where the point is, in the space the node is drawn in
+            if (own == JXTransforms.SINGULAR) {
+                hitMap = null;
+                return false;
+            }
+            map = JXTransforms.then(outer, own);
+        }
+        hitMap = map;
+        double px = JXTransforms.x(map, wx, wy);
+        double py = JXTransforms.y(map, wx, wy);
+        boolean inside = px >= x && py >= y && px < x + width && py < y + height;
         if (!inside && Boolean.TRUE.equals(props.get("clip"))) {
             return false;
         }
         path.add(this);
         int size = path.size();
         for (int index = collapsed() || overlayContent ? -1 : children.size() - 1; index >= 0; index--) {
-            if (children.get(index).collectHit(px, py, path)) {
+            if (children.get(index).collectHit(wx, wy, map, path)) {
                 return true;
             }
             while (path.size() > size) {
@@ -1154,6 +1193,7 @@ public final class JXNativeNode {
      */
     public void dispatchDrag(JXPointerEvent event) {
         revision++;
+        event = localize(event);
         if (Boolean.TRUE.equals(props.get("disabled"))) {
             return;
         }

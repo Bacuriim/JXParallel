@@ -17,6 +17,11 @@ final class JXDamagePainter implements JXPainter {
     static final int MAX_RECTS = 6;
 
     private float scale = 1f;
+    /** The offset a software {@link #transform} adds, as in {@link JXSoftwarePainter}. */
+    private float baseScale = 1f;
+    private float ox;
+    private float oy;
+    private float[] savedXf = new float[3 * 32];
     private int width;
     private int height;
     private int cx0;
@@ -53,7 +58,7 @@ final class JXDamagePainter implements JXPainter {
         int[] b = previousBounds;
         previousBounds = bounds;
         bounds = b;
-        if (frameWidth != width || frameHeight != height || frameScale != scale) {
+        if (frameWidth != width || frameHeight != height || frameScale != baseScale) {
             previousCount = -1; // a new size: everything is damage
         } else {
             previousCount = count;
@@ -62,6 +67,9 @@ final class JXDamagePainter implements JXPainter {
         width = frameWidth;
         height = frameHeight;
         scale = frameScale;
+        baseScale = frameScale;
+        ox = 0;
+        oy = 0;
         cx0 = 0;
         cy0 = 0;
         cx1 = frameWidth;
@@ -242,15 +250,19 @@ final class JXDamagePainter implements JXPainter {
         h = mix(h, cy0);
         h = mix(h, cx1);
         h = mix(h, cy1);
-        return mix(h, alpha);
+        h = mix(h, alpha);
+        if (ox != 0 || oy != 0 || scale != baseScale) { // the same call under another transform lands elsewhere
+            h = mix(mix(mix(h, scale), ox), oy);
+        }
+        return h;
     }
 
     /** Records a call touching the window-pixel box, with a one-pixel margin for antialiasing. */
     private void record(long hash, float x0, float y0, float x1, float y1) {
-        int ix0 = Math.max(cx0, (int) Math.floor(Math.min(x0, x1) * scale) - 1);
-        int iy0 = Math.max(cy0, (int) Math.floor(Math.min(y0, y1) * scale) - 1);
-        int ix1 = Math.min(cx1, (int) Math.ceil(Math.max(x0, x1) * scale) + 1);
-        int iy1 = Math.min(cy1, (int) Math.ceil(Math.max(y0, y1) * scale) + 1);
+        int ix0 = Math.max(cx0, (int) Math.floor(Math.min(x0, x1) * scale + ox) - 1);
+        int iy0 = Math.max(cy0, (int) Math.floor(Math.min(y0, y1) * scale + oy) - 1);
+        int ix1 = Math.min(cx1, (int) Math.ceil(Math.max(x0, x1) * scale + ox) + 1);
+        int iy1 = Math.min(cy1, (int) Math.ceil(Math.max(y0, y1) * scale + oy) + 1);
         if (ix0 >= ix1 || iy0 >= iy1) {
             return; // clipped away: changes nothing on screen
         }
@@ -351,10 +363,32 @@ final class JXDamagePainter implements JXPainter {
     @Override
     public void clip(float x, float y, float w, float h) {
         push();
-        cx0 = Math.max(cx0, (int) Math.floor(x * scale));
-        cy0 = Math.max(cy0, (int) Math.floor(y * scale));
-        cx1 = Math.min(cx1, (int) Math.ceil((x + w) * scale));
-        cy1 = Math.min(cy1, (int) Math.ceil((y + h) * scale));
+        cx0 = Math.max(cx0, (int) Math.floor(x * scale + ox));
+        cy0 = Math.max(cy0, (int) Math.floor(y * scale + oy));
+        cx1 = Math.min(cx1, (int) Math.ceil((x + w) * scale + ox));
+        cy1 = Math.min(cy1, (int) Math.ceil((y + h) * scale + oy));
+    }
+
+    @Override
+    public void transform(float tx, float ty, float sx, float sy, float degrees, float cx, float cy) {
+        push();
+        float[] t = JXTransforms.withoutRotation(tx, ty, sx, sy, cx, cy); // what the software painter draws
+        ox += t[1] * scale;
+        oy += t[2] * scale;
+        scale *= t[0];
+    }
+
+    @Override
+    public void fillGradient(float x, float y, float w, float h, float radius, JXGradient gradient) {
+        long hash = mix(mix(box(12, x, y, w, h), radius), gradient.toString().hashCode());
+        record(hash, x, y, x + w, y + h);
+    }
+
+    @Override
+    public void shadow(float x, float y, float w, float h, float radius, float dx, float dy, float blur, int argb) {
+        long hash = mix(mix(mix(mix(mix(box(13, x, y, w, h), radius), dx), dy), blur), argb);
+        record(hash, Math.min(x, x + dx) - blur - 1, Math.min(y, y + dy) - blur - 1,
+                Math.max(x + w, x + w + dx) + blur + 1, Math.max(y + h, y + h + dy) + blur + 1);
     }
 
     @Override
@@ -371,12 +405,21 @@ final class JXDamagePainter implements JXPainter {
         cx1 = saved[depth + 2];
         cy1 = saved[depth + 3];
         alpha = saved[depth + 4];
+        int xf = depth / 5 * 3;
+        scale = savedXf[xf];
+        ox = savedXf[xf + 1];
+        oy = savedXf[xf + 2];
     }
 
     private void push() {
         if (depth + 5 > saved.length) {
             saved = Arrays.copyOf(saved, saved.length * 2);
+            savedXf = Arrays.copyOf(savedXf, savedXf.length * 2);
         }
+        int xf = depth / 5 * 3;
+        savedXf[xf] = scale;
+        savedXf[xf + 1] = ox;
+        savedXf[xf + 2] = oy;
         saved[depth] = cx0;
         saved[depth + 1] = cy0;
         saved[depth + 2] = cx1;

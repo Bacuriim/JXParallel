@@ -8,10 +8,14 @@ import com.jxparallel.ui.text.JXTextEngine;
 /**
  * Paints every element type with the look of JavaFX's Modena theme, through a {@link JXPainter}, so
  * Skia and NanoVG draw the same thing. Colors and insets come from Modena (measured on JavaFX 21);
- * gradients are kept where Modena layers them, shadows are left out.
+ * gradients are kept where Modena layers them, shadows are left out (a node asks for one with {@code elevation}).
  *
  * <p>Props every node understands: {@code background}, {@code backgroundRadius}, {@code borderColor},
  * {@code borderWidth}, {@code borderRadius} (a region's CSS background and border, ARGB ints),
+ * {@code backgroundGradient} (a {@link JXGradient} in CSS, painted instead of {@code background}), {@code elevation}
+ * with {@code shadowColor}, {@code shadowOffsetX} and {@code shadowOffsetY} (a soft shadow under the box),
+ * {@code translateX}, {@code translateY}, {@code scaleX}, {@code scaleY} and {@code rotate} (degrees, about the centre of the
+ * node: they move what is drawn and picked, never the layout; see {@link JXTransforms}),
  * {@code opacity}, {@code blur} (Gaussian blur radius, Skia only), {@code clip}, {@code hidden},
  * {@code disabled} (drawn at 40% like Modena), and for text {@code textFill}, {@code fontSize},
  * {@code bold}, {@code underline}. Controls also read {@code focused}, {@code hover} and {@code pressed}.
@@ -31,6 +35,8 @@ final class JXPaint {
     static final int SELECTION_UNFOCUSED = 0xFFD3D3D3;
     static final int ODD_ROW = 0xFFFAFAFA;
     static final int SCROLL_BAR = 13;
+    /** The color of the shadow of a node with {@code elevation} and no {@code shadowColor}. */
+    static final int SHADOW = 0x40000000;
 
     private final JXPainter p;
 
@@ -140,6 +146,14 @@ final class JXPaint {
             }
             return;
         }
+        boolean moved = JXTransforms.has(node);
+        float savedTop = clipTop;
+        float savedBottom = clipBottom;
+        if (moved) {
+            JXTransforms.push(p, node);
+            clipTop = Float.NEGATIVE_INFINITY; // what is below is drawn in the node's own space: the window's edges say nothing there
+            clipBottom = Float.POSITIVE_INFINITY;
+        }
         double opacity = number(node, "opacity", 1.0);
         if (Boolean.TRUE.equals(node.getProperty("disabled"))) {
             opacity *= 0.4;
@@ -158,6 +172,11 @@ final class JXPaint {
         if (layered) {
             p.restore();
         }
+        if (moved) {
+            p.restore();
+            clipTop = savedTop;
+            clipBottom = savedBottom;
+        }
     }
 
     /** What an overlay paints for a node of its content (a dialog's column, say). */
@@ -169,17 +188,28 @@ final class JXPaint {
     private void region(JXNativeNode node) {
         Object bg = node.getProperty("background");
         Object border = node.getProperty("borderColor");
-        if (!(bg instanceof Integer) && node.getProperty("theme") instanceof String) {
+        JXGradient gradient = JXGradient.of(node.getProperty("backgroundGradient"));
+        float elevation = (float) number(node, "elevation", 0);
+        if (elevation > 0) {
+            // under the box, the way a CSS box-shadow is: blurred over twice the elevation, lowered by half of it
+            Object shadowColor = node.getProperty("shadowColor");
+            p.shadow(node.getX(), node.getY(), node.getWidth(), node.getHeight(), (float) number(node, "backgroundRadius", 0),
+                    (float) number(node, "shadowOffsetX", 0), (float) number(node, "shadowOffsetY", elevation / 2),
+                    elevation * 2, shadowColor instanceof Integer ? (Integer) shadowColor : SHADOW);
+        }
+        if (!(bg instanceof Integer) && node.getProperty("theme") instanceof String && gradient == null) {
             p.fillRect(node.getX(), node.getY(), node.getWidth(), node.getHeight(), theme().surface); // a themed root
         }
-        if (!(bg instanceof Integer) && !(border instanceof Integer)) {
+        if (!(bg instanceof Integer) && !(border instanceof Integer) && gradient == null) {
             return;
         }
         float x = node.getX();
         float y = node.getY();
         float w = node.getWidth();
         float h = node.getHeight();
-        if (bg instanceof Integer) {
+        if (gradient != null) {
+            p.fillGradient(x, y, w, h, (float) number(node, "backgroundRadius", 0), gradient);
+        } else if (bg instanceof Integer) {
             p.fillRoundRect(x, y, w, h, (float) number(node, "backgroundRadius", 0), (Integer) bg);
         }
         if (border instanceof Integer) {
@@ -211,8 +241,8 @@ final class JXPaint {
      * which may lie outside its own box, reaches the clip.
      */
     private boolean outside(JXNativeNode node) {
-        if (!cull || node.floatingNode || node.overlayHost || node.overlayContent) {
-            return false;
+        if (!cull || node.floatingNode || node.overlayHost || node.overlayContent || JXTransforms.has(node)) {
+            return false; // a moved, scaled or rotated node can be anywhere: it is always drawn
         }
         float top = Math.min(node.getY(), node.getY() + node.getHeight());
         float bottom = Math.max(node.getY(), node.getY() + node.getHeight());
@@ -239,6 +269,11 @@ final class JXPaint {
             JXNativeNode kid = kids.get(i);
             if (kid.floatingNode) {
                 continue; // painted over the window by the overlay pass, not in place
+            }
+            if (JXTransforms.has(kid)) {
+                range[0] = Float.NEGATIVE_INFINITY; // it may be drawn anywhere
+                range[1] = Float.POSITIVE_INFINITY;
+                return;
             }
             range[0] = Math.min(range[0], Math.min(kid.getY(), kid.getY() + kid.getHeight()));
             range[1] = Math.max(range[1], Math.max(kid.getY(), kid.getY() + kid.getHeight()));

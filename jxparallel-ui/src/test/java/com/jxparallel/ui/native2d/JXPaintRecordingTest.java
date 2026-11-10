@@ -61,6 +61,21 @@ class JXPaintRecordingTest {
         }
 
         @Override
+        public void fillGradient(float x, float y, float w, float h, float radius, JXGradient gradient) {
+            add("gradientStops", x, y, w, h, radius, gradient);
+        }
+
+        @Override
+        public void shadow(float x, float y, float w, float h, float radius, float dx, float dy, float blur, int argb) {
+            add("shadow", x, y, w, h, radius, dx, dy, blur, argb);
+        }
+
+        @Override
+        public void transform(float tx, float ty, float sx, float sy, float degrees, float cx, float cy) {
+            add("transform", tx, ty, sx, sy, degrees, cx, cy);
+        }
+
+        @Override
         public void strokeRoundRect(float x, float y, float w, float h, float radius, float width, int argb) {
             add("strokeRoundRect", x, y, w, h, radius, width, argb);
         }
