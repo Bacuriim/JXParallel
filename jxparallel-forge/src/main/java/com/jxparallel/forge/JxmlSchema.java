@@ -238,7 +238,7 @@ public final class JxmlSchema {
         tag("Label", "#text", Children.NONE)
                 .attr("text", "value", AttrType.STRING, true).attr("wrapText", "wrapText", AttrType.BOOLEAN, false)
                 .attr("bold", "bold", AttrType.BOOLEAN, false).attr("fontSize", "fontSize", AttrType.DOUBLE, false)
-                .attr("textFill", "textFill", AttrType.COLOR, true)
+                .attr("textFill", "textFill", AttrType.COLOR, true).font()
                 .def("value", "")
                 .done();
         tag("Button", "button", Children.ONE) // an optional child is its graphic, left of the text
@@ -246,24 +246,24 @@ public final class JxmlSchema {
                 .attr("disabled", "disabled", AttrType.BOOLEAN, true).attr("defaultButton", "defaultButton", AttrType.BOOLEAN, false)
                 .choice("variant", "variant", VARIANTS)
                 .attr("round", "round", AttrType.BOOLEAN, false).attr("padding", "padding", AttrType.INSETS, false)
-                .attr("textFill", "textFill", AttrType.COLOR, true)
+                .attr("textFill", "textFill", AttrType.COLOR, true).font()
                 .attr("accelerator", "accelerator", AttrType.STRING, true)
                 .def("label", "")
                 .done();
         tag("TextField", "input", Children.NONE)
-                .attr("text", "value", AttrType.STRING, true).attr("prompt", "prompt", AttrType.STRING, true)
+                .attr("text", "value", AttrType.STRING, true).attr("prompt", "prompt", AttrType.STRING, true).font()
                 .attr("columns", "prefColumnCount", AttrType.DOUBLE, false)
                 .def("value", "").def("prompt", "").def("prefColumnCount", Double.valueOf(12))
                 .change("text", AttrType.STRING)
                 .done();
         tag("PasswordField", "password", Children.NONE)
-                .attr("text", "value", AttrType.STRING, true).attr("prompt", "prompt", AttrType.STRING, true)
+                .attr("text", "value", AttrType.STRING, true).attr("prompt", "prompt", AttrType.STRING, true).font()
                 .attr("columns", "prefColumnCount", AttrType.DOUBLE, false)
                 .def("value", "").def("prompt", "").def("prefColumnCount", Double.valueOf(12))
                 .change("text", AttrType.STRING)
                 .done();
         tag("TextArea", "textarea", Children.NONE)
-                .attr("text", "value", AttrType.STRING, true).attr("prompt", "prompt", AttrType.STRING, true)
+                .attr("text", "value", AttrType.STRING, true).attr("prompt", "prompt", AttrType.STRING, true).font()
                 .attr("wrapText", "wrapText", AttrType.BOOLEAN, false)
                 .attr("columns", "prefColumnCount", AttrType.DOUBLE, false).attr("rows", "prefRowCount", AttrType.DOUBLE, false)
                 .def("value", "").def("prompt", "").def("wrapText", Boolean.FALSE).def("scrollTop", Double.valueOf(0))
@@ -271,7 +271,7 @@ public final class JxmlSchema {
                 .change("text", AttrType.STRING)
                 .done();
         tag("CheckBox", "checkbox", Children.NONE)
-                .attr("text", "label", AttrType.STRING, true).attr("selected", "checked", AttrType.BOOLEAN, true)
+                .attr("text", "label", AttrType.STRING, true).attr("selected", "checked", AttrType.BOOLEAN, true).font()
                 .def("label", "").def("checked", Boolean.FALSE).def("indeterminate", Boolean.FALSE)
                 .change("selected", AttrType.BOOLEAN)
                 .done();
@@ -522,21 +522,21 @@ public final class JxmlSchema {
 
         // Controls the renderer already draws (JXPaint.self, JXControlLayout.sizes).
         tag("ToggleButton", "toggle", Children.NONE).finish()
-                .attr("text", "label", AttrType.STRING, true).attr("selected", "selected", AttrType.BOOLEAN, true)
+                .attr("text", "label", AttrType.STRING, true).attr("selected", "selected", AttrType.BOOLEAN, true).font()
                 .attr("onAction", "onAction", AttrType.HANDLER, false).attr("disabled", "disabled", AttrType.BOOLEAN, true)
                 .attr("group", "group", AttrType.STRING, true).attr("value", "value", AttrType.STRING, false)
                 .def("label", "").def("selected", Boolean.FALSE)
                 .change("group", AttrType.STRING)
                 .done();
         tag("RadioButton", "radio", Children.NONE).finish()
-                .attr("text", "label", AttrType.STRING, true).attr("selected", "checked", AttrType.BOOLEAN, true)
+                .attr("text", "label", AttrType.STRING, true).attr("selected", "checked", AttrType.BOOLEAN, true).font()
                 .attr("onAction", "onAction", AttrType.HANDLER, false).attr("disabled", "disabled", AttrType.BOOLEAN, true)
                 .attr("group", "group", AttrType.STRING, true).attr("value", "value", AttrType.STRING, false)
                 .def("label", "").def("checked", Boolean.FALSE)
                 .change("group", AttrType.STRING)
                 .done();
         tag("Hyperlink", "hyperlink", Children.NONE)
-                .attr("text", "label", AttrType.STRING, true).attr("visited", "visited", AttrType.BOOLEAN, true)
+                .attr("text", "label", AttrType.STRING, true).attr("visited", "visited", AttrType.BOOLEAN, true).font()
                 .attr("onAction", "onAction", AttrType.HANDLER, false).attr("disabled", "disabled", AttrType.BOOLEAN, true)
                 .def("label", "")
                 .done();
@@ -728,6 +728,17 @@ public final class JxmlSchema {
         TagBuilder overlay() {
             attr("showing", "showing", AttrType.BOOLEAN, true);
             handler("onShowing", AttrType.BOOLEAN);
+            return this;
+        }
+
+        /**
+         * The font of the text: {@code fontFamily} (a registered or installed family), {@code fontWeight} (100 to 900,
+         * 400 regular, 700 bold; wins over {@code bold}) and {@code italic}. Not inherited, like {@code fontSize}.
+         */
+        TagBuilder font() {
+            attr("fontFamily", "fontFamily", AttrType.STRING, true);
+            attr("fontWeight", "fontWeight", AttrType.INT, true);
+            attr("italic", "italic", AttrType.BOOLEAN, false);
             return this;
         }
 

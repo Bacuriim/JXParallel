@@ -168,9 +168,9 @@ inside a `Border`), and these, which the renderer reads from any node:
 | `Accordion` | `accordion` | children are `TitledPane`s |
 | `TitledPane` | `titled` | `text`, `expanded`, `collapsible`, `onAction`; one child |
 | `Pagination` | `pagination` | `pageCount`, `current`, `maxPageIndicatorCount`, `onChange`; one child, the page |
-| `ToggleButton` | `toggle` | `text`, `selected`, `onAction`, `disabled`, `group`, `value`, `onChange` |
-| `RadioButton` | `radio` | `text`, `selected`, `onAction`, `disabled`, `group`, `value`, `onChange` |
-| `Hyperlink` | `hyperlink` | `text`, `visited`, `onAction`, `disabled` |
+| `ToggleButton` | `toggle` | `text`, `selected`, `onAction`, `disabled`, `group`, `value`, `onChange`, the [font](#fonts) attributes |
+| `RadioButton` | `radio` | `text`, `selected`, `onAction`, `disabled`, `group`, `value`, `onChange`, the [font](#fonts) attributes |
+| `Hyperlink` | `hyperlink` | `text`, `visited`, `onAction`, `disabled`, the [font](#fonts) attributes |
 | `ProgressIndicator` | `indicator` | `progress` (negative: indeterminate) |
 | `Tooltip` | `tooltip` | `text` |
 | `Image` | `image` | `src` (a picture file), `pixels` (an `int[]` of ARGB), `imageWidth`, `imageHeight`, `fitWidth`, `fitHeight`, `preserveRatio` |
@@ -179,11 +179,11 @@ inside a `Border`), and these, which the renderer reads from any node:
 | `TableView` | `table` | `items`, `var`, `type`, `key`, `first` (two ways), `onScroll`, `rows`, `rowHeight`, `columns`, `columnWidths`, `constrained`, the selection (as `ListView`); one `TableRow` |
 | `TableRow` | `tablerow` | `selected`, `odd`, `listFocused`; children are `TableCell`s |
 | `TableCell` | `cell` | like `ListItem`, with the table's cell look |
-| `Label` | `#text` | `text`, `wrapText`, `bold`, `fontSize`, `textFill` |
-| `Button` | `button` | `text`, `onAction`, `disabled`, `defaultButton`, `variant`, `round`, `padding`, `textFill`, `accelerator`; an optional child is the graphic left of the text |
-| `TextField`, `PasswordField` | `input`, `password` | `text`, `prompt`, `columns` |
-| `TextArea` | `textarea` | `text`, `prompt`, `wrapText`, `columns`, `rows` |
-| `CheckBox` | `checkbox` | `text`, `selected` |
+| `Label` | `#text` | `text`, `wrapText`, `bold`, `fontSize`, `textFill`, and the [font](#fonts) attributes |
+| `Button` | `button` | `text`, `onAction`, `disabled`, `defaultButton`, `variant`, `round`, `padding`, `textFill`, `accelerator`, the [font](#fonts) attributes; an optional child is the graphic left of the text |
+| `TextField`, `PasswordField` | `input`, `password` | `text`, `prompt`, `columns`, the [font](#fonts) attributes |
+| `TextArea` | `textarea` | `text`, `prompt`, `wrapText`, `columns`, `rows`, the [font](#fonts) attributes |
+| `CheckBox` | `checkbox` | `text`, `selected`, the [font](#fonts) attributes |
 | `ComboBox` | `select` | `items` (a list or `A, B, C`), `value`, `prompt`, `showing`, `onShowing` |
 | `Spinner` | `spinner` | `value`, `min`, `max`, `step` (1 when not written) |
 | `DatePicker` | `datepicker` | `value`, `prompt`, `showing`, `onShowing` |
@@ -226,6 +226,34 @@ A `MenuItem` stands only inside a `MenuButton`, `ContextMenu` or `Menu`, a `Menu
 The table lives in one place, `JxmlSchema`, read by both the interpreter and the compiler. Prop
 names and value types are the ones the native renderer reads; a number written as text would be
 ignored by the layout, which is why `JXMarkupLoader` (strings only) is not used here.
+
+## Fonts
+
+The tags that draw text (`Label`, `Button`, `TextField`, `PasswordField`, `TextArea`, `CheckBox`, `ToggleButton`,
+`RadioButton`, `Hyperlink`) take three attributes next to `bold` and `fontSize`:
+
+| Attribute | Type | Meaning |
+|---|---|---|
+| `fontFamily` | text (`${...}` allowed) | a family registered with `JXFonts` or installed on the system; `serif`, `sans-serif` and `monospace` pick a common installed family; unknown: the UI font |
+| `fontWeight` | integer, 100 to 900 | 400 regular, 700 bold; the nearest face of the family is used (600 on the UI font is "Semibold" where it is installed); wins over `bold` when both are written |
+| `italic` | boolean | the italic face of the family; a family without one is drawn upright |
+
+```java
+JXFonts.registerResource("Inter", "/fonts/Inter-Regular.ttf");     // also (family, File) and (family, InputStream)
+JXFonts.registerResource("Inter", "/fonts/Inter-Bold.ttf");        // weight and italic are read from each file
+```
+```xml
+<Label text="Hello" fontFamily="Inter" fontWeight="700"/>
+```
+
+Like `fontSize` and `bold`, these are the props of the element that has them: **nothing is inherited from a
+parent** (there is no inherited text prop in the renderer today; writing the attribute on a `Column` is an error).
+Bold and italic are never synthesized: the face with that weight or slant is used, else the nearest one, so every
+renderer measures and draws the same face. Variable fonts are used at their default instance (the weight axis is not
+applied). A character the chosen font lacks (CJK, Arabic, Hebrew, emoji, symbols) is drawn from the first registered or
+system font that has it, in shaping, measuring and painting; Arabic and Hebrew are laid out right to left
+(`java.text.Bidi`) when mixed with Latin text. See `docs/native-ui-progress.md`, "Fonts and text", for what each
+renderer does and what is left out.
 
 ## Tabs
 

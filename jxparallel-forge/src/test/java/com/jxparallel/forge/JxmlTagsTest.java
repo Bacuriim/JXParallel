@@ -460,6 +460,25 @@ class JxmlTagsTest {
     }
 
     @Test
+    void fontAttributesBecomeTheFontPropsOfTheTextTags() throws Exception {
+        JxmlTemplate t = ViewCompiler.read("<Column controller=\"" + CTRL + "\">"
+                + "<Label text=\"a\" fontFamily=\"serif\" fontWeight=\"600\" italic=\"true\" bold=\"true\"/>"
+                + "<TextField fontFamily=\"${title}\"/><Button text=\"b\" fontWeight=\"300\"/></Column>", "t.jxml");
+        SampleController c = new SampleController();
+
+        JXElement root = t.build(c);
+
+        Map<String, Object> label = root.getChildren().get(0).getProps().asMap();
+        assertEquals("serif", label.get("fontFamily"));
+        assertEquals(Integer.valueOf(600), label.get("fontWeight"));
+        assertEquals(Boolean.TRUE, label.get("italic"));
+        assertEquals(Boolean.TRUE, label.get("bold"), "bold keeps working next to fontWeight");
+        assertEquals(c.getTitle(), root.getChildren().get(1).getProps().get("fontFamily"));
+        assertEquals(Integer.valueOf(300), root.getChildren().get(2).getProps().get("fontWeight"));
+        assertError(1, "is not a valid int", "<Label fontWeight=\"heavy\"/>");
+    }
+
+    @Test
     void aBoundValueThatCannotBeConvertedIsReportedWithItsLine() throws Exception {
         JxmlTemplate list = ViewCompiler.read("<Column controller=\"" + CTRL + "\">\n<ListView items=\"${title}\" var=\"r\">"
                 + "<ListItem/></ListView></Column>", "t.jxml");
