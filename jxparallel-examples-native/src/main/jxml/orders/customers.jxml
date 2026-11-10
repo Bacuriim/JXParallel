@@ -1,0 +1,61 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!--
+  The customers screen: a list whose rows have a picture (Image src, a PNG bundled in the jar), and for the selected
+  customer a card with a shadow (elevation), four figure cards that rise when clicked (transition on translateY) and
+  the latest orders. Cards fade in when they first appear (enter).
+-->
+<Border controller="com.jxparallel.examples.orders.CustomersController">
+  <ListView slot="left" prefWidth="260" margin="14 0 14 14" items="${customers}" var="c"
+            type="com.jxparallel.examples.orders.CustomerSummary" key="${c}"
+            first="@{top}" rows="30" cellHeight="48" selected="@{current}">
+    <ListItem text="${c.name}">
+      <Image src="${c.avatar}" fitWidth="36" fitHeight="36"/>
+    </ListItem>
+  </ListView>
+
+  <Scroll slot="center" fitToWidth="true" background="${palette.background}">
+    <Column padding="14" gap="16" fillWidth="true">
+      <If test="${noCustomers}">
+        <Label text="No orders yet, so no customers." textFill="${palette.muted}"/>
+      </If>
+      <If test="${hasSelected}">
+        <Card elevation="8" padding="20" backgroundRadius="12" background="${palette.card}" borderColor="${palette.line}"
+              borderRadius="12" enter="opacity 0 250ms, translateY 12 250ms ease-out">
+          <Row gap="18" alignment="CENTER_LEFT">
+            <Image src="${selected.avatar}" fitWidth="88" fitHeight="88"/>
+            <Column gap="2">
+              <Label text="${selected.name}" bold="true" fontSize="24"/>
+              <Label text="${selected.email}" textFill="${palette.muted}"/>
+              <Label text="${selected.ordersText}" textFill="${palette.primary}" bold="true"/>
+            </Column>
+          </Row>
+        </Card>
+
+        <Row gap="14" fillHeight="false">
+          <For items="${figures}" var="f" type="com.jxparallel.examples.orders.CustomersController.Figure">
+            <Card hgrow="always" padding="14" backgroundRadius="10" background="${palette.card}" borderColor="${palette.line}"
+                  borderRadius="10" elevation="${f.shadow}" translateY="${f.rise}" cursor="hand"
+                  transition="translateY 160ms ease-out, background 160ms" onAction="#lift(f)"
+                  tooltip="Click to lift the card">
+              <Label text="${f.title}" fontSize="12" textFill="${palette.muted}" mouseTransparent="true"/>
+              <Label text="${f.value}" bold="true" fontSize="20" mouseTransparent="true"/>
+            </Card>
+          </For>
+        </Row>
+
+        <Card padding="16" backgroundRadius="10" background="${palette.card}" borderColor="${palette.line}" borderRadius="10"
+              elevation="2">
+          <Label text="Latest orders" bold="true"/>
+          <For items="${recentOrders}" var="o" type="com.jxparallel.examples.orders.Order">
+            <Row gap="12" alignment="CENTER_LEFT">
+              <Label text="${o.id}" prefWidth="60" textFill="${palette.muted}"/>
+              <Label text="${o.dateText}" prefWidth="100"/>
+              <Label text="${o.statusText}" prefWidth="90"/>
+              <Label text="${o.totalText}" bold="true"/>
+            </Row>
+          </For>
+        </Card>
+      </If>
+    </Column>
+  </Scroll>
+</Border>

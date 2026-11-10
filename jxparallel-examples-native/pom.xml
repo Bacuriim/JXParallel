@@ -90,6 +90,24 @@
                             </arguments>
                         </configuration>
                     </execution>
+                    <!-- JX Orders, the sample application (com.jxparallel.examples.orders) -->
+                    <execution>
+                        <id>views-orders</id>
+                        <phase>generate-sources</phase>
+                        <goals>
+                            <goal>java</goal>
+                        </goals>
+                        <configuration>
+                            <arguments>
+                                <argument>--src</argument>
+                                <argument>${project.basedir}/src/main/jxml/orders</argument>
+                                <argument>--out</argument>
+                                <argument>${project.build.directory}/generated-sources/jxforge-orders</argument>
+                                <argument>--package</argument>
+                                <argument>com.jxparallel.examples.orders.gen</argument>
+                            </arguments>
+                        </configuration>
+                    </execution>
                     <!-- the per-component samples (ComponentBench). Only the hoisted build: what hoisting adds was measured with the 20 screens -->
                     <execution>
                         <id>views-components</id>
@@ -130,6 +148,7 @@
                                 <source>${project.build.directory}/generated-sources/jxforge</source>
                                 <source>${project.build.directory}/generated-sources/jxforge-plain</source>
                                 <source>${project.build.directory}/generated-sources/jxforge-components</source>
+                                <source>${project.build.directory}/generated-sources/jxforge-orders</source>
                             </sources>
                         </configuration>
                     </execution>
@@ -181,6 +200,10 @@
                                 <id>views-components</id>
                                 <phase>none</phase>
                             </execution>
+                            <execution>
+                                <id>views-orders</id>
+                                <phase>none</phase>
+                            </execution>
                         </executions>
                     </plugin>
                     <plugin>
@@ -219,6 +242,17 @@
                                     <packageName>com.jxparallel.examples.nativeui.components.gen</packageName>
                                     <sourceDirectory>${project.basedir}/src/main/jxml/components</sourceDirectory>
                                     <outputDirectory>${project.build.directory}/generated-sources/jxforge-components</outputDirectory>
+                                </configuration>
+                            </execution>
+                            <execution>
+                                <id>views-orders</id>
+                                <goals>
+                                    <goal>generate</goal>
+                                </goals>
+                                <configuration>
+                                    <packageName>com.jxparallel.examples.orders.gen</packageName>
+                                    <sourceDirectory>${project.basedir}/src/main/jxml/orders</sourceDirectory>
+                                    <outputDirectory>${project.build.directory}/generated-sources/jxforge-orders</outputDirectory>
                                 </configuration>
                             </execution>
                         </executions>

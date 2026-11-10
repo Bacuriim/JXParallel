@@ -1,0 +1,87 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!--
+  The orders screen: a virtual TableView over the whole (filtered) list of orders, with the search, a status filter and
+  a sort, a details panel, and a delete confirmation. The table builds only the rows in view (rows="40") and scrolls over
+  all of them through first="@{top}".
+-->
+<Stack controller="com.jxparallel.examples.orders.OrdersController">
+  <Border>
+    <Column slot="top" padding="14 14 8 14" gap="8">
+      <Row gap="8" alignment="CENTER_LEFT">
+        <TextField text="@{query}" prompt="Search by id, customer, e-mail, date or status" hgrow="always"
+                   tooltip="The table is filtered as you type"/>
+        <ComboBox items="${statusChoices}" value="${statusFilter}" prefWidth="150" tooltip="Show only one status"
+                  showing="${statusOpen}" onShowing="#setStatusOpen" onChange="#setStatusFilter"/>
+        <ComboBox items="${sortChoices}" value="${sortLabel}" prefWidth="170" tooltip="Sort the table"
+                  showing="${sortOpen}" onShowing="#setSortOpen" onChange="#setSortLabel"/>
+      </Row>
+      <Row gap="8" alignment="CENTER_LEFT">
+        <Label text="${countText}" fontSize="12" textFill="${palette.muted}" hgrow="always"/>
+        <CheckBox text="Select several rows" selected="@{multiple}" tooltip="Ctrl+click adds a row, Shift+click a range"/>
+        <Button text="Edit" variant="outlined" disabled="${noSelection}" onAction="#editSelected" tooltip="Edit the selected order (Enter in the table)"/>
+        <Button text="Delete" variant="outlined" disabled="${noSelection}" onAction="#askDelete" tooltip="Delete the selected orders"/>
+        <Button text="New order" variant="filled" onAction="#newOrder" tooltip="Ctrl+N"/>
+      </Row>
+    </Column>
+
+    <!-- selectionMode cannot be bound, so each mode has its own table (the same columns and row) -->
+    <If test="${multiple}">
+      <TableView slot="center" margin="0 0 14 14" items="${visible}" var="o" type="com.jxparallel.examples.orders.Order" key="${o}"
+                 first="@{top}" rows="40" rowHeight="28"
+                 columns="Id, Customer, Date, Status, Total" columnWidths="70, 220, 110, 100, 120" constrained="true"
+                 selectionMode="multiple" selected="${current}" onSelect="#setCurrent"
+                 selection="${picked}" onSelection="#setPicked">
+        <TableRow onAction="#edit(o)">
+          <TableCell text="${o.id}"/>
+          <TableCell text="${o.customer}"/>
+          <TableCell text="${o.dateText}"/>
+          <TableCell text="${o.statusText}"/>
+          <TableCell text="${o.totalText}" alignment="CENTER_RIGHT"/>
+        </TableRow>
+      </TableView>
+    </If>
+    <Else>
+      <TableView slot="center" margin="0 0 14 14" items="${visible}" var="o" type="com.jxparallel.examples.orders.Order" key="${o}"
+                 first="@{top}" rows="40" rowHeight="28"
+                 columns="Id, Customer, Date, Status, Total" columnWidths="70, 220, 110, 100, 120" constrained="true"
+                 selectionMode="single" selected="${current}" onSelect="#setCurrent">
+        <TableRow onAction="#edit(o)">
+          <TableCell text="${o.id}"/>
+          <TableCell text="${o.customer}"/>
+          <TableCell text="${o.dateText}"/>
+          <TableCell text="${o.statusText}"/>
+          <TableCell text="${o.totalText}" alignment="CENTER_RIGHT"/>
+        </TableRow>
+      </TableView>
+    </Else>
+
+    <Column slot="right" prefWidth="300" margin="0 14 14 14" padding="16" gap="8" fillWidth="true"
+            background="${palette.card}" borderColor="${palette.line}" borderRadius="8" backgroundRadius="8">
+      <Label text="${detailTitle}" bold="true" fontSize="16"/>
+      <If test="${noSelection}">
+        <Label text="Click a row to see the order here. Double-click, or press Enter, to edit it." wrapText="true"
+               textFill="${palette.muted}"/>
+      </If>
+      <If test="${oneSelected}">
+        <Label text="${one.customer}" bold="true"/>
+        <Label text="${one.email}" textFill="${palette.muted}"/>
+        <Label text="${one.dateText}"/>
+        <Label text="${one.statusText}" textFill="${palette.primary}" bold="true"/>
+        <Separator/>
+        <For items="${one.lines}" var="l" type="com.jxparallel.examples.orders.LineItem">
+          <Label text="${l.summary}" wrapText="true" fontSize="13"/>
+        </For>
+        <Separator/>
+        <Label text="${one.totalText}" bold="true" fontSize="20"/>
+      </If>
+      <If test="${severalSelected}">
+        <Label text="Together" textFill="${palette.muted}"/>
+        <Label text="${selectedTotalText}" bold="true" fontSize="20"/>
+        <Label text="${selectedHint}" wrapText="true" fontSize="12" textFill="${palette.muted}"/>
+      </If>
+    </Column>
+  </Border>
+
+  <AlertDialog title="Delete orders?" message="${deleteMessage}" confirmText="Delete" cancelText="Keep"
+               showing="${confirmDelete}" onShowing="#setConfirmDelete" onConfirm="#delete" onCancel="#keepOrders"/>
+</Stack>

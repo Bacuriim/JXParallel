@@ -1,0 +1,64 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!--
+  The order editor, a Modal (the Dialog tag cannot be given fillWidth): text fields with a validation message under each, a DatePicker, a ComboBox for the status,
+  line items (a Spinner for the quantity) that can be added and removed, and the computed total.
+  Enter presses Save (the defaultButton), Ctrl+S too (accelerator), Escape cancels (onShowing asks for false).
+  The inputs are controlled: each change goes to the controller, which re-renders with the new value.
+-->
+<Modal controller="com.jxparallel.examples.orders.EditorController" showing="${open}" onShowing="#setOpen"
+       dismissible="false" padding="24" gap="6" alignment="TOP_LEFT" fillWidth="true" prefWidth="680">
+  <Label text="${title}" bold="true" fontSize="18" margin="0 0 8 0"/>
+  <Row gap="14" fillHeight="false">
+    <Column hgrow="always" gap="2" fillWidth="true">
+      <Label text="Customer" fontSize="12" textFill="${palette.muted}"/>
+      <TextField text="${draft.customer}" prompt="Full name" onChange="#setCustomer"/>
+      <Label text="${customerError}" fontSize="12" textFill="${palette.error}"/>
+    </Column>
+    <Column hgrow="always" gap="2" fillWidth="true">
+      <Label text="E-mail" fontSize="12" textFill="${palette.muted}"/>
+      <TextField text="${draft.email}" prompt="name@example.com" onChange="#setEmail"/>
+      <Label text="${emailError}" fontSize="12" textFill="${palette.error}"/>
+    </Column>
+  </Row>
+  <Row gap="14" fillHeight="false">
+    <Column hgrow="always" gap="2" fillWidth="true">
+      <Label text="Date" fontSize="12" textFill="${palette.muted}"/>
+      <DatePicker value="${draft.dateText}" prompt="yyyy-mm-dd" onChange="#setDate"
+                  showing="${dateOpen}" onShowing="#setDateOpen"/>
+      <Label text="${dateError}" fontSize="12" textFill="${palette.error}"/>
+    </Column>
+    <Column hgrow="always" gap="2" fillWidth="true">
+      <Label text="Status" fontSize="12" textFill="${palette.muted}"/>
+      <ComboBox items="${statusChoices}" value="${draft.statusLabel}" onChange="#setStatus"
+                showing="${statusOpen}" onShowing="#setStatusOpen"/>
+      <Label text=" " fontSize="12"/>
+    </Column>
+  </Row>
+
+  <Label text="Items" bold="true" margin="4 0 0 0"/>
+  <For items="${draft.lines}" var="l" type="com.jxparallel.examples.orders.OrderDraft.DraftLine" key="${l}">
+    <Column gap="1" fillWidth="true">
+      <Row gap="8" alignment="CENTER_LEFT">
+        <TextField text="${l.description}" prompt="What was ordered" hgrow="always" onChange="#setDescription(l)"/>
+        <Spinner value="${l.quantityText}" min="1" max="999" step="1" prefWidth="90" onChange="#setQuantity(l)"/>
+        <TextField text="${l.unitPrice}" prompt="Unit price" prefWidth="100" onChange="#setPrice(l)"/>
+        <Column prefWidth="90" alignment="CENTER_RIGHT"><Label text="${l.subtotalText}"/></Column>
+        <Button variant="text" round="true" tooltip="Remove this item" onAction="#removeLine(l)"><Icon name="delete" size="18" mouseTransparent="true"/></Button>
+      </Row>
+      <Label text="${l.shownError}" fontSize="12" textFill="${palette.error}"/>
+    </Column>
+  </For>
+  <Label text="${linesError}" fontSize="12" textFill="${palette.error}"/>
+  <Row gap="10" alignment="CENTER_LEFT">
+    <Button text="Add item" variant="tonal" onAction="#addLine" tooltip="Another line"/>
+    <Pane hgrow="always"/>
+    <Label text="Total" textFill="${palette.muted}"/>
+    <Label text="${totalText}" bold="true" fontSize="20"/>
+  </Row>
+
+  <ButtonBar margin="8 0 0 0">
+    <Button text="Cancel" variant="outlined" onAction="#cancel" tooltip="Escape"/>
+    <Button text="Save" variant="filled" defaultButton="true" accelerator="Ctrl+S" onAction="#save"
+            tooltip="Enter or Ctrl+S"/>
+  </ButtonBar>
+</Modal>

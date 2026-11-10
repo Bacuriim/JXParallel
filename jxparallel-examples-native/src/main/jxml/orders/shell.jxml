@@ -1,0 +1,72 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!--
+  JX Orders: the main window. A menu, a sidebar, the status bar, and the screen in the middle, which is another JXML
+  view built with its own controller and placed with <Slot>. The dialogs (the order editor, About, the "saved" snack
+  bar) are overlays: they are written at the root and open over the whole window.
+  The colours of this file's own boxes come from the controller's palette (a theme token is resolved when the file is
+  read, and the root's theme attribute cannot be bound), and ShellController.view() sets the root's theme prop, which
+  switches the controls the renderer themes itself.
+  onDrop on the root: a CSV file dropped anywhere on the window is imported.
+-->
+<Stack controller="com.jxparallel.examples.orders.ShellController" onDrop="#dropFiles">
+  <Border background="${palette.background}">
+    <MenuBar slot="top">
+      <Menu text="File">
+        <MenuItem text="New order" accelerator="Ctrl+N" onAction="#newOrder"/>
+        <MenuSeparator/>
+        <MenuItem text="Open CSV…" accelerator="Ctrl+O" onAction="#openCsv"/>
+        <MenuItem text="Export CSV…" accelerator="Ctrl+E" onAction="#exportCsv"/>
+        <MenuSeparator/>
+        <MenuItem text="Exit" accelerator="Alt+F4" onAction="#exit"/>
+      </Menu>
+      <Menu text="View">
+        <MenuItem text="Light theme" onAction="#setLight"/>
+        <MenuItem text="Dark theme" onAction="#setDark"/>
+      </Menu>
+      <Menu text="Help">
+        <MenuItem text="About" accelerator="F1" onAction="#about"/>
+      </Menu>
+    </MenuBar>
+
+    <Column slot="left" prefWidth="164" padding="14 10" gap="6" fillWidth="true" background="${palette.sidebar}">
+      <Label text="JX Orders" bold="true" fontSize="16" margin="0 0 8 4"/>
+      <!-- variant cannot be bound, so the current screen's button is the tonal one of an If / Else pair -->
+      <If test="${onDashboard}">
+        <Button text="Dashboard" variant="tonal" onAction="#showDashboard" tooltip="Totals and bar charts"><Icon name="home" size="18" mouseTransparent="true"/></Button>
+      </If>
+      <Else>
+        <Button text="Dashboard" variant="text" onAction="#showDashboard" tooltip="Totals and bar charts"><Icon name="home" size="18" mouseTransparent="true"/></Button>
+      </Else>
+      <If test="${onOrders}">
+        <Button text="Orders" variant="tonal" onAction="#showOrders" tooltip="Search, filter and edit orders"><Icon name="mail" size="18" mouseTransparent="true"/></Button>
+      </If>
+      <Else>
+        <Button text="Orders" variant="text" onAction="#showOrders" tooltip="Search, filter and edit orders"><Icon name="mail" size="18" mouseTransparent="true"/></Button>
+      </Else>
+      <If test="${onCustomers}">
+        <Button text="Customers" variant="tonal" onAction="#showCustomers" tooltip="Who orders, and how much"><Icon name="person" size="18" mouseTransparent="true"/></Button>
+      </If>
+      <Else>
+        <Button text="Customers" variant="text" onAction="#showCustomers" tooltip="Who orders, and how much"><Icon name="person" size="18" mouseTransparent="true"/></Button>
+      </Else>
+    </Column>
+
+    <!-- a Slot takes no attribute but content, so the slot of the Border is written on a Stack around it -->
+    <Stack slot="center"><Slot content="${content}"/></Stack>
+
+    <Row slot="bottom" gap="12" padding="6 14" alignment="CENTER_LEFT" background="${palette.sidebar}">
+      <Label text="${status}" hgrow="always" fontSize="12"/>
+      <If test="${busy}">
+        <ProgressBar progress="${progress}" prefWidth="180"/>
+        <Button text="Cancel" variant="outlined" onAction="#cancelWork" tooltip="Stop the work in progress"/>
+      </If>
+      <Label text="${countText}" fontSize="12" textFill="${palette.muted}"/>
+    </Row>
+  </Border>
+
+  <Slot content="${editorLayer}"/>
+
+  <AlertDialog title="About JX Orders" message="${aboutText}" confirmText="Close"
+               showing="${aboutOpen}" onShowing="#setAboutOpen" onConfirm="#closeAbout"/>
+  <SnackBar message="${snackMessage}" duration="3000" showing="${snackOpen}" onShowing="#setSnackOpen"/>
+</Stack>
