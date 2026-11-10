@@ -91,6 +91,20 @@ framebuffer is in physical pixels. `JXWindow.getScale()` is physical pixels per 
   layout results and the text measures that depend on them, and was left out
 - not verified on a real HiDPI display or with a monitor change (see the changelog entry)
 
+## Desktop window behaviours
+
+What a user expects of a desktop window, in `JXWindow` without an input listener. The decisions are made in code free of
+GLFW and covered by tests (`JXOverlaysTest`, `JxmlComponentBehaviorTest`); the GLFW calls are compiled, not yet run in
+a real window (see the changelog entry of each).
+
+- **Mouse cursor.** `JXCursor.at(root, x, y)` (also `JXNativeNode.cursorAt`) decides the shape: the `cursor` prop of the
+  deepest element that has one (`default`, `text`, `hand`, `crosshair`, `h-resize`, `v-resize`), else the I-beam over an
+  enabled text field, password field or text area, the hand over an enabled hyperlink, the horizontal or vertical resize
+  cursor over a split pane divider that can be dragged (it has an `onChange`), else the arrow; what is open over the window
+  (a menu, a popup) is asked first. `JXWindow` shows it with the GLFW standard cursors, each created the first time it is
+  needed and destroyed with the window; it follows the pointer while no button is held and is recomputed on the release.
+  Table column borders are not resizable by the pointer today, so they have no cursor.
+
 ## Current limitations
 
 - translate, scale and rotate are drawn by Skia and NanoVG (the software renderer moves and scales uniformly, no rotation); shape

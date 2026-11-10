@@ -274,19 +274,25 @@ final class JXChangeEvents {
 
     /** A press on a divider of a split pane grabs it. */
     private static void pressDivider(JXNativeNode node, JXPointerEvent event) {
+        int divider = dividerAt(node, event.getX(), event.getY());
+        node.dragDivider = divider;
+        if (divider >= 0) {
+            float[] r = JXControlLayout.splitRects(node)[node.getChildren().size() + divider];
+            node.dragOffset = along(node, event) - (node.vertical() ? r[1] : r[0]);
+        }
+    }
+
+    /** The index of the divider of a split pane at (x, y), with 2 px of slack all around it, or -1. */
+    static int dividerAt(JXNativeNode node, int x, int y) {
         float[][] rects = JXControlLayout.splitRects(node);
         int panes = node.getChildren().size();
-        node.dragDivider = -1;
         for (int i = panes; i < rects.length; i++) {
             float[] r = rects[i];
-            boolean on = event.getX() >= r[0] - 2 && event.getX() < r[0] + r[2] + 2 && event.getY() >= r[1] - 2
-                    && event.getY() < r[1] + r[3] + 2;
-            if (on) {
-                node.dragDivider = i - panes;
-                node.dragOffset = along(node, event) - (node.vertical() ? r[1] : r[0]);
-                return;
+            if (x >= r[0] - 2 && x < r[0] + r[2] + 2 && y >= r[1] - 2 && y < r[1] + r[3] + 2) {
+                return i - panes;
             }
         }
+        return -1;
     }
 
     /**

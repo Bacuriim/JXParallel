@@ -556,6 +556,11 @@ public final class JXNativeNode {
         return null;
     }
 
+    /** The mouse pointer shape at (x, y), logical pixels; see {@link JXCursor}. */
+    public JXCursor cursorAt(int px, int py) {
+        return JXCursor.at(this, px, py);
+    }
+
     /** The pointer moved to (x, y) with the button held: an armed button is drawn pressed only while the pointer is on it. */
     public void movePointer(int px, int py) {
         boolean inside = armed != null && armed.contains(px, py);

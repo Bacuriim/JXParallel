@@ -1904,4 +1904,81 @@ class JxmlComponentBehaviorTest {
             assertEquals(-1, ui.find("select").highlight, "and one opened again starts clean");
         }
     }
+
+    // ---- desktop window behaviours: mouse cursor, file drop, keyboard menus, accelerators -----------
+
+    @Nested
+    class MouseCursors {
+        @Test
+        void aTextFieldShowsTheIBeamAndAHyperlinkTheHand() {
+            Ui ui = new Ui("<TextField text=\"@{name}\"/>\n<PasswordField text=\"${secret}\"/>\n<TextArea text=\"${notes}\"/>\n"
+                    + "<Hyperlink text=\"More\" onAction=\"#click\"/>\n<Label text=\"plain\"/>");
+            assertEquals(JXCursor.IBEAM, ui.root.cursorAt(center(ui.find("input"))[0], center(ui.find("input"))[1]));
+            assertEquals(JXCursor.IBEAM, ui.root.cursorAt(center(ui.find("password"))[0], center(ui.find("password"))[1]));
+            assertEquals(JXCursor.IBEAM, ui.root.cursorAt(center(ui.find("textarea"))[0], center(ui.find("textarea"))[1]));
+            assertEquals(JXCursor.HAND, ui.root.cursorAt(center(ui.find("hyperlink"))[0], center(ui.find("hyperlink"))[1]));
+            assertEquals(JXCursor.ARROW, ui.root.cursorAt(center(ui.find("#text"))[0], center(ui.find("#text"))[1]));
+            assertEquals(JXCursor.ARROW, ui.root.cursorAt(ui.w - 2, ui.h - 2), "the empty window");
+            assertEquals(JXCursor.ARROW, ui.root.cursorAt(-1, -1), "the pointer left the window");
+        }
+
+        @Test
+        void aDisabledHyperlinkKeepsTheArrow() {
+            Ui ui = new Ui("<Hyperlink text=\"More\" disabled=\"true\"/>");
+            assertEquals(JXCursor.ARROW, ui.root.cursorAt(center(ui.find("hyperlink"))[0], center(ui.find("hyperlink"))[1]));
+        }
+
+        @Test
+        void theCursorAttributeOfAnyElementWinsAndTheDeepestOneCounts() {
+            Ui ui = new Ui("<Button text=\"Go\" cursor=\"hand\" onAction=\"#click\"/>\n"
+                    + "<TextField text=\"@{name}\" cursor=\"default\"/>\n"
+                    + "<Row cursor=\"crosshair\"><Label text=\"in a crosshair\"/><Label text=\"own\" cursor=\"v-resize\"/></Row>");
+            assertEquals(JXCursor.HAND, ui.root.cursorAt(center(ui.find("button"))[0], center(ui.find("button"))[1]));
+            assertEquals(JXCursor.ARROW, ui.root.cursorAt(center(ui.find("input"))[0], center(ui.find("input"))[1]),
+                    "an explicit cursor replaces the built-in one");
+            assertEquals(JXCursor.CROSSHAIR, ui.root.cursorAt(center(ui.find("#text", 0))[0], center(ui.find("#text", 0))[1]),
+                    "a label takes the cursor of its row");
+            assertEquals(JXCursor.RESIZE_V, ui.root.cursorAt(center(ui.find("#text", 1))[0], center(ui.find("#text", 1))[1]));
+        }
+
+        @Test
+        void aSplitPaneDividerShowsTheResizeCursorOnlyWhenItCanBeDragged() {
+            Ui ui = new Ui("<SplitPane dividerPositions=\"@{split}\" prefHeight=\"100\"><Label text=\"A\"/><Label text=\"B\"/></SplitPane>\n"
+                    + "<SplitPane dividerPositions=\"0.5\" prefHeight=\"100\"><Label text=\"A\"/><Label text=\"B\"/></SplitPane>\n"
+                    + "<SplitPane orientation=\"vertical\" dividerPositions=\"@{split}\" prefHeight=\"100\"><Label text=\"A\"/><Label text=\"B\"/></SplitPane>");
+            float[] d0 = JXControlLayout.splitRects(ui.find("splitpane", 0))[2];
+            float[] d1 = JXControlLayout.splitRects(ui.find("splitpane", 1))[2];
+            float[] d2 = JXControlLayout.splitRects(ui.find("splitpane", 2))[2];
+            assertEquals(JXCursor.RESIZE_H, ui.root.cursorAt((int) (d0[0] + d0[2] / 2), (int) (d0[1] + d0[3] / 2)));
+            assertEquals(JXCursor.ARROW, ui.root.cursorAt((int) (d1[0] + d1[2] / 2), (int) (d1[1] + d1[3] / 2)),
+                    "no onChange: the divider does not move");
+            assertEquals(JXCursor.RESIZE_V, ui.root.cursorAt((int) (d2[0] + d2[2] / 2), (int) (d2[1] + d2[3] / 2)));
+            assertEquals(JXCursor.ARROW, ui.root.cursorAt((int) d0[0] - 40, (int) (d0[1] + d0[3] / 2)), "away from the divider");
+        }
+
+        @Test
+        void aTextFieldInsideAnOpenMenuLayerIsNotUnderThePointerThroughIt() {
+            Ui ui = new Ui("<MenuButton text=\"Actions\"><MenuItem text=\"Open\" onAction=\"#click\"/></MenuButton>\n"
+                    + "<TextField text=\"@{name}\" prefWidth=\"300\"/>");
+            int[] field = center(ui.find("input"));
+            assertEquals(JXCursor.IBEAM, ui.root.cursorAt(field[0], field[1]));
+            ui.click(ui.find("menubutton"));
+            int[] menu = ui.find("menubutton").getPopupBounds();
+            assertNotNull(menu, "the menu is open");
+            assertEquals(JXCursor.ARROW, ui.root.cursorAt(menu[0] + menu[2] / 2, menu[1] + menu[3] / 2), "over a menu row: the arrow");
+        }
+
+        @Test
+        void theNamesOfTheCursorsParse() {
+            assertEquals(JXCursor.HAND, JXCursor.parse("HAND"));
+            assertEquals(JXCursor.HAND, JXCursor.parse("pointer"));
+            assertEquals(JXCursor.IBEAM, JXCursor.parse("Text"));
+            assertEquals(JXCursor.RESIZE_H, JXCursor.parse("H_RESIZE"));
+            assertEquals(JXCursor.RESIZE_H, JXCursor.parse("ew-resize"));
+            assertEquals(JXCursor.RESIZE_V, JXCursor.parse("ns-resize"));
+            assertEquals(JXCursor.ARROW, JXCursor.parse("default"));
+            assertNull(JXCursor.parse("sparkle"));
+            assertNull(JXCursor.parse(null));
+        }
+    }
 }

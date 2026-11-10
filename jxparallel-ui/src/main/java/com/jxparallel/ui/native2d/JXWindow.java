@@ -720,6 +720,7 @@ public final class JXWindow implements AutoCloseable {
             hideTooltip(); // a press or a release puts the tooltip away
             if (button == JXInputEvent.BUTTON_PRIMARY && action == GLFW.GLFW_RELEASE && root != null) {
                 root.releasePointer(new JXPointerEvent((int) px[0], (int) py[0], glfwButton)); // a button clicks on the release
+                updateCursor((int) px[0], (int) py[0]); // a drag that kept the resize cursor is over
                 requestRender();
                 return;
             }
@@ -793,6 +794,7 @@ public final class JXWindow implements AutoCloseable {
         if (root.hoverPointer(x, y)) {
             requestRender();
         }
+        updateCursor(x, y);
         JXNativeNode tip = x < 0 ? null : JXNativeNode.hoveredTooltip();
         if (tip != tooltipNode) {
             hideTooltip();
@@ -802,6 +804,57 @@ public final class JXWindow implements AutoCloseable {
                 JXDisplay.wakeAt(tooltipDue);
             }
         }
+    }
+
+    /** GLFW standard cursors, created the first time each shape is needed and destroyed with the window; display thread. */
+    private final long[] cursors = new long[JXCursor.values().length];
+    private JXCursor cursorShown = JXCursor.ARROW;
+
+    /** Shows the pointer shape of what is at (x, y) (x < 0: the pointer left, the arrow). */
+    private void updateCursor(int x, int y) {
+        showCursor(x < 0 || root == null ? JXCursor.ARROW : root.cursorAt(x, y));
+    }
+
+    private void showCursor(JXCursor shape) {
+        if (shape == cursorShown || window == MemoryUtil.NULL) {
+            return;
+        }
+        long cursor = cursors[shape.ordinal()];
+        if (cursor == MemoryUtil.NULL) {
+            cursor = GLFW.glfwCreateStandardCursor(glfwShape(shape));
+            cursors[shape.ordinal()] = cursor;
+        }
+        if (cursor != MemoryUtil.NULL) { // a platform without that shape keeps the current one
+            GLFW.glfwSetCursor(window, cursor);
+            cursorShown = shape;
+        }
+    }
+
+    private static int glfwShape(JXCursor shape) {
+        switch (shape) {
+            case IBEAM:
+                return GLFW.GLFW_IBEAM_CURSOR;
+            case CROSSHAIR:
+                return GLFW.GLFW_CROSSHAIR_CURSOR;
+            case HAND:
+                return GLFW.GLFW_HAND_CURSOR;
+            case RESIZE_H:
+                return GLFW.GLFW_HRESIZE_CURSOR;
+            case RESIZE_V:
+                return GLFW.GLFW_VRESIZE_CURSOR;
+            default:
+                return GLFW.GLFW_ARROW_CURSOR;
+        }
+    }
+
+    private void destroyCursors() {
+        for (int i = 0; i < cursors.length; i++) {
+            if (cursors[i] != MemoryUtil.NULL) {
+                GLFW.glfwDestroyCursor(cursors[i]);
+                cursors[i] = MemoryUtil.NULL;
+            }
+        }
+        cursorShown = JXCursor.ARROW;
     }
 
     private void hideTooltip() {
@@ -935,6 +988,7 @@ public final class JXWindow implements AutoCloseable {
             GLFW.glfwMakeContextCurrent(MemoryUtil.NULL);
         }
         GLFW.glfwDestroyWindow(handle);
+        destroyCursors();
         window = MemoryUtil.NULL;
     }
 

@@ -141,6 +141,7 @@ inside a `Border`), and these, which the renderer reads from any node:
 | `hidden` | `true` / `false` | not painted and not hit, but it keeps its place in the layout |
 | `mouseTransparent` | `true` / `false` | the pointer goes through it to what is behind |
 | `tooltip` | text | shown in a box by the pointer when it rests on the element for 600 ms (the deepest element that has one), until the pointer moves off, presses or a key goes down |
+| `cursor` | `default`, `text`, `hand`, `crosshair`, `h-resize`, `v-resize` | the mouse pointer over the element (the deepest element that has one counts, and it replaces the built-in one: the I-beam over a text field, the hand over a `Hyperlink`, the resize cursor over a `SplitPane` divider with `onChange`) |
 | `onAction` | `#method` | a click on it; the renderer calls the handler of the deepest element under the pointer. A `Button`, `ToggleButton`, `RadioButton`, `Hyperlink`, `CheckBox`, `Switch` or `Chip` acts when the mouse button is released over it (sliding off cancels); Space or Enter on a focused button, toggle, radio button or hyperlink is a click, and Enter elsewhere (but in a `TextArea`) presses the screen's `defaultButton` |
 | `background`, `borderColor` | color | `#RGB`, `#RRGGBB` or `#AARRGGBB` (a binding returns an ARGB `Integer`, or text like that) |
 | `backgroundRadius`, `borderRadius`, `borderWidth` | number | corner radii and border width of the two above |

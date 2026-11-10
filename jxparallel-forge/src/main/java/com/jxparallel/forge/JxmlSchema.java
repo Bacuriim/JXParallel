@@ -128,6 +128,9 @@ public final class JxmlSchema {
             java.util.Arrays.asList("assist", "filter", "choice", "input"));
     static final java.util.List<String> SELECTION_MODES = Collections.unmodifiableList(java.util.Arrays.asList("single", "multiple"));
     static final java.util.List<String> SIDES =Collections.unmodifiableList(java.util.Arrays.asList("left", "right"));
+    /** The mouse pointer shapes of {@code cursor} (JXCursor.parse also takes the CSS and JavaFX synonyms from code). */
+    static final java.util.List<String> CURSORS = Collections.unmodifiableList(
+            java.util.Arrays.asList("default", "text", "hand", "crosshair", "h-resize", "v-resize"));
 
     static {
         layout("theme", "theme", AttrType.STRING, false); // root only: light or dark, inherited by the renderer
@@ -157,6 +160,8 @@ public final class JxmlSchema {
         layout("hidden", "hidden", AttrType.BOOLEAN, true);
         layout("mouseTransparent", "mouseTransparent", AttrType.BOOLEAN, false);
         layout("tooltip", "tooltip", AttrType.STRING, true); // shown when the pointer rests on the element
+        // the shape of the mouse pointer over the element (an enabled text field, hyperlink and split pane divider have theirs)
+        LAYOUT.put("cursor", new Attr("cursor", "cursor", AttrType.STRING, false, CURSORS, null));
         // a click: the renderer calls the handler of the deepest element under the pointer (JXNativeNode.dispatchPointer)
         layout("onAction", "onAction", AttrType.HANDLER, false);
         layout("background", "background", AttrType.COLOR, true);
