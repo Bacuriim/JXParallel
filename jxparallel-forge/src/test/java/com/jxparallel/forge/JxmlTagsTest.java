@@ -909,4 +909,21 @@ class JxmlTagsTest {
         assertEquals(Boolean.TRUE, label.getProps().get("hidden"));
         assertEquals(Boolean.TRUE, label.getProps().get("mouseTransparent"));
     }
+
+    @Test
+    void transformsShadowsAndGradientsAreOnEveryTag() throws Exception {
+        JXElement label = screen("<Label translateX=\"4\" translateY=\"-2\" scaleX=\"1.5\" scaleY=\"0.5\" rotate=\"30\" "
+                + "elevation=\"6\" shadowColor=\"#40000000\" shadowOffsetX=\"1\" shadowOffsetY=\"3\" "
+                + "gradient=\"linear-gradient(#FFF, #000)\"/>");
+        assertEquals(Double.valueOf(4), label.getProps().get("translateX"));
+        assertEquals(Double.valueOf(-2), label.getProps().get("translateY"));
+        assertEquals(Double.valueOf(1.5), label.getProps().get("scaleX"));
+        assertEquals(Double.valueOf(0.5), label.getProps().get("scaleY"));
+        assertEquals(Double.valueOf(30), label.getProps().get("rotate"));
+        assertEquals(Double.valueOf(6), label.getProps().get("elevation"));
+        assertEquals(Integer.valueOf(0x40000000), label.getProps().get("shadowColor"));
+        assertEquals(Double.valueOf(1), label.getProps().get("shadowOffsetX"));
+        assertEquals(Double.valueOf(3), label.getProps().get("shadowOffsetY"));
+        assertEquals("linear-gradient(#FFF, #000)", label.getProps().get("backgroundGradient"));
+    }
 }

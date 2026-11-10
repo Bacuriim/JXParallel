@@ -32,7 +32,7 @@ import javafx.scene.paint.Color;
  * {@code -fx-font-size}, {@code -fx-font-weight}, {@code -fx-font}, {@code -fx-padding},
  * {@code -fx-min/pref/max-width/height}, {@code -fx-opacity}, {@code -fx-underline},
  * {@code -fx-alignment}, {@code -fx-spacing}, {@code -fx-hgap}, {@code -fx-vgap}; colors as names,
- * hex, rgb(a), hsl(a), looked-up colors defined on {@code .root}, and the first stop of a gradient.
+ * hex, rgb(a), hsl(a), looked-up colors defined on {@code .root}, and gradients (the first stop as {@code background}, all stops as {@code backgroundGradient}).
  * Everything else is ignored.
  */
 final class NativeCss {
@@ -392,7 +392,12 @@ final class NativeCss {
                 case "-fx-background-color": {
                     Integer color = lastColor(value);
                     if (color != null) {
-                        p.set("background", color);
+                        p.set("background", color); // a gradient stands here by its first stop for readers that ignore backgroundGradient
+                    }
+                    List<String> layers = splitTopLevel(value, ',');
+                    String top = layers.get(layers.size() - 1).trim();
+                    if (top.toLowerCase().startsWith("linear-gradient") || top.toLowerCase().startsWith("radial-gradient")) {
+                        p.set("backgroundGradient", gradient(top)); // the renderer draws all the stops
                     }
                     break;
                 }
@@ -540,6 +545,33 @@ final class NativeCss {
             out[i] = length(parts[i]);
         }
         return out;
+    }
+
+    /**
+     * A JavaFX gradient with each stop's color written as {@code #AARRGGBB} (the renderer's gradient parser has no
+     * looked-up colors, named colors or derive()); everything else of it (from/to, center, radius, positions) is kept.
+     */
+    static String gradient(String css) {
+        int open = css.indexOf('(');
+        int close = css.lastIndexOf(')');
+        StringBuilder out = new StringBuilder(css.substring(0, open + 1));
+        boolean first = true;
+        for (String arg : splitTopLevel(css.substring(open + 1, close), ',')) {
+            String[] tokens = arg.trim().split("\\s+(?![^(]*\\))");
+            String text = arg.trim();
+            try {
+                Integer c = color(tokens[0]);
+                if (c != null) {
+                    tokens[0] = String.format("#%08X", c);
+                    text = String.join(" ", tokens);
+                }
+            } catch (RuntimeException notAColor) {
+                // from 0% 0% to 100% 100%, center 50% 50%, radius 100%, repeat: not a stop
+            }
+            out.append(first ? "" : ", ").append(text);
+            first = false;
+        }
+        return out.append(')').toString();
     }
 
     private static Integer firstColor(String value) {

@@ -707,8 +707,25 @@ public final class NativeElements {
         if (opacity < 1) {
             p.set("opacity", opacity);
         }
+        // moved, scaled and rotated: drawn and picked by the renderer, not laid out
+        for (String key : new String[] {"translateX", "translateY", "rotate"}) {
+            double v = number(m, key, 0);
+            if (v != 0) {
+                p.set(key, v);
+            }
+        }
+        for (String key : new String[] {"scaleX", "scaleY"}) {
+            double v = number(m, key, 1);
+            if (v != 1) {
+                p.set(key, v);
+            }
+        }
         Object effect = Native.value(m, "effect");
-        if (effect instanceof javafx.scene.effect.GaussianBlur) {
+        if (effect instanceof javafx.scene.effect.DropShadow) {
+            javafx.scene.effect.DropShadow shadow = (javafx.scene.effect.DropShadow) effect;
+            p.set("elevation", Math.max(0.5, shadow.getRadius() / 2)).set("shadowOffsetX", shadow.getOffsetX())
+                    .set("shadowOffsetY", shadow.getOffsetY()).set("shadowColor", argb(shadow.getColor()));
+        } else if (effect instanceof javafx.scene.effect.GaussianBlur) {
             p.set("blur", ((javafx.scene.effect.GaussianBlur) effect).getRadius());
         } else if (effect instanceof javafx.scene.effect.BoxBlur) {
             p.set("blur", ((javafx.scene.effect.BoxBlur) effect).getWidth() / 2);

@@ -164,6 +164,19 @@ public final class JxmlSchema {
         layout("borderColor", "borderColor", AttrType.COLOR, true);
         layout("borderWidth", "borderWidth", AttrType.DOUBLE, true);
         layout("borderRadius", "borderRadius", AttrType.DOUBLE, true);
+        // drawn and picked, never laid out: the node and its subtree are scaled, then rotated (degrees, clockwise) about the
+        // centre of the node's bounds, then moved (JXPaint, JXTransforms)
+        layout("translateX", "translateX", AttrType.DOUBLE, true);
+        layout("translateY", "translateY", AttrType.DOUBLE, true);
+        layout("scaleX", "scaleX", AttrType.DOUBLE, true);
+        layout("scaleY", "scaleY", AttrType.DOUBLE, true);
+        layout("rotate", "rotate", AttrType.DOUBLE, true);
+        // a soft shadow under the box (JXPaint.region) and a CSS linear-gradient(...) or radial-gradient(...) instead of the background
+        layout("elevation", "elevation", AttrType.DOUBLE, true);
+        layout("shadowColor", "shadowColor", AttrType.COLOR, true);
+        layout("shadowOffsetX", "shadowOffsetX", AttrType.DOUBLE, true);
+        layout("shadowOffsetY", "shadowOffsetY", AttrType.DOUBLE, true);
+        layout("gradient", "backgroundGradient", AttrType.STRING, true);
 
         tag("Column", "column", Children.MANY)
                 .attr("gap", "gap", AttrType.DOUBLE, true).attr("padding", "padding", AttrType.INSETS, false)
