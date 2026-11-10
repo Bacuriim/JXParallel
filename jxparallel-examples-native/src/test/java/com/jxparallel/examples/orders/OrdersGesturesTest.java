@@ -89,16 +89,16 @@ class OrdersGesturesTest {
     void theTableIsFilteredAsYouType() {
         assertEquals(600, shell.orders().getVisible().size());
         ui.click(ui.find("input", 0));
-        ui.type("turing");
-        assertEquals("turing", shell.orders().getQuery());
+        ui.type("marlowe");
+        assertEquals("marlowe", shell.orders().getQuery());
         int n = shell.orders().getVisible().size();
         assertTrue(n > 20 && n < 200, "n = " + n);
         assertTrue(ui.hasText(OrdersController.count(n) + " of 600 orders"), ui.texts("#text").toString());
         for (String customer : column(1)) {
-            assertEquals("Alan Turing", customer);
+            assertEquals("Beto Marlowe", customer);
         }
         assertEquals(Math.min(n, 40), ui.find("table").getChildren().size(), "only the rows in view are built");
-        for (int i = 0; i < "turing".length(); i++) {
+        for (int i = 0; i < "marlowe".length(); i++) {
             ui.key(OrdersUi.BACKSPACE);
         }
         assertEquals("", shell.orders().getQuery());
@@ -445,9 +445,9 @@ class OrdersGesturesTest {
         File csv = new File(tmp, "three.csv");
         Files.write(csv.toPath(), Arrays.asList(
                 "id,customer,email,date,status,description,quantity,unit_price",
-                "1,Ada Lovelace,ada@example.com,2026-01-05,New,Cable,2,3.50",
-                "2,Grace Hopper,grace@example.com,2026-01-06,Paid,Cable,1,1.00",
-                "3,Alan Turing,alan@example.com,2026-02-02,Shipped,Cable,1,9.99"), StandardCharsets.UTF_8);
+                "1,Aurelia Voss,aurelia@example.com,2026-01-05,New,Cable,2,3.50",
+                "2,Greta Quenby,greta@example.com,2026-01-06,Paid,Cable,1,1.00",
+                "3,Beto Marlowe,beto@example.com,2026-02-02,Shipped,Cable,1,9.99"), StandardCharsets.UTF_8);
         assertTrue(ui.drop(600, 400, Collections.singletonList(csv.getPath())), "an element at or above the pointer takes the drop");
         long deadline = System.currentTimeMillis() + 15000;
         while (session.store().size() != 3 && System.currentTimeMillis() < deadline) {
@@ -465,7 +465,7 @@ class OrdersGesturesTest {
     void aDropWithTheEditorOpenImportsNothing() throws Exception {
         ui.key('N', OrdersUi.CONTROL);
         File csv = new File(tmp, "x.csv");
-        Files.write(csv.toPath(), "1,Ada Lovelace,ada@example.com,2026-01-05,New,Cable,2,3.50\n".getBytes(StandardCharsets.UTF_8));
+        Files.write(csv.toPath(), "1,Aurelia Voss,aurelia@example.com,2026-01-05,New,Cable,2,3.50\n".getBytes(StandardCharsets.UTF_8));
         // the window hands a drop over the scrim or the form to the root's onDrop too (docs/jxforge.md says only what is
         // in the dialog can take it), and the controller declines it
         ui.drop(20, 300, Collections.singletonList(csv.getPath()));

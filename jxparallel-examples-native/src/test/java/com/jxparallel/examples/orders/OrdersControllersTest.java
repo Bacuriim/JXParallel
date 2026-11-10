@@ -137,9 +137,9 @@ class OrdersControllersTest {
         File file = new File(tmp, "mixed.csv");
         Files.write(file.toPath(), Arrays.asList(
                 "id,customer,email,date,status,description,quantity,unit_price",
-                "1,Ada Lovelace,ada@example.com,2026-01-05,New,Cable,2,3.50",
-                "2,Grace Hopper,grace@example.com,not-a-date,Paid,Cable,1,1.00",
-                "3,Alan Turing,alan@example.com,2026-02-02,Shipped,Cable,1,9.99"), StandardCharsets.UTF_8);
+                "1,Aurelia Voss,aurelia@example.com,2026-01-05,New,Cable,2,3.50",
+                "2,Greta Quenby,greta@example.com,not-a-date,Paid,Cable,1,1.00",
+                "3,Beto Marlowe,beto@example.com,2026-02-02,Shipped,Cable,1,9.99"), StandardCharsets.UTF_8);
         await(shell.importFile(file));
         assertEquals(2, session.store().size());
         assertTrue(shell.getStatus().contains("Imported 2 orders from mixed.csv, 1 rows skipped (row 3: "), shell.getStatus());
@@ -224,10 +224,10 @@ class OrdersControllersTest {
         load(3000);
         OrdersController o = shell.orders();
         assertEquals("3,000 orders", o.getCountText());
-        o.setQuery("turing");
+        o.setQuery("marlowe");
         assertTrue(o.getVisible().size() > 100 && o.getVisible().size() < 1000);
         for (Order x : o.getVisible()) {
-            assertEquals("Alan Turing", x.getCustomer());
+            assertEquals("Beto Marlowe", x.getCustomer());
         }
         assertEquals(OrdersController.count(o.getVisible().size()) + " of 3,000 orders", o.getCountText());
         o.setStatusFilter("Cancelled");
@@ -374,7 +374,7 @@ class OrdersControllersTest {
         e.setEmail("nope");
         assertEquals("That is not an e-mail address", e.getEmailError());
         assertEquals("", e.getCustomerError(), "the other fields are untouched");
-        e.setEmail("ada@example.com");
+        e.setEmail("aurelia@example.com");
         assertEquals("", e.getEmailError());
     }
 
@@ -383,8 +383,8 @@ class OrdersControllersTest {
         load(50);
         EditorController e = shell.editor();
         e.openNew();
-        e.setCustomer("Katherine Johnson");
-        e.setEmail("katherine@example.com");
+        e.setCustomer("Kaito Brandl");
+        e.setEmail("kaito@example.com");
         e.setDate("2026-11-01");
         e.setStatus("Paid");
         OrderDraft.DraftLine line = e.getDraft().getLines().get(0);
@@ -402,7 +402,7 @@ class OrdersControllersTest {
         assertEquals(51, session.store().size());
         Order saved = session.store().find(51);
         assertNotNull(saved);
-        assertEquals("Katherine Johnson", saved.getCustomer());
+        assertEquals("Kaito Brandl", saved.getCustomer());
         assertEquals(Status.PAID, saved.getStatus());
         assertEquals(6470, saved.getTotalCents());
         assertEquals("Saved order #51", shell.getStatus());
@@ -489,7 +489,7 @@ class OrdersControllersTest {
         load(2000);
         assertEquals(12, c.getCustomers().size());
         assertEquals(0, c.getCurrent());
-        assertEquals("Ada Lovelace", c.getSelected().getName());
+        assertEquals("Aurelia Voss", c.getSelected().getName());
         c.setCurrent(3);
         assertEquals(c.getCustomers().get(3).getName(), c.getSelected().getName());
         c.setCurrent(99);
@@ -533,7 +533,7 @@ class OrdersControllersTest {
         assertEquals(250, shell.orders().getVisible().size());
         // a file written by hand is read like any other
         File f = new File(tmp, "one.csv");
-        Files.write(f.toPath(), "1,Ada Lovelace,ada@example.com,2026-01-05,New,Cable,2,3.50\n".getBytes(StandardCharsets.UTF_8));
+        Files.write(f.toPath(), "1,Aurelia Voss,aurelia@example.com,2026-01-05,New,Cable,2,3.50\n".getBytes(StandardCharsets.UTF_8));
         await(shell.importFile(f));
         assertEquals(1, session.store().size());
         assertEquals(700, session.store().find(1).getTotalCents());

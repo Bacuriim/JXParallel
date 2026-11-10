@@ -11,8 +11,8 @@ import java.util.function.DoubleConsumer;
 /** Makes the demo data: the same seed always gives the same orders. Meant to run on a worker thread. */
 public final class OrderGenerator {
     static final String[] CUSTOMERS = {
-        "Ada Lovelace", "Grace Hopper", "Alan Turing", "Katherine Johnson", "Linus Torvalds", "Margaret Hamilton",
-        "Dennis Ritchie", "Barbara Liskov", "Donald Knuth", "Radia Perlman", "Edsger Dijkstra", "Frances Allen",
+        "Aurelia Voss", "Greta Quenby", "Beto Marlowe", "Kaito Brandl", "Odalys Pemberton", "Rafael Dunmore",
+        "Selma Achterberg", "Joaquim Fenwick", "Nadia Holloway", "Leif Castellanos", "Priya Wentworth", "Bruno Oyelaran",
     };
     private static final String[] PRODUCTS = {
         "Mechanical keyboard", "Wireless mouse", "USB-C dock", "27 inch monitor", "Laptop stand", "Webcam",
@@ -26,7 +26,7 @@ public final class OrderGenerator {
     private OrderGenerator() {
     }
 
-    /** The e-mail address of a generated customer: {@code ada.lovelace@example.com}. */
+    /** The e-mail address of a generated customer: {@code aurelia.voss@example.com}. */
     public static String emailOf(String name) {
         return name.toLowerCase().replace(' ', '.') + "@example.com";
     }

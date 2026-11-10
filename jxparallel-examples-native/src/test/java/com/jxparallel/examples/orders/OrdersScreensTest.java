@@ -182,7 +182,7 @@ class OrdersScreensTest {
             assertTrue(String.valueOf(image.getProperty("src")).startsWith("classpath:orders/avatars/avatar"), String.valueOf(image.getProperty("src")));
             assertTrue(image.getWidth() > 0 && image.getHeight() > 0, "an avatar has a size");
         }
-        assertTrue(hasText(root, "Ada Lovelace"));
+        assertTrue(hasText(root, "Aurelia Voss"));
         assertTrue(hasText(root, "Latest orders"));
         assertTrue(hasText(root, "Average order"));
     }
