@@ -386,14 +386,15 @@ final class JXChangeEvents {
                 return;
             }
         } else if (typed >= 32 && typed != 127) {
-            insert = String.valueOf(typed);
+            // the typed character is a whole code point: an emoji is one event and two chars of the string
+            insert = new String(Character.toChars(event.getKeyCodePoint()));
         } else if (code == ENTER && area) {
             insert = "\n";
         } else if (code == BACKSPACE) {
             if (from < to) {
                 insert = "";
             } else if (caret > 0) {
-                from = caret - 1;
+                from = before(text, caret);
                 to = caret;
                 insert = "";
             }
@@ -402,15 +403,15 @@ final class JXChangeEvents {
                 insert = "";
             } else if (caret < text.length()) {
                 from = caret;
-                to = caret + 1;
+                to = after(text, caret);
                 insert = "";
             }
         } else if ((code == UP || code == DOWN) && area) {
             caret = JXTextHit.areaVertical(node, caret, code == UP ? -1 : 1); // the line above or below, same x
         } else if (code == LEFT) {
-            caret = !shift && from < to ? from : Math.max(0, caret - 1); // a selection collapses to its start
+            caret = !shift && from < to ? from : before(text, caret); // a selection collapses to its start
         } else if (code == RIGHT) {
-            caret = !shift && from < to ? to : Math.min(text.length(), caret + 1);
+            caret = !shift && from < to ? to : after(text, caret);
         } else if (code == HOME) {
             caret = area ? JXTextHit.areaLineOf(node, caret)[1] : 0;
         } else if (code == END) {
@@ -436,6 +437,16 @@ final class JXChangeEvents {
             node.redo().clear();
             onChange.accept(next);
         }
+    }
+
+    /** The index of the character before {@code index}: a surrogate pair (an emoji) counts as one character. */
+    static int before(String text, int index) {
+        return index <= 0 ? 0 : text.offsetByCodePoints(Math.min(index, text.length()), -1);
+    }
+
+    /** The index after the character at {@code index}: a surrogate pair counts as one character. */
+    static int after(String text, int index) {
+        return index >= text.length() ? text.length() : text.offsetByCodePoints(Math.max(index, 0), 1);
     }
 
     /** The index of the end of the line of a text area that {@code index} is on (the next line break, or the end). */

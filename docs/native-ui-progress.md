@@ -207,6 +207,29 @@ runs, so a label measures what it draws.
 - right-to-left: the base direction is the first strong character; the text is not aligned differently. Caret movement,
   selection and hit testing inside right-to-left runs still follow the logical order (left out)
 
+## Text input from the operating system (IME)
+
+`JXWindow` gets characters from GLFW 3.3's `glfwSetCharModsCallback`, one call per Unicode code point the OS delivers.
+What that means, plainly:
+
+- **supported**: text the OS has already composed and committed reaches the focused field as characters: dead keys and
+  compose sequences (`'` then `e` gives one `é`), AltGr characters, and the committed result of an input method (a
+  Chinese, Japanese or Korean IME inserts its final text when the user picks a candidate); supplementary code points
+  (emoji, rare CJK) arrive as one event and are inserted, deleted, moved over, selected and clicked as one character
+  (`JXKeyEvent.typed`, `getKeyCodePoint`; `JXChangeEvents.edit`, `JXTextDocument`, `JXTextHit`, wrapping and ellipsis).
+  Nothing in the window drops a character, except the one an open menu or popup took with its key
+- **not supported**: inline composition. GLFW 3.3 has no pre-edit API, so the text the user is still composing (the
+  underlined pre-edit string, the clause being converted) is shown by nobody: the IME's own window may show it, and the
+  field stays unchanged until the text is committed
+- **not supported**: the IME candidate window is not positioned at the caret (GLFW 3.3 has no function for it; it
+  appears where the OS puts it)
+- **not supported**: reconversion, and the IME state (on/off, mode) is not read or changed
+- backspace, delete and the arrow keys move by code point, not by grapheme cluster: an emoji made of several code points
+  (a flag, a skin tone, a ZWJ family) or a letter with separate combining marks takes more than one key press; a password
+  field shows one bullet per UTF-16 unit, so an emoji is two bullets
+- not verified in a real window with an IME: only the code path from the callback to the edit is tested, with events
+  built in the tests
+
 ## Text editing
 
 ```java

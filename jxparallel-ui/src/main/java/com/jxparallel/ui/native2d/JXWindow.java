@@ -1039,7 +1039,8 @@ public final class JXWindow implements AutoCloseable {
                 return;
             }
             if (focusedNode != null && !keyTaken) { // an open menu or popup took the key that typed it already
-                focusedNode.dispatchKey(new JXKeyEvent(0, (char) codepoint));
+                // the whole code point: casting to char would drop the high half of an emoji or any supplementary character
+                focusedNode.dispatchKey(JXKeyEvent.typed(codepoint, 0));
                 requestRender();
             }
         });

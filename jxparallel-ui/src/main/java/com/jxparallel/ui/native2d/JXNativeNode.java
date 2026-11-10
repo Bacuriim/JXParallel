@@ -640,6 +640,19 @@ public final class JXNativeNode {
         }
     }
 
+    /** The letters and digits around {@code at} as {start, end}; by code point, so a letter outside the BMP is one. */
+    static int[] wordAt(String text, int at) {
+        int start = at;
+        int end = at;
+        while (start > 0 && Character.isLetterOrDigit(text.codePointBefore(start))) {
+            start -= Character.charCount(text.codePointBefore(start));
+        }
+        while (end < text.length() && Character.isLetterOrDigit(text.codePointAt(end))) {
+            end += Character.charCount(text.codePointAt(end));
+        }
+        return new int[] {start, end};
+    }
+
     /** The caret index of a text input under the event's position. */
     private int textIndexAt(JXPointerEvent event) {
         return "textarea".equals(type) ? JXTextHit.areaIndex(this, event.getX(), event.getY()) : JXTextHit.fieldIndex(this, event.getX());
@@ -653,16 +666,9 @@ public final class JXNativeNode {
         String text = props.get("value") == null ? "" : String.valueOf(props.get("value"));
         int at = textIndexAt(event);
         if (event.getClickCount() == 2 && !"password".equals(type)) {
-            int start = at;
-            int end = at;
-            while (start > 0 && Character.isLetterOrDigit(text.charAt(start - 1))) {
-                start--;
-            }
-            while (end < text.length() && Character.isLetterOrDigit(text.charAt(end))) {
-                end++;
-            }
-            anchor = start;
-            caret = end;
+            int[] word = wordAt(text, at);
+            anchor = word[0];
+            caret = word[1];
         } else if (event.getClickCount() >= 2) {
             int start = "textarea".equals(type) ? text.lastIndexOf('\n', Math.max(0, at - 1)) + 1 : 0;
             int end = "textarea".equals(type) && text.indexOf('\n', at) >= 0 ? text.indexOf('\n', at) : text.length();
