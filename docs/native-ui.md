@@ -101,7 +101,7 @@ literally Ctrl, so write `Shortcut+S` for a key that should be Cmd on macOS and 
 Input: without an input listener, a primary click calls the `onClick`/`onAction` handler of the
 deepest node under the pointer and keys go to the node last clicked. With `setInputListener`, every
 raw event (pointer, key, character, focus, close request) goes to the listener instead.
-Hit testing skips hidden and mouse-transparent nodes, and open overlays are tried first. Like a JavaFX `Pane` (`pickOnBounds=false`), the empty area of a layout pane (`Column`, `Row`, `Stack`, `Border`, `Grid`, `Pane`, `Anchor`, `Flow`, `Tile`) is not hit unless it has a `background`, `borderColor`, `theme`, `onClick`, `onAction`, `onHover`, `onDrop`, `onScroll`, `onKeyPressed`, `tooltip`, `cursor` or `focusable`, so a `Stack` over the screen holding only closed dialogs does not take the pointer; the window root and controls always are.
+Hit testing skips hidden and mouse-transparent nodes, and open overlays are tried first. Like a JavaFX `Pane` (`pickOnBounds=false`), the empty area of a layout pane (`Column`, `Row`, `Stack`, `Border`, `Grid`, `Pane`, `Anchor`, `Flow`, `Tile`) is not hit unless it has a `background`, `borderColor`, `theme`, `onClick`, `onAction`, `onHover`, `onDrop`, `onScroll`, `onKeyPressed`, `tooltip`, `cursor` or `focusable`, so a `Stack` over the screen holding only closed dialogs does not take the pointer; the window root and controls always are. GLFW errors go to stderr through `JXGlfwErrors`, except `GLFW_FORMAT_UNAVAILABLE`, which reading an empty or non-text clipboard raises and which is not a fault (the read returns null and a paste inserts nothing).
 
 ## What it draws
 

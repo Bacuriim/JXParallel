@@ -8,7 +8,6 @@ import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.atomic.AtomicReference;
 
 import org.lwjgl.glfw.GLFW;
-import org.lwjgl.glfw.GLFWErrorCallback;
 
 /**
  * The one thread that talks to GLFW. GLFW is initialised once per process and is not thread safe,
@@ -239,7 +238,7 @@ public final class JXDisplay {
     }
 
     private static void initGlfw() {
-        GLFWErrorCallback.createPrint(System.err).set();
+        JXGlfwErrors.install();
         if (!GLFW.glfwInit()) {
             throw new IllegalStateException("glfwInit failed");
         }
