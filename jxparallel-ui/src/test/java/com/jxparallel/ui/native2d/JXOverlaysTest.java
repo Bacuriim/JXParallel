@@ -1015,6 +1015,18 @@ class JXOverlaysTest {
         assertTrue(showings.size() == 1);
     }
 
+    @Test
+    void aFieldOfADialogThatClosedNoLongerHoldsTheFocus() {
+        JXElement field = e("input", p().set("value", "x").set("onChange", onChange));
+        JXNativeNode root = mount(e("stack", p(), button("Behind"), e("dialog", p().set("showing", true), field)));
+        JXNativeNode input = root.getChildren().get(1).getChildren().get(0);
+        assertSame(input, JXWindow.liveFocus(root, input), "open: the field keeps the focus");
+        remount(root, e("stack", p(), button("Behind"), e("dialog", p().set("showing", false), field)));
+        assertNull(JXWindow.liveFocus(root, input), "closed: its content is gone, so the focus is dropped");
+        assertNull(JXWindow.liveFocus(null, input));
+        assertNull(JXWindow.liveFocus(root, null));
+    }
+
     // ---- incremental painting --------------------------------------------------------------------
 
     @Test

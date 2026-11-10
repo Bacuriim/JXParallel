@@ -1041,6 +1041,7 @@ public final class JXWindow implements AutoCloseable {
                 requestRender(); // Alt pressed and released alone opened (or closed) the menu bar
             }
             if (action != GLFW.GLFW_RELEASE && root != null) {
+                forgetDetachedFocus(); // the last render may have removed it (a field of a dialog that closed)
                 if (key == GLFW.GLFW_KEY_TAB) { // Tab and Shift+Tab move the focus through the controls
                     JXNativeNode next = root.nextFocus(focusedNode, (mods & GLFW.GLFW_MOD_SHIFT) != 0);
                     if (next != null) {
@@ -1064,6 +1065,7 @@ public final class JXWindow implements AutoCloseable {
                 deliver(JXInputEvent.character(codepoint, JXKeys.modifiers(mods)));
                 return;
             }
+            forgetDetachedFocus();
             if (focusedNode != null && !keyTaken) { // an open menu or popup took the key that typed it already
                 // the whole code point: casting to char would drop the high half of an emoji or any supplementary character
                 focusedNode.dispatchKey(JXKeyEvent.typed(codepoint, 0));
@@ -1157,6 +1159,30 @@ public final class JXWindow implements AutoCloseable {
             requestRender();
         }
         tooltipNode = null;
+    }
+
+    /** Drops the focus when the node that had it is no longer in the tree, so keys never reach a removed control. */
+    private void forgetDetachedFocus() {
+        if (liveFocus(root, focusedNode) != focusedNode) {
+            focus(null);
+        }
+    }
+
+    /** {@code focused} when it is still in the tree under {@code root}, else null. */
+    static JXNativeNode liveFocus(JXNativeNode root, JXNativeNode focused) {
+        return focused != null && root != null && inTree(root, focused) ? focused : null;
+    }
+
+    private static boolean inTree(JXNativeNode node, JXNativeNode target) {
+        if (node == target) {
+            return true;
+        }
+        for (JXNativeNode child : node.getChildren()) {
+            if (inTree(child, target)) {
+                return true;
+            }
+        }
+        return false;
     }
 
     /** Gives the keyboard focus to {@code node} (null: none): keys go there, and it draws its focus ring and caret. */
