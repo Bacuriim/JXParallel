@@ -95,6 +95,9 @@ final class JXTextLayout {
     }
 
     static String ellipsize(String value, float available, float size, JXFont font) {
+        if (value.isEmpty()) {
+            return value; // nothing to elide: an icon-only button has an empty label and may have no room at all
+        }
         JXTextEngine engine = JXTextEngine.get(font);
         if (engine.width(value, size) <= available + 0.01f) {
             return value;
