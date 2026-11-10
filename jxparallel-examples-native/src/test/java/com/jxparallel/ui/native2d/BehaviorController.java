@@ -134,6 +134,10 @@ public class BehaviorController {
     public void dropped(List<String> paths) { drops.add(paths); }
     public final List<List<String>> drops2 = new ArrayList<List<String>>();
     public void droppedInner(List<String> paths) { drops2.add(paths); }
+    /** What the {@code onHover} handlers reported, in order: "outer+", "outer-", "inner+", "inner-". */
+    public final List<String> hovers = new ArrayList<String>();
+    public void outerHover(boolean over) { hovers.add(over ? "outer+" : "outer-"); }
+    public void innerHover(boolean over) { hovers.add(over ? "inner+" : "inner-"); }
     public int saves;
     public void save() { saves++; }
 }

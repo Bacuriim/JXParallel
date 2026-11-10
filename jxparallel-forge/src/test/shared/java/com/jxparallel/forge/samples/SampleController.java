@@ -228,6 +228,13 @@ public class SampleController {
         scrolled = value;
     }
 
+    /** Whether the pointer is over an element with {@code onHover}. */
+    public boolean hover;
+
+    public void hovered(boolean over) {
+        hover = over;
+    }
+
     /** The paths of the files dropped on an element with {@code onDrop}. */
     public List<String> dropped;
 

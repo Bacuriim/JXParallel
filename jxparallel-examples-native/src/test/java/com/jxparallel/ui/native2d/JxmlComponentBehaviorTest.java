@@ -2250,6 +2250,38 @@ class JxmlComponentBehaviorTest {
             ui.click(c[0], c[1]);
             assertEquals(1, ui.c.clicks);
         }
+
+        @Test
+        void onHoverReportsEnterAndLeaveAlongTheHoverPath() {
+            Ui ui = new Ui("<Column onHover=\"#outerHover\" prefHeight=\"120\" prefWidth=\"200\">"
+                    + "<Label text=\"in\" onHover=\"#innerHover\"/><Label text=\"plain\"/></Column>\n<Label text=\"out\"/>");
+            int[] in = center(ui.find("#text", 0));
+            int[] plain = center(ui.find("#text", 1));
+            int[] out = center(ui.find("#text", 2));
+            ui.hover(in[0], in[1]);
+            assertEquals(java.util.Arrays.asList("outer+", "inner+"), ui.c.hovers, "outer first");
+            ui.hover(in[0] + 1, in[1]);
+            assertEquals(2, ui.c.hovers.size(), "moving inside the same node reports nothing");
+            ui.hover(plain[0], plain[1]);
+            assertEquals(java.util.Arrays.asList("outer+", "inner+", "inner-"), ui.c.hovers,
+                    "the parent stays hovered while the pointer is over another child");
+            ui.hover(in[0], in[1]);
+            ui.hover(out[0], out[1]);
+            assertEquals(java.util.Arrays.asList("outer+", "inner+", "inner-", "inner+", "inner-", "outer-"), ui.c.hovers,
+                    "leaving: the child, then the parent");
+        }
+
+        @Test
+        void onHoverIsFalseWhenThePointerLeavesTheWindow() {
+            Ui ui = new Ui("<Column onHover=\"#outerHover\" prefHeight=\"120\"><Label text=\"in\"/></Column>");
+            int[] in = center(ui.find("#text"));
+            ui.hover(in[0], in[1]);
+            assertEquals(java.util.Arrays.asList("outer+"), ui.c.hovers);
+            ui.hover(-1, -1);
+            assertEquals(java.util.Arrays.asList("outer+", "outer-"), ui.c.hovers);
+            ui.hover(-1, -1);
+            assertEquals(2, ui.c.hovers.size());
+        }
     }
 
     @Nested

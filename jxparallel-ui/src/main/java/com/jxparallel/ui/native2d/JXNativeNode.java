@@ -540,7 +540,8 @@ public final class JXNativeNode {
         if (path.equals(hoverPath)) {
             return highlighted;
         }
-        for (JXNativeNode node : hoverPath) {
+        List<JXNativeNode> before = hoverPath;
+        for (JXNativeNode node : before) {
             node.hovered = false;
         }
         for (JXNativeNode node : path) {
@@ -548,7 +549,36 @@ public final class JXNativeNode {
         }
         hoverPath = path;
         revision++;
+        // onHover: false for the nodes the pointer left (the deepest first), then true for the ones it entered
+        for (int i = before.size() - 1; i >= 0; i--) {
+            if (!containsSame(path, before.get(i))) {
+                reportHover(before.get(i), false);
+            }
+        }
+        for (JXNativeNode node : path) {
+            if (!containsSame(before, node)) {
+                reportHover(node, true);
+            }
+        }
         return true;
+    }
+
+    private static boolean containsSame(List<JXNativeNode> list, JXNativeNode node) {
+        for (int i = 0, n = list.size(); i < n; i++) {
+            if (list.get(i) == node) {
+                return true;
+            }
+        }
+        return false;
+    }
+
+    /** Tells the {@code onHover} handler of {@code node}, a {@code Consumer} of Boolean, that the pointer entered or left it. */
+    @SuppressWarnings("unchecked")
+    private static void reportHover(JXNativeNode node, boolean over) {
+        Object handler = node.props.get("onHover");
+        if (handler instanceof java.util.function.Consumer) {
+            ((java.util.function.Consumer<Object>) handler).accept(Boolean.valueOf(over));
+        }
     }
 
     /** The deepest node under the pointer's last {@link #hoverPointer} that has a {@code tooltip}, or null. */

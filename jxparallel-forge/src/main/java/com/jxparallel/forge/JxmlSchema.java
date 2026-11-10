@@ -183,6 +183,8 @@ public final class JxmlSchema {
         LAYOUT.put("cursor", new Attr("cursor", "cursor", AttrType.STRING, false, CURSORS, null));
         // files dropped on the window from the system: the nearest element under the pointer with onDrop gets the paths
         LAYOUT.put("onDrop", new Attr("onDrop", "onDrop", AttrType.CHANGE, false, null, AttrType.STRINGS));
+        // the pointer entered (true) or left (false) the element or one inside it: JXNativeNode.hoverPointer
+        LAYOUT.put("onHover", new Attr("onHover", "onHover", AttrType.CHANGE, false, null, AttrType.BOOLEAN));
         // a click: the renderer calls the handler of the deepest element under the pointer (JXNativeNode.dispatchPointer)
         layout("onAction", "onAction", AttrType.HANDLER, false);
         layout("background", "background", AttrType.COLOR, true);

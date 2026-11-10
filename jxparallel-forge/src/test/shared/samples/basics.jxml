@@ -3,7 +3,7 @@
 <Border controller="com.jxparallel.forge.samples.SampleController" padding="2">
   <Row slot="top" onDrop="#dropFiles" gap="${gap}" padding="4 8" alignment="CENTER_LEFT" fillHeight="true">
     <Button text="Save" accessibleName="Save the document" onAction="#save" accelerator="Ctrl+S" defaultButton="true" tooltip="Save the file (Ctrl+S)" cursor="hand"/>
-    <Button text="${title}" onAction="#save" disabled="${busy}"/>
+    <Button text="${title}" onAction="#save" disabled="${busy}" onHover="#hovered"/>
     <Separator orientation="vertical" accessibleHidden="true"/>
     <Label text="${title}" wrapText="true" bold="true" fontSize="13" textFill="#336699" hgrow="always" vgrow="never"/>
   </Row>
