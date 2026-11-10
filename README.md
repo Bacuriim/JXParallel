@@ -556,7 +556,7 @@ JMH gate, ArchUnit, mutation testing): [docs/testing-strategy.md](docs/testing-s
 | CSS | Subset: selectors with specificity, pseudo-classes, looked-up colors, inline styles |
 | Accessibility | Tree model only; no screen-reader adapter |
 | FXML compiled by JXForge | Partly: `FxmlToJxml` converts the FXML subset in [jxforge-fxml.md](docs/jxforge-fxml.md) to JXML (goal `jxforge:fxml`, command line, `JxmlTemplate.readFxml`) with a report of what it could not map; `fx:id` node injection cannot be converted, and no real application has been migrated yet. FXML on JavaFX is still loaded by `FXMLLoaderService` |
-| Gradle plugin for JXForge | Not yet; use the Maven plugin or the command line |
+| Gradle plugin for JXForge | `jxforge-gradle-plugin/` (id `io.github.bacuriim.jxforge`, tasks `jxforgeGenerate`, `jxforgeXsd`, `jxforgeFxml`), tested with TestKit on Gradle 7.5.1, 8.5 and 8.10.2; not yet on the Gradle Plugin Portal, so build it from this repository (`publishToMavenLocal`) for now |
 
 Roadmap: [docs/roadmap.md](docs/roadmap.md). Changes: [CHANGELOG.md](CHANGELOG.md).
 

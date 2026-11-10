@@ -117,6 +117,23 @@ jobs:
       - name: Test
         run: mvn --batch-mode --no-transfer-progress -pl jxparallel-fx,jxparallel-fx-controlsfx -am test
 
+  # JXForge Gradle plugin: its own Gradle build (committed wrapper), TestKit builds of small sample projects.
+  # The sample projects compile against the jars of jxparallel-forge and jxparallel-core built by Maven.
+  gradle-plugin:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: 17
+          cache: maven
+      - name: Build forge
+        run: mvn --batch-mode --no-transfer-progress -pl jxparallel-forge -am package -DskipTests
+      - name: Test the plugin
+        working-directory: jxforge-gradle-plugin
+        run: ./gradlew --no-daemon --console=plain test
+
   # OpenJDK jcstress: thread-safety contracts of jxparallel-core. jcstress 0.16 needs JDK 9+ to run.
   jcstress:
     runs-on: ubuntu-latest

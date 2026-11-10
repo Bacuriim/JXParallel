@@ -87,7 +87,53 @@ Maven only runs a plugin from the repository, so inside this repository's own bu
 plugin is built in the same reactor) `jxparallel-examples-native` calls the command line below
 through `exec-maven-plugin`; its profile `jxforge-plugin` uses the plugin after `mvn install`.
 
-Without Maven, the same compiler runs from the command line:
+### Gradle
+
+`jxforge-gradle-plugin/` is a Gradle plugin with the same three jobs as the Maven goals. It is its own Gradle build
+(not a module of the Maven reactor), written in Java 8 and tested with TestKit on Gradle 7.5.1, 8.5 and 8.10.2.
+**It is not on the Gradle Plugin Portal yet**: until it is, build it from this repository
+(`mvn -pl jxparallel-forge -am package -DskipTests`, then `cd jxforge-gradle-plugin && ./gradlew publishToMavenLocal`)
+and add `mavenLocal()` to `pluginManagement { repositories { ... } }`. The plugin depends on
+`jxparallel-forge` and `jxparallel-core` of its own version, which are on Maven Central only after the release that
+contains JXForge.
+
+```kotlin
+plugins {
+    java
+    id("io.github.bacuriim.jxforge") version "0.1.0"
+}
+
+dependencies {
+    implementation("io.github.bacuriim:jxparallel-forge:0.1.0")   // what the generated classes call
+}
+
+jxforge {
+    packageName = "com.acme.views"
+}
+```
+
+| Task | Maven goal | |
+|---|---|---|
+| `jxforgeGenerate` | `generate` | compiles `src/main/jxml` into `build/generated/sources/jxforge/java/main`, a source folder of the main source set: `compileJava` depends on it |
+| `jxforgeXsd` | `xsd` | writes `build/jxml.xsd` (`-Pjxforge.xsd=path` changes it) |
+| `jxforgeFxml` | `fxml` | converts `.fxml` to `.jxml` in `build/generated/jxforge/jxml`; with `fxml { enabled = true }` it runs before `jxforgeGenerate`, which then compiles that JXML too |
+
+The `jxforge { }` block has the parameters of the goals: `packageName` (required), `sourceDirectory`, `outputDirectory`,
+`classSuffix`, `hoistConstants`, `xsdFile`, and `fxml { enabled, sourceDirectory, outputDirectory, strict, bundle,
+itemTypes, reportFile }` (`itemType("orders", "com.acme.Order")`; `-Pjxforge.fxml.strict=true`).
+Differences from Maven: FXML conversion is off until `fxml.enabled` is set (every JavaFX project keeps FXML in
+`src/main/resources`, so converting it is something the build asks for); `jxforgeGenerate` rewrites its whole output
+folder when an input changes (a deleted screen leaves no stale class) instead of comparing file dates; the tasks are
+cacheable and incremental through their declared inputs (the `.jxml` files by relative path, the options), so a second
+run is UP-TO-DATE and a clean build can be restored from the build cache. A JXML error fails the task with the file
+and line (`screens/a.jxml:3: ...`); a misspelled binding is a `javac` error whose source line ends with `// a.jxml:2`.
+
+The forge classes run in the plugin's own classloader, as a normal dependency of the plugin: the build script needs no
+extra classpath, and the compiler is the exact version the plugin was released with. A worker process with its own
+configuration would isolate it further but costs a JVM start and a version setting in every build script, and the
+forge has no dependency that could clash. The plugin does not add `jxparallel-forge` to `implementation` for you.
+
+Without Maven or Gradle, the same compiler runs from the command line:
 
 ```powershell
 java -cp jxparallel-forge.jar;jxparallel-core.jar com.jxparallel.forge.JXForge `
@@ -871,6 +917,6 @@ implicitly animated widgets).
   and reports the rest. Still open: the `fx:id` / `@FXML` injection of nodes (the native UI has no node objects, so the
   controller code that uses them has to move to bindings), CSS files, custom controls, column widths of a `GridPane`,
   and a try-out on a real application's screens.
-- Gradle plugin.
+- Publishing the Gradle plugin on the Gradle Plugin Portal (it is built and tested, see [Gradle](#gradle)).
 
 Measurements: [jxforge-benchmark-2026-10-21.md](jxforge-benchmark-2026-10-21.md) (20 form screens: compiled, interpreted, FXML) and [jxforge-components-benchmark-2026-10-21.md](jxforge-components-benchmark-2026-10-21.md) (every component one by one, against JavaFX).
