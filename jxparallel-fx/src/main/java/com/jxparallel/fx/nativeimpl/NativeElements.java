@@ -703,6 +703,12 @@ public final class NativeElements {
         if (Boolean.TRUE.equals(Native.value(m, "mouseTransparent"))) {
             p.set("mouseTransparent", true);
         }
+        // JavaFX picks a layout pane (VBox, HBox, StackPane...) on its empty area too: pickOnBounds is true for them unless
+        // the application turns it off. The renderer's own rule lets an empty pane without a background pass the pointer.
+        Object pickOnBounds = m.values.get("pickOnBounds") != null ? Native.value(m, "pickOnBounds") : Native.unset(m, "pickOnBounds");
+        if (Boolean.TRUE.equals(pickOnBounds)) {
+            p.set("pickOnBounds", true);
+        }
         double opacity = number(m, "opacity", 1);
         if (opacity < 1) {
             p.set("opacity", opacity);

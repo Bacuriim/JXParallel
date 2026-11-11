@@ -1362,12 +1362,16 @@ public final class JXNativeNode {
         return false;
     }
 
-    /** Layout panes that, like JavaFX's {@code Pane} with {@code pickOnBounds=false}, take nothing of their empty area. */
+    /**
+     * Layout panes that take nothing of their empty area unless something gives them a reason to ({@link #PICK_PROPS}),
+     * like a JavaFX {@code Pane} with {@code pickOnBounds=false}. JavaFX's own panes default to {@code pickOnBounds=true}:
+     * the JavaFX-compatible API passes that on as the {@code pickOnBounds} prop.
+     */
     private static final java.util.Set<String> LAYOUT_PANES = new java.util.HashSet<String>(java.util.Arrays.asList(
             "column", "row", "stack", "border", "grid", "pane", "anchor", "flow", "tile"));
 
     /** What gives a layout pane a reason to take the pointer on its empty area: a box to see, or something to tell. */
-    private static final String[] PICK_PROPS = {"background", "backgroundGradient", "borderColor", "theme", "elevation",
+    private static final String[] PICK_PROPS = {"pickOnBounds", "background", "backgroundGradient", "borderColor", "theme", "elevation",
         "onClick", "onAction", "onHover", "onDrop", "onScroll", "onKeyPressed", "tooltip", "cursor", "focusable"};
 
     /**
