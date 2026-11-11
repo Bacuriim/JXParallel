@@ -1,0 +1,98 @@
+{
+  "name": "jxforge-vscode",
+  "displayName": "JXForge (JXML)",
+  "description": "JXML language support for JXForge: highlighting, schema-based completion and validation, snippets, and go to definition into the controller.",
+  "version": "0.1.0",
+  "publisher": "bacuriim",
+  "license": "MIT",
+  "icon": "images/icon.png",
+  "galleryBanner": {
+    "color": "#2E8B8B",
+    "theme": "dark"
+  },
+  "homepage": "https://github.com/Bacuriim/JXParallel/tree/main/jxforge-vscode#readme",
+  "bugs": {
+    "url": "https://github.com/Bacuriim/JXParallel/issues"
+  },
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/Bacuriim/JXParallel.git",
+    "directory": "jxforge-vscode"
+  },
+  "engines": {
+    "vscode": "^1.85.0"
+  },
+  "categories": [
+    "Programming Languages",
+    "Snippets"
+  ],
+  "keywords": [
+    "jxml",
+    "jxforge",
+    "jxparallel",
+    "xml"
+  ],
+  "main": "./out/extension.js",
+  "activationEvents": [
+    "onLanguage:jxml"
+  ],
+  "extensionPack": [
+    "redhat.vscode-xml"
+  ],
+  "contributes": {
+    "languages": [
+      {
+        "id": "jxml",
+        "aliases": [
+          "JXML",
+          "jxml"
+        ],
+        "extensions": [
+          ".jxml"
+        ],
+        "configuration": "./language-configuration.json",
+        "icon": {
+          "light": "./icons/jxml-light.svg",
+          "dark": "./icons/jxml-dark.svg"
+        }
+      }
+    ],
+    "grammars": [
+      {
+        "language": "jxml",
+        "scopeName": "text.xml.jxml",
+        "path": "./syntaxes/jxml.tmLanguage.json"
+      }
+    ],
+    "snippets": [
+      {
+        "language": "jxml",
+        "path": "./snippets/jxml.json"
+      }
+    ],
+    "xmlLanguageParticipants": [
+      {
+        "languageId": "jxml"
+      }
+    ]
+  },
+  "scripts": {
+    "xsd": "node scripts/generate-xsd.js",
+    "compile": "tsc -p .",
+    "test:grammar": "vscode-tmgrammar-test -g test/grammars/xml.tmLanguage.json -g syntaxes/jxml.tmLanguage.json \"test/grammar/*.jxml\"",
+    "test:snap": "vscode-tmgrammar-snap -g test/grammars/xml.tmLanguage.json -g syntaxes/jxml.tmLanguage.json \"test/snap/*.jxml\"",
+    "test:unit": "mocha \"out/test/**/*.test.js\"",
+    "test": "npm run compile && npm run test:grammar && npm run test:snap && npm run test:unit",
+    "package": "vsce package",
+    "vscode:prepublish": "npm run compile"
+  },
+  "devDependencies": {
+    "@types/mocha": "^10.0.10",
+    "@types/node": "^22.0.0",
+    "@types/vscode": "1.85.0",
+    "@vscode/vsce": "^4.1.0",
+    "mocha": "^12.0.3",
+    "typescript": "^5.9.3",
+    "vscode-tmgrammar-test": "^0.1.3"
+  }
+}

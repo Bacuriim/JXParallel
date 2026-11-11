@@ -189,3 +189,27 @@ jobs:
         run: |
           java -cp "jxparallel-benchmarks/target/classes:$(cat jxparallel-benchmarks/cp.txt)" org.openjdk.jmh.Main 'ReconcileBenchmark|ObservableBenchmark' -f 1 -wi 3 -i 5 -w 1s -r 1s -rf json -rff jmh.json
           python3 scripts/check-jmh.py jmh.json
+
+  # VS Code extension for .jxml (jxforge-vscode): grammar and unit tests, then the .vsix. Its own npm build, not part of the reactor.
+  vscode-extension:
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: jxforge-vscode
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+          cache-dependency-path: jxforge-vscode/package-lock.json
+      - name: Install
+        run: npm ci
+      - name: Test
+        run: npm test
+      - name: Package
+        run: npm run package
+      - uses: actions/upload-artifact@v4
+        with:
+          name: jxforge-vscode
+          path: jxforge-vscode/*.vsix

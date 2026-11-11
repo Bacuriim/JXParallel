@@ -1,0 +1,58 @@
+<!-- SYNTAX TEST "text.xml.jxml" "bindings, handlers and plain XML in JXML"
+    <Label text="${customer.name}" disabled="${!readOnly}"/>
+<!-- ^^^^^ entity.name.tag.localname.xml
+<!--       ^^^^ entity.other.attribute-name.localname.xml
+<!--             ^ keyword.operator.binding.read.jxml
+<!--              ^ punctuation.definition.binding.begin.jxml
+<!--               ^^^^^^^^ variable.other.readwrite.binding.jxml
+<!--                       ^ punctuation.accessor.jxml
+<!--                        ^^^^ meta.binding.read.jxml
+<!--                            ^ punctuation.definition.binding.end.jxml
+<!--                                           ^ keyword.operator.logical.jxml
+<!--                                            ^^^^^^^^ variable.other.readwrite.binding.jxml
+    <TextField text="@{customer.name}" prompt="Full name"/>
+<!--                 ^ keyword.operator.binding.two-way.jxml
+<!--                   ^^^^^^^^ variable.other.constant.binding.two-way.jxml
+<!--                   ^^^^^^^^ meta.binding.two-way.jxml
+<!--                                   ^^^^^^ entity.other.attribute-name.localname.xml
+<!--                                           ^^^^^^^^^ string.quoted.double.xml
+<!--                                           ^^^^^^^^^ - meta.binding
+    <Button text="Save" onAction="#save" defaultButton="true"/>
+<!--                    ^^^^^^^^ entity.other.attribute-name.localname.xml
+<!--                              ^ keyword.operator.handler.jxml
+<!--                               ^^^^ entity.name.function.handler.jxml
+<!--                               ^^^^ string.quoted.double.xml
+<!--                                     ^^^^^^^^^^^^^ entity.other.attribute-name.localname.xml
+<!--                                                    ^^^^ string.quoted.double.xml
+    <Button onAction="#open(item, row)" text="x"/>
+<!--                   ^^^^ entity.name.function.handler.jxml
+<!--                       ^ punctuation.section.parens.begin.jxml
+<!--                        ^^^^ variable.parameter.handler-argument.jxml
+<!--                              ^^^ variable.parameter.handler-argument.jxml
+<!--                            ^ punctuation.separator.comma.jxml
+<!--                                 ^ punctuation.section.parens.end.jxml
+<!--                                    ^^^^ entity.other.attribute-name.localname.xml
+    <Row background="#336699" text="#1 ${x}"/>
+<!--                 ^^^^^^^ string.quoted.double.xml
+<!--                 ^^^^^^^ - entity.name.function.handler.jxml
+<!--                 ^^^^^^^ - keyword.operator.handler.jxml
+<!--                                ^^ - meta.binding
+<!--                                   ^ keyword.operator.binding.read.jxml
+    <Switch onChange='#toggle' selected='@{on}'/>
+<!--                  ^ keyword.operator.handler.jxml
+<!--                   ^^^^^^ entity.name.function.handler.jxml
+<!--                   ^^^^^^ string.quoted.single.xml
+<!--                                       ^^^ meta.binding.two-way.jxml
+    <Label text="{not} a binding and $ alone" onAction="not a handler"/>
+<!--             ^^^^^ - meta.binding
+<!--                                 ^^^^^^^ - meta.binding
+<!--                                                    ^^^^^^^^^^^^^ - meta.handler
+    <!-- ${not.a.binding} onAction="#nothing" -->
+<!--       ^^^^^^^^^^^^^ comment.block.xml
+<!--       ^^^^^^^^^^^^^ - meta.binding
+<!--                                 ^^^^^^^ - entity.name.function.handler.jxml
+    <Column controller="com.acme.CustomersController" onShowing="#close">
+<!--        ^^^^^^^^^^ entity.other.attribute-name.localname.xml
+<!--                    ^^^^^^^^^^^^^^^^^^^^^^^^^^^^ string.quoted.double.xml
+<!--                                                  ^^^^^^^^^ entity.other.attribute-name.localname.xml
+<!--                                                              ^^^^^ entity.name.function.handler.jxml

@@ -1,0 +1,114 @@
+{
+  "$schema": "https://raw.githubusercontent.com/martinring/tmlanguage/master/tmlanguage.json",
+  "name": "JXML",
+  "scopeName": "text.xml.jxml",
+  "comment": "JXML is XML, so this grammar includes VS Code's own XML grammar (text.xml) and injects what JXForge adds inside attribute values: ${a.b} reads, @{a.b} reads and writes, and #handler / #handler(args) in the on* attributes. Injections are used instead of a copy of the XML rules, so the XML highlighting stays the one VS Code ships.",
+  "patterns": [
+    { "include": "text.xml" }
+  ],
+  "injections": {
+    "L:text.xml.jxml string.quoted.double.xml, L:text.xml.jxml string.quoted.single.xml": {
+      "patterns": [
+        { "include": "#binding-two-way" },
+        { "include": "#binding-read" }
+      ]
+    },
+    "L:text.xml.jxml meta.tag - string": {
+      "patterns": [
+        { "include": "#handler-attribute-double" },
+        { "include": "#handler-attribute-single" }
+      ]
+    }
+  },
+  "repository": {
+    "binding-read": {
+      "comment": "${name}, ${a.b}, ${a.b()}, ${!flag}. A backslash before the $ makes it a literal.",
+      "begin": "(?<!\\\\)(\\$)(\\{)",
+      "beginCaptures": {
+        "1": { "name": "keyword.operator.binding.read.jxml" },
+        "2": { "name": "punctuation.definition.binding.begin.jxml" }
+      },
+      "end": "(\\})",
+      "endCaptures": {
+        "1": { "name": "punctuation.definition.binding.end.jxml" }
+      },
+      "name": "meta.binding.read.jxml",
+      "contentName": "variable.other.readwrite.binding.jxml",
+      "patterns": [
+        { "include": "#binding-expression" }
+      ]
+    },
+    "binding-two-way": {
+      "comment": "@{name}, @{a.b}: reads the value and writes it back when the user changes it.",
+      "begin": "(?<!\\\\)(@)(\\{)",
+      "beginCaptures": {
+        "1": { "name": "keyword.operator.binding.two-way.jxml" },
+        "2": { "name": "punctuation.definition.binding.begin.jxml" }
+      },
+      "end": "(\\})",
+      "endCaptures": {
+        "1": { "name": "punctuation.definition.binding.end.jxml" }
+      },
+      "name": "meta.binding.two-way.jxml",
+      "contentName": "variable.other.constant.binding.two-way.jxml",
+      "patterns": [
+        { "include": "#binding-expression" }
+      ]
+    },
+    "binding-expression": {
+      "patterns": [
+        { "match": "!", "name": "keyword.operator.logical.jxml" },
+        { "match": "\\.", "name": "punctuation.accessor.jxml" },
+        { "match": "[()]", "name": "punctuation.section.parens.jxml" }
+      ]
+    },
+    "handler-attribute-double": {
+      "comment": "onAction=\"#save\", onChange=\"#open(item)\". Only the on* attributes hold handlers, so a colour such as background=\"#336699\" is not taken for one.",
+      "begin": "(?:^|\\s+)(on[A-Z][\\w]*)(\\s*)(=)(\\s*)(\")(?=\\s*#)",
+      "beginCaptures": {
+        "1": { "name": "entity.other.attribute-name.localname.xml" },
+        "3": { "name": "punctuation.separator.key-value.xml" },
+        "5": { "name": "punctuation.definition.string.begin.xml" }
+      },
+      "end": "(\")",
+      "endCaptures": {
+        "1": { "name": "punctuation.definition.string.end.xml" }
+      },
+      "contentName": "string.quoted.double.xml meta.handler.jxml",
+      "patterns": [
+        { "include": "#handler-value" }
+      ]
+    },
+    "handler-attribute-single": {
+      "begin": "(?:^|\\s+)(on[A-Z][\\w]*)(\\s*)(=)(\\s*)(')(?=\\s*#)",
+      "beginCaptures": {
+        "1": { "name": "entity.other.attribute-name.localname.xml" },
+        "3": { "name": "punctuation.separator.key-value.xml" },
+        "5": { "name": "punctuation.definition.string.begin.xml" }
+      },
+      "end": "(')",
+      "endCaptures": {
+        "1": { "name": "punctuation.definition.string.end.xml" }
+      },
+      "contentName": "string.quoted.single.xml meta.handler.jxml",
+      "patterns": [
+        { "include": "#handler-value" }
+      ]
+    },
+    "handler-value": {
+      "match": "(#)\\s*([\\p{L}_$][\\p{L}\\p{N}_$]*)\\s*(?:(\\()([^)\"']*)(\\)))?",
+      "captures": {
+        "1": { "name": "keyword.operator.handler.jxml" },
+        "2": { "name": "entity.name.function.handler.jxml" },
+        "3": { "name": "punctuation.section.parens.begin.jxml" },
+        "4": {
+          "patterns": [
+            { "match": ",", "name": "punctuation.separator.comma.jxml" },
+            { "match": "[\\p{L}_$][\\p{L}\\p{N}_$.]*", "name": "variable.parameter.handler-argument.jxml" }
+          ]
+        },
+        "5": { "name": "punctuation.section.parens.end.jxml" }
+      }
+    }
+  }
+}
