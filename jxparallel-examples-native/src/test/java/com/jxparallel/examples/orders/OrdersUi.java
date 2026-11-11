@@ -30,6 +30,8 @@ final class OrdersUi {
     static final int END = 269;
     static final int SHIFT = 1;
     static final int CONTROL = 2;
+    /** The shortcut key: Cmd on macOS, Ctrl elsewhere (multi-select, the text edits). Accelerators written Ctrl+N stay Ctrl. */
+    static final int SHORTCUT = com.jxparallel.ui.native2d.JXInputEvent.SHORTCUT;
 
     final ShellController shell;
     final int w;

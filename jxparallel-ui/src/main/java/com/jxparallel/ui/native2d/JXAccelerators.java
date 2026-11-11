@@ -77,7 +77,9 @@ final class JXAccelerators {
             }
             return others == JXInputEvent.SHIFT && code == KEY_Z;
         }
-        if ((event.getModifiers() & (JXInputEvent.ALT | JXInputEvent.META)) != 0) {
+        // Ctrl, Alt or Meta with a key is not typing: on macOS, where the shortcut key is Cmd, Ctrl+S reaches here
+        // and must stay free for an accelerator instead of being taken as the letter S
+        if ((event.getModifiers() & (JXInputEvent.ALT | JXInputEvent.META | JXInputEvent.CONTROL)) != 0) {
             return false;
         }
         return code >= 32 && code <= 96 || code == 259 || code == 261 || code == 257 || code >= 262 && code <= 265

@@ -139,6 +139,7 @@ class JXControlsSnapshotTest {
 
     @Test
     void everyControlPaintsLikeTheReviewedImage() throws IOException {
+        TestSkia.assume();
         assumeTrue(System.getProperty("os.name").startsWith("Windows")
                 && "64".equals(System.getProperty("sun.arch.data.model")), "golden image is for 64-bit Windows");
         JXNativeNode root = JXSkiaRenderer.mount(controls());

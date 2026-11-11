@@ -1071,7 +1071,7 @@ class JxmlComponentBehaviorTest {
     @Nested
     class SelectionAndHover {
         private static final int SHIFT = JXInputEvent.SHIFT;
-        private static final int CTRL = JXInputEvent.CONTROL;
+        private final int CTRL = JXInputEvent.SHORTCUT; // Cmd on macOS, Ctrl elsewhere
         private final String[] clipboard = {null};
 
         @org.junit.jupiter.api.BeforeEach
@@ -1221,7 +1221,7 @@ class JxmlComponentBehaviorTest {
     @Nested
     class RowSelection {
         private static final int SHIFT = JXInputEvent.SHIFT;
-        private static final int CTRL = JXInputEvent.CONTROL;
+        private final int CTRL = JXInputEvent.SHORTCUT; // Cmd on macOS, Ctrl elsewhere
         private static final int PAGE_UP = 266;
         private static final int PAGE_DOWN = 267;
         private static final int KEY_A = 65;
@@ -2258,10 +2258,10 @@ class JxmlComponentBehaviorTest {
         @Test
         void aTextFieldKeepsItsOwnShortcutsButNotTheOthers() {
             Ui ui = new Ui("<TextField text=\"@{name}\"/>\n<Button text=\"Save\" accelerator=\"Ctrl+S\" onAction=\"#save\"/>"
-                    + "\n<Button text=\"Copy\" accelerator=\"Ctrl+C\" onAction=\"#click\"/>\n<Button text=\"Reload\" accelerator=\"F5\" onAction=\"#toggleBold\"/>");
+                    + "\n<Button text=\"Copy\" accelerator=\"Shortcut+C\" onAction=\"#click\"/>\n<Button text=\"Reload\" accelerator=\"F5\" onAction=\"#toggleBold\"/>");
             ui.click(ui.find("input"));
-            ui.key(C, CTRL_);
-            assertEquals(0, ui.c.clicks, "Ctrl+C copies in a text field");
+            ui.key(C, JXInputEvent.SHORTCUT);
+            assertEquals(0, ui.c.clicks, "Shortcut+C (Cmd+C on macOS) copies in a text field");
             ui.key(S, CTRL_);
             assertEquals(1, ui.c.saves, "Ctrl+S is nobody's there");
             ui.key(F5, 0);
@@ -2270,8 +2270,8 @@ class JxmlComponentBehaviorTest {
 
         @Test
         void ctrlShiftAcceleratorsReachPastATextField() {
-            Ui ui = new Ui("<TextField text=\"@{name}\"/>\n<Button text=\"Paste plain\" accelerator=\"Ctrl+Shift+V\" onAction=\"#save\"/>"
-                    + "\n<Button text=\"Redo\" accelerator=\"Ctrl+Shift+Z\" onAction=\"#click\"/>");
+            Ui ui = new Ui("<TextField text=\"@{name}\"/>\n<Button text=\"Paste plain\" accelerator=\"Shortcut+Shift+V\" onAction=\"#save\"/>"
+                    + "\n<Button text=\"Redo\" accelerator=\"Shortcut+Shift+Z\" onAction=\"#click\"/>");
             JXNativeNode.setClipboard(new com.jxparallel.ui.input.JXClipboard() {
                 @Override
                 public String getText() {
@@ -2284,10 +2284,10 @@ class JxmlComponentBehaviorTest {
             });
             try {
                 ui.click(ui.find("input"));
-                ui.key(86, CTRL_ | JXInputEvent.SHIFT);
+                ui.key(86, JXInputEvent.SHORTCUT | JXInputEvent.SHIFT);
                 assertEquals(1, ui.c.saves, "Ctrl+Shift+V runs the button with a field focused");
                 assertTrue(ui.c.getName() == null || ui.c.getName().isEmpty(), "and nothing was pasted");
-                ui.key(90, CTRL_ | JXInputEvent.SHIFT);
+                ui.key(90, JXInputEvent.SHORTCUT | JXInputEvent.SHIFT);
                 assertEquals(0, ui.c.clicks, "Ctrl+Shift+Z stays the field's redo");
             } finally {
                 JXNativeNode.setClipboard(null);
@@ -2327,7 +2327,7 @@ class JxmlComponentBehaviorTest {
             assertEquals(83, JXAccelerator.parse("Ctrl+S").code);
             assertEquals(JXInputEvent.CONTROL, JXAccelerator.parse("ctrl+s").modifiers);
             assertEquals(JXInputEvent.CONTROL | JXInputEvent.SHIFT, JXAccelerator.parse("Ctrl + Shift + Z").modifiers);
-            assertEquals(JXInputEvent.CONTROL, JXAccelerator.parse("Shortcut+O").modifiers);
+            assertEquals(JXInputEvent.SHORTCUT, JXAccelerator.parse("Shortcut+O").modifiers); // Cmd on macOS
             assertEquals(JXInputEvent.ALT, JXAccelerator.parse("Alt+Enter").modifiers);
             assertEquals(257, JXAccelerator.parse("Alt+Enter").code);
             assertEquals(290, JXAccelerator.parse("F1").code);

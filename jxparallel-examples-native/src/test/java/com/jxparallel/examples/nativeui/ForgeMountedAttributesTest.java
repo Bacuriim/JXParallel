@@ -29,8 +29,8 @@ class ForgeMountedAttributesTest {
     private static final String CTRL = "com.jxparallel.forge.samples.SampleController";
     private static final int W = 360;
     private static final int H = 260;
-    /** The Ctrl modifier bit of a pointer event ({@code JXInputEvent.CONTROL}). */
-    private static final int CONTROL = 2;
+    /** The multi-select modifier of a pointer event: Cmd on macOS, Ctrl elsewhere ({@code JXInputEvent.SHORTCUT}). */
+    private static final int CONTROL = com.jxparallel.ui.native2d.JXInputEvent.SHORTCUT;
 
     private static JxmlTemplate read(String xml) {
         return JxmlTemplate.read(new ByteArrayInputStream(xml.getBytes(StandardCharsets.UTF_8)), "t.jxml");

@@ -231,7 +231,7 @@ class OrdersGesturesTest {
         assertTrue(ui.hasText("Order #3"), ui.texts("#text").toString());
         assertTrue(ui.hasText(shell.orders().getVisible().get(2).getCustomer()));
 
-        clickRow(5, OrdersUi.CONTROL);
+        clickRow(5, OrdersUi.SHORTCUT);
         assertEquals(2, shell.orders().getSelection().size());
         assertTrue(ui.hasText("2 orders selected"));
         assertEquals(5, shell.orders().getCurrent());
@@ -275,7 +275,7 @@ class OrdersGesturesTest {
         assertFalse(shell.orders().getMultiple());
         assertEquals("single", ui.find("table").getProperty("selectionMode"));
         clickRow(1, 0);
-        clickRow(3, OrdersUi.CONTROL);
+        clickRow(3, OrdersUi.SHORTCUT);
         assertEquals(1, shell.orders().getSelection().size(), "single selection: Ctrl+click replaces");
         assertEquals(3, shell.orders().getCurrent());
         ui.click(ui.find("checkbox"));
@@ -302,7 +302,7 @@ class OrdersGesturesTest {
     @Test
     void deleteConfirmsThroughADialog() {
         clickRow(0, 0);
-        clickRow(1, OrdersUi.CONTROL);
+        clickRow(1, OrdersUi.SHORTCUT);
         ui.click(button("Delete"));
         assertTrue(shell.orders().getConfirmDelete());
         assertTrue(ui.hasText("2 orders will be removed from this file."), ui.texts("#text").toString());
