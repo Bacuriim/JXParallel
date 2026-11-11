@@ -57,10 +57,10 @@ These steps follow each tool's documented XML schema support. They have not been
 editors themselves for this project; if one differs in your version, the tool's own documentation
 for "XML schema association" is the reference.
 
-- **IntelliJ IDEA.** Add `*.jxml` to the XML file type (Settings, Editor, File Types, XML,
-  Registered Patterns). With `xsi:noNamespaceSchemaLocation` in the file, the IDE reads the schema
-  from it. Without it, map the schema by hand in Settings, Languages & Frameworks, Schemas and
-  DTDs, with an empty namespace.
+- **IntelliJ IDEA.** Install the plugin from `jxforge-intellij-plugin` ([README](../jxforge-intellij-plugin/README.md)): it has this schema built in, so
+  no setup is needed, and it also resolves `controller`, `#handler`, `${...}` and `@{...}` against the Java controller. Without the plugin, add `*.jxml` to the
+  XML file type (Settings, Editor, File Types, XML, Registered Patterns). With `xsi:noNamespaceSchemaLocation` in the file, the IDE reads the schema from it.
+  Without it, map the schema by hand in Settings, Languages & Frameworks, Schemas and DTDs, with an empty namespace.
 - **VS Code.** Install the XML extension from Red Hat (`redhat.vscode-xml`). Treat `.jxml` as XML
   with `"files.associations": { "*.jxml": "xml" }`. The extension reads
   `xsi:noNamespaceSchemaLocation`; or associate the schema for all files in `settings.json`:
