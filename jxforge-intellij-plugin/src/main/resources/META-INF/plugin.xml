@@ -1,0 +1,62 @@
+<idea-plugin>
+    <id>io.github.bacuriim.jxforge</id>
+    <name>JXForge (JXML)</name>
+    <vendor url="https://github.com/Bacuriim/JXParallel">JXParallel</vendor>
+    <version>0.1.0</version>
+    <description><![CDATA[
+        <p>Editor support for <b>JXML</b>, the markup language of <b>JXForge</b> (part of JXParallel, a Java UI runtime):
+        <code>.jxml</code> screens that are XML and are compiled to Java.</p>
+        <ul>
+          <li><b>JXML file type</b>: <code>.jxml</code> files get their own icon and are XML underneath, so XML editing, folding,
+              formatting and inspections keep working. The "Register New File Type Association" prompt no longer appears.</li>
+          <li><b>Built-in schema</b>: tag and attribute completion, documentation and validation with no setup, no
+              <code>xsi:noNamespaceSchemaLocation</code> needed. A file that names its own schema keeps it.</li>
+          <li><b>Controller awareness</b>: <code>controller="..."</code> resolves to the Java class; <code>#handler</code> and
+              <code>#handler(arg)</code> resolve to its methods (with a "Create method" quick fix); <code>${a.b.c}</code> and
+              <code>@{x}</code> resolve each segment to the getter along the path, including <code>&lt;For&gt;</code> loop variables;
+              <code>&lt;Include src&gt;</code> resolves to the included file. Completion, navigation, Find Usages and rename work.</li>
+          <li><b>Highlighting</b>: bindings, two-way bindings and handlers have their own colors (Settings | Editor | Color Scheme | JXML).</li>
+          <li><b>Gutter icons</b> between a controller class and the screens that use it.</li>
+          <li><b>File template</b>: New | JXML Screen.</li>
+        </ul>
+        <p>Requires IntelliJ IDEA 2024.2 or newer with the Java plugin.</p>
+    ]]></description>
+    <change-notes><![CDATA[
+        <b>0.1.0</b> - first release
+        <ul>
+          <li>JXML file type with light and dark icons, as a dialect of XML</li>
+          <li>Bundled jxml.xsd generated from JXForge: completion, documentation and validation without configuration</li>
+          <li>References from the screen to its controller: class, handlers, bindings, loop variables, includes; quick fix to create a missing handler</li>
+          <li>Find Usages and rename of controller methods and getters update the .jxml files</li>
+          <li>Color settings page for bindings and handlers; gutter navigation between controller and screen; "JXML Screen" file template</li>
+        </ul>
+    ]]></change-notes>
+
+    <depends>com.intellij.modules.platform</depends>
+    <depends>com.intellij.modules.xml</depends>
+    <depends>com.intellij.modules.java</depends>
+
+    <extensions defaultExtensionNs="com.intellij">
+        <!-- 1. file type: a dialect of XML -->
+        <fileType name="JXML" implementationClass="io.github.bacuriim.jxforge.JxmlFileType" fieldName="INSTANCE"
+                  language="JXML" extensions="jxml"/>
+        <lang.parserDefinition language="JXML" implementationClass="io.github.bacuriim.jxforge.JxmlParserDefinition"/>
+
+        <!-- 2. the bundled schema -->
+        <xml.schemaProvider implementation="io.github.bacuriim.jxforge.schema.JxmlSchemaProvider"/>
+        <xml.fileNSInfoProvider implementation="io.github.bacuriim.jxforge.schema.JxmlFileNsInfoProvider"/>
+        <standardResourceProvider implementation="io.github.bacuriim.jxforge.schema.JxmlResourceProvider"/>
+
+        <!-- 3. controller awareness -->
+
+        <!-- 4. highlighting -->
+
+        <!-- 5. gutter -->
+
+        <!-- 6. file template -->
+    </extensions>
+
+
+    <actions>
+    </actions>
+</idea-plugin>
