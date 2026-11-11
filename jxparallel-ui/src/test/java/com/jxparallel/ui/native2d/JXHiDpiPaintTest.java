@@ -91,6 +91,7 @@ class JXHiDpiPaintTest {
 
     @Test
     void skiaFrameAtScaleTwoIsDrawnOnAScaledCanvas() {
+        TestSkia.assume();
         int[] one = skia(1f);
         int[] two = skia(2f);
         int[] b1 = bounds(one, W, H);
@@ -103,6 +104,7 @@ class JXHiDpiPaintTest {
 
     @Test
     void skiaPaintOverloadScalesTheCanvasAndRestoresIt() {
+        TestSkia.assume();
         try (Surface surface = Surface.makeRasterN32Premul(2 * W, 2 * H)) {
             Canvas canvas = surface.getCanvas();
             int before = canvas.getSaveCount();
@@ -113,6 +115,7 @@ class JXHiDpiPaintTest {
 
     @Test
     void skiaScaleOneIsThePlainPaint() {
+        TestSkia.assume();
         int[] direct;
         try (Surface surface = Surface.makeRasterN32Premul(W, H)) {
             JXSkiaRenderer.paint(JXSkiaRenderer.mount(screen()), surface.getCanvas(), W, H);

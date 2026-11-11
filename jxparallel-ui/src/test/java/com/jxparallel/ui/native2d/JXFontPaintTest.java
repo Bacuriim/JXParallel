@@ -112,7 +112,7 @@ class JXFontPaintTest {
 
     @Test
     void skiaInkSpansTheMeasuredAdvanceOfEachStyleAndFallbackRun() throws Exception {
-        assumeTrue("64".equals(System.getProperty("sun.arch.data.model")), "Skia has no 32-bit natives");
+        TestSkia.assume();
         registerStyles();
         JXFonts.register("PaintB", TestFonts.write(dir, "PaintB", "Regular", 400, false, 1000, ""));
         try (Surface surface = Surface.makeRasterN32Premul(W, H)) {
@@ -137,7 +137,7 @@ class JXFontPaintTest {
     /** Skia draws the system emoji font's colour glyphs through the fallback run (seen on Windows: Segoe UI Emoji). */
     @Test
     void skiaDrawsAnEmojiInColourWhenTheSystemHasAColourEmojiFont() throws Exception {
-        assumeTrue("64".equals(System.getProperty("sun.arch.data.model")), "Skia has no 32-bit natives");
+        TestSkia.assume();
         assumeTrue(new File("C:\\Windows\\Fonts\\seguiemj.ttf").isFile(), "needs Segoe UI Emoji");
         JXTextEngine ui = JXTextEngine.get();
         assumeTrue(ui.getFontFile() != null && !ui.covers(0x1F600), "the UI font draws emoji itself");

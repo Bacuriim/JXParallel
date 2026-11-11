@@ -70,15 +70,17 @@ jobs:
             java: 17
             arch: aarch64
             command: mvn --batch-mode --no-transfer-progress test
+          # Temurin publishes no JDK 17 for Windows on ARM64; Microsoft's build of OpenJDK does.
           - os: windows-11-arm
             java: 17
             arch: aarch64
+            distribution: microsoft
             command: mvn --batch-mode --no-transfer-progress test
     steps:
       - uses: actions/checkout@v4
       - uses: actions/setup-java@v4
         with:
-          distribution: temurin
+          distribution: ${{ matrix.distribution || 'temurin' }}
           java-version: ${{ matrix.java }}
           architecture: ${{ matrix.arch }}
           cache: maven

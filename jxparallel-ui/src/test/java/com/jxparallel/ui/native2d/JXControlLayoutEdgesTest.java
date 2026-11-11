@@ -214,7 +214,7 @@ class JXControlLayoutEdgesTest {
         assertEquals(LEFT, narrow.getChildren().get(0).getX(), "the first run stays even when too wide");
         assertEquals(TOP, narrow.getChildren().get(0).getY());
         assertEquals(LEFT, narrow.getChildren().get(1).getX());
-        assertEquals(TOP + line(), narrow.getChildren().get(1).getY(), 0.001);
+        assertEquals(TOP + Math.ceil(line()), narrow.getChildren().get(1).getY(), 0.001);
     }
 
     @Test
@@ -345,7 +345,7 @@ class JXControlLayoutEdgesTest {
         JXNativeNode fixed = JXNativeNode.createBackendNode(e("list", p().set("cellHeight", 30.0), e("cell", p().set("value", "x"))));
         assertEquals(30, JXControlLayout.cellHeight(fixed), 0.001);
         JXNativeNode zero = JXNativeNode.createBackendNode(e("list", p().set("cellHeight", 0.0), e("cell", p().set("value", "x"))));
-        assertEquals(line() + 6, JXControlLayout.cellHeight(zero), 0.001, "0 is no fixed height");
+        assertEquals(Math.ceil(line() + 6), JXControlLayout.cellHeight(zero), 0.001, "0 is no fixed height");
         JXNativeNode flat = JXNativeNode.createBackendNode(e("list", p(), region(10, 0)));
         assertEquals(1, JXControlLayout.cellHeight(flat), 0.001, "at least one pixel");
         JXNativeNode empty = JXNativeNode.createBackendNode(e("list", p()));
@@ -400,7 +400,7 @@ class JXControlLayoutEdgesTest {
         JXControlLayout.ScrollGeometry g = JXControlLayout.scrollGeometry(list);
         assertEquals(0, JXControlLayout.itemAt(list, g.viewY));
         assertEquals(-1, JXControlLayout.itemAt(list, g.viewY - 0.5));
-        double cell = line() + 6;
+        double cell = Math.ceil(line() + 6); // whole pixels, as the layout snaps cells
         assertEquals(2, JXControlLayout.itemAt(list, g.viewY + 3 * cell - 0.5));
         assertEquals(-1, JXControlLayout.itemAt(list, g.viewY + 3 * cell), "below the last item");
         JXNativeNode scrolled = sized("list", 100, 100, p().set("itemCount", 50).set("scrollY", 40.0),

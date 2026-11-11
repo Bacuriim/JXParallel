@@ -15,7 +15,7 @@ import static org.junit.jupiter.api.Assumptions.assumeTrue;
 class JXTextAgreementTest {
     @Test
     void skiaDrawsTextAsWideAsTheLayoutMeasured() {
-        assumeTrue("64".equals(System.getProperty("sun.arch.data.model")), "Skia has no 32-bit natives");
+        TestSkia.assume();
         JXTextEngine engine = JXTextEngine.get();
         assumeTrue(engine.getFontFile() != null, "needs a real font");
         try (Font font = JXSkiaRenderer.font()) {
