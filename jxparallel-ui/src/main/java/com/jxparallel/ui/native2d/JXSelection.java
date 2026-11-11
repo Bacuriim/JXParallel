@@ -289,8 +289,10 @@ final class JXSelection {
 
     /** The list has the focus and the key is one it takes: moves the selection, or runs the action of the selected row. */
     static boolean key(JXNativeNode root, JXNativeNode focused, JXKeyEvent event) {
+        // Alt, and Meta when it is not the shortcut key, are not the list's; on macOS Meta is the shortcut key (Cmd+A)
+        int foreign = (JXInputEvent.ALT | JXInputEvent.META) & ~JXInputEvent.SHORTCUT;
         if (!enabled(focused) || Boolean.TRUE.equals(focused.getProperty("disabled"))
-                || (event.getModifiers() & (JXInputEvent.ALT | JXInputEvent.META)) != 0) {
+                || (event.getModifiers() & foreign) != 0) {
             return false;
         }
         int code = event.getKeyCode();

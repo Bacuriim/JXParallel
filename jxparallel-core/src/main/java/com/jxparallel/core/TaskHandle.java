@@ -32,8 +32,10 @@ public final class TaskHandle<T> {
      * interrupted. Calling it again, or after completion, does nothing.
      */
     public void cancel() {
-        token.cancel();
+        // the future first: running work that sees the token and returns must not complete the future normally
+        // between the two steps, or the cancel would be lost and get() would return the result
         future.cancel(false);
+        token.cancel();
     }
 
     public boolean isCancelled() {
