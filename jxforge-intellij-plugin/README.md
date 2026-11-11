@@ -105,5 +105,5 @@ index and file template (`EditorFeaturesTest`).
 Published on the [JetBrains Marketplace](https://plugins.jetbrains.com/plugin/35981-jxforge-jxml-) (plugin id 35981).
 The `plugin.xml` has the name, vendor, description and change notes that the Marketplace shows, and
 `META-INF/pluginIcon.svg` and `pluginIcon_dark.svg` (40x40). A new version is uploaded by hand on the plugin's page
-(Upload Update) with the zip from `buildPlugin`, after raising `version` in `build.gradle.kts`; each upload goes through
+(Upload Update) with the zip from `buildPlugin`, after raising `pluginVersion` in `gradle.properties`; each upload goes through
 the Marketplace's moderation again.
