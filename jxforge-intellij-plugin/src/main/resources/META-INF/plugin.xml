@@ -48,6 +48,15 @@
         <standardResourceProvider implementation="io.github.bacuriim.jxforge.schema.JxmlResourceProvider"/>
 
         <!-- 3. controller awareness -->
+        <psi.referenceContributor language="XML" implementation="io.github.bacuriim.jxforge.refs.JxmlReferenceContributor"/>
+        <referencesSearch implementation="io.github.bacuriim.jxforge.refs.JxmlReferencesSearcher"/>
+        <methodReferencesSearch implementation="io.github.bacuriim.jxforge.refs.JxmlMethodReferencesSearcher"/>
+        <annotator language="XML" implementationClass="io.github.bacuriim.jxforge.JxmlAnnotator"/>
+
+        <!-- 4. highlighting -->
+        <colorSettingsPage implementation="io.github.bacuriim.jxforge.JxmlColorSettingsPage"/>
+
+        <!-- 3. controller awareness -->
 
         <!-- 4. highlighting -->
 

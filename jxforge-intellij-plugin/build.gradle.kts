@@ -28,6 +28,7 @@ dependencies {
         intellijIdeaCommunity(providers.gradleProperty("platformVersion").getOrElse("2024.2.5"))
         bundledPlugin("com.intellij.java")
         testFramework(TestFrameworkType.Platform)
+        testFramework(TestFrameworkType.Plugin.Java)
         pluginVerifier()
         zipSigner()
     }
