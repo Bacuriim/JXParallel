@@ -47,11 +47,40 @@ jobs:
             java: 25
             arch: x64
             command: mvn --batch-mode --no-transfer-progress test
+          # macOS and ARM64: profiles natives-macos-x64, natives-macos-arm64, natives-linux-arm64 and
+          # natives-windows-arm64 of jxparallel-ui. First configured without any run: if one of these
+          # fails, that platform is not supported yet (docs/compatibility.md). No JVM flag is needed:
+          # the tests that need an OpenGL window skip when no window can be made (on macOS the display
+          # loop needs -XstartOnFirstThread, which a test run does not have).
+          # macos-latest is Apple Silicon; macos-15-intel is the x64 runner (macos-13 has been retired).
+          - os: macos-latest
+            java: 17
+            arch: aarch64
+            command: mvn --batch-mode --no-transfer-progress test
+          - os: macos-latest
+            java: 21
+            arch: aarch64
+            command: mvn --batch-mode --no-transfer-progress test
+          - os: macos-15-intel
+            java: 17
+            arch: x64
+            command: mvn --batch-mode --no-transfer-progress test
+          # Free for public repositories only; remove these two if the repository is private.
+          - os: ubuntu-24.04-arm
+            java: 17
+            arch: aarch64
+            command: mvn --batch-mode --no-transfer-progress test
+          # Temurin publishes no JDK 17 for Windows on ARM64; Microsoft's build of OpenJDK does.
+          - os: windows-11-arm
+            java: 17
+            arch: aarch64
+            distribution: microsoft
+            command: mvn --batch-mode --no-transfer-progress test
     steps:
       - uses: actions/checkout@v4
       - uses: actions/setup-java@v4
         with:
-          distribution: temurin
+          distribution: ${{ matrix.distribution || 'temurin' }}
           java-version: ${{ matrix.java }}
           architecture: ${{ matrix.arch }}
           cache: maven
@@ -90,6 +119,44 @@ jobs:
       - name: Test
         run: mvn --batch-mode --no-transfer-progress -pl jxparallel-fx,jxparallel-fx-controlsfx -am test
 
+  # JXForge Gradle plugin: its own Gradle build (committed wrapper), TestKit builds of small sample projects.
+  # The sample projects compile against the jars of jxparallel-forge and jxparallel-core built by Maven.
+  gradle-plugin:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: 17
+          cache: maven
+      - name: Build forge
+        run: mvn --batch-mode --no-transfer-progress -pl jxparallel-forge -am package -DskipTests
+      - name: Test the plugin
+        working-directory: jxforge-gradle-plugin
+        run: ./gradlew --no-daemon --console=plain test
+
+  # JXForge IntelliJ IDEA plugin: its own Gradle build (committed wrapper); platform tests run headless on the IntelliJ 2024.2 platform.
+  # The forge (JDK 17) is built by Maven first, because the build runs com.jxparallel.forge.JxmlXsd to bundle jxml.xsd; Gradle runs on JDK 21.
+  intellij-plugin:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: 17
+          cache: maven
+      - name: Build forge
+        run: mvn --batch-mode --no-transfer-progress -pl jxparallel-forge -am package -DskipTests
+      - uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: 21
+      - name: Test the plugin
+        working-directory: jxforge-intellij-plugin
+        run: ./gradlew -Dorg.gradle.java.home="$JAVA_HOME" --no-daemon --console=plain test buildPlugin
+
   # OpenJDK jcstress: thread-safety contracts of jxparallel-core. jcstress 0.16 needs JDK 9+ to run.
   jcstress:
     runs-on: ubuntu-latest
@@ -124,3 +191,27 @@ jobs:
         run: |
           java -cp "jxparallel-benchmarks/target/classes:$(cat jxparallel-benchmarks/cp.txt)" org.openjdk.jmh.Main 'ReconcileBenchmark|ObservableBenchmark' -f 1 -wi 3 -i 5 -w 1s -r 1s -rf json -rff jmh.json
           python3 scripts/check-jmh.py jmh.json
+
+  # VS Code extension for .jxml (jxforge-vscode): grammar and unit tests, then the .vsix. Its own npm build, not part of the reactor.
+  vscode-extension:
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: jxforge-vscode
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+          cache-dependency-path: jxforge-vscode/package-lock.json
+      - name: Install
+        run: npm ci
+      - name: Test
+        run: npm test
+      - name: Package
+        run: npm run package
+      - uses: actions/upload-artifact@v4
+        with:
+          name: jxforge-vscode
+          path: jxforge-vscode/*.vsix

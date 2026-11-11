@@ -115,9 +115,52 @@ public class BehaviorController {
     public void toggleSrc() { srcOpen = !srcOpen; }
     public List<String> getRows() { return rows; }
 
+    /** The selection of the lists, tables and trees: the row (-1 for none) and, in multiple mode, the rows, and what was told. */
+    private int selected = -1;
+    private double[] chosen = new double[0];
+    public final List<String> told = new ArrayList<String>();
+    public int getSelected() { return selected; }
+    public void setSelected(int v) { selected = v; told.add("select " + v); }
+    public double[] getChosen() { return chosen; }
+    public void setChosen(double[] v) { chosen = v; told.add("selection " + java.util.Arrays.toString(v)); }
+
+    /**
+     * The sort of a table (-1 for no column) and what onSort told; the application sorts its own rows: the text of the
+     * column ascending or descending, or the order of the numbers when there is no sort.
+     */
+    private int sortCol = -1;
+    private boolean sortAsc = true;
+    public final List<String> sorts = new ArrayList<String>();
+    public int getSortCol() { return sortCol; }
+    public void setSortCol(int v) { sortCol = v; }
+    public boolean getSortAsc() { return sortAsc; }
+    public void setSortAsc(boolean v) { sortAsc = v; }
+    public void sorted(double[] v) {
+        sorts.add(java.util.Arrays.toString(v));
+        if (v[0] < 0) {
+            java.util.Collections.sort(rows, (a, b) -> Integer.compare(Integer.parseInt(a.substring(4)), Integer.parseInt(b.substring(4))));
+        } else {
+            java.util.Collections.sort(rows);
+            if (v[1] == 0) {
+                java.util.Collections.reverse(rows);
+            }
+        }
+    }
+
     private int top;
     public double[] scrolled;
     public int getTop() { return top; }
     public void setTop(int v) { top = v; }
     public void scrolledTo(double[] v) { scrolled = v; }
+
+    public final List<List<String>> drops = new ArrayList<List<String>>();
+    public void dropped(List<String> paths) { drops.add(paths); }
+    public final List<List<String>> drops2 = new ArrayList<List<String>>();
+    public void droppedInner(List<String> paths) { drops2.add(paths); }
+    /** What the {@code onHover} handlers reported, in order: "outer+", "outer-", "inner+", "inner-". */
+    public final List<String> hovers = new ArrayList<String>();
+    public void outerHover(boolean over) { hovers.add(over ? "outer+" : "outer-"); }
+    public void innerHover(boolean over) { hovers.add(over ? "inner+" : "inner-"); }
+    public int saves;
+    public void save() { saves++; }
 }

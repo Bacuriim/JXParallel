@@ -68,6 +68,14 @@ cd JXParallel
 mvn install -DskipTests
 ```
 
+To see it first, run the sample order-management app from the clone, without installing anything
+(`-Dapp=hello`, `metrics`, `stress`, `components` and `forge-load` start the other demos; see
+[`docs/example-orders.md`](docs/example-orders.md)):
+
+```powershell
+mvn -pl jxparallel-examples-native -am -Prun compile
+```
+
 ```xml
 <dependencies>
   <dependency>
@@ -212,7 +220,7 @@ three catalogs only decide which widgets exist.
 | **Overlays** | `Dialog` `AlertDialog` `Modal` `Drawer` `SnackBar` `ContextMenu` `MenuBar` `Menu` `Tooltip` |
 | **Display** | `Image` `Icon` `Avatar` `Badge` `Chip` `Separator` `ProgressBar` `ProgressIndicator` `Card` `ListTile` `AppBar` `NavigationBar` |
 
-Out of scope for 1.0: animations and transitions, custom painters, WebView and OS dialogs.
+Out of scope for 1.0: exit animations and keyframes (implicit `transition` and `enter` exist), custom painters, WebView and OS dialogs.
 
 ## Native UI
 
@@ -410,7 +418,8 @@ I/O, parsing, computation   ->  JXParallel.background(...)
 Scene graph changes         ->  JXParallelFx.ui(...)   (Platform.runLater semantics)
 ```
 
-Timeouts, priorities and cancellation when you need them:
+Timeouts, priorities and cancellation when you need them (a task has no timeout unless you set
+one; a timeout interrupts the running thread):
 
 ```java
 Task.of(() -> remoteService.fetch())
@@ -418,6 +427,20 @@ Task.of(() -> remoteService.fetch())
     .withPriority(TaskPriority.HIGH)
     .submit()
     .thenAccept(result -> JXParallelFx.ui(() -> render(result)));
+```
+
+Cooperative cancellation: give `background` a function of the token and keep the handle.
+
+```java
+TaskHandle<Report> handle = JXParallel.background(token -> {
+    Report report = new Report();
+    for (Row row : rows) {
+        if (token.isCancelled()) break;      // checked by the work itself
+        report.add(row);
+    }
+    return report;
+});
+cancelButton.setOnAction(e -> handle.cancel());   // handle.future() is cancelled at once
 ```
 
 The pool grows from `threads.min` to `threads.max` under load and lets idle workers expire. When
@@ -507,7 +530,9 @@ Everything compiles to Java 8 bytecode (`--release 8` on newer JDKs); the code J
 Java 8 source. The newest Windows x86 JDK published by Temurin and Zulu is 17. The JavaFX modules
 build against OpenJFX 21 and need JDK 17 or newer to compile, except `jxparallel-fx` and
 `jxparallel-fx-controlsfx`, which build on a JDK 8 that bundles JavaFX (Zulu FX). `jxparallel-ui` brings the LWJGL
-natives for Windows x64/x86 and Linux x64, and Skija on 64-bit.
+natives for Windows x64/x86 and Linux x64, and Skija on 64-bit. Profiles for macOS (x64, arm64) and ARM64 on
+Linux and Windows are configured too, with CI jobs, but they are awaiting their first CI run and have not been run
+by anyone (macOS needs `-XstartOnFirstThread`; see [docs/native-ui.md](docs/native-ui.md)).
 
 ## Modules
 
@@ -545,16 +570,16 @@ JMH gate, ArchUnit, mutation testing): [docs/testing-strategy.md](docs/testing-s
 | Worker pool, tasks, backpressure, lifecycle | Tested; used by all benchmarks |
 | Properties, events, observable collections | Tested |
 | FX thread dispatch and parallel FXML loading | Tested; pre-parsed templates with `FXMLLoader` fallback |
-| Native window (Skia 64-bit, NanoVG 32-bit) | Working; Modena and Material looks |
+| Native window (Skia 64-bit, NanoVG 32-bit) | Working; Modena and Material looks; HiDPI, picture files, font families with glyph fallback and right-to-left text, transforms, shadows, gradients, implicit animation, cursors, file drop |
 | JXForge (JXML compiler, interpreter, Maven plugin, live view) | Implemented and tested; 91 widgets, loops, conditions, styles, themes, includes |
 | Incremental UI updates | Implemented: memoized render and in-place reconciliation |
-| Virtualized list, table, tree and tree table | Implemented |
-| Overlays (dialogs, menus, pickers, snack bars) | Implemented; no keyboard navigation or hover inside popups yet |
+| Virtualized list, table, tree and tree table | Implemented, with single and multiple row selection by mouse and keyboard |
+| Overlays (dialogs, menus, pickers, snack bars) | Implemented; hover and keyboard navigation in combo lists, menus, the calendar and the time and color grids; menus open with F10, Alt and the Menu key; accelerators |
 | JavaFX-compatible API in native mode | Implemented and tested headless; not yet run on a large real application |
 | CSS | Subset: selectors with specificity, pseudo-classes, looked-up colors, inline styles |
-| Accessibility | Tree model only; no screen-reader adapter |
-| FXML compiled by JXForge | Not yet; FXML is loaded by `FXMLLoaderService` |
-| Gradle plugin for JXForge | Not yet; use the Maven plugin or the command line |
+| Accessibility | Live accessibility tree, actions, events and JXML attributes (platform-neutral, tested); Windows UI Automation adapter is opt-in, see docs/accessibility.md; no AT-SPI or macOS adapter; never used with a screen reader by a person |
+| FXML compiled by JXForge | Partly: `FxmlToJxml` converts the FXML subset in [jxforge-fxml.md](docs/jxforge-fxml.md) to JXML (goal `jxforge:fxml`, command line, `JxmlTemplate.readFxml`) with a report of what it could not map; `fx:id` node injection cannot be converted, and no real application has been migrated yet. FXML on JavaFX is still loaded by `FXMLLoaderService` |
+| Gradle plugin for JXForge | `jxforge-gradle-plugin/` (id `io.github.bacuriim.jxforge`, tasks `jxforgeGenerate`, `jxforgeXsd`, `jxforgeFxml`), tested with TestKit on Gradle 7.5.1, 8.5 and 8.10.2; not yet on the Gradle Plugin Portal, so build it from this repository (`publishToMavenLocal`) for now |
 
 Roadmap: [docs/roadmap.md](docs/roadmap.md). Changes: [CHANGELOG.md](CHANGELOG.md).
 
@@ -565,6 +590,7 @@ Roadmap: [docs/roadmap.md](docs/roadmap.md). Changes: [CHANGELOG.md](CHANGELOG.m
 | Architecture and design rules | [ARCHITECTURE.md](ARCHITECTURE.md) |
 | JXForge reference | [docs/jxforge.md](docs/jxforge.md) |
 | JXForge 1.0 widget checklist | [docs/jxforge-1.0.md](docs/jxforge-1.0.md) |
+| JX Orders, a sample application (10,000-row table, editor dialog, CSV on the worker pool) | [docs/example-orders.md](docs/example-orders.md) |
 | Every component against JavaFX | [docs/jxforge-components-benchmark-2026-10-21.md](docs/jxforge-components-benchmark-2026-10-21.md) |
 | What was behind JavaFX, and what changed | [docs/jxforge-optimizations-2026-10-21.md](docs/jxforge-optimizations-2026-10-21.md) |
 | 20 form screens: interpreted, cached, compiled | [docs/jxforge-benchmark-2026-10-21.md](docs/jxforge-benchmark-2026-10-21.md) |

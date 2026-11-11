@@ -103,7 +103,9 @@ class ComponentBenchTest {
             assertTrue(node.getWidth() > 0 && node.getHeight() > 0, name + " is laid out");
             assertEquals(controller.getCount(), node.getChildren().size(), name + ": one node per instance");
             ComponentBench.Fingerprint before = ComponentBench.fingerprint(node, entry);
-            assertTrue(before.count > 0, name + ": the probe finds its nodes");
+            // a closed Modal, Dialog, AlertDialog or Drawer holds no content in the tree: its open variant is the one probed
+            boolean closedLayer = name.equals("Modal") || name.equals("Dialog") || name.equals("AlertDialog") || name.equals("Drawer");
+            assertTrue(closedLayer || before.count > 0, name + ": the probe finds its nodes");
             ComponentBench.Fingerprint again = ComponentBench.fingerprint(node, entry);
             assertEquals(before.sum, again.sum, name + ": the fingerprint is deterministic");
             assertTrue(ComponentBench.visible(node) >= 0);
@@ -113,7 +115,9 @@ class ComponentBenchTest {
             node.layoutForBackend(ComponentBench.WIDTH, ComponentBench.HEIGHT);
             ComponentBench.Fingerprint after = ComponentBench.fingerprint(node, entry);
             assertEquals(before.count, after.count, name + ": the update keeps the instances");
-            assertNotEquals(before.sum, after.sum, name + ": the update changes the probed prop (" + entry.update + ")");
+            if (!closedLayer) {
+                assertNotEquals(before.sum, after.sum, name + ": the update changes the probed prop (" + entry.update + ")");
+            }
 
             Arrays.fill(pixels, 0);
             JXWindow.paintSoftware(node, pixels, ComponentBench.WIDTH, ComponentBench.HEIGHT);

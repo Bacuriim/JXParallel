@@ -49,6 +49,24 @@ public final class JXSkiaRenderer {
         return current;
     }
 
+    private static final Map<JXTextEngine, Typeface> TYPEFACES = new java.util.concurrent.ConcurrentHashMap<JXTextEngine, Typeface>();
+
+    /** The typeface of a text engine's face (any family, weight or fallback face); display thread. */
+    static Typeface typeface(JXTextEngine engine) {
+        if (engine == JXTextEngine.get()) {
+            return typeface();
+        }
+        if (engine == JXTextEngine.get(true)) {
+            return JXSkiaPainter.boldTypeface();
+        }
+        Typeface face = TYPEFACES.get(engine);
+        if (face == null) {
+            face = engine.getFontFile() == null ? typeface() : Typeface.makeFromFile(engine.getFontFile(), engine.getFaceIndex());
+            TYPEFACES.put(engine, face);
+        }
+        return face;
+    }
+
     /** Unhinted, subpixel-positioned: advances match HarfBuzz's, which the layout uses. */
     static Font font() {
         return new Font(typeface(), JXTextEngine.DEFAULT_SIZE).setSubpixel(true).setHinting(FontHinting.NONE);
@@ -81,6 +99,22 @@ public final class JXSkiaRenderer {
         try (JXSkiaPainter painter = new JXSkiaPainter(canvas)) {
             new JXPaint(painter).paint(root);
         }
+    }
+
+    /**
+     * Like {@link #paint(JXNativeNode, Canvas, int, int)} for a canvas of physical pixels: {@code width x height}
+     * is the logical size the tree is laid out in, and the canvas is scaled by {@code scale} so shapes and
+     * text are rasterized at the physical resolution (a sharp 1.5x or 2x, not an enlarged 1x image).
+     */
+    public static void paint(JXNativeNode root, Canvas canvas, int width, int height, float scale) {
+        if (scale == 1f) {
+            paint(root, canvas, width, height);
+            return;
+        }
+        canvas.save();
+        canvas.scale(scale, scale);
+        paint(root, canvas, width, height);
+        canvas.restore();
     }
 
     /** Shaped text at the default size, cached; {@code null} when there is nothing to draw. */

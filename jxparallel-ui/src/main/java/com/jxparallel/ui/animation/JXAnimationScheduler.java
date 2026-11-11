@@ -7,6 +7,14 @@ import java.util.concurrent.ScheduledExecutorService;
 import java.util.concurrent.ScheduledFuture;
 import java.util.concurrent.TimeUnit;
 
+/**
+ * Ticks {@link JXAnimation}s on a thread of its own.
+ *
+ * @deprecated superseded by the window's frame clock, which advances {@code transition} and {@code enter} on the display
+ *             thread (the only thread that may touch nodes) and stops when they are done; see
+ *             {@link com.jxparallel.ui.JXTransitions}. Nothing in the renderer uses this class.
+ */
+@Deprecated
 public final class JXAnimationScheduler implements AutoCloseable {
     private static final ScheduledExecutorService SHARED_EXECUTOR =
             java.util.concurrent.Executors.newSingleThreadScheduledExecutor(runnable -> {

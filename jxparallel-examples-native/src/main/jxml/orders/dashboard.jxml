@@ -1,0 +1,56 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!--
+  The dashboard: four figure cards and two bar visuals. There is no chart component, so the bars are SizedBoxes whose
+  width or height is bound to a number the controller computed (the value as a fraction of the largest, in pixels).
+-->
+<!-- The columns are in a Scroll, so a window smaller than the screen scrolls it (a Scroll follows the dark theme). -->
+<Stack controller="com.jxparallel.examples.orders.DashboardController" alignment="TOP_LEFT">
+  <Scroll fitToWidth="true" background="${palette.background}">
+    <Column padding="18" gap="18" fillWidth="true">
+      <Label text="Dashboard" bold="true" fontSize="22"/>
+      <If test="${noOrders}">
+        <Label text="No orders loaded." textFill="${palette.muted}"/>
+      </If>
+      <Row gap="16" fillHeight="false">
+        <For items="${kpis}" var="k" type="com.jxparallel.examples.orders.DashboardController.Kpi">
+          <Card hgrow="always" padding="16" backgroundRadius="10" background="${palette.card}" borderColor="${palette.line}"
+                borderRadius="10" elevation="3" enter="opacity 0 300ms, translateY 14 300ms ease-out">
+            <Label text="${k.title}" textFill="${palette.muted}"/>
+            <Label text="${k.value}" bold="true" fontSize="26"/>
+            <Label text="${k.note}" fontSize="12" textFill="${palette.muted}"/>
+          </Card>
+        </For>
+      </Row>
+
+      <Row gap="16" fillHeight="false">
+        <Card hgrow="always" padding="18" gap="10" backgroundRadius="10" background="${palette.card}" borderColor="${palette.line}"
+              borderRadius="10" elevation="3">
+          <Label text="Orders by status" bold="true"/>
+          <For items="${statusBars}" var="b" type="com.jxparallel.examples.orders.DashboardController.BarView">
+            <Row gap="10" alignment="CENTER_LEFT">
+              <Label text="${b.label}" prefWidth="80"/>
+              <SizedBox width="${b.size}" height="18" background="${b.color}" backgroundRadius="4"
+                        enter="opacity 0 400ms"/>
+              <Label text="${b.valueText}" fontSize="12" textFill="${palette.muted}"/>
+            </Row>
+          </For>
+        </Card>
+
+        <Card hgrow="always" padding="18" gap="10" backgroundRadius="10" background="${palette.card}" borderColor="${palette.line}"
+              borderRadius="10" elevation="3">
+          <Label text="Revenue, last 6 months" bold="true"/>
+          <Row gap="16" alignment="BOTTOM_LEFT" prefHeight="210">
+            <For items="${monthBars}" var="b" type="com.jxparallel.examples.orders.DashboardController.BarView">
+              <Column gap="4" alignment="BOTTOM_CENTER" prefWidth="64">
+                <Label text="${b.valueText}" fontSize="11" textFill="${palette.muted}"/>
+                <SizedBox width="40" height="${b.size}" background="${b.color}" backgroundRadius="4"
+                          enter="opacity 0 400ms"/>
+                <Label text="${b.label}"/>
+              </Column>
+            </For>
+          </Row>
+        </Card>
+      </Row>
+    </Column>
+  </Scroll>
+</Stack>

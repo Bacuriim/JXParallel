@@ -1,6 +1,7 @@
 package com.jxparallel.forge;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertNotSame;
 import static org.junit.jupiter.api.Assertions.assertNull;
@@ -166,5 +167,90 @@ class JxmlCompilerTest {
         JXForge.Result second = JXForge.compileDirectory(dir.resolve("jxml").toFile(), out, "com.acme.views", "View", true);
         assertEquals(0, second.written.size());
         assertEquals(1, second.upToDate.size());
+        assertTrue(first.regenerated);
+        assertTrue(!second.regenerated);
+    }
+
+    private File twoScreens() throws IOException {
+        Path src = dir.resolve("jxml");
+        Files.createDirectories(src);
+        Files.write(src.resolve("a.jxml"), "<Column><Label text=\"A\"/></Column>".getBytes(StandardCharsets.UTF_8));
+        Files.write(src.resolve("b.jxml"), "<Column><Label text=\"B\"/></Column>".getBytes(StandardCharsets.UTF_8));
+        return src.toFile();
+    }
+
+    private static File stamp(File out) {
+        File[] stamps = out.listFiles((d, name) -> name.startsWith(".jxforge-stamp"));
+        assertEquals(1, stamps.length);
+        return stamps[0];
+    }
+
+    @Test
+    void sameCompilerAndOptionsLeaveEverythingUpToDate() throws Exception {
+        File src = twoScreens();
+        File out = dir.resolve("out").toFile();
+        assertEquals(2, JXForge.compileDirectory(src, out, "gen", "View", true).written.size());
+        JXForge.Result again = JXForge.compileDirectory(src, out, "gen", "View", true);
+        assertEquals(0, again.written.size());
+        assertEquals(2, again.upToDate.size());
+    }
+
+    @Test
+    void aDifferentCompilerRegeneratesEverything() throws Exception {
+        File src = twoScreens();
+        File out = dir.resolve("out").toFile();
+        JXForge.compileDirectory(src, out, "gen", "View", true);
+        // the stamp an older JXForge would have left
+        Files.write(stamp(out).toPath(), "0.0.1:oldhash|package=gen|suffix=View|hoist=true".getBytes(StandardCharsets.UTF_8));
+        JXForge.Result result = JXForge.compileDirectory(src, out, "gen", "View", true);
+        assertEquals(2, result.written.size());
+        assertEquals(0, result.upToDate.size());
+        assertTrue(result.regenerated);
+        assertEquals(JXForge.fingerprint("gen", "View", true), new String(Files.readAllBytes(stamp(out).toPath()), StandardCharsets.UTF_8));
+        assertEquals(2, JXForge.compileDirectory(src, out, "gen", "View", true).upToDate.size());
+    }
+
+    @Test
+    void aMissingStampRegeneratesEverything() throws Exception {
+        File src = twoScreens();
+        File out = dir.resolve("out").toFile();
+        JXForge.compileDirectory(src, out, "gen", "View", true);
+        assertTrue(stamp(out).delete());
+        JXForge.Result result = JXForge.compileDirectory(src, out, "gen", "View", true);
+        assertEquals(2, result.written.size());
+        assertEquals(0, result.upToDate.size());
+    }
+
+    @Test
+    void changedOptionsRegenerateEverything() throws Exception {
+        File src = twoScreens();
+        File out = dir.resolve("out").toFile();
+        JXForge.compileDirectory(src, out, "gen", "View", true);
+        assertEquals(2, JXForge.compileDirectory(src, out, "gen", "View", false).written.size());
+        assertEquals(2, JXForge.compileDirectory(src, out, "gen", "Screen", false).written.size());
+        assertEquals(2, JXForge.compileDirectory(src, out, "other", "Screen", false).written.size());
+        assertEquals(2, JXForge.compileDirectory(src, out, "other", "Screen", false).upToDate.size());
+    }
+
+    @Test
+    void theFingerprintNamesTheVersionAndIsStable() {
+        String fingerprint = JXForge.compilerFingerprint();
+        assertEquals(fingerprint, JXForge.compilerFingerprint());
+        // the classes were found and hashed: an "unknown-<time>" fingerprint would regenerate every build
+        assertFalse(fingerprint.contains("unknown"), fingerprint);
+        assertTrue(fingerprint.matches("[^:]+:[0-9a-f]{64}"), fingerprint);
+    }
+
+    @Test
+    void twoSourceFoldersShareAnOutputFolder() throws Exception {
+        File src = twoScreens();
+        Path other = dir.resolve("jxml2");
+        Files.createDirectories(other);
+        Files.write(other.resolve("c.jxml"), "<Column><Label text=\"C\"/></Column>".getBytes(StandardCharsets.UTF_8));
+        File out = dir.resolve("out").toFile();
+        JXForge.compileDirectory(src, out, "gen", "View", true);
+        JXForge.compileDirectory(other.toFile(), out, "gen", "View", true);
+        assertEquals(2, JXForge.compileDirectory(src, out, "gen", "View", true).upToDate.size());
+        assertEquals(1, JXForge.compileDirectory(other.toFile(), out, "gen", "View", true).upToDate.size());
     }
 }

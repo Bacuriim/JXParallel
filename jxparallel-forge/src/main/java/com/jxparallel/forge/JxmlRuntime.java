@@ -18,6 +18,25 @@ public final class JxmlRuntime {
     }
 
     /**
+     * The element a {@code <Slot>} shows, with the placement and size the slot writes ({@code slot}, {@code hgrow},
+     * {@code margin}...) set on it: the slot's win over what the element set itself. A new element: elements are
+     * immutable. Null (a slot with nothing to show) stays null.
+     */
+    public static JXElement place(JXElement element, JXProps placement) {
+        if (element == null || placement.size() == 0) {
+            return element;
+        }
+        JXProps.Builder props = JXProps.builder(element.getProps().size() + placement.size());
+        for (java.util.Map.Entry<String, Object> entry : element.getProps().asMap().entrySet()) {
+            props.set(entry.getKey(), entry.getValue());
+        }
+        for (java.util.Map.Entry<String, Object> entry : placement.asMap().entrySet()) {
+            props.set(entry.getKey(), entry.getValue());
+        }
+        return JXElement.of(element.getType(), props.build(), element.getChildren().toArray(new JXElement[0]));
+    }
+
+    /**
      * What a {@code <For>} loops over: any {@link Iterable} or array (of objects or of primitives);
      * null loops over nothing. The type argument is the loop's {@code type}, which lets javac check
      * what the loop body calls on each item.

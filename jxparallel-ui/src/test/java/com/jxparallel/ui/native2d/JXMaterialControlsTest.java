@@ -513,6 +513,28 @@ class JXMaterialControlsTest {
         assertNotEquals(0xFF1565C0, px[(JXControlLayout.TABBAR_H - 1) * 500 + (int) (edges[0] + 5)]);
     }
 
+    // ---- icon-only buttons ---------------------------------------------------------------------
+
+    @Test
+    void anIconOnlyButtonDrawsNoText() {
+        for (String variant : new String[] {"", "text", "filled"}) {
+            for (int width : new int[] {200, 34, 10, 0}) {
+                JXProps.Builder props = p().set("padding", 8.0).set("round", true);
+                if (!variant.isEmpty()) {
+                    props.set("variant", variant);
+                }
+                JXNativeNode root = mount(e("row", p().set("alignment", "CENTER_LEFT"),
+                        e("button", props, e("icon", p().set("name", "delete").set("size", 18.0))),
+                        e("button", p().set("variant", variant.isEmpty() ? "text" : variant),
+                                e("icon", p().set("name", "delete")))), width, 40);
+                String log = record(root);
+                assertEquals(0, count(log, "text"), "variant '" + variant + "', width " + width + ": " + log);
+            }
+        }
+        assertEquals("", JXTextLayout.ellipsize("", -5f, 14f, false), "an empty label has nothing to elide");
+        assertEquals(JXTextLayout.ELLIPSIS, JXTextLayout.ellipsize("long label", 0f, 14f, false), "a real label that does not fit still is elided");
+    }
+
     // ---- themes ------------------------------------------------------------------------------
 
     @Test

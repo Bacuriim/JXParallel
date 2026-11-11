@@ -8,18 +8,32 @@ import org.lwjgl.nanovg.NVGColor;
 import org.lwjgl.nanovg.NVGPaint;
 import org.lwjgl.system.MemoryUtil;
 
+import com.jxparallel.ui.text.JXFont;
+import com.jxparallel.ui.text.JXShapedText;
+import com.jxparallel.ui.text.JXTextEngine;
+
 import static org.lwjgl.nanovg.NanoVG.NVG_ALIGN_BASELINE;
 import static org.lwjgl.nanovg.NanoVG.NVG_ALIGN_LEFT;
 import static org.lwjgl.nanovg.NanoVG.NVG_CW;
+import static org.lwjgl.nanovg.NanoVG.NVG_HOLE;
 import static org.lwjgl.nanovg.NanoVG.nvgArc;
 import static org.lwjgl.nanovg.NanoVG.nvgBeginPath;
+import static org.lwjgl.nanovg.NanoVG.nvgBoxGradient;
+import static org.lwjgl.nanovg.NanoVG.nvgPathWinding;
+import static org.lwjgl.nanovg.NanoVG.nvgRadialGradient;
+import static org.lwjgl.nanovg.NanoVG.nvgRotate;
+import static org.lwjgl.nanovg.NanoVG.nvgScale;
+import static org.lwjgl.nanovg.NanoVG.nvgTranslate;
 import static org.lwjgl.nanovg.NanoVG.nvgClosePath;
 import static org.lwjgl.nanovg.NanoVG.nvgCreateImageRGBA;
 import static org.lwjgl.nanovg.NanoVG.nvgEllipse;
 import static org.lwjgl.nanovg.NanoVG.nvgFill;
 import static org.lwjgl.nanovg.NanoVG.nvgFillColor;
 import static org.lwjgl.nanovg.NanoVG.nvgFillPaint;
+import static org.lwjgl.nanovg.NanoVG.nvgCreateFontAtIndex;
+import static org.lwjgl.nanovg.NanoVG.nvgFindFont;
 import static org.lwjgl.nanovg.NanoVG.nvgFontFace;
+import static org.lwjgl.nanovg.NanoVG.nvgFontFaceId;
 import static org.lwjgl.nanovg.NanoVG.nvgFontSize;
 import static org.lwjgl.nanovg.NanoVG.nvgGlobalAlpha;
 import static org.lwjgl.nanovg.NanoVG.nvgImagePattern;
@@ -92,6 +106,60 @@ final class JXNanoVGPainter implements JXPainter {
         nvgFill(vg);
     }
 
+    /**
+     * NanoVG gradients have two colors, so a gradient of n stops is n - 1 fills of the same shape: the first goes from the
+     * first to the second stop (and stays the second after it); each next one goes from the previous stop, transparent, to
+     * the next, which over what is already there is the exact blend of the two for opaque stops.
+     */
+    @Override
+    public void fillGradient(float x, float y, float w, float h, float radius, JXGradient gradient) {
+        float[] axis = gradient.radial ? null : gradient.axis(x, y, w, h);
+        float[] circle = gradient.radial ? gradient.circle(x, y, w, h) : null;
+        for (int i = 0; i + 1 < gradient.offsets.length; i++) {
+            float from = gradient.offsets[i];
+            float to = Math.max(gradient.offsets[i + 1], from + 0.0001f);
+            int inner = i == 0 ? gradient.colors[0] : gradient.colors[i] & 0x00FFFFFF;
+            int outer = gradient.colors[i + 1];
+            if (axis != null) {
+                float dx = axis[2] - axis[0];
+                float dy = axis[3] - axis[1];
+                nvgLinearGradient(vg, axis[0] + dx * from, axis[1] + dy * from, axis[0] + dx * to, axis[1] + dy * to,
+                        rgba(color, inner), rgba(color2, outer), paint);
+            } else {
+                nvgRadialGradient(vg, circle[0], circle[1], circle[2] * from, circle[2] * to, rgba(color, inner), rgba(color2, outer), paint);
+            }
+            nvgBeginPath(vg);
+            nvgRoundedRect(vg, x, y, w, h, radius);
+            nvgFillPaint(vg, paint);
+            nvgFill(vg);
+        }
+    }
+
+    /** A box gradient: transparent at the feathered edge of the moved box, around a hole where the box itself is. */
+    @Override
+    public void shadow(float x, float y, float w, float h, float radius, float dx, float dy, float blur, int argb) {
+        if (blur <= 0 || (argb >>> 24) == 0) {
+            return;
+        }
+        nvgBoxGradient(vg, x + dx, y + dy, w, h, Math.max(0, radius), blur * 2, rgba(color, argb), rgba(color2, argb & 0x00FFFFFF), paint);
+        nvgBeginPath(vg);
+        nvgRect(vg, x + dx - blur - 1, y + dy - blur - 1, w + 2 * blur + 2, h + 2 * blur + 2);
+        nvgRoundedRect(vg, x, y, w, h, Math.max(0, radius));
+        nvgPathWinding(vg, NVG_HOLE);
+        nvgFillPaint(vg, paint);
+        nvgFill(vg);
+    }
+
+    @Override
+    public void transform(float tx, float ty, float sx, float sy, float degrees, float cx, float cy) {
+        nvgSave(vg);
+        alphas.push(alphas.peek());
+        nvgTranslate(vg, cx + tx, cy + ty);
+        nvgRotate(vg, (float) Math.toRadians(degrees));
+        nvgScale(vg, sx, sy);
+        nvgTranslate(vg, -cx, -cy);
+    }
+
     @Override
     public void strokeRoundRect(float x, float y, float w, float h, float radius, float width, int argb) {
         float half = width / 2;
@@ -151,14 +219,63 @@ final class JXNanoVGPainter implements JXPainter {
 
     @Override
     public void text(String value, float x, float baseline, float size, boolean bold, int argb) {
-        if (!hasFont || value == null || value.isEmpty()) {
-            return;
-        }
+        text(value, x, baseline, size, JXFont.of(bold), argb);
+    }
+
+    private void plain(String value, float x, float baseline, float size, boolean bold, int argb) {
         nvgFontFace(vg, bold && hasBold ? JXNanoVGRenderer.FONT_BOLD : JXNanoVGRenderer.FONT);
         nvgFontSize(vg, size);
         nvgTextAlign(vg, NVG_ALIGN_LEFT | NVG_ALIGN_BASELINE);
         nvgFillColor(vg, rgba(color, argb));
         nvgText(vg, x, baseline, value);
+    }
+
+    @Override
+    public void text(String value, float x, float baseline, float size, JXFont requested, int argb) {
+        if (!hasFont || value == null || value.isEmpty()) {
+            return;
+        }
+        JXTextEngine engine = JXTextEngine.get(requested);
+        JXShapedText shaped = engine.shape(value);
+        if (shaped == null || shaped.simple(engine) && (engine == JXTextEngine.get() || engine == JXTextEngine.get(true))) {
+            plain(value, x, baseline, size, engine != JXTextEngine.get() && engine == JXTextEngine.get(true), argb);
+            return;
+        }
+        // Another face, fallback faces or right-to-left text. NanoVG does not shape: each run is drawn with its
+        // own face from the pen position HarfBuzz measured, and a right-to-left run is fed in visual order
+        // (characters reversed: right to left scripts that join, like Arabic, are drawn unjoined).
+        nvgFontSize(vg, size);
+        nvgTextAlign(vg, NVG_ALIGN_LEFT | NVG_ALIGN_BASELINE);
+        nvgFillColor(vg, rgba(color, argb));
+        float pen = x;
+        for (JXShapedText.Run run : shaped.runs()) {
+            String piece = shaped.text(run);
+            if (run.rtl()) {
+                piece = new StringBuilder(piece).reverse().toString();
+            }
+            int id = fontId(run.face());
+            if (id >= 0) {
+                nvgFontFaceId(vg, id);
+                nvgText(vg, pen, baseline, piece);
+            }
+            pen += run.advance(size);
+        }
+    }
+
+    /** The NanoVG font of a face, created in this context on first use; -1 if it cannot be loaded. */
+    private int fontId(JXTextEngine engine) {
+        if (engine == JXTextEngine.get()) {
+            return nvgFindFont(vg, JXNanoVGRenderer.FONT);
+        }
+        if (engine == JXTextEngine.get(true)) {
+            return hasBold ? nvgFindFont(vg, JXNanoVGRenderer.FONT_BOLD) : nvgFindFont(vg, JXNanoVGRenderer.FONT);
+        }
+        String name = "f:" + engine.getFontFile() + "#" + engine.getFaceIndex();
+        int id = nvgFindFont(vg, name);
+        if (id < 0 && engine.getFontFile() != null) {
+            id = nvgCreateFontAtIndex(vg, name, engine.getFontFile(), engine.getFaceIndex());
+        }
+        return id;
     }
 
     @Override

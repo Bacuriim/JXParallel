@@ -15,7 +15,9 @@ which is useful in development and for screens that only exist at runtime.
 ```
 
 Modules: `jxparallel-forge` (schema, interpreter, compiler, command line) and
-`jxforge-maven-plugin` (goal `jxforge:generate`). Both run on Java 8 and later; the generated
+`jxforge-maven-plugin` (goals `jxforge:generate`, `jxforge:xsd` and `jxforge:fxml`; a Gradle plugin is described under
+[Gradle](#gradle)). An XSD generated from the tag table gives IDEs completion and validation
+([jxforge-xsd.md](jxforge-xsd.md)); existing `.fxml` screens convert with [FXML to JXML](jxforge-fxml.md). Both run on Java 8 and later; the generated
 code is Java 8 source, so one build serves every JVM from 8 to the newest.
 
 ## A screen
@@ -87,7 +89,53 @@ Maven only runs a plugin from the repository, so inside this repository's own bu
 plugin is built in the same reactor) `jxparallel-examples-native` calls the command line below
 through `exec-maven-plugin`; its profile `jxforge-plugin` uses the plugin after `mvn install`.
 
-Without Maven, the same compiler runs from the command line:
+### Gradle
+
+`jxforge-gradle-plugin/` is a Gradle plugin with the same three jobs as the Maven goals. It is its own Gradle build
+(not a module of the Maven reactor), written in Java 8 and tested with TestKit on Gradle 7.5.1, 8.5 and 8.10.2.
+**It is not on the Gradle Plugin Portal yet**: until it is, build it from this repository
+(`mvn -pl jxparallel-forge -am package -DskipTests`, then `cd jxforge-gradle-plugin && ./gradlew publishToMavenLocal`)
+and add `mavenLocal()` to `pluginManagement { repositories { ... } }`. The plugin depends on
+`jxparallel-forge` and `jxparallel-core` of its own version, which are on Maven Central only after the release that
+contains JXForge.
+
+```kotlin
+plugins {
+    java
+    id("io.github.bacuriim.jxforge") version "0.1.0"
+}
+
+dependencies {
+    implementation("io.github.bacuriim:jxparallel-forge:0.1.0")   // what the generated classes call
+}
+
+jxforge {
+    packageName = "com.acme.views"
+}
+```
+
+| Task | Maven goal | |
+|---|---|---|
+| `jxforgeGenerate` | `generate` | compiles `src/main/jxml` into `build/generated/sources/jxforge/java/main`, a source folder of the main source set: `compileJava` depends on it |
+| `jxforgeXsd` | `xsd` | writes `build/jxml.xsd` (`-Pjxforge.xsd=path` changes it) |
+| `jxforgeFxml` | `fxml` | converts `.fxml` to `.jxml` in `build/generated/jxforge/jxml`; with `fxml { enabled = true }` it runs before `jxforgeGenerate`, which then compiles that JXML too |
+
+The `jxforge { }` block has the parameters of the goals: `packageName` (required), `sourceDirectory`, `outputDirectory`,
+`classSuffix`, `hoistConstants`, `xsdFile`, and `fxml { enabled, sourceDirectory, outputDirectory, strict, bundle,
+itemTypes, reportFile }` (`itemType("orders", "com.acme.Order")`; `-Pjxforge.fxml.strict=true`).
+Differences from Maven: FXML conversion is off until `fxml.enabled` is set (every JavaFX project keeps FXML in
+`src/main/resources`, so converting it is something the build asks for); `jxforgeGenerate` rewrites its whole output
+folder when an input changes (a deleted screen leaves no stale class) instead of comparing file dates; the tasks are
+cacheable and incremental through their declared inputs (the `.jxml` files by relative path, the options), so a second
+run is UP-TO-DATE and a clean build can be restored from the build cache. A JXML error fails the task with the file
+and line (`screens/a.jxml:3: ...`); a misspelled binding is a `javac` error whose source line ends with `// a.jxml:2`.
+
+The forge classes run in the plugin's own classloader, as a normal dependency of the plugin: the build script needs no
+extra classpath, and the compiler is the exact version the plugin was released with. A worker process with its own
+configuration would isolate it further but costs a JVM start and a version setting in every build script, and the
+forge has no dependency that could clash. The plugin does not add `jxparallel-forge` to `implementation` for you.
+
+Without Maven or Gradle, the same compiler runs from the command line:
 
 ```powershell
 java -cp jxparallel-forge.jar;jxparallel-core.jar com.jxparallel.forge.JXForge `
@@ -141,9 +189,18 @@ inside a `Border`), and these, which the renderer reads from any node:
 | `hidden` | `true` / `false` | not painted and not hit, but it keeps its place in the layout |
 | `mouseTransparent` | `true` / `false` | the pointer goes through it to what is behind |
 | `tooltip` | text | shown in a box by the pointer when it rests on the element for 600 ms (the deepest element that has one), until the pointer moves off, presses or a key goes down |
+| `cursor` | `default`, `text`, `hand`, `crosshair`, `h-resize`, `v-resize` | the mouse pointer over the element (the deepest element that has one counts, and it replaces the built-in one: the I-beam over a text field, the hand over a `Hyperlink`, the resize cursor over a `SplitPane` divider with `onChange`) |
+| `onDrop` | `#method(List<String>)` | files dropped on the window from the file manager: the nearest element at or above the pointer that has `onDrop` (and is not disabled) gets the paths; with a dialog or drawer open only what is in it can: the nearest `onDrop` at or below the dialog (the dialog's own counts), and nobody on its scrim, in a dialog without one or in what is behind it, so the `onDrop` of the screen or the root never receives a file dropped over a dialog. Without an input listener on the window |
+| `onHover` | `#method(boolean)` | the pointer entered (true) or left (false) the element or one inside it, from the same hover tracking that lights a button: a parent stays hovered, and reports nothing, while the pointer moves over its children; false for every hovered element when the pointer leaves the window. The graphic of a button counts as the button. With `transition` it animates a hover: `<Column onHover="#over" translateY="${lift}" transition="translateY 150ms ease-out">` with `over(boolean)` setting `lift`. Not delivered with an input listener on the window |
 | `onAction` | `#method` | a click on it; the renderer calls the handler of the deepest element under the pointer. A `Button`, `ToggleButton`, `RadioButton`, `Hyperlink`, `CheckBox`, `Switch` or `Chip` acts when the mouse button is released over it (sliding off cancels); Space or Enter on a focused button, toggle, radio button or hyperlink is a click, and Enter elsewhere (but in a `TextArea`) presses the screen's `defaultButton` |
 | `background`, `borderColor` | color | `#RGB`, `#RRGGBB` or `#AARRGGBB` (a binding returns an ARGB `Integer`, or text like that) |
 | `backgroundRadius`, `borderRadius`, `borderWidth` | number | corner radii and border width of the two above |
+| `gradient` | CSS text | `linear-gradient(...)` or `radial-gradient(...)`, painted instead of `background` with all its stops: `linear-gradient(#fff, #000)` (top to bottom), `linear-gradient(from 0% 0% to 100% 0%, #fff 0%, #00f 40%, #000)`, `linear-gradient(to right, ...)`, `linear-gradient(45deg, ...)`, `radial-gradient(center 50% 50%, radius 100%, #fff, #000)`; stop colors are `#RGB`, `#RRGGBB`, `#AARRGGBB`, `rgb()`, `rgba()` or a basic name, stops without a position are spread evenly; `repeat`/`reflect` and a radial focus are read and ignored, a radial gradient is a circle whose radius is a fraction of the shorter side; text that is no gradient leaves the `background` |
+| `elevation` | number | a soft shadow under the box (blurred over twice the elevation, lowered by half of it, in `shadowColor`), drawn with the box's `backgroundRadius`; the box itself is left clear. 0 or absent: none |
+| `shadowColor`, `shadowOffsetX`, `shadowOffsetY` | color, number, number | the shadow's color (default `#40000000`) and offset (default 0 and half the elevation) |
+| `transition` | text | what a changed attribute does on an element the screen keeps: `transition="opacity 200ms ease-out, translateX 300ms"` animates those attributes from the value shown to the new one instead of jumping; `all 200ms` stands for every animatable attribute without an item of its own; see [Animation](#animation) |
+| `enter` | text | where a new element starts from: `enter="opacity 0 200ms, translateY 12 200ms"` animates the element, when it is created, from those values to the ones its attributes give; see [Animation](#animation) |
+| `translateX`, `translateY`, `scaleX`, `scaleY`, `rotate` | number | as the JavaFX node properties: the element and everything below it are scaled, then rotated (degrees, clockwise) about the centre of its bounds, then moved. They change where it is drawn and picked (a moved button is clicked where it shows; the handler gets the position in the element's own space), never the layout. Skia and NanoVG draw all of it; the software renderer moves and scales uniformly (equal `scaleX` and `scaleY`) and draws a rotated or unevenly scaled element unrotated or unscaled, though picking still follows the transform. An element with a transform is never skipped for being outside the window; popups opened from inside it are drawn in the window's space |
 
 | Tag | Native element | Attributes |
 |---|---|---|
@@ -162,24 +219,24 @@ inside a `Border`), and these, which the renderer reads from any node:
 | `Accordion` | `accordion` | children are `TitledPane`s |
 | `TitledPane` | `titled` | `text`, `expanded`, `collapsible`, `onAction`; one child |
 | `Pagination` | `pagination` | `pageCount`, `current`, `maxPageIndicatorCount`, `onChange`; one child, the page |
-| `ToggleButton` | `toggle` | `text`, `selected`, `onAction`, `disabled`, `group`, `value`, `onChange` |
-| `RadioButton` | `radio` | `text`, `selected`, `onAction`, `disabled`, `group`, `value`, `onChange` |
-| `Hyperlink` | `hyperlink` | `text`, `visited`, `onAction`, `disabled` |
+| `ToggleButton` | `toggle` | `text`, `selected`, `onAction`, `disabled`, `group`, `value`, `onChange`, the [font](#fonts) attributes |
+| `RadioButton` | `radio` | `text`, `selected`, `onAction`, `disabled`, `group`, `value`, `onChange`, the [font](#fonts) attributes |
+| `Hyperlink` | `hyperlink` | `text`, `visited`, `onAction`, `disabled`, the [font](#fonts) attributes |
 | `ProgressIndicator` | `indicator` | `progress` (negative: indeterminate) |
 | `Tooltip` | `tooltip` | `text` |
-| `Image` | `image` | `pixels` (an `int[]` of ARGB), `imageWidth`, `imageHeight`, `fitWidth`, `fitHeight`, `preserveRatio` |
-| `ListView` | `list` | `items`, `var`, `type`, `key`, `first` (two ways: see [Lists and tables](#lists-and-tables)), `rows`, `cellHeight`, `onScroll`; one child, the row template |
+| `Image` | `image` | `src` (a picture file), `pixels` (an `int[]` of ARGB), `imageWidth`, `imageHeight`, `fitWidth`, `fitHeight`, `preserveRatio` |
+| `ListView` | `list` | `items`, `var`, `type`, `key`, `first` (two ways: see [Lists and tables](#lists-and-tables)), `rows`, `cellHeight`, `onScroll`, and the selection: `selected` (two ways), `selectionMode`, `selection` (two ways), `onSelect`, `onSelection`; one child, the row template |
 | `ListItem` | `cell` | `text`, `selected`, `odd`, `listFocused`, `alignment`, `onAction`; optionally one child, a graphic |
-| `TableView` | `table` | `items`, `var`, `type`, `key`, `first` (two ways), `onScroll`, `rows`, `rowHeight`, `columns`, `columnWidths`, `constrained`; one `TableRow` |
+| `TableView` | `table` | `items`, `var`, `type`, `key`, `first` (two ways), `onScroll`, `rows`, `rowHeight`, `columns`, `columnWidths`, `constrained`, the selection (as `ListView`); one `TableRow` |
 | `TableRow` | `tablerow` | `selected`, `odd`, `listFocused`; children are `TableCell`s |
 | `TableCell` | `cell` | like `ListItem`, with the table's cell look |
-| `Label` | `#text` | `text`, `wrapText`, `bold`, `fontSize`, `textFill` |
-| `Button` | `button` | `text`, `onAction`, `disabled`, `defaultButton`, `variant`, `round`, `padding`, `textFill`; an optional child is the graphic left of the text |
-| `TextField`, `PasswordField` | `input`, `password` | `text`, `prompt`, `columns` |
-| `TextArea` | `textarea` | `text`, `prompt`, `wrapText`, `columns`, `rows` |
-| `CheckBox` | `checkbox` | `text`, `selected` |
+| `Label` | `#text` | `text`, `wrapText`, `bold`, `fontSize`, `textFill`, and the [font](#fonts) attributes |
+| `Button` | `button` | `text`, `onAction`, `disabled`, `defaultButton`, `variant`, `round`, `padding`, `textFill`, `accelerator`, the [font](#fonts) attributes; an optional child is the graphic left of the text |
+| `TextField`, `PasswordField` | `input`, `password` | `text`, `prompt`, `columns`, the [font](#fonts) attributes |
+| `TextArea` | `textarea` | `text`, `prompt`, `wrapText`, `columns`, `rows`, the [font](#fonts) attributes |
+| `CheckBox` | `checkbox` | `text`, `selected`, the [font](#fonts) attributes |
 | `ComboBox` | `select` | `items` (a list or `A, B, C`), `value`, `prompt`, `showing`, `onShowing` |
-| `Spinner` | `spinner` | `value`, `min`, `max`, `step` (1 when not written) |
+| `Spinner` | `spinner` | `value` (text, or a number a binding gives: `value="@{qty}"` with an `int` or `double` property; a whole number is written without `.0`), `integer` (`true`: `onChange` and `@{...}` hand over an `int`, for an `int` property; the default hands over a `double`), `min`, `max`, `step` (1 when not written) |
 | `DatePicker` | `datepicker` | `value`, `prompt`, `showing`, `onShowing` |
 | `TimePicker` | `timepicker` | `value` (`HH:mm`), `prompt`, `hour24`, `minuteStep`, `disabled`, `showing`, `onShowing` |
 | `ColorPicker` | `colorpicker` | `value` (`#RRGGBB`), `prompt`, `disabled`, `showing`, `onShowing` |
@@ -191,8 +248,8 @@ inside a `Border`), and these, which the renderer reads from any node:
 | `Modal` | `dialog` | `dismissible`, `padding`, `gap`, `alignment`, `fillWidth`, `showing`, `onShowing`; a column over a scrim; takes no room |
 | `Drawer` | `drawer` | `side` (`left`, `right`), `padding`, `gap`, `alignment`, `fillWidth`, `showing`, `onShowing`; a column over a scrim; takes no room |
 | `SnackBar` | `snackbar` | `message`, `action`, `onAction`, `duration`, `showing`, `onShowing`; takes no room |
-| `Tree` | `list` | `rowHeight`, `first` (two ways), `rows`; children are `TreeItem`s |
-| `TreeTable` | `table` | `rowHeight`, `first` (two ways), `rows`, `columns`, `columnWidths`, `constrained`; children are `TreeItem`s |
+| `Tree` | `list` | `rowHeight`, `first` (two ways), `rows`, the selection (as `ListView`); children are `TreeItem`s |
+| `TreeTable` | `table` | `rowHeight`, `first` (two ways), `rows`, `columns`, `columnWidths`, `constrained`, the selection (as `ListView`); children are `TreeItem`s |
 | `TreeItem` | `cell` | `text`, `expanded`, `selected`, `listFocused`, `values`, `onAction`, `onToggle`; children are `TreeItem`s |
 | `Separator` | `separator` | `orientation` |
 | `ProgressBar` | `progress` | `progress` |
@@ -206,7 +263,7 @@ inside a `Border`), and these, which the renderer reads from any node:
 | `ScrollBar` | `scrollbar` | `min`, `max`, `value`, `visibleAmount`, `orientation`; `onChange` (Double) |
 | `SplitPane` | `splitpane` | `orientation`, `dividerPositions`; `onChange` (double[]); children are the panes |
 | `TabBar` | `tabbar` | `titles`, `selected`, `closable`, `onClose` (Integer); `onChange` (Integer) |
-| `Slot` | what the binding returns | `content` |
+| `Slot` | what the binding returns | `content`, and the placement and size of the element it shows: `slot`, `margin`, `hgrow`, `vgrow`, `row`, `column`, `rowSpan`, `columnSpan`, `halignment`, `valignment`, `top`, `right`, `bottom`, `left`, `x`, `y`, `minWidth`, `prefWidth`, `maxWidth`, `minHeight`, `prefHeight`, `maxHeight`, `hidden`, `opacity` (written or bound; they are set on the element, and win over what it set itself). `<Slot slot="center" content="${body}" margin="8"/>` stands in a `Border` with no `Stack` around it |
 | `For`, `If`, `Else` | none: they stand for elements | `items`, `var`, `type`, `key`, `from`, `limit`; `test` |
 | Composites | none: they are rewritten (see [Composites](#composites)) | `Padding`, `Center`, `Align`, `SizedBox`, `Expanded`, `Flexible`, `Spacer`, `Box`, `Container`, `Card`, `ListTile`, `Divider`, `Visibility`, `Opacity`, `Wrap`, `Positioned`, `ChoiceBox`, `Scaffold`, `AppBar`, `BottomAppBar`, `BottomBar`, `ToolBar`, `NavigationBar`, `NavigationRail`, `IconButton`, `Fab`, `Dialog`, `AlertDialog`, `MenuSeparator` |
 
@@ -220,6 +277,54 @@ A `MenuItem` stands only inside a `MenuButton`, `ContextMenu` or `Menu`, a `Menu
 The table lives in one place, `JxmlSchema`, read by both the interpreter and the compiler. Prop
 names and value types are the ones the native renderer reads; a number written as text would be
 ignored by the layout, which is why `JXMarkupLoader` (strings only) is not used here.
+
+### JXML attribute to node prop
+
+A mounted node (`JXNativeNode.getProperty`, `JXElement.getProps()`) has the renderer's prop names, which differ from the JXML attribute for these
+(everything not listed has the same name; handlers keep theirs). Use this table when a test inspects a mounted tree:
+
+| Tag | Native type | Attribute → prop |
+|---|---|---|
+| `Label` | `#text` | `text` → `value` |
+| `Button`, `ToggleButton`, `Hyperlink`, `Tooltip`, `TitledPane`, `MenuButton`, `Menu`, `MenuItem`, `Chip` | `button`, `toggle`, `hyperlink`, `tooltip`, `titled`, `menubutton`, `menu`, `menuitem`, `chip` | `text` → `label` |
+| `CheckBox`, `Switch`, `RadioButton` | `checkbox`, `switch`, `radio` | `text` → `label`, `selected` → `checked` |
+| `TextField`, `PasswordField`, `TextArea` | `input`, `password`, `textarea` | `text` → `value`, `columns` → `prefColumnCount`, (`TextArea`) `rows` → `prefRowCount` |
+| `ListItem`, `TableCell`, `TreeItem` | `cell` | `text` → `value` |
+| `ComboBox` | `select` | `items` → `options` |
+| `ListView`, `TableView` | `list`, `table` | `items` → `itemCount` (the rows are the children) |
+| `Tree` | `list` | `rowHeight` → `cellHeight` |
+| `Badge` / `Avatar` | `badge` / `avatar` | `color` → `badgeColor` / `fill` |
+| any tag | | `slot` → `position`, `top`, `right`, `bottom`, `left` → `topAnchor`, `rightAnchor`, `bottomAnchor`, `leftAnchor`, `x`, `y` → `layoutX`, `layoutY`, `gradient` → `backgroundGradient` |
+
+`Button`'s `text` is `label`, so a test asks `getProperty("label")`; `Label` and every cell say `value`. `Tabs` build their tab titles into `titles`.
+
+## Fonts
+
+The tags that draw text (`Label`, `Button`, `TextField`, `PasswordField`, `TextArea`, `CheckBox`, `ToggleButton`,
+`RadioButton`, `Hyperlink`) take three attributes next to `bold` and `fontSize`:
+
+| Attribute | Type | Meaning |
+|---|---|---|
+| `fontFamily` | text (`${...}` allowed) | a family registered with `JXFonts` or installed on the system; `serif`, `sans-serif` and `monospace` pick a common installed family; unknown: the UI font |
+| `fontWeight` | integer, 100 to 900 | 400 regular, 700 bold; the nearest face of the family is used (600 on the UI font is "Semibold" where it is installed); wins over `bold` when both are written |
+| `italic` | boolean | the italic face of the family; a family without one is drawn upright |
+
+```java
+JXFonts.registerResource("Inter", "/fonts/Inter-Regular.ttf");     // also (family, File) and (family, InputStream)
+JXFonts.registerResource("Inter", "/fonts/Inter-Bold.ttf");        // weight and italic are read from each file
+```
+```xml
+<Label text="Hello" fontFamily="Inter" fontWeight="700"/>
+```
+
+Like `fontSize` and `bold`, these are the props of the element that has them: **nothing is inherited from a
+parent** (there is no inherited text prop in the renderer today; writing the attribute on a `Column` is an error).
+Bold and italic are never synthesized: the face with that weight or slant is used, else the nearest one, so every
+renderer measures and draws the same face. Variable fonts are used at their default instance (the weight axis is not
+applied). A character the chosen font lacks (CJK, Arabic, Hebrew, emoji, symbols) is drawn from the first registered or
+system font that has it, in shaping, measuring and painting; Arabic and Hebrew are laid out right to left
+(`java.text.Bidi`) when mixed with Latin text. See `docs/native-ui-progress.md`, "Fonts and text", for what each
+renderer does and what is left out.
 
 ## Tabs
 
@@ -301,7 +406,7 @@ text input its caret, without the screen holding that state.
 | `CheckBox` | `boolean` | click, or space |
 | `Slider` | `double` | click on the track, drag of the thumb, Left / Down and Right / Up (`blockIncrement`), Home / End |
 | `Spinner` | `double` | Up / Down arrows and a click on its arrow buttons (`step`), within `min` and `max` |
-| `ComboBox` | `String`, the option | Up / Down arrows, a press on an option of the open list |
+| `ComboBox` | `String`, the option | Up / Down arrows, a press on an option of the open list, Enter or Space on the highlighted option of the open list |
 | `DatePicker` | `String`, ISO `yyyy-MM-dd` | Up / Down (day), Page Up / Page Down (month), a press on a day of the open calendar |
 | `TimePicker` | `String`, `HH:mm` | Up / Down (the `minuteStep`), Page Up / Page Down (an hour), a press on an hour, a minute or AM / PM of the open popup |
 | `ColorPicker` | `String`, `#RRGGBB` | a press on a swatch of the open popup, or hex digits typed in it once the text reads `#RRGGBB` |
@@ -311,6 +416,7 @@ text input its caret, without the screen holding that state.
 | `TabBar`, `Tabs` | `int`, the tab | click on another tab; `onClose` gets the index of the tab whose close icon was clicked |
 | `Pagination` | `int`, the page | click on a page number, or on the arrow before or after |
 | `ListView`, `TableView`, `Tree`, `TreeTable` | `int`, the row at the top (`first`) | the wheel or the scroll bar moved the viewport to another row |
+| `ListView`, `TableView`, `Tree`, `TreeTable` | `onSelect`: `int`, the row selected (-1: none); `onSelection`: `double[]`, the rows selected | a click or a key moved the selection (see [Selection](#selection-of-rows)) |
 
 ```xml
 <TextField text="${note}" onChange="#setNote"/>           <!-- controller.setNote(String) -->
@@ -328,7 +434,8 @@ text input its caret, without the screen holding that state.
   would for a call: `setVolume(double)` and `setVolume(Double)` do, `setVolume(int)` does not.
 - `@{path}` is the two-way shorthand, on the attribute that holds the edited value: `text` of the
   text inputs, `selected` of the check box, switch, chip, tab bar and tab pane, `current` of a pagination, `first`
-  of the lists, tables and trees, `value` of the others. It reads like `${path}`, and
+  of the lists, tables and trees (which also bind `selected` through `onSelect` and `selection` through `onSelection`,
+  each at the same time as `first`), `value` of the others. It reads like `${path}`, and
   on change calls the setter `setX` of the last segment on the object the rest of the path
   returns (evaluated when the value arrives). The setter must take the type in the table.
 - `@{a.b()}` (a record accessor, which has no setter), `@{o}` (nothing to set), `@{}` on other
@@ -374,8 +481,9 @@ a window of the model:
   clamps `scrollY` to the scroll range, and a window that starts later would be drawn below the top.
 - `cellHeight` (list) and `rowHeight` (table) are fixed, 24 when not written, and must be greater than 0: the
   renderer needs them to place rows without measuring the first one, and `scrollY` is computed from the same number.
-- Selection is the application's state: the row template sets `selected` and `onAction="#select(o)"`; a click
-  reaches the cell (the deepest element under the pointer).
+- Selection is described below ([Selection of rows](#selection-of-rows)); a list with none of its attributes keeps the
+  older way: the row template sets `selected` and `onAction="#select(o)"`, and a click reaches the cell (the deepest
+  element under the pointer).
 - With `key` on the template's item (`key="${o.id}"`), a row that stays in the window after a scroll keeps its
   native node (`JXNativeNode.reconcile` matches by key); the keys must be the same instances on each build, as in
   any `<For key>`.
@@ -393,6 +501,75 @@ a window of the model:
   table without it scrolls only within the rows it was given; with it the whole model is the range, and the handler is
   where the application moves `first` (and `scrollY`, `first * height`) to build the rows now in view.
 - A grid of items is a `Tile` with a `<For>`; a `ListView` has no columns.
+
+### Selection of rows
+
+`ListView`, `TableView`, `Tree` and `TreeTable` select their rows themselves, and the application still holds the state:
+
+```xml
+<ListView items="${orders}" var="o" type="com.acme.Order" first="@{top}" selected="@{current}">
+  <ListItem text="${o.name}" onAction="#open(o)"/>
+</ListView>
+
+<TableView items="${orders}" var="o" type="com.acme.Order" first="@{top}" columns="Name, Total"
+           selectionMode="multiple" selection="@{picked}" onSelect="#lastPicked">
+  <TableRow><TableCell text="${o.name}"/><TableCell text="${o.total}"/></TableRow>
+</TableView>
+```
+
+| Attribute | Type | Meaning |
+|---|---|---|
+| `selected` | `int` | the index of the selected row in the whole model, -1 for none; `@{current}` binds it two ways (`getCurrent()` / `setCurrent(int)`) |
+| `onSelect` | handler, gets an `int` | the row the user selected (-1: none). In multiple mode, the row clicked or moved to last |
+| `selectionMode` | `single` (default) or `multiple`; may be bound (`selectionMode="${mode}"`, checked each build, empty is single) | multiple mode adds Ctrl and Shift selection. Switching a mounted list to single leaves the renderer reading only `selected`, so at most one row is selected; the application keeps `selection` as it likes |
+| `selection` | `double[]` (a `List` of numbers or `A, B` text also read) | multiple mode: the selected indices; `@{picked}` binds it two ways (`setPicked(double[])`) |
+| `onSelection` | handler, gets a `double[]` | multiple mode: all the selected indices, sorted |
+
+- **Types.** The indices of several rows travel as a `double[]`, the schema's list of numbers (as `dividerPositions` and
+  `columnWidths`); there is no `int[]` attribute type. A list that only reads (`selected="${current}"`) draws the selection and
+  tells nothing without `onSelect`.
+- **Controlled.** Like every input, the list does not change what it shows: it calls `onSelect` / `onSelection` and
+  shows the selection of its props until the application renders again. Each one is called only when the selection changes.
+  Writing any of the five attributes turns the feature on; a list with none behaves as before.
+- **Index.** Indices count the rows of the model, not of the window, so a selected row outside the `rows` that were built is
+  kept (it draws nothing until the window reaches it) and the keys move from it. A `Tree` and a `TreeTable` count their
+  *visible* items in order, so expanding or collapsing an item above a selected row shifts its index: the application
+  keeps it in step if it must follow the item.
+- **Pointer.** A click selects the row (on press, as JavaFX does); the arrow of a tree row still only expands it, and a
+  `Button` or other control inside a row acts as itself and selects nothing. In multiple mode Ctrl+click adds or removes
+  the row, Shift+click selects the rows from the one clicked last (Ctrl+Shift+click adds that range to the selection).
+  A single click does **not** run the row's `onAction`: a double click does (after selecting), as does Enter on the selected row.
+  The action is the one of the row (`TableRow onAction`), else of the cell under the pointer, else of the first cell that has one.
+- **Keys.** A list with a selection takes the focus when clicked and with Tab and Shift+Tab (it is not in the order without one);
+  its focus ring is the blue border of the list. Up, Down, Home, End, Page Up and Page Down (the rows the viewport shows) move
+  the selection and scroll the row into view, which reports a new `first` through `onChange` when the list is bound to it; with
+  nothing selected Down selects the first row and Up the last. In multiple mode Shift with those keys extends the selection from the
+  row it started on, and Ctrl+A selects every row of the model.
+- **Look.** A selected row is drawn with the look's selection colour (`#0096C9`, white text), or the grey one (`#D3D3D3`) when the
+  list does not have the focus. In a list with a selection the list decides: the `selected` and `listFocused` of a row template
+  (`ListItem`, `TableRow`, `TreeItem`) are ignored; in a list without one they are drawn as before.
+
+### Sorting a table by its columns
+
+`TableView` headers sort when the table has `sortColumn`, `onSort` or `onSortColumn` (or `sortable="true"`; `sortable="false"` turns them off).
+The application keeps the state and sorts its own rows, as with the selection:
+
+```xml
+<TableView items="${rows}" var="r" type="Order" columns="Id, Customer, Total"
+           sortColumn="@{sortCol}" sortAscending="@{sortAsc}" onSort="#sorted"> ... </TableView>
+```
+
+| Attribute | Type | Meaning |
+|---|---|---|
+| `sortColumn` | int, two ways (`onSortColumn`) | the column the data is sorted by, -1 for none; its header draws the arrow |
+| `sortAscending` | boolean, two ways (`onSortAscending`) | the direction, ascending when absent; up arrow for ascending, down for descending |
+| `onSort` | handler, gets a `double[]` | `{column, 1 or 0}` (1 ascending), the whole new state in one call; -1 for no column |
+| `sortable` | boolean | the headers take presses; default true when `onSort`, `onSortColumn` or `sortColumn` is written |
+
+- A press on a header cycles as JavaFX does: ascending, descending, unsorted (`sortColumn` -1, `sortAscending` true); a press on another
+  column starts it ascending. `onSortColumn`, `onSortAscending` and `onSort` are called together, then the application renders again.
+- Controlled: the table does not reorder anything and shows only the `sortColumn` and `sortAscending` it is given. There is no key for it and
+  `sortable` is for the whole table, not per column. A header press does not change the selection.
 
 ## Groups
 
@@ -431,8 +608,8 @@ and the compiler never see it. The rewritten tags keep the line of the composite
 | `NavigationBar` | `Row gap="0" padding="4" alignment="CENTER"`; each child gets `hgrow="always"` so they share the width |
 | `ListTile title subtitle onAction` | `Row gap="12" padding="8 12" alignment="CENTER_LEFT"` with the `onAction`: the child with `slot="leading"`, then a `Column` (`hgrow="always"`, `mouseTransparent`) of a `Label` of the title and, if written, a smaller grey one of the subtitle, then the child with `slot="trailing"` |
 | `Scaffold` | `Border`: an `AppBar` child goes to `top`, a `BottomAppBar` or `BottomBar` to `bottom`, the one other child to `center`; a child that writes `slot` keeps it |
-| `Dialog title showing onShowing dismissible` | a `Modal` (`padding="24" gap="16" alignment="TOP_LEFT" minWidth="280"` unless written) of a bold `Label` of the title (size 18), the children, then the children with `slot="actions"` in a `ButtonBar` |
-| `AlertDialog title message confirmText cancelText onConfirm onCancel` | a `Modal` of the title, the message (a wrapping `Label`, at most 320 wide) and a `ButtonBar` of the cancel `Button` (only when `cancelText` is written, its `onAction` is `onCancel`) and the confirm `Button` (`confirmText`, OK when not written; `defaultButton`, its `onAction` is `onConfirm`) |
+| `Dialog title showing onShowing dismissible padding gap alignment fillWidth` | a `Modal` (`padding="24" gap="16" alignment="TOP_LEFT" minWidth="280"` unless written) of a bold `Label` of the title (size 18), the children, then the children with `slot="actions"` in a `ButtonBar` |
+| `AlertDialog title message confirmText cancelText onConfirm onCancel dismissible padding gap alignment fillWidth` | a `Modal` (`padding`, `gap`, `alignment`, `fillWidth` and the layout attributes go to it, as for `Dialog`) of the title, the message (a wrapping `Label`, at most 320 wide) and a `ButtonBar` of the cancel `Button` (only when `cancelText` is written, its `onAction` is `onCancel`) and the confirm `Button` (`confirmText`, OK when not written; `defaultButton`, its `onAction` is `onConfirm`) |
 | `MenuSeparator` | `MenuItem separator="true"` |
 
 Attributes written on a composite that its expansion does not give a tag are errors (`<Center> has no attribute gap`),
@@ -452,8 +629,11 @@ every painter draws it, because it uses only the primitives of `JXPainter`.
 - `Button variant`: `filled`, `tonal`, `outlined`, `text` or `elevated` (and `fab`, which `Fab` writes). Without `variant` the button is
   the classic one, unchanged. `round="true"` makes the ends round. Hover and pressed tint the face. `elevated` and `fab` draw a soft darker
   ring below the face (two translucent rings, because not every painter has a blur), kept inside the button's bounds, which are 3 px larger
-  on each side for it. A child of the button (an `Icon`) is its graphic.
-- `IconButton icon size color variant`: a `Button` (`variant` `text` unless written, `round`, padding 8) whose graphic is an `Icon` that does
+  on each side for it. A child of the button (an `Icon`) is its graphic, and the graphic does not take the pointer: a press, release, hover or cursor on it is on the button (the same for `ToggleButton`, `RadioButton`, `Hyperlink`, `CheckBox`, `Switch` and `Chip`), with no need for `mouseTransparent`.
+- `Button variant` may be bound: `variant="${current}"`. A literal is checked when the file is read; a bound value is checked each time the
+  screen is built and must be one of the list (an error naming it otherwise); null or empty gives the classic button. `IconButton` keeps a literal
+  `variant` (its icon's color is chosen from it when the file is read; binding it is an error).
+- `IconButton icon size color variant disabled padding accelerator` (also `Fab icon text disabled padding accelerator`, and `NavigationBar gap padding alignment`): a `Button` (`variant` `text` unless written, `round`, padding 8) whose graphic is an `Icon` that does
   not take the click, so the button gets it. `Fab icon text`: a `Button variant="fab"` with an icon, a text or both (padding 16, or 16 20 with a
   text).
 - `Chip`: `kind` is `assist` (outlined, 8 px corners), `filter` (outlined pill; selected: tinted, with a check mark as leading icon),
@@ -464,6 +644,15 @@ every painter draws it, because it uses only the primitives of `JXPainter`.
   nothing), `text`, or `dot="true"`; `color` defaults to `error`.
 - `Avatar`: a circle of `size` (40): `initials` on `color` (a tint of the primary color), or `pixels` with `imageWidth` / `imageHeight` (as
   `Image`), cut to a circle with a soft edge.
+- `Image` `src`: PNG, JPEG, and the first frame of GIF and BMP, decoded by `JXImages` (stb_image, the same on Skia, NanoVG and the software
+  painter, on Java 8 and 32-bit). A relative `src="logo.png"` is resolved against the folder of the `.jxml` file it is written in, so in
+  `screens/main.jxml` it is `screens/logo.png`: a class path resource if one has that name, else a file of that path; `../` works, and `file:...`,
+  `classpath:...` and absolute paths are kept as written. `src="${photoPath}"` is bound (the value is resolved the same way, relative to the file
+  that has the `<Image>`; the interpreter and the generated class do the same). The picture's own size is the size of the node when `fitWidth`,
+  `fitHeight` and `preserveRatio` say nothing else (they scale that size as they do for `pixels`). `pixels`, when given, wins over `src`. The
+  decoded picture is cached (64 pictures, 64 MB), so one file is decoded once; the cache does not watch the file (`JXImages.invalidate`). A missing
+  or corrupt file draws nothing, keeps the size the screen asked for with `fitWidth` / `fitHeight` (else 0 x 0), and is reported once on
+  `System.err` as `JXParallel: cannot load image ...`. The first use decodes on the UI thread; `JXImages.preload(src)` does it earlier on another one.
 - `Stepper`: `titles` (or `steps`, a count) and `current`: the circles before `current` are filled with a check mark, `current` is filled with its
   number, the later ones are outlined; lines join them.
 - `ScrollBar`: `value` between `min` and `max`; the thumb is `visibleAmount` of the range plus itself, at least 24 px. A click on the track puts the
@@ -511,9 +700,18 @@ Everything that opens over the window goes through one mechanism in the renderer
   state the user asked for: a press on the control (open or close), a choice in a popup, a press outside, Escape, a snack bar's
   timeout. With `showing` written, the application holds the state and the node only asks, as inputs do with `onChange`: nothing
   closes until the application renders again with `showing` false. Without it, the node keeps its own state: a `MenuButton`,
-  `ContextMenu` or `MenuBar` written without `showing` opens and closes by itself. `ComboBox`, `DatePicker`, `TimePicker`, `ColorPicker`, `Modal`, `Drawer` and
-  `SnackBar` default `showing` to false, so they are controlled; `MenuButton`, `ContextMenu` and `MenuBar` have no default.
+  `ContextMenu` or `MenuBar` written without `showing` opens and closes by itself, and so do `ComboBox` (and `ChoiceBox`), `DatePicker`,
+  `TimePicker` and `ColorPicker`: the renderer keeps the open state on the node, and `onShowing`, when written, is still told. The rule: the
+  popups of a control (pickers, combo box, menus) are uncontrolled unless `showing` is written; `Modal`, `Dialog`, `AlertDialog`, `Drawer` and
+  `SnackBar` default `showing` to false and stay controlled, because only the application knows when a dialog is open (they never open
+  by themselves).
   `showing` cannot be bound two ways (`@{...}`): `onShowing` is a separate handler.
+- **Closed means not mounted.** The node tree of a `Modal`, `Dialog`, `AlertDialog` or `Drawer` has no children while it is closed
+  (`showing` false): its inputs, buttons and the rest are built when it opens and dropped when it closes, so nothing of a closed
+  layer is in the tree to be found, focused, read by a screen reader or reconciled, and a text field in it starts fresh (its caret
+  and selection are not kept) each time. The JXML interpreter and compiled views still build the content elements on every render,
+  as they build any other subtree; only the renderer's nodes are saved. A `transition` or `enter` on the content plays when the
+  layer opens, as for any new element. A `SnackBar` has no content nodes, and the rows of a menu stay as they are.
 - **Where it is written.** An overlay is placed over the window, not by its parent: put `Dialog`, `Drawer`, `SnackBar` and
   `ContextMenu` anywhere (a `Stack` at the root is the usual place); they take no room where they are written (size 0 by 0, and
   a `Column` still counts its `gap` for them), and a `ContextMenu` opens on the secondary press on its *parent*, the deepest
@@ -528,16 +726,54 @@ Everything that opens over the window goes through one mechanism in the renderer
   and otherwise gives the press to the deepest node. A snack bar takes only the presses on it. A host that handles its own input
   (`JXWindow.setInputListener`) calls `routePointer` and `routeKey` itself.
 - **Keys.** `JXNativeNode.routeKey(event, focused)`: Escape closes the topmost open overlay (a snack bar only when it is the
-  only one); Enter presses the `defaultButton` of an open dialog, and closes an open popup of the focused control; every other
+  only one); Enter presses the `defaultButton` of an open dialog, and closes an open popup of the focused control; an open
+  `ComboBox` list and an open menu take the keys described under "Hover and keys in popups and menus" below; every other
   key goes to the focused node. With a color picker open, `#` and hex digits are typed in its hex field (Backspace removes
-  one) and each complete `#RRGGBB` goes to `onChange`.
+  one) and each complete `#RRGGBB` goes to `onChange`. The method returns the node that has the focus afterwards: the one it
+  was given, or the control whose popup or menu Escape just closed.
+- **Hover and keys in popups and menus.** The item under the pointer is highlighted (a `ComboBox` option blue, the chosen one
+  turning grey meanwhile; a menu row with the tonal fill of an open submenu's row); a separator and a disabled row never are,
+  and leaving the popup leaves the highlight where it was. Hover chooses nothing. Keys, for the topmost open list or menu:
+
+  | Key | `ComboBox` list | `MenuButton`, `ContextMenu`, `MenuBar` panel |
+  |---|---|---|
+  | Down, Up | next / previous option (from the chosen one, when nothing is highlighted); stops at the ends | next / previous row that can be chosen; wraps round |
+  | Home, End (Page Up, Page Down) | first / last option (ten rows up or down) | first / last row that can be chosen |
+  | Enter, Space | chooses the highlighted option (`onChange`) and closes; Enter with nothing highlighted just closes | runs the highlighted item (`onAction`) and closes every panel; on a `Menu` row opens its submenu |
+  | Right | | opens the submenu of the highlighted row, highlighting its first item; in a `MenuBar`, otherwise, the next menu |
+  | Left | | closes the open submenu; in a `MenuBar`, from its first panel, the menu before |
+  | a letter or digit | the next option that starts with it (any case), wrapping; none: stays | the same over the rows of the panel |
+  | Alt+Down, F4 | close | (`MenuButton`) close |
+  | Escape | closes; the control has the focus again | closes every panel; a `MenuButton` has the focus again |
+
+  A closed `ComboBox`, `DatePicker`, `TimePicker`, `ColorPicker` or `MenuButton` that has the focus opens with Alt+Down, F4 or Space
+  (also Enter, for a `MenuButton`); a `ComboBox` or `MenuButton` opened so starts with the chosen option or the first item
+  highlighted. Closed, a `ComboBox` still changes its value with Up and Down. An open menu takes every key, and
+  the characters of the keys it took are not typed into the focused field (`JXNativeNode.capturesKeys()`; `JXWindow` does it). The highlight is renderer state
+  (`JXNativeNode.highlight`), not a prop; it is cleared when the overlay closes. A `MenuBar` opens with the pointer, or with F10 or Alt pressed and
+  released alone (the first menu that is not disabled, its first row highlighted; the menu titles have no mnemonics, so no
+  Alt+letter); F10 again closes it. A `ContextMenu` opens with the Menu key or Shift+F10 on the focused node (the nearest
+  context menu among its children and its ancestors' children), just below the node, first row highlighted. Nothing opens
+  while another popup, menu or dialog is open.
+  The calendar of a `DatePicker`, the cells of a `TimePicker` and the swatches of a `ColorPicker` highlight what is under
+  the pointer too. Open, a `DatePicker` takes Left, Right, Up and Down (a day, a week), Page Up and Page Down (a month, the
+  calendar turns), Home and End (first and last day of the month), and Enter or Space choose the highlighted day and close
+  it; a `TimePicker` and a `ColorPicker` move the highlight to the neighbouring cell with the arrows (Home, End: first, last),
+  and Enter or Space choose it like a click (the popup stays open). Letters and digits are not taken, so the hex field of the
+  color picker still types. Closed, the pickers keep Up, Down, Page Up and Page Down changing their value.
 - **Dialog.** `Dialog` is a `Modal` (a column: use `padding`, `gap`, `alignment`, `prefWidth`... on it as on a `Column`)
   with the title, the content and the buttons; `AlertDialog` adds the usual two buttons. Each button has its own `onAction`.
   The dialog is as wide as its content (at least 280 as a `Dialog`) and at most the window less 24 px on each side.
 - **Menus.** A `MenuItem` runs its `onAction` and closes the menu; a disabled one and a `MenuSeparator` do nothing and the menu
   stays open; a `Menu` inside a `Menu` opens a submenu to the right of its row (to the left when there is no room); a
-  `MenuBar` opens the menu of the pressed title, another title switches, the same title closes. `accelerator` is only text
-  (`Ctrl+O`): nothing binds the key.
+  `MenuBar` opens the menu of the pressed title, another title switches, the same title closes. `accelerator="Ctrl+O"` on a `MenuItem` or a `Button`
+  runs its `onAction` when the key comes, from anywhere in the window, even with its menu closed: modifiers `Ctrl`
+  (`Shortcut`), `Shift`, `Alt`, `Meta`, then a letter, digit, `, . - / ; =` or a name (`F1`..`F12`, `Enter`, `Esc`, `Tab`,
+  `Space`, `Backspace`, `Delete`, `Insert`, `Home`, `End`, `PageUp`, `PageDown`, the arrows); the modifiers must match exactly.
+  An open menu or popup that takes the key, a list with a selection, and a focused text field (typing, the caret keys, exactly Ctrl+A,
+  C, X, V, Z, Y and Ctrl+Shift+Z; Ctrl+Shift+V, Ctrl+Alt+C and the like reach accelerators) get it first; a held key does not repeat it; disabled and hidden items and buttons, those of a disabled
+  menu and of a closed dialog do not run, and with a dialog or drawer open only its own do. A menu item draws its
+  accelerator text at the right of its row; a button does not.
 - **Snack bar.** `duration` (milliseconds) is read by the node: `JXNativeNode.tickOverlays()` (the window calls it every turn
   of its loop while one waits) asks the snack bar to close through `onShowing` when it has been showing that long. The
   application hides it by setting `showing` false. `action` and `onAction` make a button at the right end; the message is not
@@ -580,6 +816,8 @@ write.
 - **A row** has `indent` (its depth: 16 px each) and `disclosure`: `expanded` or `collapsed` draw an arrow, `leaf` draws none but
   keeps its room. A press on the arrow runs the item's `onToggle` (the application changes `expanded`); a press anywhere else on
   the row runs its `onAction` (the application changes `selected`). An item without `onToggle` selects on the arrow too.
+  A `Tree` or `TreeTable` with the selection attributes of [Selection of rows](#selection-of-rows) selects by itself instead: a
+  click selects the row (`selected` is the index among the visible items) and a double click or Enter runs `onAction`.
 - **`TreeTable`.** The first cell of a row is the tree (text, indent, arrow); `values` (a list, or `A, B`) are the texts of
   the next columns. `columns`, `columnWidths` and `constrained` are those of `TableView`. `onAction` is on every cell of the row,
   `onToggle` only on the first. `values` in a `Tree` is an error at the line of the `Tree`.
@@ -637,7 +875,16 @@ A file may start with `<Style>` elements, direct children of its root, which are
 - The theme: `theme="light"` or `"dark"` on the root. The six tokens `primary onPrimary surface onSurface outline error` are accepted wherever a color is
   written, as a literal (`background="surface"`), and become the color of the file's theme when it is read, so the interpreter and the compiler build the same
   props. The root also gets the prop `theme`, which the renderer inherits down the tree: it paints the themed root with `surface`, draws `Label` text in
-  `onSurface` and the Material controls above in the theme's colors. The classic controls (`Button` without `variant`, `CheckBox`, `TextField` ...) keep their Modena look.
+  `onSurface` and the Material controls above in the theme's colors. The classic controls (`Button` without `variant`, `CheckBox`, `TextField`,
+  `PasswordField`, `TextArea`, `ComboBox`, `DatePicker`, `Spinner`, `Slider`, `ProgressBar`, `Scroll`, `ListView`, `TableView`, `TabPane`, scroll bars and the popups of
+  the pickers) keep the Modena look in the light theme and are painted in a dark palette derived from the six tokens (bodies from `surface`, text from `onSurface`,
+  borders from `outline`, focus and selection from `primary`) in the dark one. A `background` written on a `Scroll`, `ListView` or `TableView` wins in both themes
+  (the plain rows of a list or table then show it, without stripes).
+- A bound theme: `theme="${themeName}"` on the root (`light`, `dark`; null or empty gives no theme and the light tokens; anything else is an error). The
+  tokens written anywhere in the file are then resolved each time the screen is built, from the controller's current value, so changing the property and
+  rendering again (a reconcile keeps the nodes) switches every themed color at run time, interpreter and compiled alike. With a written theme the tokens are
+  resolved once when the file is read, as before. While the theme is bound a `<For memo="true">` body cannot use a token (it would keep the first theme's
+  color): that is an error. Only the root has a `theme`; colors a binding gives (`textFill="${c}"`) are ARGB values or `#` text and are not tokens.
 - Tokens, light / dark: primary `#1565C0` / `#90CAF9`, onPrimary `#FFFFFF` / `#0D2B4A`, surface `#FFFFFF` / `#1C1B1F`, onSurface `#1C1B1F` / `#E6E1E5`, outline
   `#79747E` / `#938F99`, error `#B3261C` / `#F2B8B5`. `JxmlThemes` (here) and `JXTheme` (the renderer) hold the same table; a test compares them.
 
@@ -679,21 +926,61 @@ JXML screen with `new XView().build(controller)`, and JXML places a Java compone
 - Containers get their own method, so a large screen never hits the 64 KB method limit, and each
   method names the `.jxml` line of its element.
 
+## Animation
+
+Two attributes, on any tag, animate without any code: the screen stays a function of the controller's state, and the
+renderer moves a value from where it is shown to where the state now says it should be (CSS transitions, Flutter's
+implicitly animated widgets).
+
+```xml
+<Label text="Saved" opacity="${alpha}" translateX="${offset}"
+       transition="opacity 200ms ease-out, translateX 300ms"
+       enter="opacity 0 200ms, translateY 12 200ms ease-out"/>
+```
+
+- **`transition`** lists items `property duration [easing] [delay]`, separated by commas. When the screen is built again
+  and the value of one of those attributes changed on an element that is kept (the same position and tag), the element
+  animates from the value it shows now to the new one. A change in the middle of an animation starts from the value
+  shown, so it never jumps; an attribute that did not change does not restart anything. `all` stands for every
+  attribute below that has no item of its own (an item of its own wins, wherever it is written). An attribute without an
+  item jumps as before. Without `transition`, nothing changes.
+- **`enter`** lists items `property from-value duration [easing] [delay]`. A newly created element (also one in the first
+  screen, or one that replaces an element of another tag) starts at the from-values and animates to what its attributes
+  say (an attribute it does not set counts as its default: `opacity` 1, `scaleX` and `scaleY` 1, the others 0). A
+  colour's from-value is written `#RRGGBB` or `#AARRGGBB`, and a colour the element does not set has nothing to settle on,
+  so it does not animate. Elements that are kept never enter again.
+- **Attributes that animate:** `opacity`, `translateX`, `translateY`, `scaleX`, `scaleY`, `rotate` and the colours
+  `background` and `textFill` (each channel, alpha included, is interpolated on its own, not premultiplied; a colour
+  with no previous value, or removed, jumps). Layout (sizes, gaps, positions) does not animate.
+- **Times** are written `200ms` or `0.3s`; the first is the duration, the second (if any) the delay, during which the
+  starting value is held. **Easings:** `linear`, `ease` (the default), `ease-in`, `ease-out`, `ease-in-out`, the CSS curves.
+- The text is checked strictly when the file is read (a bound value, when the renderer first meets it): an
+  unknown attribute (`width`), a time without its unit (`200`), two easings, an attribute given twice, an empty item or
+  a stray comma is an error that quotes the text and says what is wrong.
+- A moving element is drawn and picked where it is drawn: a click during a `translateX` animation reaches the element
+  at its current place, not at its final one and not where the layout put it.
+- **Reduced motion:** start the application with `-Djx.animations=false` and every `transition` and `enter` jumps to its
+  final value (it is read each time an animation would begin).
+- **Frames:** the window advances the animations on its display thread at the time of each frame and asks for the next
+  frame only while something moves; when everything has arrived it stops, and an idle window sleeps as before. The pace is
+  the swap interval of the OpenGL renderers and the refresh interval of the software one; no thread is made per animation.
+
 ## Not done yet
 
-- Events the renderer does not report, so no attribute exists for them: selection of lists and
-  tables (use a row's `onAction`). A `TitledPane` collapses when the application changes `expanded`
-  (its `onAction` tells it was clicked). The `Tooltip` tag is a box drawn in place; the `tooltip` attribute is the one
+- Events the renderer does not report, so no attribute exists for them: a `TitledPane` collapses when
+  the application changes `expanded` (its `onAction` tells it was clicked). The `Tooltip` tag is a box drawn in place; the `tooltip` attribute is the one
   that shows on hover.
-- Loading an image file for `Image`: it takes the pixels an application decoded.
-- Shadows (for `Card`) and the Material look of the bars: they are rows with a background.
+- SVG (and other vector formats) for `Image`: `src` reads the raster formats of stb_image only.
+- The Material look of the bars: they are rows with a background. `Card` has no shadow of its own; give it `elevation="4"`. The soft ring of an elevated `Button` is still a ring, not the blurred shadow.
+- Exit animations (an element that leaves fading out): a removed element's node is dropped at once, the reconcile keeps no leaving nodes. Keyframes, `cubic-bezier(...)` curves, springs and animating sizes, colours other than `background` and `textFill`, or any attribute not listed under [Animation](#animation) are not provided either.
 - A `ListView` with columns, and rows of different heights.
-- Keyboard navigation and hover in the popups and menus (see [Overlays](#overlays)), and a recursive model for `Tree`
+- Mnemonics (Alt+letter) in menu titles, and a recursive model for `Tree`
   (see [Trees](#trees)).
 - `<For>` over a `Map`, and the loop index as a variable.
-- An XSD for autocompletion in IDEs.
-- Compiling existing `.fxml` files with the same compiler, so a JavaFX application moving to the
-  native UI gets compiled screens without rewriting them.
-- Gradle plugin.
+- Compiling existing `.fxml` files is done in part: [FXML to JXML](jxforge-fxml.md) converts the FXML subset listed there,
+  and reports the rest. Still open: the `fx:id` / `@FXML` injection of nodes (the native UI has no node objects, so the
+  controller code that uses them has to move to bindings), CSS files, custom controls, column widths of a `GridPane`,
+  and a try-out on a real application's screens.
+- Publishing the Gradle plugin on the Gradle Plugin Portal (it is built and tested, see [Gradle](#gradle)).
 
 Measurements: [jxforge-benchmark-2026-10-21.md](jxforge-benchmark-2026-10-21.md) (20 form screens: compiled, interpreted, FXML) and [jxforge-components-benchmark-2026-10-21.md](jxforge-components-benchmark-2026-10-21.md) (every component one by one, against JavaFX).

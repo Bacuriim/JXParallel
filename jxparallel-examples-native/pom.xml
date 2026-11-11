@@ -90,6 +90,24 @@
                             </arguments>
                         </configuration>
                     </execution>
+                    <!-- JX Orders, the sample application (com.jxparallel.examples.orders) -->
+                    <execution>
+                        <id>views-orders</id>
+                        <phase>generate-sources</phase>
+                        <goals>
+                            <goal>java</goal>
+                        </goals>
+                        <configuration>
+                            <arguments>
+                                <argument>--src</argument>
+                                <argument>${project.basedir}/src/main/jxml/orders</argument>
+                                <argument>--out</argument>
+                                <argument>${project.build.directory}/generated-sources/jxforge-orders</argument>
+                                <argument>--package</argument>
+                                <argument>com.jxparallel.examples.orders.gen</argument>
+                            </arguments>
+                        </configuration>
+                    </execution>
                     <!-- the per-component samples (ComponentBench). Only the hoisted build: what hoisting adds was measured with the 20 screens -->
                     <execution>
                         <id>views-components</id>
@@ -130,6 +148,7 @@
                                 <source>${project.build.directory}/generated-sources/jxforge</source>
                                 <source>${project.build.directory}/generated-sources/jxforge-plain</source>
                                 <source>${project.build.directory}/generated-sources/jxforge-components</source>
+                                <source>${project.build.directory}/generated-sources/jxforge-orders</source>
                             </sources>
                         </configuration>
                     </execution>
@@ -181,6 +200,10 @@
                                 <id>views-components</id>
                                 <phase>none</phase>
                             </execution>
+                            <execution>
+                                <id>views-orders</id>
+                                <phase>none</phase>
+                            </execution>
                         </executions>
                     </plugin>
                     <plugin>
@@ -221,10 +244,85 @@
                                     <outputDirectory>${project.build.directory}/generated-sources/jxforge-components</outputDirectory>
                                 </configuration>
                             </execution>
+                            <execution>
+                                <id>views-orders</id>
+                                <goals>
+                                    <goal>generate</goal>
+                                </goals>
+                                <configuration>
+                                    <packageName>com.jxparallel.examples.orders.gen</packageName>
+                                    <sourceDirectory>${project.basedir}/src/main/jxml/orders</sourceDirectory>
+                                    <outputDirectory>${project.build.directory}/generated-sources/jxforge-orders</outputDirectory>
+                                </configuration>
+                            </execution>
                         </executions>
                     </plugin>
                 </plugins>
             </build>
+        </profile>
+
+        <!-- Runs an example from the reactor, in its own JVM:
+               mvn -pl jxparallel-examples-native -am -Prun -Dapp=orders -DskipTests
+             -Dapp: orders (default), hello, metrics, stress, components, forge-load.
+             -Dapp.args gives the program's arguments (see docs/example-orders.md)
+             and -Dapp.jvm="-Djx.renderer=software" the JVM's options. The profile exists only in this module,
+             so -am builds the others without running anything. -->
+        <profile>
+            <id>run</id>
+            <properties>
+                <app>orders</app>
+                <app.args></app.args>
+                <app.jvm></app.jvm>
+                <app.main>com.jxparallel.examples.orders.OrdersApp</app.main>
+            </properties>
+            <build>
+                <plugins>
+                    <plugin>
+                        <groupId>org.codehaus.mojo</groupId>
+                        <artifactId>exec-maven-plugin</artifactId>
+                        <executions>
+                            <execution>
+                                <id>run-app</id>
+                                <!-- after the default compile of this module -->
+                                <phase>compile</phase>
+                                <goals>
+                                    <goal>exec</goal>
+                                </goals>
+                                <configuration>
+                                    <executable>${java.home}/bin/java</executable>
+                                    <classpathScope>runtime</classpathScope>
+                                    <commandlineArgs>${app.jvm} -cp %classpath ${app.main} ${app.args}</commandlineArgs>
+                                </configuration>
+                            </execution>
+                        </executions>
+                    </plugin>
+                </plugins>
+            </build>
+        </profile>
+        <profile>
+            <id>app-hello</id>
+            <activation><property><name>app</name><value>hello</value></property></activation>
+            <properties><app.main>com.jxparallel.examples.nativeui.NativeHelloApp</app.main></properties>
+        </profile>
+        <profile>
+            <id>app-metrics</id>
+            <activation><property><name>app</name><value>metrics</value></property></activation>
+            <properties><app.main>com.jxparallel.examples.nativeui.NativeMetricsRunner</app.main></properties>
+        </profile>
+        <profile>
+            <id>app-stress</id>
+            <activation><property><name>app</name><value>stress</value></property></activation>
+            <properties><app.main>com.jxparallel.examples.nativeui.NativeStressRunner</app.main></properties>
+        </profile>
+        <profile>
+            <id>app-components</id>
+            <activation><property><name>app</name><value>components</value></property></activation>
+            <properties><app.main>com.jxparallel.examples.nativeui.ComponentBench</app.main></properties>
+        </profile>
+        <profile>
+            <id>app-forge-load</id>
+            <activation><property><name>app</name><value>forge-load</value></property></activation>
+            <properties><app.main>com.jxparallel.examples.nativeui.ForgeLoadBenchmark</app.main></properties>
         </profile>
     </profiles>
 </project>

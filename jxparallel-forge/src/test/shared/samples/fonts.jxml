@@ -1,0 +1,15 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!-- fontFamily, fontWeight and italic on every tag that draws text (not inherited, like fontSize); bold still works. -->
+<Column controller="com.jxparallel.forge.samples.SampleController" gap="6" padding="8">
+  <Label text="Serif italic" fontFamily="serif" italic="true" fontSize="14"/>
+  <Label text="${title}" fontFamily="${title}" fontWeight="600"/>
+  <Label text="Bold and light" bold="true" fontWeight="300"/>
+  <Button text="Mono" fontFamily="monospace" fontWeight="700" italic="false"/>
+  <TextField text="${name}" fontFamily="sans-serif" fontWeight="400" italic="true"/>
+  <PasswordField text="${pin}" fontFamily="monospace" fontWeight="500" italic="false"/>
+  <TextArea text="${note}" fontFamily="serif" fontWeight="400" italic="true"/>
+  <CheckBox text="Agree" fontFamily="serif" fontWeight="600" italic="true"/>
+  <ToggleButton text="Toggle" fontFamily="sans-serif" fontWeight="700" italic="true"/>
+  <RadioButton text="Radio" fontFamily="serif" fontWeight="300" italic="false"/>
+  <Hyperlink text="Link" fontFamily="monospace" fontWeight="400" italic="true"/>
+</Column>

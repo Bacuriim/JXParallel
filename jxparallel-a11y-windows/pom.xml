@@ -1,0 +1,43 @@
+<project xmlns="http://maven.apache.org/POM/4.0.0"
+         xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+         xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 https://maven.apache.org/xsd/maven-4.0.0.xsd">
+    <modelVersion>4.0.0</modelVersion>
+    <parent>
+        <groupId>io.github.bacuriim</groupId>
+        <artifactId>jxparallel-parent</artifactId>
+        <version>0.1.0</version>
+    </parent>
+
+    <artifactId>jxparallel-a11y-windows</artifactId>
+    <name>JXParallel Windows Accessibility (UI Automation)</name>
+    <description>Optional, experimental UI Automation provider for jxparallel-ui windows, built on JNA. jxparallel-ui itself has no JNA dependency.</description>
+
+    <properties>
+        <jna.version>5.14.0</jna.version>
+        <!-- experimental: not published to Maven Central (release profile) -->
+        <skipPublishing>true</skipPublishing>
+    </properties>
+
+    <dependencies>
+        <dependency>
+            <groupId>io.github.bacuriim</groupId>
+            <artifactId>jxparallel-ui</artifactId>
+            <version>${project.version}</version>
+        </dependency>
+        <dependency>
+            <groupId>net.java.dev.jna</groupId>
+            <artifactId>jna</artifactId>
+            <version>${jna.version}</version>
+        </dependency>
+        <dependency>
+            <groupId>net.java.dev.jna</groupId>
+            <artifactId>jna-platform</artifactId>
+            <version>${jna.version}</version>
+        </dependency>
+        <dependency>
+            <groupId>org.junit.jupiter</groupId>
+            <artifactId>junit-jupiter</artifactId>
+            <scope>test</scope>
+        </dependency>
+    </dependencies>
+</project>

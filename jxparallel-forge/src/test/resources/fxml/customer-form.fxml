@@ -1,0 +1,86 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<?import javafx.geometry.Insets?>
+<?import javafx.scene.control.*?>
+<?import javafx.scene.layout.*?>
+<?import javafx.scene.text.Font?>
+
+<BorderPane maxHeight="-Infinity" maxWidth="-Infinity" minHeight="-Infinity" minWidth="-Infinity" prefHeight="400.0" prefWidth="600.0" xmlns="http://javafx.com/javafx/17" xmlns:fx="http://javafx.com/fxml/1" fx:controller="com.jxparallel.forge.FxmlFormController">
+   <top>
+      <MenuBar BorderPane.alignment="CENTER">
+        <menus>
+          <Menu mnemonicParsing="false" text="File">
+            <items>
+              <MenuItem mnemonicParsing="false" onAction="#save" text="Save" />
+              <SeparatorMenuItem mnemonicParsing="false" />
+              <MenuItem mnemonicParsing="false" onAction="#close" text="Close" />
+            </items>
+          </Menu>
+        </menus>
+      </MenuBar>
+   </top>
+   <center>
+      <VBox spacing="10.0" BorderPane.alignment="CENTER">
+         <children>
+            <Label text="Customer">
+               <font>
+                  <Font name="System Bold" size="18.0" />
+               </font>
+            </Label>
+            <GridPane hgap="10.0" vgap="8.0">
+              <columnConstraints>
+                <ColumnConstraints hgrow="SOMETIMES" minWidth="10.0" prefWidth="100.0" />
+                <ColumnConstraints hgrow="ALWAYS" minWidth="10.0" prefWidth="200.0" />
+              </columnConstraints>
+              <rowConstraints>
+                <RowConstraints minHeight="10.0" prefHeight="30.0" vgrow="SOMETIMES" />
+                <RowConstraints minHeight="10.0" prefHeight="30.0" vgrow="SOMETIMES" />
+                <RowConstraints minHeight="10.0" prefHeight="30.0" vgrow="SOMETIMES" />
+              </rowConstraints>
+               <children>
+                  <Label text="Name" />
+                  <TextField fx:id="nameField" promptText="Full name" text="${controller.name}" GridPane.columnIndex="1" />
+                  <Label text="City" GridPane.rowIndex="1" />
+                  <ComboBox fx:id="city" prefWidth="150.0" promptText="Choose" value="${controller.city}" GridPane.columnIndex="1" GridPane.rowIndex="1">
+                     <items>
+                        <FXCollections fx:factory="observableArrayList">
+                           <String fx:value="Fortaleza" />
+                           <String fx:value="Recife" />
+                        </FXCollections>
+                     </items>
+                  </ComboBox>
+                  <Label text="Limit" GridPane.rowIndex="2" />
+                  <Spinner fx:id="limit" max="100" min="0" initialValue="10" GridPane.columnIndex="1" GridPane.rowIndex="2" />
+               </children>
+            </GridPane>
+            <CheckBox fx:id="active" mnemonicParsing="false" selected="${controller.active}" text="Active" />
+            <HBox alignment="CENTER_LEFT" spacing="8.0">
+               <children>
+                  <fx:define>
+                     <ToggleGroup fx:id="kind" />
+                  </fx:define>
+                  <RadioButton mnemonicParsing="false" text="Person" toggleGroup="$kind" userData="person" />
+                  <RadioButton mnemonicParsing="false" text="Company" toggleGroup="$kind" userData="company" />
+                  <Hyperlink onAction="#reset" text="Reset" visible="${controller.canReset}" />
+               </children>
+               <VBox.margin>
+                  <Insets top="4.0" />
+               </VBox.margin>
+            </HBox>
+            <TextArea fx:id="notes" prefHeight="80.0" promptText="Notes" wrapText="true" VBox.vgrow="ALWAYS" />
+         </children>
+         <padding>
+            <Insets bottom="12.0" left="12.0" right="12.0" top="12.0" />
+         </padding>
+      </VBox>
+   </center>
+   <bottom>
+      <ToolBar BorderPane.alignment="CENTER">
+        <items>
+          <Button defaultButton="true" mnemonicParsing="false" onAction="#save" text="Save" />
+          <Button disable="${controller.readOnly}" mnemonicParsing="false" onAction="#close" text="Close" />
+          <Label fx:id="status" style="-fx-text-fill: #888888; -fx-font-size: 11px;" styleClass="muted" text="${controller.status}" />
+        </items>
+      </ToolBar>
+   </bottom>
+</BorderPane>

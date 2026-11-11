@@ -43,6 +43,7 @@
         <module>jxparallel-forge</module>
         <module>jxforge-maven-plugin</module>
         <module>jxparallel-examples-native</module>
+        <module>jxparallel-a11y-windows</module>
         <module>jxparallel-junit4</module>
         <module>jxparallel-junit5</module>
         <module>jxparallel-mockito</module>

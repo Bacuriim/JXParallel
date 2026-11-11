@@ -58,10 +58,10 @@ public final class JXNativeNode {
             "topAnchor", "bottomAnchor", "orientation", "prefWrapLength", "columnHalignment", "rowValignment",
             "prefColumns", "prefRows", "prefTileWidth", "prefTileHeight", "tileAlignment", "expanded", "collapsible",
             // control geometry: text size, scroll offsets, virtual rows, tabs, pages, images
-            "fontSize", "bold", "hvalue", "vvalue", "scrollX", "scrollY", "first", "itemCount", "cellHeight", "rowHeight",
+            "fontSize", "bold", "fontFamily", "fontWeight", "italic", "hvalue", "vvalue", "scrollX", "scrollY", "first", "itemCount", "cellHeight", "rowHeight",
             "columnWidths", "constrained", "titles", "selected", "closingPolicy", "closable", "pageCount", "current",
             "maxPageIndicatorCount", "fitToWidth", "fitToHeight", "hbarPolicy", "vbarPolicy", "side", "fitWidth",
-            "fitHeight", "preserveRatio", "imageWidth", "imageHeight", "prefColumnCount", "fixedHeight", "wrapText",
+            "fitHeight", "preserveRatio", "imageWidth", "imageHeight", "src", "prefColumnCount", "fixedHeight", "wrapText",
             "progress", "fillGraphic", "prefRowCount",
             // Material controls: icon and avatar size, chip parts, badge content, steps, split positions, button look
             "size", "icon", "kind", "closable", "count", "text", "dot", "steps", "dividerPositions", "variant", "round",
@@ -123,6 +123,22 @@ public final class JXNativeNode {
     private java.util.Deque<Object[]> redo;
     /** The pointer is over this node, or over a node inside it (see {@link #hoverPointer}). */
     boolean hovered;
+    /**
+     * Selection of a list, table or tree the renderer handles (see {@link JXSelection}): the row a Shift range starts at,
+     * and the row the arrow keys move from in multiple mode, -1 for none.
+     */
+    int selAnchor = -1;
+    int selCursor = -1;
+    /**
+     * The item an open popup or menu has highlighted, -1 for none (see {@link JXOverlays}): the index of the option of a
+     * select, of the row of a menu panel (kept on the node whose children are the rows). Hover and the arrow keys move it.
+     */
+    int highlight = -1;
+    /** The day (epoch day) an open date picker's calendar has highlighted, {@link #NO_DATE} for none; hover and the keys move it. */
+    long highlightDate = NO_DATE;
+    static final long NO_DATE = Long.MIN_VALUE;
+    /** First option a select's popup shows while its highlight moves with the keys, -1 while it follows the chosen one. */
+    int popupFirst = -1;
 
     java.util.Deque<Object[]> undo() {
         if (undo == null) {
@@ -233,8 +249,11 @@ public final class JXNativeNode {
         this.overlayContent = JXOverlays.overlayContainer(type);
         this.overlayHost = JXOverlays.popupHost(type) || floatingNode || "menubutton".equals(type) || "menubar".equals(type);
         setProps(element.getProps());
+        if (props.containsKey("enter")) {
+            JXNodeAnimation.entered(this, props);
+        }
         List<JXElement> below = element.getChildren();
-        int n = below.size();
+        int n = unmounted() ? 0 : below.size();
         if (n > 0) {
             children = new ArrayList<JXNativeNode>(n); // exactly as many as there are
             for (int i = 0; i < n; i++) {
@@ -242,6 +261,39 @@ public final class JXNativeNode {
             }
         }
         overlaysBelow = findOverlaysBelow();
+    }
+
+    /**
+     * The content of a dialog or drawer is mounted only while it is open: a closed one has no children, so no control of
+     * it is in the tree to be found, focused, read or reconciled. True for a closed one.
+     */
+    private boolean unmounted() {
+        return JXOverlays.modal(type) && !JXOverlays.isOpen(this);
+    }
+
+    /**
+     * Mounts the content of a dialog or drawer that is open and has none (it opened on its own state, or
+     * {@code showing} turned true), and drops it when it is closed. Called by the overlay pass, which sees every open
+     * and closed layer on each layout, so it also covers a layer that opens or closes between two renders.
+     */
+    void syncContent() {
+        if (!JXOverlays.modal(type)) {
+            return;
+        }
+        if (unmounted()) {
+            if (!children.isEmpty()) {
+                children = NO_CHILDREN;
+                childView = null;
+                invalidateLayout();
+            }
+        } else if (children.isEmpty() && !source.getChildren().isEmpty()) {
+            List<JXElement> below = source.getChildren();
+            ownChildren();
+            for (int i = 0, n = below.size(); i < n; i++) {
+                children.add(child(below.get(i)));
+            }
+            invalidateLayout();
+        }
     }
 
     private boolean findOverlaysBelow() {
@@ -513,11 +565,16 @@ public final class JXNativeNode {
      * a button lightens) and the others no longer are. Returns whether that changed, so the window paints again.
      */
     public boolean hoverPointer(int px, int py) {
+        boolean highlighted = JXOverlays.hover(this, px, py); // the item of an open popup or menu under the pointer
+        if (highlighted) {
+            revision++;
+        }
         List<JXNativeNode> path = px < 0 || py < 0 ? new ArrayList<JXNativeNode>() : hitPath(px, py);
         if (path.equals(hoverPath)) {
-            return false;
+            return highlighted;
         }
-        for (JXNativeNode node : hoverPath) {
+        List<JXNativeNode> before = hoverPath;
+        for (JXNativeNode node : before) {
             node.hovered = false;
         }
         for (JXNativeNode node : path) {
@@ -525,7 +582,36 @@ public final class JXNativeNode {
         }
         hoverPath = path;
         revision++;
+        // onHover: false for the nodes the pointer left (the deepest first), then true for the ones it entered
+        for (int i = before.size() - 1; i >= 0; i--) {
+            if (!containsSame(path, before.get(i))) {
+                reportHover(before.get(i), false);
+            }
+        }
+        for (JXNativeNode node : path) {
+            if (!containsSame(before, node)) {
+                reportHover(node, true);
+            }
+        }
         return true;
+    }
+
+    private static boolean containsSame(List<JXNativeNode> list, JXNativeNode node) {
+        for (int i = 0, n = list.size(); i < n; i++) {
+            if (list.get(i) == node) {
+                return true;
+            }
+        }
+        return false;
+    }
+
+    /** Tells the {@code onHover} handler of {@code node}, a {@code Consumer} of Boolean, that the pointer entered or left it. */
+    @SuppressWarnings("unchecked")
+    private static void reportHover(JXNativeNode node, boolean over) {
+        Object handler = node.props.get("onHover");
+        if (handler instanceof java.util.function.Consumer) {
+            ((java.util.function.Consumer<Object>) handler).accept(Boolean.valueOf(over));
+        }
     }
 
     /** The deepest node under the pointer's last {@link #hoverPointer} that has a {@code tooltip}, or null. */
@@ -537,6 +623,64 @@ public final class JXNativeNode {
             }
         }
         return null;
+    }
+
+    /**
+     * Files were dropped on the window from the system with the pointer at (x, y), logical pixels: the nearest node at or
+     * above that point with an {@code onDrop} handler (a {@code Consumer} that gets the paths, an unmodifiable
+     * {@code List<String>}) takes them; a disabled node does not. With a dialog or drawer open only what is in it can. True
+     * when a handler took them.
+     */
+    @SuppressWarnings("unchecked")
+    public boolean dispatchDrop(int px, int py, List<String> paths) {
+        if (paths == null || paths.isEmpty()) {
+            return false;
+        }
+        List<JXNativeNode> path = JXOverlays.hitPath(this, px, py);
+        int from = 0;
+        if (path == null) {
+            if (!JXOverlays.openLayers(this).isEmpty()) {
+                return false; // outside the open layer: the screen behind it is not a target
+            }
+            path = hitPlain(px, py);
+        } else if (!JXOverlays.openLayers(this).isEmpty()) {
+            // a layer is open: only what is inside it can take the files, never its ancestors or the scrim
+            int layer = -1;
+            for (int i = path.size() - 1; i >= 0 && layer < 0; i--) {
+                if (JXOverlays.modal(path.get(i).type) && JXOverlays.isOpen(path.get(i))) {
+                    layer = i;
+                }
+            }
+            if (layer < 0 || layer == path.size() - 1 && !path.get(layer).contains(px, py)) {
+                return false; // a popup over the screen behind the layer, or the scrim
+            }
+            from = layer;
+        }
+        for (int i = path.size() - 1; i >= from; i--) {
+            JXNativeNode node = path.get(i);
+            Object handler = node.props.get("onDrop");
+            if (handler instanceof java.util.function.Consumer && !Boolean.TRUE.equals(node.props.get("disabled"))) {
+                revision++;
+                ((java.util.function.Consumer<Object>) handler).accept(
+                        Collections.unmodifiableList(new ArrayList<String>(paths)));
+                return true;
+            }
+        }
+        return false;
+    }
+
+    /**
+     * What Alt pressed and released alone does (F10 goes through {@link #routeKey}): opens the first menu of the window's
+     * {@code MenuBar} with its first row highlighted, or closes the bar when it is open. False when it did neither.
+     */
+    public boolean toggleMenuBar() {
+        revision++;
+        return JXOverlays.toggleMenuBar(this);
+    }
+
+    /** The mouse pointer shape at (x, y), logical pixels; see {@link JXCursor}. */
+    public JXCursor cursorAt(int px, int py) {
+        return JXCursor.at(this, px, py);
     }
 
     /** The pointer moved to (x, y) with the button held: an armed button is drawn pressed only while the pointer is on it. */
@@ -571,8 +715,21 @@ public final class JXNativeNode {
         armedInside = false;
         if (node != null && node.contains(event.getX(), event.getY())) {
             revision++;
-            node.dispatchPointer(event);
+            node.dispatchPointer(node.localize(event));
         }
+    }
+
+    /** The letters and digits around {@code at} as {start, end}; by code point, so a letter outside the BMP is one. */
+    static int[] wordAt(String text, int at) {
+        int start = at;
+        int end = at;
+        while (start > 0 && Character.isLetterOrDigit(text.codePointBefore(start))) {
+            start -= Character.charCount(text.codePointBefore(start));
+        }
+        while (end < text.length() && Character.isLetterOrDigit(text.codePointAt(end))) {
+            end += Character.charCount(text.codePointAt(end));
+        }
+        return new int[] {start, end};
     }
 
     /** The caret index of a text input under the event's position. */
@@ -588,16 +745,9 @@ public final class JXNativeNode {
         String text = props.get("value") == null ? "" : String.valueOf(props.get("value"));
         int at = textIndexAt(event);
         if (event.getClickCount() == 2 && !"password".equals(type)) {
-            int start = at;
-            int end = at;
-            while (start > 0 && Character.isLetterOrDigit(text.charAt(start - 1))) {
-                start--;
-            }
-            while (end < text.length() && Character.isLetterOrDigit(text.charAt(end))) {
-                end++;
-            }
-            anchor = start;
-            caret = end;
+            int[] word = wordAt(text, at);
+            anchor = word[0];
+            caret = word[1];
         } else if (event.getClickCount() >= 2) {
             int start = "textarea".equals(type) ? text.lastIndexOf('\n', Math.max(0, at - 1)) + 1 : 0;
             int end = "textarea".equals(type) && text.indexOf('\n', at) >= 0 ? text.indexOf('\n', at) : text.length();
@@ -619,11 +769,22 @@ public final class JXNativeNode {
 
     /**
      * A key went down while {@code focused} (may be null) has the focus: Escape closes the topmost open overlay, Enter
-     * runs the default button of an open dialog (or closes an open popup); otherwise the focused node gets the key.
+     * runs the default button of an open dialog (or closes an open popup); an open select or menu takes the arrows,
+     * Home, End, Page Up, Page Down, Enter, Space and letters to move its highlight and choose; a closed one that has the
+     * focus opens with Alt+Down, F4 or Space; otherwise the focused node gets the key. Returns the node that has the focus
+     * now: {@code focused}, or the control whose popup or menu Escape or Enter closed (the window gives it the focus).
      */
-    public void routeKey(JXKeyEvent event, JXNativeNode focused) {
+    public JXNativeNode routeKey(JXKeyEvent event, JXNativeNode focused) {
         revision++;
-        JXOverlays.key(this, event, focused);
+        return JXOverlays.key(this, event, focused);
+    }
+
+    /**
+     * Whether an open popup list or menu takes the keys, so typed characters belong to it and not to the focused node
+     * (a text field behind a context menu); the window then does not send them on.
+     */
+    public boolean capturesKeys() {
+        return JXOverlays.capturesKeys(this);
     }
 
     /**
@@ -677,9 +838,12 @@ public final class JXNativeNode {
         boolean placement = vgrow != priority(next.get("vgrow")) || hgrow != priority(next.get("hgrow"));
         boolean relayout = sizeAffected(previous, element.getProps());
         setProps(element.getProps());
+        if (animation != null || next.containsKey("transition")) {
+            JXNodeAnimation.reconciled(this, previous.asMap(), next);
+        }
         JXScrolling.release(this, previous, element.getProps());
         boolean subtree = false;
-        List<JXElement> nextChildren = element.getChildren();
+        List<JXElement> nextChildren = unmounted() ? Collections.<JXElement>emptyList() : element.getChildren();
         boolean retain = Boolean.TRUE.equals(next.get("retainChildren"));
         if (keyed(nextChildren, retain)) {
             int result = reconcileKeyed(nextChildren, retain);
@@ -815,6 +979,46 @@ public final class JXNativeNode {
         return padding.clone();
     }
 
+    /** The animated values of the props that are in a transition, null while none is. */
+    private JXNodeAnimation animation;
+
+    JXNodeAnimation animation() {
+        return animation;
+    }
+
+    JXNodeAnimation ensureAnimation() {
+        if (animation == null) {
+            animation = new JXNodeAnimation();
+        }
+        return animation;
+    }
+
+    void clearAnimation() {
+        animation = null;
+    }
+
+    /**
+     * Moves the animations of this subtree to {@code nowNanos} (see {@link JXAnimationClock}). Returns true while any is
+     * still running. What it changed is drawn, not laid out, but an overlay may follow a moved node, so the overlay pass
+     * runs again.
+     */
+    boolean tickAnimations(long nowNanos) {
+        boolean running = false;
+        JXNodeAnimation own = animation;
+        if (own != null) {
+            revision++;
+            if (own.advance(nowNanos)) {
+                running = true;
+            } else {
+                animation = null;
+            }
+        }
+        for (int i = 0, n = children.size(); i < n; i++) {
+            running |= children.get(i).tickAnimations(nowNanos);
+        }
+        return running;
+    }
+
     /** The props this node was last given. */
     public Map<String, Object> getProps() {
         return props;
@@ -825,6 +1029,13 @@ public final class JXNativeNode {
     }
 
     public Object getProperty(String name) {
+        JXNodeAnimation moving = animation;
+        if (moving != null) { // a prop in the middle of a transition answers with where it is now
+            Object shown = moving.value(name);
+            if (shown != null) {
+                return shown;
+            }
+        }
         Object value = props.get(name);
         if (value != null) {
             return value;
@@ -864,6 +1075,27 @@ public final class JXNativeNode {
         }
     }
 
+    /** The node that has the keyboard focus (see {@link #setFocusOwner}), or null; display thread only. */
+    static JXNativeNode focusOwner() {
+        return focusOwner;
+    }
+
+    /** Whether the node asks for the keyboard focus on its own: a control that takes it, or a list or table that selects. */
+    boolean focusable() {
+        return (FOCUSABLE.contains(type) || CLICKED_ON_RELEASE.contains(type) || JXSelection.enabled(this))
+                && !Boolean.TRUE.equals(props.get("disabled")) && !Boolean.TRUE.equals(props.get("hidden"));
+    }
+
+    /** Whether a click is meant to act on a node of this type (it is armed on the press and acts on the release). */
+    static boolean clickedOnRelease(String type) {
+        return CLICKED_ON_RELEASE.contains(type);
+    }
+
+    /** Whether a node of this type takes the keyboard focus on its own (lists and tables only do with a selection). */
+    static boolean takesFocus(String type) {
+        return FOCUSABLE.contains(type) || CLICKED_ON_RELEASE.contains(type);
+    }
+
     /** Types that take the keyboard focus, in tree order with Tab. */
     private static final java.util.Set<String> FOCUSABLE = new java.util.HashSet<String>(java.util.Arrays.asList(
             "input", "password", "textarea", "button", "toggle", "radio", "hyperlink", "checkbox", "switch", "chip", "select",
@@ -897,8 +1129,8 @@ public final class JXNativeNode {
         if (this != scope && ("dialog".equals(t) || "drawer".equals(t) || "snackbar".equals(t) || "contextmenu".equals(t))) {
             return; // a layer is its own focus scope, and a closed one has nothing to focus
         }
-        if (FOCUSABLE.contains(t) && width > 0 && height > 0) {
-            out.add(this);
+        if ((FOCUSABLE.contains(t) || JXSelection.enabled(this)) && width > 0 && height > 0) {
+            out.add(this); // a list, table or tree whose selection the renderer handles takes the focus too
             return;
         }
         for (JXNativeNode child : children) {
@@ -953,7 +1185,30 @@ public final class JXNativeNode {
     }
 
     public boolean contains(int px, int py) {
+        double[] map = hitMap;
+        if (map != null) { // moved, scaled or rotated, itself or an ancestor: the window point in the node's own space
+            double lx = JXTransforms.x(map, px, py);
+            double ly = JXTransforms.y(map, px, py);
+            return lx >= x && ly >= y && lx < x + width && ly < y + height;
+        }
         return px >= x && py >= y && px < x + width && py < y + height;
+    }
+
+    /**
+     * Window to this node's own space, as of the last pick that went through it ({@link #hitPath}); null when neither it
+     * nor an ancestor has a transform. Layout, painting and the handlers use the own space.
+     */
+    private double[] hitMap;
+
+    /** The window event as this node sees it: the position in its own space (the same event when nothing is transformed). */
+    JXPointerEvent localize(JXPointerEvent event) {
+        double[] map = hitMap;
+        if (map == null) {
+            return event;
+        }
+        return new JXPointerEvent((int) Math.round(JXTransforms.x(map, event.getX(), event.getY())),
+                (int) Math.round(JXTransforms.y(map, event.getX(), event.getY())), event.getButton(), event.getClickCount(),
+                event.getModifiers());
     }
 
     /** A titled pane with {@code expanded} false: only its title bar shows, its content is not painted or hit. */
@@ -986,10 +1241,31 @@ public final class JXNativeNode {
     public List<JXNativeNode> hitPath(int x, int y) {
         List<JXNativeNode> overlay = JXOverlays.hitPath(this, x, y); // an open popup, menu or dialog is over everything
         if (overlay != null) {
-            return overlay;
+            return graphicToControl(overlay);
         }
         List<JXNativeNode> path = new ArrayList<JXNativeNode>();
-        collectHit(x, y, path);
+        collectHit(x, y, null, path);
+        return graphicToControl(path);
+    }
+
+    /** Controls whose children are only their graphic: a press on the graphic is a press on the control. */
+    private static final java.util.Set<String> GRAPHIC_HOSTS = new java.util.HashSet<String>(java.util.Arrays.asList(
+            "button", "toggle", "radio", "hyperlink", "checkbox", "switch", "chip"));
+
+    /**
+     * A control's graphic does not take the pointer: when the path goes through a button, toggle button, radio button,
+     * hyperlink, check box, switch or chip and below it, the path ends at the control. This is what the
+     * user expects of an {@code Icon} inside a {@code Button}, without writing {@code mouseTransparent}.
+     */
+    private static List<JXNativeNode> graphicToControl(List<JXNativeNode> path) {
+        for (int i = 0; i < path.size() - 1; i++) {
+            if (GRAPHIC_HOSTS.contains(path.get(i).type)) {
+                while (path.size() > i + 1) {
+                    path.remove(path.size() - 1);
+                }
+                break;
+            }
+        }
         return path;
     }
 
@@ -1023,8 +1299,8 @@ public final class JXNativeNode {
     /** {@link #hitPath} without the overlays: the ordinary tree only. */
     List<JXNativeNode> hitPlain(int x, int y) {
         List<JXNativeNode> path = new ArrayList<JXNativeNode>();
-        collectHit(x, y, path);
-        return path;
+        collectHit(x, y, null, path);
+        return graphicToControl(path);
     }
 
     /** The nodes at (x, y) from this node down, taking its children as ordinary nodes (the content of an overlay). */
@@ -1032,8 +1308,8 @@ public final class JXNativeNode {
         List<JXNativeNode> path = new ArrayList<JXNativeNode>();
         path.add(this);
         for (int index = children.size() - 1; index >= 0; index--) {
-            if (children.get(index).collectHit(px, py, path)) {
-                return path;
+            if (children.get(index).collectHit(px, py, null, path)) {
+                return graphicToControl(path);
             }
             while (path.size() > 1) {
                 path.remove(path.size() - 1);
@@ -1042,31 +1318,77 @@ public final class JXNativeNode {
         return path;
     }
 
-    private boolean collectHit(int px, int py, List<JXNativeNode> path) {
+    /**
+     * {@code (wx, wy)} is the point in the window; {@code outer} maps the window to the space this node's parent lays
+     * its children out in (null when no ancestor is moved, scaled or rotated).
+     */
+    private boolean collectHit(double wx, double wy, double[] outer, List<JXNativeNode> path) {
         if (Boolean.TRUE.equals(props.get("hidden")) || Boolean.TRUE.equals(props.get("mouseTransparent"))) {
             return false;
         }
         if (floatingNode) {
             return false; // out of the flow: only the overlay pass reaches it, and only while it is open
         }
-        boolean inside = contains(px, py);
+        double[] map = outer;
+        if (JXTransforms.has(this)) {
+            double[] own = JXTransforms.inverse(this); // where the point is, in the space the node is drawn in
+            if (own == JXTransforms.SINGULAR) {
+                hitMap = null;
+                return false;
+            }
+            map = JXTransforms.then(outer, own);
+        }
+        hitMap = map;
+        double px = JXTransforms.x(map, wx, wy);
+        double py = JXTransforms.y(map, wx, wy);
+        boolean inside = px >= x && py >= y && px < x + width && py < y + height;
         if (!inside && Boolean.TRUE.equals(props.get("clip"))) {
             return false;
         }
         path.add(this);
         int size = path.size();
         for (int index = collapsed() || overlayContent ? -1 : children.size() - 1; index >= 0; index--) {
-            if (children.get(index).collectHit(px, py, path)) {
+            if (children.get(index).collectHit(wx, wy, map, path)) {
                 return true;
             }
             while (path.size() > size) {
                 path.remove(path.size() - 1);
             }
         }
-        if (inside) {
-            return true; // Region picks on its bounds, like JavaFX
+        if (inside && (size == 1 || picksOnBounds())) {
+            return true; // a control or a box with something of its own picks on its bounds (the node the pick starts at, the window root, always does)
         }
         path.remove(path.size() - 1);
+        return false;
+    }
+
+    /**
+     * Layout panes that take nothing of their empty area unless something gives them a reason to ({@link #PICK_PROPS}),
+     * like a JavaFX {@code Pane} with {@code pickOnBounds=false}. JavaFX's own panes default to {@code pickOnBounds=true}:
+     * the JavaFX-compatible API passes that on as the {@code pickOnBounds} prop.
+     */
+    private static final java.util.Set<String> LAYOUT_PANES = new java.util.HashSet<String>(java.util.Arrays.asList(
+            "column", "row", "stack", "border", "grid", "pane", "anchor", "flow", "tile"));
+
+    /** What gives a layout pane a reason to take the pointer on its empty area: a box to see, or something to tell. */
+    private static final String[] PICK_PROPS = {"pickOnBounds", "background", "backgroundGradient", "borderColor", "theme", "elevation",
+        "onClick", "onAction", "onHover", "onDrop", "onScroll", "onKeyPressed", "tooltip", "cursor", "focusable"};
+
+    /**
+     * Whether the empty area of this node (where no child is) is hit. A control is; a layout pane (column, row, stack, border,
+     * grid, pane, anchor, flow, tile) only when it has a background, border, theme, handler, tooltip or cursor, so a
+     * transparent {@code Stack} over the screen, holding only closed dialogs, lets the pointer through to what is below.
+     */
+    private boolean picksOnBounds() {
+        if (!LAYOUT_PANES.contains(type)) {
+            return true;
+        }
+        for (String key : PICK_PROPS) {
+            Object value = props.get(key);
+            if (value != null && !Boolean.FALSE.equals(value) && !(value instanceof Number && ((Number) value).doubleValue() == 0)) {
+                return true;
+            }
+        }
         return false;
     }
 
@@ -1093,14 +1415,25 @@ public final class JXNativeNode {
         if (JXChangeEvents.disclosure(this, event)) {
             return; // the arrow of a tree row expands or collapses it; the rest of the row is a click on the row
         }
-        // Controls set onAction (JXButton, JXControls.button); onClick is for hand-built elements.
+        runAction(event);
+        JXChangeEvents.pointer(this, event);
+    }
+
+    /**
+     * Runs this node's click handler: {@code onClick} if it has one, else {@code onAction}. True when one ran. Controls
+     * set onAction (JXButton, JXControls.button); onClick is for hand-built elements.
+     */
+    @SuppressWarnings("unchecked")
+    boolean runAction(JXPointerEvent event) {
         Object handler = props.containsKey("onClick") ? props.get("onClick") : props.get("onAction");
         if (handler instanceof JXNativeEventHandler) {
             ((JXNativeEventHandler<JXPointerEvent>) handler).handle(event);
+            return true;
         } else if (handler instanceof Runnable) {
             ((Runnable) handler).run();
+            return true;
         }
-        JXChangeEvents.pointer(this, event);
+        return false;
     }
 
     /**
@@ -1110,6 +1443,7 @@ public final class JXNativeNode {
      */
     public void dispatchDrag(JXPointerEvent event) {
         revision++;
+        event = localize(event);
         if (Boolean.TRUE.equals(props.get("disabled"))) {
             return;
         }
@@ -1539,7 +1873,7 @@ public final class JXNativeNode {
                 || kind == PANE || kind == ANCHOR || !children.isEmpty()) {
             return JXBoxLayout.containerSizes(this);
         }
-        boolean bold = JXPaint.bold(this);
+        com.jxparallel.ui.text.JXFont bold = JXPaint.font(this);
         JXTextEngine text = JXTextEngine.get(bold);
         float size = JXPaint.fontSize(this);
         double line = text.lineHeight(size);
@@ -1612,9 +1946,9 @@ public final class JXNativeNode {
     }
 
     /** Labeled: max = pref; the width can shrink to an ellipsis, like JavaFX's Labeled. */
-    private static double[] labeled(double textWidth, double extraWidth, double height, boolean bold, float size) {
+    private static double[] labeled(double textWidth, double extraWidth, double height, com.jxparallel.ui.text.JXFont bold, float size) {
         double ellipsis = ellipsisWidth;
-        if (bold || size != JXTextEngine.DEFAULT_SIZE) {
+        if (bold != com.jxparallel.ui.text.JXFont.DEFAULT || size != JXTextEngine.DEFAULT_SIZE) {
             ellipsis = JXTextEngine.get(bold).width("...", size);
         } else if (ellipsis < 0) {
             ellipsis = JXTextEngine.get().width("...", JXTextEngine.DEFAULT_SIZE);
@@ -1662,7 +1996,7 @@ public final class JXNativeNode {
             return !Objects.equals(old.get("value"), next.get("value"));
         }
         if ("image".equals(type)) {
-            return old.get("pixels") != next.get("pixels");
+            return old.get("pixels") != next.get("pixels") || !Objects.equals(old.get("src"), next.get("src"));
         }
         if ("select".equals(type)) {
             return !Objects.equals(old.get("value"), next.get("value"))

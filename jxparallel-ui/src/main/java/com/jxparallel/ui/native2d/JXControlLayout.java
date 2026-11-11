@@ -134,7 +134,7 @@ public final class JXControlLayout {
     // ---- sizes -------------------------------------------------------------------------------
 
     static double[] sizes(JXNativeNode node) {
-        JXTextEngine text = JXTextEngine.get(JXPaint.bold(node));
+        JXTextEngine text = JXTextEngine.get(JXPaint.font(node));
         float size = JXPaint.fontSize(node);
         double line = text.lineHeight(size);
         String type = node.getType();
@@ -350,7 +350,7 @@ public final class JXControlLayout {
 
     /** Labeled: pref = text + extra, min shrinks the text to an ellipsis; max = pref. */
     private static double[] labeled(JXNativeNode node, double textWidth, double extraWidth, double height) {
-        double ellipsis = JXTextEngine.get(JXPaint.bold(node)).width(JXTextLayout.ELLIPSIS, JXPaint.fontSize(node));
+        double ellipsis = JXTextEngine.get(JXPaint.font(node)).width(JXTextLayout.ELLIPSIS, JXPaint.fontSize(node));
         double pref = textWidth + extraWidth;
         return new double[] {Math.min(textWidth, ellipsis) + extraWidth, pref, pref, height, height, height};
     }
@@ -398,9 +398,26 @@ public final class JXControlLayout {
         return windowX >= left && windowX < left + TREE_ARROW;
     }
 
+    /**
+     * The picture an {@code image} node's {@code src} prop names, or null when it has none, has pixels of its own
+     * (they win) or the file cannot be read (nothing is drawn, and the first failure is reported on stderr).
+     */
+    static com.jxparallel.ui.resource.JXImage sourceImage(JXNativeNode node) {
+        Object src = node.getProperty("src");
+        if (!(src instanceof String) || node.getProperty("pixels") instanceof int[]) {
+            return null;
+        }
+        return com.jxparallel.ui.resource.JXImages.find((String) src);
+    }
+
     static double[] imageSize(JXNativeNode node) {
         double iw = JXPaint.number(node, "imageWidth", 0);
         double ih = JXPaint.number(node, "imageHeight", 0);
+        com.jxparallel.ui.resource.JXImage loaded = sourceImage(node);
+        if (loaded != null) {
+            iw = loaded.getWidth(); // a picture from a file: its own size, whatever the pixel props say
+            ih = loaded.getHeight();
+        }
         double fw = JXPaint.number(node, "fitWidth", 0);
         double fh = JXPaint.number(node, "fitHeight", 0);
         boolean ratio = Boolean.TRUE.equals(node.getProperty("preserveRatio"));
@@ -614,10 +631,10 @@ public final class JXControlLayout {
         float[] pad = buttonPad(node);
         String label = JXPaint.text(node, "label");
         float size = JXPaint.fontSize(node);
-        JXTextEngine engine = JXTextEngine.get(JXPaint.bold(node));
+        JXTextEngine engine = JXTextEngine.get(JXPaint.font(node));
         JXNativeNode graphic = first(node);
         float available = node.getWidth() - pad[1] - pad[3];
-        String shown = JXTextLayout.ellipsize(label, available - (graphic == null ? 0 : (float) JXBoxLayout.ceil(graphic.prefWidth()) + 4), size, JXPaint.bold(node));
+        String shown = JXTextLayout.ellipsize(label, available - (graphic == null ? 0 : (float) JXBoxLayout.ceil(graphic.prefWidth()) + 4), size, JXPaint.font(node));
         float tw = shown.isEmpty() ? 0 : engine.width(shown, size);
         float gw = graphic == null ? 0 : (float) JXBoxLayout.ceil(graphic.prefWidth());
         float gap = graphic != null && tw > 0 ? 4 : 0;
@@ -1040,7 +1057,7 @@ public final class JXControlLayout {
      * width, close icon x and width (0 when none), and the chip's width.
      */
     public static float[] chipParts(JXNativeNode node) {
-        JXTextEngine engine = JXTextEngine.get(JXPaint.bold(node));
+        JXTextEngine engine = JXTextEngine.get(JXPaint.font(node));
         String label = JXPaint.text(node, "label");
         float x = CHIP_PAD;
         float leadX = x;

@@ -68,6 +68,11 @@ final class JXNonNegativePainter implements JXPainter {
     }
 
     @Override
+    public void text(String value, float x, float baseline, float size, com.jxparallel.ui.text.JXFont font, int argb) {
+        p.text(value, x, baseline, size, font, argb);
+    }
+
+    @Override
     public void image(int[] pixels, int imageWidth, int imageHeight, float x, float y, float w, float h) {
         p.image(pixels, imageWidth, imageHeight, x, y, size(w), size(h));
     }
@@ -80,6 +85,21 @@ final class JXNonNegativePainter implements JXPainter {
     @Override
     public void layer(float opacity, float blurRadius) {
         p.layer(opacity, blurRadius);
+    }
+
+    @Override
+    public void fillGradient(float x, float y, float w, float h, float radius, JXGradient gradient) {
+        p.fillGradient(x, y, size(w), size(h), radius, gradient);
+    }
+
+    @Override
+    public void shadow(float x, float y, float w, float h, float radius, float dx, float dy, float blur, int argb) {
+        p.shadow(x, y, size(w), size(h), radius, dx, dy, blur, argb);
+    }
+
+    @Override
+    public void transform(float tx, float ty, float sx, float sy, float degrees, float cx, float cy) {
+        p.transform(tx, ty, sx, sy, degrees, cx, cy);
     }
 
     @Override

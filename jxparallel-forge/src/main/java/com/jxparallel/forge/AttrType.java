@@ -29,5 +29,15 @@ public enum AttrType {
     /** An {@link Integer}: how many items a bound {@link Iterable} or array holds. Bindings only. */
     COUNT,
     /** An {@code int[]} of ARGB pixels, handed on as it is (the renderer compares it by identity). Bindings only. */
-    PIXELS
+    PIXELS,
+    /**
+     * A {@link String} naming a picture file: written as a path relative to the {@code .jxml} file (a class path
+     * resource next to it, or else a file), or bound; see {@link JxmlValues#imageSource}.
+     */
+    IMAGE_SOURCE,
+    /**
+     * A {@link String} the renderer shows as text (a spinner's value), which a binding may give as a number: an integral
+     * number is written without a decimal point ({@code 3}, not {@code 3.0}); see {@link JxmlValues#asNumberText}.
+     */
+    TEXT_OR_NUMBER
 }

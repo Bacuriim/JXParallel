@@ -3,15 +3,20 @@ package com.jxparallel.ui.native2d;
 import java.util.ArrayList;
 import java.util.List;
 
+import com.jxparallel.ui.text.JXFont;
 import com.jxparallel.ui.text.JXTextEngine;
 
 /**
  * Paints every element type with the look of JavaFX's Modena theme, through a {@link JXPainter}, so
  * Skia and NanoVG draw the same thing. Colors and insets come from Modena (measured on JavaFX 21);
- * gradients are kept where Modena layers them, shadows are left out.
+ * gradients are kept where Modena layers them, shadows are left out (a node asks for one with {@code elevation}).
  *
  * <p>Props every node understands: {@code background}, {@code backgroundRadius}, {@code borderColor},
  * {@code borderWidth}, {@code borderRadius} (a region's CSS background and border, ARGB ints),
+ * {@code backgroundGradient} (a {@link JXGradient} in CSS, painted instead of {@code background}), {@code elevation}
+ * with {@code shadowColor}, {@code shadowOffsetX} and {@code shadowOffsetY} (a soft shadow under the box),
+ * {@code translateX}, {@code translateY}, {@code scaleX}, {@code scaleY} and {@code rotate} (degrees, about the centre of the
+ * node: they move what is drawn and picked, never the layout; see {@link JXTransforms}),
  * {@code opacity}, {@code blur} (Gaussian blur radius, Skia only), {@code clip}, {@code hidden},
  * {@code disabled} (drawn at 40% like Modena), and for text {@code textFill}, {@code fontSize},
  * {@code bold}, {@code underline}. Controls also read {@code focused}, {@code hover} and {@code pressed}.
@@ -31,6 +36,8 @@ final class JXPaint {
     static final int SELECTION_UNFOCUSED = 0xFFD3D3D3;
     static final int ODD_ROW = 0xFFFAFAFA;
     static final int SCROLL_BAR = 13;
+    /** The color of the shadow of a node with {@code elevation} and no {@code shadowColor}. */
+    static final int SHADOW = 0x40000000;
 
     private final JXPainter p;
 
@@ -44,8 +51,21 @@ final class JXPaint {
     /** The theme set by the nearest ancestor with a {@code theme} prop; null when none sets one. */
     private JXTheme theme;
 
+    /** The colors of the classic controls under {@link #theme}: Modena unless a node set the dark theme. */
+    private JXClassic c = JXClassic.LIGHT;
+
     JXTheme theme() {
         return theme != null ? theme : JXTheme.LIGHT;
+    }
+
+    /** The classic palette at the place being painted. */
+    JXClassic classic() {
+        return c;
+    }
+
+    private void useTheme(JXTheme next) {
+        theme = next;
+        c = JXClassic.of(next);
     }
 
     /** How deep {@link #paint} is called from itself: 0 outside the outermost call, which draws the overlays last. */
@@ -107,12 +127,12 @@ final class JXPaint {
         try {
             for (int i = 0; i < deferred.size(); i++) { // an overlay inside an overlay is added while this runs
                 Object[] entry = deferred.get(i);
-                theme = (JXTheme) entry[1];
+                useTheme((JXTheme) entry[1]);
                 JXOverlayPaint.paint(this, (JXNativeNode) entry[0], overlayRoot);
             }
         } finally {
             depth--;
-            theme = saved;
+            useTheme(saved);
             deferred.clear();
         }
     }
@@ -124,12 +144,12 @@ final class JXPaint {
         JXTheme outer = theme;
         Object named = node.getProperty("theme");
         if (named instanceof String) {
-            theme = JXTheme.named((String) named);
+            useTheme(JXTheme.named((String) named));
         }
         try {
             paintThemed(node);
         } finally {
-            theme = outer;
+            useTheme(outer);
         }
     }
 
@@ -139,6 +159,14 @@ final class JXPaint {
                 deferred.add(new Object[] {node, theme}); // drawn after the tree; it takes no room where it is written
             }
             return;
+        }
+        boolean moved = JXTransforms.has(node);
+        float savedTop = clipTop;
+        float savedBottom = clipBottom;
+        if (moved) {
+            JXTransforms.push(p, node);
+            clipTop = Float.NEGATIVE_INFINITY; // what is below is drawn in the node's own space: the window's edges say nothing there
+            clipBottom = Float.POSITIVE_INFINITY;
         }
         double opacity = number(node, "opacity", 1.0);
         if (Boolean.TRUE.equals(node.getProperty("disabled"))) {
@@ -158,6 +186,11 @@ final class JXPaint {
         if (layered) {
             p.restore();
         }
+        if (moved) {
+            p.restore();
+            clipTop = savedTop;
+            clipBottom = savedBottom;
+        }
     }
 
     /** What an overlay paints for a node of its content (a dialog's column, say). */
@@ -169,17 +202,28 @@ final class JXPaint {
     private void region(JXNativeNode node) {
         Object bg = node.getProperty("background");
         Object border = node.getProperty("borderColor");
-        if (!(bg instanceof Integer) && node.getProperty("theme") instanceof String) {
+        JXGradient gradient = JXGradient.of(node.getProperty("backgroundGradient"));
+        float elevation = (float) number(node, "elevation", 0);
+        if (elevation > 0) {
+            // under the box, the way a CSS box-shadow is: blurred over twice the elevation, lowered by half of it
+            Object shadowColor = node.getProperty("shadowColor");
+            p.shadow(node.getX(), node.getY(), node.getWidth(), node.getHeight(), (float) number(node, "backgroundRadius", 0),
+                    (float) number(node, "shadowOffsetX", 0), (float) number(node, "shadowOffsetY", elevation / 2),
+                    elevation * 2, shadowColor instanceof Integer ? (Integer) shadowColor : SHADOW);
+        }
+        if (!(bg instanceof Integer) && node.getProperty("theme") instanceof String && gradient == null) {
             p.fillRect(node.getX(), node.getY(), node.getWidth(), node.getHeight(), theme().surface); // a themed root
         }
-        if (!(bg instanceof Integer) && !(border instanceof Integer)) {
+        if (!(bg instanceof Integer) && !(border instanceof Integer) && gradient == null) {
             return;
         }
         float x = node.getX();
         float y = node.getY();
         float w = node.getWidth();
         float h = node.getHeight();
-        if (bg instanceof Integer) {
+        if (gradient != null) {
+            p.fillGradient(x, y, w, h, (float) number(node, "backgroundRadius", 0), gradient);
+        } else if (bg instanceof Integer) {
             p.fillRoundRect(x, y, w, h, (float) number(node, "backgroundRadius", 0), (Integer) bg);
         }
         if (border instanceof Integer) {
@@ -211,8 +255,8 @@ final class JXPaint {
      * which may lie outside its own box, reaches the clip.
      */
     private boolean outside(JXNativeNode node) {
-        if (!cull || node.floatingNode || node.overlayHost || node.overlayContent) {
-            return false;
+        if (!cull || node.floatingNode || node.overlayHost || node.overlayContent || JXTransforms.has(node)) {
+            return false; // a moved, scaled or rotated node can be anywhere: it is always drawn
         }
         float top = Math.min(node.getY(), node.getY() + node.getHeight());
         float bottom = Math.max(node.getY(), node.getY() + node.getHeight());
@@ -240,11 +284,21 @@ final class JXPaint {
             if (kid.floatingNode) {
                 continue; // painted over the window by the overlay pass, not in place
             }
+            if (JXTransforms.has(kid)) {
+                range[0] = Float.NEGATIVE_INFINITY; // it may be drawn anywhere
+                range[1] = Float.POSITIVE_INFINITY;
+                return;
+            }
             range[0] = Math.min(range[0], Math.min(kid.getY(), kid.getY() + kid.getHeight()));
             range[1] = Math.max(range[1], Math.max(kid.getY(), kid.getY() + kid.getHeight()));
             reach(kid, range);
         }
     }
+
+    /** How the rows being painted are selected when their list handles it ({@link JXSelection#paintState}), 0 when their props decide. */
+    private int rowState;
+    /** True while the rows of a list or table with a {@code background} of its own are painted: the plain ones draw none. */
+    private boolean ownRows;
 
     private void children(JXNativeNode node) {
         if (node.collapsed() || node.overlayContent) {
@@ -270,12 +324,26 @@ final class JXPaint {
             clipBottom = Math.min(clipBottom, node.getY() + node.getHeight());
         }
         List<JXNativeNode> kids = node.getChildren();
+        boolean rows = "list".equals(type) || "table".equals(type);
+        int savedRow = rowState;
+        boolean savedOwn = ownRows;
+        if (rows) {
+            ownRows = node.getProperty("background") instanceof Integer;
+        }
+        int[] chosen = rows && JXSelection.enabled(node) ? JXSelection.selected(node) : null;
+        int firstRow = chosen == null ? 0 : (int) Math.max(0, number(node, "first", 0));
         for (int i = 0, n = kids.size(); i < n; i++) {
             JXNativeNode kid = kids.get(i);
+            if (rows) {
+                // the rows of a list whose selection the renderer handles are drawn selected or not by the list, not by their props
+                rowState = chosen == null ? 0 : JXSelection.paintState(node, firstRow + i, chosen);
+            }
             if (!outside(kid)) {
                 paint(kid); // indexed: no iterator per node per frame
             }
         }
+        rowState = savedRow;
+        ownRows = savedOwn;
         clipTop = savedTop;
         clipBottom = savedBottom;
         if (viewport != null && ("list".equals(type) || "table".equals(type)) && node.getProperty("popupOf") == null) {
@@ -587,7 +655,7 @@ final class JXPaint {
             case "button":
             case "toggle": {
                 String variant = JXControlLayout.variant(node);
-                int textColor = TEXT;
+                int textColor = c.text;
                 if (variant.isEmpty()) {
                     buttonBody(node, x, y, w, h, 3, Boolean.TRUE.equals(node.getProperty("selected")));
                 } else {
@@ -603,7 +671,7 @@ final class JXPaint {
                     }
                 } else {
                     float[] group = JXControlLayout.buttonContent(node);
-                    String shown = JXTextLayout.ellipsize(text(node, "label"), x + w - pad[1] - group[1], fontSize(node), bold(node));
+                    String shown = JXTextLayout.ellipsize(text(node, "label"), x + w - pad[1] - group[1], fontSize(node), font(node));
                     drawText(node, shown, group[1], y, h, color(node, textColor), Boolean.TRUE.equals(node.getProperty("underline")));
                 }
                 break;
@@ -634,7 +702,7 @@ final class JXPaint {
                 tabBar(node, x, y, w, h);
                 break;
             case "hyperlink": {
-                int color = Boolean.TRUE.equals(node.getProperty("visited")) ? 0xFF7A3D9E : ACCENT;
+                int color = Boolean.TRUE.equals(node.getProperty("visited")) ? c.visited : c.accent;
                 float[] pad = insetsOr(node, 2, 3);
                 drawText(node, text(node, "label"), x + pad[3] + 1, y, h, color(node, color),
                         Boolean.TRUE.equals(node.getProperty("hover")) || Boolean.TRUE.equals(node.getProperty("underline")));
@@ -684,23 +752,36 @@ final class JXPaint {
                 titled(node, x, y, w, h);
                 break;
             case "scroll":
-                p.fillRect(x, y, w, h, BOX_BORDER);
-                p.fillRect(x + 1, y + 1, w - 2, h - 2, BACKGROUND);
+                if (node.getProperty("background") instanceof Integer) {
+                    frame(x, y, w, h, c.boxBorder); // the background written was painted by region(): only the rim is left to draw
+                } else {
+                    p.fillRect(x, y, w, h, c.boxBorder);
+                    p.fillRect(x + 1, y + 1, w - 2, h - 2, c.background);
+                }
                 break;
             case "list":
-            case "table":
-                p.fillRect(x, y, w, h, Boolean.TRUE.equals(node.getProperty("focused")) ? FOCUS : BOX_BORDER);
-                p.fillRect(x + 1, y + 1, w - 2, h - 2, 0xFFFFFFFF);
+            case "table": {
+                int rim = Boolean.TRUE.equals(node.getProperty("focused")) ? c.focus : c.boxBorder;
+                if (node.getProperty("background") instanceof Integer) {
+                    frame(x, y, w, h, rim);
+                } else {
+                    p.fillRect(x, y, w, h, rim);
+                    p.fillRect(x + 1, y + 1, w - 2, h - 2, c.base);
+                }
                 break;
+            }
             case "cell":
                 cell(node, x, y, w, h);
                 break;
             case "tablerow": {
-                boolean selected = Boolean.TRUE.equals(node.getProperty("selected"));
-                int bg = selected ? (Boolean.TRUE.equals(node.getProperty("listFocused")) ? SELECTION : SELECTION_UNFOCUSED)
-                        : Boolean.TRUE.equals(node.getProperty("odd")) ? ODD_ROW : 0xFFFFFFFF;
-                p.fillRect(x, y, w, h, bg);
-                p.fillRect(x, y + h - 1, w, 1, 0xFFEDEDED);
+                boolean selected = rowState != 0 ? rowState >= 2 : Boolean.TRUE.equals(node.getProperty("selected"));
+                boolean rowFocused = rowState != 0 ? rowState == 3 : Boolean.TRUE.equals(node.getProperty("listFocused"));
+                int bg = selected ? (rowFocused ? c.selection : c.selectionUnfocused)
+                        : Boolean.TRUE.equals(node.getProperty("odd")) ? c.oddRow : c.base;
+                if (selected || !ownRows) {
+                    p.fillRect(x, y, w, h, bg); // under a list with a background of its own the plain rows let it show
+                }
+                p.fillRect(x, y + h - 1, w, 1, c.rowLine);
                 break;
             }
             case "tabs":
@@ -714,8 +795,8 @@ final class JXPaint {
                 break;
             case "popup":
                 p.fillRect(x, y, w, h, 0x33000000);
-                p.fillRect(x, y, w - 1, h - 1, BOX_BORDER);
-                p.fillRect(x + 1, y + 1, w - 3, h - 3, 0xFFFFFFFF);
+                p.fillRect(x, y, w - 1, h - 1, c.boxBorder);
+                p.fillRect(x + 1, y + 1, w - 3, h - 3, c.base);
                 break;
             case "tooltip":
                 p.fillRoundRect(x, y, w, h, 6, 0xCC1E1E1E);
@@ -749,17 +830,17 @@ final class JXPaint {
         String shown = JXOverlays.timeText(node);
         p.clip(x + 1, y, w - bw - 1, h);
         if (shown.isEmpty()) {
-            drawText(node, text(node, "prompt"), x + JXNativeNode.FIELD_PAD_X, y, h, PROMPT, false);
+            drawText(node, text(node, "prompt"), x + JXNativeNode.FIELD_PAD_X, y, h, c.prompt, false);
         } else {
-            drawText(node, shown, x + JXNativeNode.FIELD_PAD_X, y, h, color(node, TEXT), false);
+            drawText(node, shown, x + JXNativeNode.FIELD_PAD_X, y, h, color(node, c.text), false);
         }
         p.restore();
-        buttonBody(node, x + w - bw, y, bw, h, 0, Boolean.TRUE.equals(node.getProperty("showing")));
+        buttonBody(node, x + w - bw, y, bw, h, 0, JXOverlays.isOpen(node));
         float cx = x + w - bw / 2;
         float cy = y + h / 2;
-        p.strokeOval(cx - 5, cy - 5, 10, 10, 1.5f, ARROW);
-        p.line(cx, cy, cx, cy - 3, 1.2f, ARROW);
-        p.line(cx, cy, cx + 2.5f, cy + 1.5f, 1.2f, ARROW);
+        p.strokeOval(cx - 5, cy - 5, 10, 10, 1.5f, c.arrow);
+        p.line(cx, cy, cx, cy - 3, 1.2f, c.arrow);
+        p.line(cx, cy, cx + 2.5f, cy + 1.5f, 1.2f, c.arrow);
     }
 
     private void colorPicker(JXNativeNode node, float x, float y, float w, float h) {
@@ -769,26 +850,26 @@ final class JXPaint {
         float s = JXControlLayout.COLOR_SWATCH;
         float sx = x + JXNativeNode.FIELD_PAD_X;
         float sy = y + (h - s) / 2;
-        p.fillRect(sx - 1, sy - 1, s + 2, s + 2, BOX_BORDER);
-        p.fillRect(sx, sy, s, s, hex == null ? 0xFFFFFFFF : JXOverlays.colorOf(hex));
+        p.fillRect(sx - 1, sy - 1, s + 2, s + 2, c.boxBorder);
+        p.fillRect(sx, sy, s, s, hex == null ? c.base : JXOverlays.colorOf(hex));
         float left = sx + s + JXNativeNode.FIELD_PAD_X;
         p.clip(left, y + 1, x + w - bw - left, h - 2);
         if (hex == null) {
-            drawText(node, text(node, "prompt"), left, y, h, PROMPT, false);
+            drawText(node, text(node, "prompt"), left, y, h, c.prompt, false);
         } else {
-            drawText(node, hex, left, y, h, color(node, TEXT), false);
+            drawText(node, hex, left, y, h, color(node, c.text), false);
         }
         p.restore();
-        buttonBody(node, x + w - bw, y, bw, h, 0, Boolean.TRUE.equals(node.getProperty("showing")));
-        downArrow(x + w - bw + (bw - 8) / 2, y + (h - 4) / 2, ARROW);
+        buttonBody(node, x + w - bw, y, bw, h, 0, JXOverlays.isOpen(node));
+        downArrow(x + w - bw + (bw - 8) / 2, y + (h - 4) / 2, c.arrow);
     }
 
     private void menuButton(JXNativeNode node, float x, float y, float w, float h) {
         buttonBody(node, x, y, w, h, 3, JXOverlays.isOpen(node));
         p.clip(x, y, w - JXControlLayout.MENU_ARROW, h);
-        drawText(node, text(node, "label"), x + JXNativeNode.PAD_X, y, h, color(node, TEXT), false);
+        drawText(node, text(node, "label"), x + JXNativeNode.PAD_X, y, h, color(node, c.text), false);
         p.restore();
-        downArrow(x + w - JXNativeNode.PAD_X - 8, y + Math.round((h - 4) / 2), ARROW);
+        downArrow(x + w - JXNativeNode.PAD_X - 8, y + Math.round((h - 4) / 2), c.arrow);
     }
 
     private void menuBar(JXNativeNode node, float x, float y, float w, float h) {
@@ -813,27 +894,27 @@ final class JXPaint {
         boolean pressed = Boolean.TRUE.equals(node.getProperty("pressed")) || selected;
         boolean hover = Boolean.TRUE.equals(node.getProperty("hover"));
         boolean isDefault = Boolean.TRUE.equals(node.getProperty("defaultButton"));
-        p.fillRoundRect(x, y + 1, w, h, r, HIGHLIGHT);
-        p.fillRoundRect(x, y, w, h, r, OUTER_BORDER);
+        p.fillRoundRect(x, y + 1, w, h, r, c.highlight);
+        p.fillRoundRect(x, y, w, h, r, c.outerBorder);
         if (pressed) {
-            p.fillRoundRectGradient(x + 1, y + 1, w - 2, h - 2, r - 1, 0xFFCACACA, 0xFFBCBCBC);
-            p.fillRoundRectGradient(x + 2, y + 2, w - 4, h - 4, Math.max(0, r - 2), 0xFFC6C6C6, 0xFFB5B5B5);
+            p.fillRoundRectGradient(x + 1, y + 1, w - 2, h - 2, r - 1, c.pressedOuterA, c.pressedOuterB);
+            p.fillRoundRectGradient(x + 2, y + 2, w - 4, h - 4, Math.max(0, r - 2), c.pressedInnerA, c.pressedInnerB);
         } else if (isDefault) {
-            p.fillRoundRectGradient(x + 1, y + 1, w - 2, h - 2, r - 1, 0xFFB9D7F1, 0xFF8EC4E8);
-            p.fillRoundRectGradient(x + 2, y + 2, w - 4, h - 4, Math.max(0, r - 2), hover ? 0xFFB7D8F4 : 0xFFA3CDEE,
-                    hover ? 0xFF94C6EB : 0xFF7FB8E4);
+            p.fillRoundRectGradient(x + 1, y + 1, w - 2, h - 2, r - 1, c.defOuterA, c.defOuterB);
+            p.fillRoundRectGradient(x + 2, y + 2, w - 4, h - 4, Math.max(0, r - 2), hover ? c.defHoverA : c.defInnerA,
+                    hover ? c.defHoverB : c.defInnerB);
         } else {
-            p.fillRoundRectGradient(x + 1, y + 1, w - 2, h - 2, r - 1, 0xFFFDFDFD, 0xFFE2E2E2);
-            p.fillRoundRectGradient(x + 2, y + 2, w - 4, h - 4, Math.max(0, r - 2), hover ? 0xFFF8F8F8 : 0xFFEFEFEF,
-                    hover ? 0xFFE3E3E3 : 0xFFD9D9D9);
+            p.fillRoundRectGradient(x + 1, y + 1, w - 2, h - 2, r - 1, c.ctlTop, c.ctlBottom);
+            p.fillRoundRectGradient(x + 2, y + 2, w - 4, h - 4, Math.max(0, r - 2), hover ? c.bodyHoverA : c.bodyA,
+                    hover ? c.bodyHoverB : c.bodyB);
         }
         focusRing(node, x, y, w, h, r);
     }
 
     void focusRing(JXNativeNode node, float x, float y, float w, float h, float r) {
         if (Boolean.TRUE.equals(node.getProperty("focused"))) {
-            p.strokeRoundRect(x - 1, y - 1, w + 2, h + 2, r + 1, 1, 0x66039ED3);
-            p.strokeRoundRect(x, y, w, h, r, 1, FOCUS);
+            p.strokeRoundRect(x - 1, y - 1, w + 2, h + 2, r + 1, 1, c.focusRing);
+            p.strokeRoundRect(x, y, w, h, r, 1, c.focus);
         }
     }
 
@@ -841,15 +922,23 @@ final class JXPaint {
     private void field(JXNativeNode node, float x, float y, float w, float h) {
         boolean focused = Boolean.TRUE.equals(node.getProperty("focused"));
         if (focused) {
-            p.fillRoundRect(x - 1, y - 1, w + 2, h + 2, 4, 0x66039ED3);
-            p.fillRoundRect(x, y, w, h, 3, FOCUS);
+            p.fillRoundRect(x - 1, y - 1, w + 2, h + 2, 4, c.focusRing);
+            p.fillRoundRect(x, y, w, h, 3, c.focus);
         } else {
-            p.fillRoundRectGradient(x, y, w, h, 3, 0xFFBBBBBB, 0xFFCFCFCF);
+            p.fillRoundRectGradient(x, y, w, h, 3, c.fieldEdgeA, c.fieldEdgeB);
         }
-        p.fillRoundRect(x + 1, y + 1, w - 2, h - 2, 2, 0xFFFFFFFF);
+        p.fillRoundRect(x + 1, y + 1, w - 2, h - 2, 2, c.base);
         if (!focused) {
-            p.fillRoundRectGradient(x + 1, y + 1, w - 2, Math.min(5, h - 2), 2, 0xFFE8E8E8, 0xFFFFFFFF);
+            p.fillRoundRectGradient(x + 1, y + 1, w - 2, Math.min(5, h - 2), 2, c.sheenA, c.base);
         }
+    }
+
+    /** The 1 px line around a box, drawn over what is already there. */
+    private void frame(float x, float y, float w, float h, int color) {
+        p.fillRect(x, y, w, 1, color);
+        p.fillRect(x, y + h - 1, w, 1, color);
+        p.fillRect(x, y + 1, 1, h - 2, color);
+        p.fillRect(x + w - 1, y + 1, 1, h - 2, color);
     }
 
     /** Value (or prompt), selection and caret of a one-line text input, scrolled to keep the caret visible. */
@@ -863,13 +952,13 @@ final class JXPaint {
             value = bullets(value.length());
         }
         float size = fontSize(node);
-        boolean bold = bold(node);
-        JXTextEngine engine = JXTextEngine.get(bold);
+        JXFont font = font(node);
+        JXTextEngine engine = JXTextEngine.get(font);
         boolean focused = Boolean.TRUE.equals(node.getProperty("focused"));
         if (value.isEmpty()) {
             String prompt = text(node, "prompt");
             if (!prompt.isEmpty() && !focused) {
-                p.text(prompt, left, y + engine.baseline(h, size), size, bold, PROMPT);
+                p.text(prompt, left, y + engine.baseline(h, size), size, font, c.prompt);
             }
         }
         int caret = (int) number(node, "caret", -1);
@@ -895,15 +984,15 @@ final class JXPaint {
             float sx = left - shift + engine.width(value.substring(0, from), size);
             float ex = left - shift + engine.width(value.substring(0, to), size);
             float lineH = engine.lineHeight(size);
-            p.fillRect(sx, y + (h - lineH) / 2, ex - sx, lineH, SELECTION);
+            p.fillRect(sx, y + (h - lineH) / 2, ex - sx, lineH, c.selection);
         }
         if (!value.isEmpty()) {
-            p.text(value, left - shift, y + engine.baseline(h, size), size, bold, color(node, TEXT));
+            p.text(value, left - shift, y + engine.baseline(h, size), size, font, color(node, c.text));
         }
         if (caret >= 0 && focused) {
             float cx = left - shift + engine.width(value.substring(0, caret), size);
             float lineH = engine.lineHeight(size);
-            p.fillRect((float) Math.floor(cx), y + (h - lineH) / 2, 1, lineH, TEXT);
+            p.fillRect((float) Math.floor(cx), y + (h - lineH) / 2, 1, lineH, c.text);
         }
         p.restore();
     }
@@ -911,18 +1000,18 @@ final class JXPaint {
     private void textAreaText(JXNativeNode node, float x, float y, float w, float h) {
         String value = text(node, "value");
         float size = fontSize(node);
-        boolean bold = bold(node);
-        JXTextEngine engine = JXTextEngine.get(bold);
+        JXFont font = font(node);
+        JXTextEngine engine = JXTextEngine.get(font);
         float line = engine.lineHeight(size);
         float left = x + 1 + JXNativeNode.FIELD_PAD_X;
         float top = y + 1 + JXNativeNode.PAD_Y - (float) JXScrolling.textScroll(node);
         boolean focused = Boolean.TRUE.equals(node.getProperty("focused"));
         p.clip(x + 1, y + 1, w - 2, h - 2);
         if (value.isEmpty() && !focused) {
-            p.text(text(node, "prompt"), left, top + engine.ascent(size), size, bold, PROMPT);
+            p.text(text(node, "prompt"), left, top + engine.ascent(size), size, font, c.prompt);
         }
         List<String> lines = JXTextLayout.lines(value, Boolean.TRUE.equals(node.getProperty("wrapText"))
-                ? w - 2 - 2 * JXNativeNode.FIELD_PAD_X : Float.MAX_VALUE, size, bold);
+                ? w - 2 - 2 * JXNativeNode.FIELD_PAD_X : Float.MAX_VALUE, size, font);
         int caret = (int) number(node, "caret", -1);
         int anchor = (int) number(node, "anchor", caret);
         int offset = 0;
@@ -936,13 +1025,13 @@ final class JXPaint {
                     if (from < to || (from <= text.length() && to > text.length())) {
                         float sx = left + engine.width(text.substring(0, Math.min(from, text.length())), size);
                         float ex = left + engine.width(text.substring(0, Math.min(to, text.length())), size);
-                        p.fillRect(sx, lineTop, Math.max(ex - sx, 2), line, SELECTION);
+                        p.fillRect(sx, lineTop, Math.max(ex - sx, 2), line, c.selection);
                     }
                 }
-                p.text(text, left, lineTop + engine.ascent(size), size, bold, color(node, TEXT));
+                p.text(text, left, lineTop + engine.ascent(size), size, font, color(node, c.text));
                 if (focused && caret >= offset && caret <= offset + text.length()) {
                     float cx = left + engine.width(text.substring(0, caret - offset), size);
-                    p.fillRect((float) Math.floor(cx), lineTop, 1, line, TEXT);
+                    p.fillRect((float) Math.floor(cx), lineTop, 1, line, c.text);
                 }
             }
             offset += text.length() + JXTextLayout.separatorAfter(value, offset + text.length());
@@ -955,12 +1044,12 @@ final class JXPaint {
         float top = y + Math.round((h - s) / 2);
         buttonBody(node, x, top, s, s, 3, false);
         if (Boolean.TRUE.equals(node.getProperty("indeterminate"))) {
-            p.fillRect(x + 4, top + 7, s - 8, 2, MARK);
+            p.fillRect(x + 4, top + 7, s - 8, 2, c.mark);
         } else if (Boolean.TRUE.equals(node.getProperty("checked"))) {
-            p.line(x + 4, top + 8.5f, x + 7, top + 11.5f, 2, MARK);
-            p.line(x + 7, top + 11.5f, x + 12.5f, top + 4.5f, 2, MARK);
+            p.line(x + 4, top + 8.5f, x + 7, top + 11.5f, 2, c.mark);
+            p.line(x + 7, top + 11.5f, x + 12.5f, top + 4.5f, 2, c.mark);
         }
-        drawText(node, text(node, "label"), x + JXNativeNode.CHECK_BOX + JXNativeNode.CHECK_GAP, y, h, color(node, TEXT),
+        drawText(node, text(node, "label"), x + JXNativeNode.CHECK_BOX + JXNativeNode.CHECK_GAP, y, h, color(node, c.text),
                 Boolean.TRUE.equals(node.getProperty("underline")));
     }
 
@@ -968,14 +1057,14 @@ final class JXPaint {
         float s = JXNativeNode.CHECK_BOX;
         float top = y + Math.round((h - s) / 2);
         boolean focused = Boolean.TRUE.equals(node.getProperty("focused"));
-        p.fillOval(x, top + 1, s, s, HIGHLIGHT);
-        p.fillOval(x, top, s, s, focused ? FOCUS : OUTER_BORDER);
-        p.fillOval(x + 1, top + 1, s - 2, s - 2, 0xFFFDFDFD);
-        p.fillOval(x + 2, top + 2, s - 4, s - 4, Boolean.TRUE.equals(node.getProperty("hover")) ? 0xFFF4F4F4 : 0xFFE9E9E9);
+        p.fillOval(x, top + 1, s, s, c.highlight);
+        p.fillOval(x, top, s, s, focused ? c.focus : c.outerBorder);
+        p.fillOval(x + 1, top + 1, s - 2, s - 2, c.ctlTop);
+        p.fillOval(x + 2, top + 2, s - 4, s - 4, Boolean.TRUE.equals(node.getProperty("hover")) ? c.thumbHover : c.thumbBody);
         if (Boolean.TRUE.equals(node.getProperty("checked"))) {
-            p.fillOval(x + 4, top + 4, s - 8, s - 8, MARK);
+            p.fillOval(x + 4, top + 4, s - 8, s - 8, c.mark);
         }
-        drawText(node, text(node, "label"), x + JXNativeNode.CHECK_BOX + JXNativeNode.CHECK_GAP, y, h, color(node, TEXT),
+        drawText(node, text(node, "label"), x + JXNativeNode.CHECK_BOX + JXNativeNode.CHECK_GAP, y, h, color(node, c.text),
                 Boolean.TRUE.equals(node.getProperty("underline")));
     }
 
@@ -984,25 +1073,25 @@ final class JXPaint {
         if (editable) {
             field(node, x, y, w, h);
             fieldText(node, x, y, w - JXNativeNode.ARROW, h, false);
-            p.fillRect(x + w - JXNativeNode.ARROW, y + 1, 1, h - 2, OUTER_BORDER);
+            p.fillRect(x + w - JXNativeNode.ARROW, y + 1, 1, h - 2, c.outerBorder);
         } else {
-            buttonBody(node, x, y, w, h, 3, Boolean.TRUE.equals(node.getProperty("showing")));
+            buttonBody(node, x, y, w, h, 3, JXOverlays.isOpen(node));
             String value = text(node, "value");
             boolean prompt = value.isEmpty() || Boolean.TRUE.equals(node.getProperty("promptShown"));
             if (value.isEmpty()) {
                 value = text(node, "prompt");
             }
             p.clip(x, y, w - JXNativeNode.ARROW, h);
-            drawText(node, value, x + JXNativeNode.PAD_X, y, h, prompt ? PROMPT : color(node, TEXT), false);
+            drawText(node, value, x + JXNativeNode.PAD_X, y, h, prompt ? c.prompt : color(node, c.text), false);
             p.restore();
         }
         float ax = x + w - JXNativeNode.ARROW + 10;
         float ay = y + Math.round((h - 4) / 2);
-        downArrow(ax, ay, ARROW);
+        downArrow(ax, ay, c.arrow);
     }
 
     void downArrow(float x, float y, int color) {
-        p.fillTriangle(x, y + 1, x + 8, y + 1, x + 4, y + 5, HIGHLIGHT);
+        p.fillTriangle(x, y + 1, x + 8, y + 1, x + 4, y + 5, c.highlight);
         p.fillTriangle(x, y, x + 8, y, x + 4, y + 4, color);
     }
 
@@ -1018,45 +1107,45 @@ final class JXPaint {
         float half = (float) Math.floor(h / 2);
         boolean upHover = "up".equals(node.getProperty("hoverPart"));
         boolean downHover = "down".equals(node.getProperty("hoverPart"));
-        p.fillRect(bx, y, bw, h, OUTER_BORDER);
-        p.fillRoundRectGradient(bx + 1, y + 1, bw - 2, half - 1, 0, 0xFFFDFDFD, upHover ? 0xFFEAEAEA : 0xFFE2E2E2);
-        p.fillRoundRectGradient(bx + 1, y + half + 1, bw - 2, h - half - 2, 0, 0xFFFDFDFD, downHover ? 0xFFEAEAEA : 0xFFE2E2E2);
-        upArrow(bx + (bw - 8) / 2, y + (half - 4) / 2 + 0.5f, ARROW);
-        downArrow(bx + (bw - 8) / 2, y + half + (h - half - 4) / 2 - 0.5f, ARROW);
+        p.fillRect(bx, y, bw, h, c.outerBorder);
+        p.fillRoundRectGradient(bx + 1, y + 1, bw - 2, half - 1, 0, c.ctlTop, upHover ? c.ctlBottomHover : c.ctlBottom);
+        p.fillRoundRectGradient(bx + 1, y + half + 1, bw - 2, h - half - 2, 0, c.ctlTop, downHover ? c.ctlBottomHover : c.ctlBottom);
+        upArrow(bx + (bw - 8) / 2, y + (half - 4) / 2 + 0.5f, c.arrow);
+        downArrow(bx + (bw - 8) / 2, y + half + (h - half - 4) / 2 - 0.5f, c.arrow);
     }
 
     private void datePicker(JXNativeNode node, float x, float y, float w, float h) {
         field(node, x, y, w, h);
         float bw = JXControlLayout.DATE_BUTTON;
         fieldText(node, x, y, w - bw, h, false);
-        buttonBody(node, x + w - bw, y, bw, h, 0, Boolean.TRUE.equals(node.getProperty("showing")));
+        buttonBody(node, x + w - bw, y, bw, h, 0, JXOverlays.isOpen(node));
         float cx = x + w - bw + (bw - 11) / 2;
         float cy = y + (h - 10) / 2;
-        p.fillRect(cx, cy, 11, 10, ARROW);
-        p.fillRect(cx + 1, cy + 3, 9, 6, 0xFFFFFFFF);
-        p.fillRect(cx + 2, cy + 4, 2, 2, ARROW);
-        p.fillRect(cx + 5, cy + 4, 2, 2, ARROW);
-        p.fillRect(cx + 2, cy + 6, 2, 2, ARROW);
+        p.fillRect(cx, cy, 11, 10, c.arrow);
+        p.fillRect(cx + 1, cy + 3, 9, 6, c.base);
+        p.fillRect(cx + 2, cy + 4, 2, 2, c.arrow);
+        p.fillRect(cx + 5, cy + 4, 2, 2, c.arrow);
+        p.fillRect(cx + 2, cy + 6, 2, 2, c.arrow);
     }
 
     private void progressBar(JXNativeNode node, float x, float y, float w, float h) {
         if (w <= 0 || h <= 0) {
             return; // laid out with no room (a Scroll with fitToHeight): nothing to show
         }
-        p.fillRoundRect(x, y + 1, w, h, 4, HIGHLIGHT);
-        p.fillRoundRectGradient(x, y, w, h, 3, 0xFFBBBBBB, 0xFFCFCFCF);
-        p.fillRoundRectGradient(x + 1, y + 1, w - 2, h - 2, 2, 0xFFEDEDED, 0xFFFFFFFF);
+        p.fillRoundRect(x, y + 1, w, h, 4, c.highlight);
+        p.fillRoundRectGradient(x, y, w, h, 3, c.fieldEdgeA, c.fieldEdgeB);
+        p.fillRoundRectGradient(x + 1, y + 1, w - 2, h - 2, 2, c.trackA, c.base);
         double progress = number(node, "progress", 0.0);
         if (progress < 0) {
             float band = Math.max(20, w / 4);
             float t = (float) ((clock.getAsLong() % 1500) / 1500.0);
             float bx = x + 3 + (w - 6 - band) * t;
-            p.fillRoundRectGradient(bx, y + 3, band, h - 6, 2, 0xFF008CBB, 0xFF0097C9);
+            p.fillRoundRectGradient(bx, y + 3, band, h - 6, 2, c.barA, c.barB);
             return;
         }
         float bw = (float) ((w - 6) * clamp(progress));
         if (bw > 0) {
-            p.fillRoundRectGradient(x + 3, y + 3, bw, h - 6, 2, 0xFF008CBB, 0xFF0097C9);
+            p.fillRoundRectGradient(x + 3, y + 3, bw, h - 6, 2, c.barA, c.barB);
         }
     }
 
@@ -1077,21 +1166,21 @@ final class JXPaint {
                 float px = (float) (cx + r + Math.cos(a) * (r - dot)) - dot / 2;
                 float py = (float) (cy + r + Math.sin(a) * (r - dot)) - dot / 2;
                 int alpha = 0x40 + ((i - lit + 8) % 8) * 0x18;
-                p.fillOval(px, py, dot, dot, (Math.min(alpha, 0xFF) << 24) | 0x0096C9);
+                p.fillOval(px, py, dot, dot, (Math.min(alpha, 0xFF) << 24) | (c.accent & 0xFFFFFF));
             }
             return;
         }
-        p.fillOval(cx, cy, d, d, BOX_BORDER);
-        p.fillOval(cx + 1, cy + 1, d - 2, d - 2, 0xFFFFFFFF);
+        p.fillOval(cx, cy, d, d, c.boxBorder);
+        p.fillOval(cx + 1, cy + 1, d - 2, d - 2, c.base);
         if (progress > 0) {
-            p.strokeArc(cx + 3, cy + 3, d - 6, d - 6, -90, (float) (360 * clamp(progress)), (d - 6) / 2, ACCENT);
+            p.strokeArc(cx + 3, cy + 3, d - 6, d - 6, -90, (float) (360 * clamp(progress)), (d - 6) / 2, c.accent);
         }
         String percent = Math.round(clamp(progress) * 100) + "%";
         if (progress >= 1) {
             percent = "Done";
         }
         float tw = engine.width(percent, 11);
-        p.text(percent, x + (w - tw) / 2, y + h - textH + engine.ascent(11), 11, false, TEXT);
+        p.text(percent, x + (w - tw) / 2, y + h - textH + engine.ascent(11), 11, false, c.text);
     }
 
     private void slider(JXNativeNode node, float x, float y, float w, float h) {
@@ -1100,70 +1189,71 @@ final class JXPaint {
         double fraction = max <= min ? 0.0 : clamp((number(node, "value", min) - min) / (max - min));
         if (node.vertical()) {
             float tx = x + (w - 6) / 2;
-            p.fillRoundRectGradient(tx, y + 4, 6, h - 8, 3, 0xFFBBBBBB, 0xFFCFCFCF);
-            p.fillRoundRect(tx + 1, y + 5, 4, h - 10, 2, 0xFFF0F0F0);
+            p.fillRoundRectGradient(tx, y + 4, 6, h - 8, 3, c.fieldEdgeA, c.fieldEdgeB);
+            p.fillRoundRect(tx + 1, y + 5, 4, h - 10, 2, c.sliderTrack);
             float ty = (float) (y + (h - 14) * (1 - fraction));
             thumb(node, x + (w - 14) / 2, ty);
             return;
         }
         float ty = y + (h - 6) / 2;
-        p.fillRoundRect(x + 4, ty + 1, w - 8, 6, 3, HIGHLIGHT);
-        p.fillRoundRectGradient(x + 4, ty, w - 8, 6, 3, 0xFFBBBBBB, 0xFFCFCFCF);
-        p.fillRoundRectGradient(x + 5, ty + 1, w - 10, 4, 2, 0xFFE8E8E8, 0xFFFFFFFF);
+        p.fillRoundRect(x + 4, ty + 1, w - 8, 6, 3, c.highlight);
+        p.fillRoundRectGradient(x + 4, ty, w - 8, 6, 3, c.fieldEdgeA, c.fieldEdgeB);
+        p.fillRoundRectGradient(x + 5, ty + 1, w - 10, 4, 2, c.sheenA, c.base);
         thumb(node, (float) (x + (w - 14) * fraction), y + (h - 14) / 2);
     }
 
     private void thumb(JXNativeNode node, float x, float y) {
-        p.fillOval(x, y, 14, 14, Boolean.TRUE.equals(node.getProperty("focused")) ? FOCUS : 0xFFA0A0A0);
-        p.fillOval(x + 1, y + 1, 12, 12, 0xFFFDFDFD);
-        p.fillOval(x + 2, y + 2, 10, 10, Boolean.TRUE.equals(node.getProperty("pressed")) ? 0xFFD0D0D0 : 0xFFE9E9E9);
+        p.fillOval(x, y, 14, 14, Boolean.TRUE.equals(node.getProperty("focused")) ? c.focus : c.thumbEdge);
+        p.fillOval(x + 1, y + 1, 12, 12, c.ctlTop);
+        p.fillOval(x + 2, y + 2, 10, 10, Boolean.TRUE.equals(node.getProperty("pressed")) ? c.thumbPressed : c.thumbBody);
     }
 
     private void separator(JXNativeNode node, float x, float y, float w, float h) {
         if (node.vertical()) {
             float left = x + Math.round((w - JXNativeNode.SEPARATOR_THICKNESS_V) / 2.0f);
-            p.fillRect(left, y, 3, h, HIGHLIGHT);
-            p.fillRect(left + 1, y, 1, h, 0xFFCFCFCF);
+            p.fillRect(left, y, 3, h, c.highlight);
+            p.fillRect(left + 1, y, 1, h, c.sepLine);
         } else {
             float top = y + Math.round((h - JXNativeNode.SEPARATOR_THICKNESS_H) / 2.0f);
-            p.fillRect(x, top, w, 1, 0xFFCFCFCF);
-            p.fillRect(x, top + 1, w, 1, HIGHLIGHT);
+            p.fillRect(x, top, w, 1, c.sepLine);
+            p.fillRect(x, top + 1, w, 1, c.highlight);
         }
     }
 
     private void titled(JXNativeNode node, float x, float y, float w, float h) {
         float title = JXTitledLayout.titleHeight();
         if (!node.collapsed() && h > title) {
-            p.fillRect(x, y + title, w, h - title, BOX_BORDER);
-            p.fillRoundRectGradient(x + 1, y + title, w - 2, Math.min(5, h - title - 1), 0, 0xFFE5E5E5, BACKGROUND);
-            p.fillRect(x + 1, y + title + 5, w - 2, Math.max(0, h - title - 6), BACKGROUND);
+            p.fillRect(x, y + title, w, h - title, c.boxBorder);
+            p.fillRoundRectGradient(x + 1, y + title, w - 2, Math.min(5, h - title - 1), 0, c.titledSheen, c.background);
+            p.fillRect(x + 1, y + title + 5, w - 2, Math.max(0, h - title - 6), c.background);
         }
-        p.fillRoundRect(x, y, w, title, 3, BOX_BORDER);
+        p.fillRoundRect(x, y, w, title, 3, c.boxBorder);
         boolean hover = Boolean.TRUE.equals(node.getProperty("hover"));
-        p.fillRoundRectGradient(x + 1, y + 1, w - 2, title - 2, 2, 0xFFFDFDFD, hover ? 0xFFEAEAEA : 0xFFE2E2E2);
+        p.fillRoundRectGradient(x + 1, y + 1, w - 2, title - 2, 2, c.ctlTop, hover ? c.ctlBottomHover : c.ctlBottom);
         if (node.collapsible()) {
             float[] a = JXTitledLayout.arrow(node, x, y);
-            p.fillTriangle(a[0], a[1], a[2], a[3], a[4], a[5], ARROW);
+            p.fillTriangle(a[0], a[1], a[2], a[3], a[4], a[5], c.arrow);
         }
-        drawText(node, text(node, "label"), x + JXTitledLayout.textOffset(node), y, title, color(node, TEXT), false);
+        drawText(node, text(node, "label"), x + JXTitledLayout.textOffset(node), y, title, color(node, c.text), false);
         if (Boolean.TRUE.equals(node.getProperty("focused"))) {
-            p.strokeRoundRect(x, y, w, title, 3, 1, FOCUS);
+            p.strokeRoundRect(x, y, w, title, 3, 1, c.focus);
         }
     }
 
     private void cell(JXNativeNode node, float x, float y, float w, float h) {
-        boolean selected = Boolean.TRUE.equals(node.getProperty("selected"));
-        boolean focusedList = Boolean.TRUE.equals(node.getProperty("listFocused"));
-        int bg = selected ? (focusedList ? SELECTION : SELECTION_UNFOCUSED)
-                : Boolean.TRUE.equals(node.getProperty("odd")) ? ODD_ROW : 0xFFFFFFFF;
+        boolean selected = rowState != 0 ? rowState >= 2 : Boolean.TRUE.equals(node.getProperty("selected"));
+        boolean focusedList = rowState != 0 ? rowState == 3 : Boolean.TRUE.equals(node.getProperty("listFocused"));
+        int bg = selected ? (focusedList ? c.selection : c.selectionUnfocused)
+                : Boolean.TRUE.equals(node.getProperty("odd")) ? c.oddRow : c.base;
         if (Boolean.TRUE.equals(node.getProperty("hover")) && !selected) {
-            bg = 0xFFEAF4FA;
+            bg = c.hoverRow;
         }
-        if (!Boolean.FALSE.equals(node.getProperty("paintBackground"))) {
+        boolean lit = selected || Boolean.TRUE.equals(node.getProperty("hover"));
+        if (!Boolean.FALSE.equals(node.getProperty("paintBackground")) && (lit || !ownRows)) {
             p.fillRect(x, y, w, h, bg);
         }
         if (Boolean.TRUE.equals(node.getProperty("tableCell"))) {
-            p.fillRect(x + w - 1, y, 1, h, 0xFFEDEDED);
+            p.fillRect(x + w - 1, y, 1, h, c.rowLine);
         }
         String value = text(node, "value");
         float tree = (float) JXControlLayout.treeLeft(node);
@@ -1173,7 +1263,7 @@ final class JXPaint {
                 float[] pad = insetsOr(node, 3, 7);
                 float ax = x + pad[3] + (float) number(node, "indent", 0) * JXControlLayout.TREE_INDENT + 4;
                 float cy = y + h / 2;
-                int arrow = selected && focusedList ? 0xFFFFFFFF : ARROW;
+                int arrow = selected && focusedList ? c.selectionText : c.arrow;
                 if ("expanded".equals(disclosure)) {
                     p.fillTriangle(ax - 1, cy - 2, ax + 7, cy - 2, ax + 3, cy + 3, arrow);
                 } else {
@@ -1184,12 +1274,12 @@ final class JXPaint {
         if (!value.isEmpty()) {
             float[] pad = insetsOr(node, 3, 7);
             float graphic = node.getChildren().isEmpty() ? 0 : node.getChildren().get(0).getWidth();
-            int textColor = selected && focusedList ? 0xFFFFFFFF : color(node, TEXT);
+            int textColor = selected && focusedList ? c.selectionText : color(node, c.text);
             p.clip(x, y, w, h);
             float left = x + pad[3] + tree + (graphic > 0 ? graphic + 4 : 0);
             char align = alignmentH(node, 'L');
             if (align != 'L') {
-                float tw = JXTextEngine.get(bold(node)).width(value, fontSize(node));
+                float tw = JXTextEngine.get(font(node)).width(value, fontSize(node));
                 float space = w - pad[1] - pad[3] - (graphic > 0 ? graphic + 4 : 0);
                 left += align == 'C' ? (space - tw) / 2 : space - tw;
             }
@@ -1200,9 +1290,9 @@ final class JXPaint {
 
     private void tabs(JXNativeNode node, float x, float y, float w, float h) {
         float header = JXControlLayout.TAB_HEADER;
-        p.fillRect(x, y + header, w, h - header, BACKGROUND);
-        p.fillRect(x, y, w, header, OUTER_BORDER);
-        p.fillRoundRectGradient(x, y + 1, w, header - 1, 0, 0xFFCFCFCF, 0xFFDEDEDE);
+        p.fillRect(x, y + header, w, h - header, c.background);
+        p.fillRect(x, y, w, header, c.outerBorder);
+        p.fillRoundRectGradient(x, y + 1, w, header - 1, 0, c.tabA, c.tabB);
         String[] titles = strings(node.getProperty("titles"));
         int selected = (int) number(node, "selected", 0);
         float[] tabX = JXControlLayout.tabPositions(node);
@@ -1211,25 +1301,25 @@ final class JXPaint {
             float tw = tabX[i + 1] - tabX[i];
             float ty = y + JXControlLayout.TAB_TOP;
             float th = header - JXControlLayout.TAB_TOP;
-            p.fillRoundRect(tx, ty, tw, th + 3, 3, OUTER_BORDER);
+            p.fillRoundRect(tx, ty, tw, th + 3, 3, c.outerBorder);
             if (i == selected) {
-                p.fillRoundRect(tx + 1, ty + 1, tw - 2, th + 2, 2, BACKGROUND);
+                p.fillRoundRect(tx + 1, ty + 1, tw - 2, th + 2, 2, c.background);
             } else {
-                p.fillRoundRectGradient(tx + 1, ty + 1, tw - 2, th + 2, 2, 0xFFFDFDFD, 0xFFE2E2E2);
+                p.fillRoundRectGradient(tx + 1, ty + 1, tw - 2, th + 2, 2, c.ctlTop, c.ctlBottom);
             }
             JXTextEngine engine = JXTextEngine.get(false);
             p.text(titles[i], tx + JXControlLayout.TAB_PAD, ty + engine.baseline(th, JXTextEngine.DEFAULT_SIZE),
-                    JXTextEngine.DEFAULT_SIZE, false, TEXT);
+                    JXTextEngine.DEFAULT_SIZE, false, c.text);
             if (JXControlLayout.tabClosable(node, i)) {
                 float cx = tx + tw - JXControlLayout.TAB_PAD - 8;
                 float cy = ty + (th - 8) / 2;
-                p.line(cx + 1, cy + 1, cx + 7, cy + 7, 1.5f, ARROW);
-                p.line(cx + 7, cy + 1, cx + 1, cy + 7, 1.5f, ARROW);
+                p.line(cx + 1, cy + 1, cx + 7, cy + 7, 1.5f, c.arrow);
+                p.line(cx + 7, cy + 1, cx + 1, cy + 7, 1.5f, c.arrow);
             }
         }
-        p.fillRect(x, y + header - 1, w, 1, OUTER_BORDER);
+        p.fillRect(x, y + header - 1, w, 1, c.outerBorder);
         if (selected >= 0 && selected < titles.length) {
-            p.fillRect(x + tabX[selected] + 1, y + header - 1, tabX[selected + 1] - tabX[selected] - 2, 1, BACKGROUND);
+            p.fillRect(x + tabX[selected] + 1, y + header - 1, tabX[selected + 1] - tabX[selected] - 2, 1, c.background);
         }
     }
 
@@ -1241,53 +1331,59 @@ final class JXPaint {
             int page = (int) b[4];
             boolean arrow = page < 0;
             if (!arrow && page == current) {
-                p.fillRoundRect(b[0], b[1], b[2], b[3], 3, OUTER_BORDER);
-                p.fillRoundRect(b[0] + 1, b[1] + 1, b[2] - 2, b[3] - 2, 2, 0xFFFFFFFF);
+                p.fillRoundRect(b[0], b[1], b[2], b[3], 3, c.outerBorder);
+                p.fillRoundRect(b[0] + 1, b[1] + 1, b[2] - 2, b[3] - 2, 2, c.base);
             }
             if (arrow) {
                 float cy = b[1] + b[3] / 2;
                 float cx = b[0] + b[2] / 2;
                 if (page == -1) {
-                    p.fillTriangle(cx + 3, cy - 5, cx + 3, cy + 5, cx - 3, cy, ARROW);
+                    p.fillTriangle(cx + 3, cy - 5, cx + 3, cy + 5, cx - 3, cy, c.arrow);
                 } else {
-                    p.fillTriangle(cx - 3, cy - 5, cx - 3, cy + 5, cx + 3, cy, ARROW);
+                    p.fillTriangle(cx - 3, cy - 5, cx - 3, cy + 5, cx + 3, cy, c.arrow);
                 }
             } else {
                 String label = String.valueOf(page + 1);
                 float tw = engine.width(label, JXTextEngine.DEFAULT_SIZE);
                 p.text(label, b[0] + (b[2] - tw) / 2, b[1] + engine.baseline(b[3], JXTextEngine.DEFAULT_SIZE),
-                        JXTextEngine.DEFAULT_SIZE, false, page == current ? ACCENT : TEXT);
+                        JXTextEngine.DEFAULT_SIZE, false, page == current ? c.accent : c.text);
             }
         }
         int count = (int) number(node, "pageCount", 1);
         String info = (current + 1) + "/" + count;
         float tw = engine.width(info, JXTextEngine.DEFAULT_SIZE);
-        p.text(info, x + (w - tw) / 2, y + h - 6, JXTextEngine.DEFAULT_SIZE, false, TEXT);
+        p.text(info, x + (w - tw) / 2, y + h - 6, JXTextEngine.DEFAULT_SIZE, false, c.text);
     }
 
     private void image(JXNativeNode node, float x, float y, float w, float h) {
         Object pixels = node.getProperty("pixels");
         if (pixels instanceof int[]) {
             p.image((int[]) pixels, (int) number(node, "imageWidth", 0), (int) number(node, "imageHeight", 0), x, y, w, h);
+            return;
+        }
+        com.jxparallel.ui.resource.JXImage loaded = JXControlLayout.sourceImage(node);
+        if (loaded != null) {
+            p.image(loaded.getPixels(), loaded.getWidth(), loaded.getHeight(), x, y, w, h);
         }
     }
 
     /** Like VirtualFlow's empty cells: stripes (and a table's column lines) below the last item. */
     private void emptyRows(JXNativeNode node, float[] viewport) {
         boolean table = "table".equals(node.getType());
+        boolean ownBackground = node.getProperty("background") instanceof Integer;
         double item = table ? JXControlLayout.rowHeight(node) : JXControlLayout.cellHeight(node);
         int count = (int) number(node, "itemCount", 0);
         JXControlLayout.ScrollGeometry g = JXControlLayout.scrollGeometry(node);
         double top = viewport[1] + count * item - g.scrollY;
         float[] widths = table ? JXControlLayout.columnWidths(node) : new float[0];
         for (int i = count; top < viewport[1] + viewport[3]; i++, top += item) {
-            if (i % 2 == 1) {
-                p.fillRect(viewport[0], (float) top, viewport[2], (float) item, ODD_ROW);
+            if (i % 2 == 1 && !ownBackground) {
+                p.fillRect(viewport[0], (float) top, viewport[2], (float) item, c.oddRow);
             }
             float cx = viewport[0] - (float) g.scrollX;
             for (float w : widths) {
                 cx += w;
-                p.fillRect(cx - 1, (float) top, 1, (float) item, 0xFFEDEDED);
+                p.fillRect(cx - 1, (float) top, 1, (float) item, c.rowLine);
             }
         }
     }
@@ -1301,50 +1397,64 @@ final class JXPaint {
             bar(g.hx, g.hy, g.hw, g.hh, g.hThumbX, g.hThumbW, false);
         }
         if (g.vertical && g.horizontal) {
-            p.fillRect(g.vx, g.hy, g.vw, g.hh, 0xFFEAEAEA);
+            p.fillRect(g.vx, g.hy, g.vw, g.hh, c.barCorner);
         }
     }
 
     private void bar(float x, float y, float w, float h, float thumbPos, float thumbLen, boolean vertical) {
-        p.fillRect(x, y, w, h, 0xFFD9D9D9);
+        p.fillRect(x, y, w, h, c.barTrack);
         if (vertical) {
-            p.fillRect(x + 1, y, w - 1, h, 0xFFEBEBEB);
-            upArrow(x + (w - 8) / 2, y + 3, 0xFF828282);
-            downArrow(x + (w - 8) / 2, y + h - 7, 0xFF828282);
-            p.fillRoundRect(x + 2, thumbPos, w - 4, thumbLen, 3, OUTER_BORDER);
-            p.fillRoundRectGradient(x + 3, thumbPos + 1, w - 6, thumbLen - 2, 2, 0xFFFDFDFD, 0xFFE2E2E2);
+            p.fillRect(x + 1, y, w - 1, h, c.barLane);
+            upArrow(x + (w - 8) / 2, y + 3, c.barArrow);
+            downArrow(x + (w - 8) / 2, y + h - 7, c.barArrow);
+            p.fillRoundRect(x + 2, thumbPos, w - 4, thumbLen, 3, c.outerBorder);
+            p.fillRoundRectGradient(x + 3, thumbPos + 1, w - 6, thumbLen - 2, 2, c.ctlTop, c.ctlBottom);
         } else {
-            p.fillRect(x, y + 1, w, h - 1, 0xFFEBEBEB);
+            p.fillRect(x, y + 1, w, h - 1, c.barLane);
             float cy = y + (h - 8) / 2;
-            p.fillTriangle(x + 7, cy, x + 7, cy + 8, x + 3, cy + 4, 0xFF828282);
-            p.fillTriangle(x + w - 7, cy, x + w - 7, cy + 8, x + w - 3, cy + 4, 0xFF828282);
-            p.fillRoundRect(thumbPos, y + 2, thumbLen, h - 4, 3, OUTER_BORDER);
-            p.fillRoundRectGradient(thumbPos + 1, y + 3, thumbLen - 2, h - 6, 2, 0xFFFDFDFD, 0xFFE2E2E2);
+            p.fillTriangle(x + 7, cy, x + 7, cy + 8, x + 3, cy + 4, c.barArrow);
+            p.fillTriangle(x + w - 7, cy, x + w - 7, cy + 8, x + w - 3, cy + 4, c.barArrow);
+            p.fillRoundRect(thumbPos, y + 2, thumbLen, h - 4, 3, c.outerBorder);
+            p.fillRoundRectGradient(thumbPos + 1, y + 3, thumbLen - 2, h - 6, 2, c.ctlTop, c.ctlBottom);
         }
     }
+
+    /** The width of a column header kept for its sort arrow when the table is sorted by that column. */
+    private static final float SORT_ARROW = 16;
 
     private void tableHeader(JXNativeNode node) {
         float x = node.getX() + 1;
         float y = node.getY() + 1;
         float w = node.getWidth() - 2;
         float h = JXControlLayout.TABLE_HEADER;
-        p.fillRoundRectGradient(x, y, w, h, 0, 0xFFFDFDFD, 0xFFE2E2E2);
-        p.fillRoundRectGradient(x, y + 1, w, h - 1, 0, 0xFFEFEFEF, 0xFFD9D9D9);
-        p.fillRect(x, y + h - 1, w, 1, BOX_BORDER);
+        p.fillRoundRectGradient(x, y, w, h, 0, c.ctlTop, c.ctlBottom);
+        p.fillRoundRectGradient(x, y + 1, w, h - 1, 0, c.bodyA, c.bodyB);
+        p.fillRect(x, y + h - 1, w, 1, c.boxBorder);
         String[] titles = strings(node.getProperty("columns"));
         float[] widths = JXControlLayout.columnWidths(node);
         float scrollX = (float) JXControlLayout.scrollGeometry(node).scrollX;
         p.clip(x, y, w, h);
         JXTextEngine engine = JXTextEngine.get(true);
         float cx = x - scrollX;
+        int sorted = JXTableSort.column(node);
         for (int i = 0; i < titles.length && i < widths.length; i++) {
             float tw = engine.width(titles[i], JXTextEngine.DEFAULT_SIZE);
-            float left = cx + Math.max(4, (widths[i] - tw) / 2);
+            float room = i == sorted ? widths[i] - SORT_ARROW : widths[i]; // the arrow of the sorted column takes its right end
+            float left = cx + Math.max(4, (room - tw) / 2);
             p.clip(cx, y, widths[i], h);
-            p.text(titles[i], left, y + engine.baseline(h, JXTextEngine.DEFAULT_SIZE), JXTextEngine.DEFAULT_SIZE, true, TEXT);
+            p.text(titles[i], left, y + engine.baseline(h, JXTextEngine.DEFAULT_SIZE), JXTextEngine.DEFAULT_SIZE, true, c.text);
+            if (i == sorted) {
+                float ax = cx + widths[i] - SORT_ARROW + 4;
+                float ay = y + (h - 4) / 2;
+                if (JXTableSort.ascending(node)) {
+                    upArrow(ax, ay, c.arrow);
+                } else {
+                    p.fillTriangle(ax, ay, ax + 8, ay, ax + 4, ay + 4, c.arrow);
+                }
+            }
             p.restore();
             cx += widths[i];
-            p.fillRect(cx - 1, y, 1, h, BOX_BORDER);
+            p.fillRect(cx - 1, y, 1, h, c.boxBorder);
         }
         p.restore();
     }
@@ -1367,10 +1477,10 @@ final class JXPaint {
             return;
         }
         float size = fontSize(node);
-        boolean bold = bold(node);
-        JXTextEngine engine = JXTextEngine.get(bold);
+        JXFont font = font(node);
+        JXTextEngine engine = JXTextEngine.get(font);
         float available = w - pad[1] - pad[3];
-        String shown = JXTextLayout.ellipsize(value, available, size, bold);
+        String shown = JXTextLayout.ellipsize(value, available, size, font);
         float tw = engine.width(shown, size);
         float left = x + pad[3];
         if (align == 'C') {
@@ -1380,16 +1490,16 @@ final class JXPaint {
         }
         boolean wrap = Boolean.TRUE.equals(node.getProperty("wrapText"));
         int color = color(node, fallbackColor != null ? fallbackColor
-                : "tooltip".equals(node.getType()) ? 0xFFFFFFFF : theme != null ? theme.onSurface : TEXT);
+                : "tooltip".equals(node.getType()) ? 0xFFFFFFFF : theme != null ? theme.onSurface : c.text);
         if (wrap && engine.width(value, size) > available + 0.01f) {
-            List<String> lines = JXTextLayout.lines(value, available, size, bold);
+            List<String> lines = JXTextLayout.lines(value, available, size, font);
             float line = engine.lineHeight(size);
             float top = y + pad[0] + Math.max(0, (h - pad[0] - pad[2] - lines.size() * line) / 2);
             for (int i = 0; i < lines.size(); i++) {
                 String shownLine = lines.get(i).replaceAll("\\s+$", "");
                 float lw = engine.width(shownLine, size);
                 float lx = x + pad[3] + (align == 'C' ? (available - lw) / 2 : align == 'R' ? available - lw : 0);
-                p.text(shownLine, lx, top + i * line + engine.ascent(size), size, bold, color);
+                p.text(shownLine, lx, top + i * line + engine.ascent(size), size, font, color);
             }
             return;
         }
@@ -1400,7 +1510,7 @@ final class JXPaint {
         float baseline = valign == 'T' ? innerTop + engine.ascent(size)
                 : valign == 'B' ? innerTop + innerH - lineH + engine.ascent(size)
                 : innerTop + engine.baseline(innerH, size);
-        p.text(shown, left, baseline, size, bold, color);
+        p.text(shown, left, baseline, size, font, color);
         if (Boolean.TRUE.equals(node.getProperty("underline"))) {
             p.fillRect(left, baseline + 2, tw, 1, color);
         }
@@ -1412,10 +1522,10 @@ final class JXPaint {
             return;
         }
         float size = fontSize(node);
-        boolean bold = bold(node);
-        JXTextEngine engine = JXTextEngine.get(bold);
+        JXFont font = font(node);
+        JXTextEngine engine = JXTextEngine.get(font);
         float baseline = boxTop + engine.baseline(boxHeight, size);
-        p.text(value, x, baseline, size, bold, color);
+        p.text(value, x, baseline, size, font, color);
         if (underline) {
             p.fillRect(x, baseline + 2, engine.width(value, size), 1, color);
         }
@@ -1428,6 +1538,18 @@ final class JXPaint {
 
     static boolean bold(JXNativeNode node) {
         return Boolean.TRUE.equals(node.getProperty("bold"));
+    }
+
+    /**
+     * The font a node's text asks for: {@code fontFamily}, {@code fontWeight} (else 700 for {@code bold}, 400
+     * otherwise) and {@code italic}. Like {@code fontSize} and {@code bold}, each node's own props: nothing is
+     * inherited from a parent. Without any of them it is the UI font as always.
+     */
+    static JXFont font(JXNativeNode node) {
+        Object family = node.getProperty("fontFamily");
+        Object weight = node.getProperty("fontWeight");
+        int w = weight instanceof Number ? ((Number) weight).intValue() : bold(node) ? 700 : 400;
+        return JXFont.of(family == null ? null : String.valueOf(family), w, Boolean.TRUE.equals(node.getProperty("italic")));
     }
 
     static int color(JXNativeNode node, int fallback) {

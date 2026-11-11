@@ -314,6 +314,9 @@ final class JxmlComposites {
         if ("fab".equals(variant)) {
             throw new JxmlException(source, node.line, "<IconButton> variant fab is what <Fab> is; use <Fab>");
         }
+        if (variant.startsWith("${") || variant.startsWith("@{")) { // the icon's color depends on it, decided when the file is read
+            throw new JxmlException(source, node.line, "<IconButton> variant cannot be bound; write it, or use a <Button> with an <Icon>");
+        }
         JxmlParser.Node button = node("Button", node);
         copyExcept(node, button, "icon", "size", "color", "variant");
         button.attrs.put("variant", variant);

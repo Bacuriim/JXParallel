@@ -100,13 +100,13 @@ class JXControlLayoutTest {
             cells[i] = JXElement.of("cell", JXProps.builder().set("value", "item " + (first + i)).build());
         }
         return JXElement.of("list", JXProps.builder().set("itemCount", 100).set("first", first)
-                .set("scrollY", first * (line() + 6) + 5).build(), cells);
+                .set("scrollY", first * Math.ceil(line() + 6) + 5).build(), cells);
     }
 
     @Test
     void listPlacesItsVirtualCellsAtTheirIndex() {
         JXNativeNode list = laidOut(cells(10, 5), 200, 102);
-        double cell = line() + 6;
+        double cell = Math.ceil(line() + 6); // whole pixels, as the layout snaps cells
         assertEquals(cell, JXControlLayout.cellHeight(list), "Modena list cell: 17 px text (Segoe UI) + 3 + 3");
         // cell 10 starts at the viewport top minus the 5 px scrolled into it
         assertEquals(1 - 5, list.getChildren().get(0).getY());
@@ -289,7 +289,7 @@ class JXControlLayoutTest {
         JXNativeNode flow = laidOut(JXElement.of("textflow", JXProps.empty(), JXElement.text("Hello "), JXElement.text("world")),
                 (int) Math.ceil(text("Hello ")) + 5, 100);
         assertEquals(0, flow.getChildren().get(1).getX(), "the second run starts a new line");
-        assertEquals(line(), flow.getChildren().get(1).getY(), 0.001);
+        assertEquals(Math.ceil(line()), flow.getChildren().get(1).getY(), 0.001);
     }
 
     @Test

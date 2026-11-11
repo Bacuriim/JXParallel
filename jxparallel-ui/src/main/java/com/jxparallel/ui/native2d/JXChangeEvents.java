@@ -274,19 +274,25 @@ final class JXChangeEvents {
 
     /** A press on a divider of a split pane grabs it. */
     private static void pressDivider(JXNativeNode node, JXPointerEvent event) {
+        int divider = dividerAt(node, event.getX(), event.getY());
+        node.dragDivider = divider;
+        if (divider >= 0) {
+            float[] r = JXControlLayout.splitRects(node)[node.getChildren().size() + divider];
+            node.dragOffset = along(node, event) - (node.vertical() ? r[1] : r[0]);
+        }
+    }
+
+    /** The index of the divider of a split pane at (x, y), with 2 px of slack all around it, or -1. */
+    static int dividerAt(JXNativeNode node, int x, int y) {
         float[][] rects = JXControlLayout.splitRects(node);
         int panes = node.getChildren().size();
-        node.dragDivider = -1;
         for (int i = panes; i < rects.length; i++) {
             float[] r = rects[i];
-            boolean on = event.getX() >= r[0] - 2 && event.getX() < r[0] + r[2] + 2 && event.getY() >= r[1] - 2
-                    && event.getY() < r[1] + r[3] + 2;
-            if (on) {
-                node.dragDivider = i - panes;
-                node.dragOffset = along(node, event) - (node.vertical() ? r[1] : r[0]);
-                return;
+            if (x >= r[0] - 2 && x < r[0] + r[2] + 2 && y >= r[1] - 2 && y < r[1] + r[3] + 2) {
+                return i - panes;
             }
         }
+        return -1;
     }
 
     /**
@@ -353,7 +359,7 @@ final class JXChangeEvents {
         String insert = null;
         boolean move = true; // a key that moves the caret: Shift keeps the anchor, otherwise it follows
         String next = text;
-        if (event.isControlDown()) {
+        if (event.isShortcutDown()) {
             move = false;
             if (code == KEY_A) {
                 anchor = 0;
@@ -380,14 +386,15 @@ final class JXChangeEvents {
                 return;
             }
         } else if (typed >= 32 && typed != 127) {
-            insert = String.valueOf(typed);
+            // the typed character is a whole code point: an emoji is one event and two chars of the string
+            insert = new String(Character.toChars(event.getKeyCodePoint()));
         } else if (code == ENTER && area) {
             insert = "\n";
         } else if (code == BACKSPACE) {
             if (from < to) {
                 insert = "";
             } else if (caret > 0) {
-                from = caret - 1;
+                from = before(text, caret);
                 to = caret;
                 insert = "";
             }
@@ -396,15 +403,15 @@ final class JXChangeEvents {
                 insert = "";
             } else if (caret < text.length()) {
                 from = caret;
-                to = caret + 1;
+                to = after(text, caret);
                 insert = "";
             }
         } else if ((code == UP || code == DOWN) && area) {
             caret = JXTextHit.areaVertical(node, caret, code == UP ? -1 : 1); // the line above or below, same x
         } else if (code == LEFT) {
-            caret = !shift && from < to ? from : Math.max(0, caret - 1); // a selection collapses to its start
+            caret = !shift && from < to ? from : before(text, caret); // a selection collapses to its start
         } else if (code == RIGHT) {
-            caret = !shift && from < to ? to : Math.min(text.length(), caret + 1);
+            caret = !shift && from < to ? to : after(text, caret);
         } else if (code == HOME) {
             caret = area ? JXTextHit.areaLineOf(node, caret)[1] : 0;
         } else if (code == END) {
@@ -430,6 +437,16 @@ final class JXChangeEvents {
             node.redo().clear();
             onChange.accept(next);
         }
+    }
+
+    /** The index of the character before {@code index}: a surrogate pair (an emoji) counts as one character. */
+    static int before(String text, int index) {
+        return index <= 0 ? 0 : text.offsetByCodePoints(Math.min(index, text.length()), -1);
+    }
+
+    /** The index after the character at {@code index}: a surrogate pair counts as one character. */
+    static int after(String text, int index) {
+        return index >= text.length() ? text.length() : text.offsetByCodePoints(Math.max(index, 0), 1);
     }
 
     /** The index of the end of the line of a text area that {@code index} is on (the next line break, or the end). */

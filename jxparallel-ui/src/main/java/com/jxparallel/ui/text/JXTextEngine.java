@@ -12,7 +12,11 @@ import static org.lwjgl.util.harfbuzz.HarfBuzz.hb_blob_destroy;
 import static org.lwjgl.util.harfbuzz.HarfBuzz.hb_buffer_add_utf16;
 import static org.lwjgl.util.harfbuzz.HarfBuzz.hb_buffer_create;
 import static org.lwjgl.util.harfbuzz.HarfBuzz.hb_buffer_destroy;
+import static org.lwjgl.util.harfbuzz.HarfBuzz.HB_DIRECTION_LTR;
+import static org.lwjgl.util.harfbuzz.HarfBuzz.HB_DIRECTION_RTL;
 import static org.lwjgl.util.harfbuzz.HarfBuzz.hb_buffer_get_glyph_positions;
+import static org.lwjgl.util.harfbuzz.HarfBuzz.hb_buffer_set_direction;
+import static org.lwjgl.util.harfbuzz.HarfBuzz.hb_font_get_nominal_glyph;
 import static org.lwjgl.util.harfbuzz.HarfBuzz.hb_buffer_guess_segment_properties;
 import static org.lwjgl.util.harfbuzz.HarfBuzz.hb_face_create;
 import static org.lwjgl.util.harfbuzz.HarfBuzz.hb_face_get_upem;
@@ -54,9 +58,12 @@ public final class JXTextEngine {
     private static volatile JXTextEngine instance;
     private static volatile JXTextEngine boldInstance;
 
-    private final ConcurrentHashMap<String, Integer> advances = new ConcurrentHashMap<String, Integer>();
-
     private final String fontFile;
+    private final int faceIndex;
+    /** True for a face other than the UI font and its bold: the host's line metrics do not describe it. */
+    private final boolean custom;
+    private final int weight;
+    private final boolean italic;
     private final long font;
     private final int unitsPerEm;
     private final int ascender;
@@ -66,6 +73,10 @@ public final class JXTextEngine {
     /** Fallback without a font file: fixed-width estimate, so layout still works (and warns). */
     private JXTextEngine() {
         fontFile = null;
+        faceIndex = 0;
+        custom = false;
+        weight = 400;
+        italic = false;
         font = 0L;
         unitsPerEm = 1000;
         ascender = 800;
@@ -74,9 +85,17 @@ public final class JXTextEngine {
     }
 
     private JXTextEngine(String fontFile) {
+        this(fontFile, 0, false, 400, false);
+    }
+
+    private JXTextEngine(String fontFile, int faceIndex, boolean custom, int weight, boolean italic) {
         this.fontFile = fontFile;
+        this.faceIndex = faceIndex;
+        this.custom = custom;
+        this.weight = weight;
+        this.italic = italic;
         long blob = hb_blob_create_from_file(fontFile);
-        long face = hb_face_create(blob, 0);
+        long face = hb_face_create(blob, faceIndex);
         hb_blob_destroy(blob); // the face keeps its own reference
         unitsPerEm = hb_face_get_upem(face);
         font = hb_font_create(face); // the font keeps the face; neither is freed, one per process
@@ -126,7 +145,7 @@ public final class JXTextEngine {
                 engine = boldInstance;
                 if (engine == null) {
                     String file = findBoldFontFile();
-                    engine = file == null || get().getFontFile() == null ? get() : new JXTextEngine(file);
+                    engine = file == null || get().getFontFile() == null ? get() : new JXTextEngine(file, 0, false, 700, false);
                     if (engine != get()) {
                         engine.bold = true;
                     }
@@ -136,6 +155,80 @@ public final class JXTextEngine {
         }
         return engine;
     }
+
+    private static final ConcurrentHashMap<JXFont, JXTextEngine> FONT_ENGINES = new ConcurrentHashMap<JXFont, JXTextEngine>();
+    private static final ConcurrentHashMap<String, JXTextEngine> FACE_ENGINES = new ConcurrentHashMap<String, JXTextEngine>();
+
+    /**
+     * The engine for a font request: the UI font (regular or bold) for {@link JXFont#DEFAULT} and
+     * {@link JXFont#BOLD}, else the nearest face {@link JXFonts} finds for the family, weight and italic. A
+     * family nothing provides is drawn in the UI font, bold from weight 600.
+     */
+    public static JXTextEngine get(JXFont request) {
+        if (request == null) {
+            return get();
+        }
+        if (request.isLegacy()) {
+            return get(request.weight() >= 600);
+        }
+        JXTextEngine engine = FONT_ENGINES.get(request);
+        if (engine == null) {
+            JXFonts.Face face = JXFonts.resolve(request);
+            engine = face == null ? get(request.isBold()) : forFace(face);
+            FONT_ENGINES.put(request, engine);
+        }
+        return engine;
+    }
+
+    /** The engine of one face of a font file; the UI font's own files give the UI engines. */
+    static JXTextEngine forFace(JXFonts.Face face) {
+        String key = face.file() + "#" + face.index();
+        JXTextEngine engine = FACE_ENGINES.get(key);
+        if (engine == null) {
+            synchronized (FACE_ENGINES) {
+                engine = FACE_ENGINES.get(key);
+                if (engine == null) {
+                    String regular = findFontFile();
+                    String boldFile = findBoldFontFile();
+                    if (face.index() == 0 && regular != null && sameFile(face.file(), regular) && get().getFontFile() != null) {
+                        engine = get();
+                    } else if (face.index() == 0 && boldFile != null && sameFile(face.file(), boldFile) && get(true) != get()) {
+                        engine = get(true);
+                    } else {
+                        engine = new JXTextEngine(face.file(), face.index(), true, face.weight(), face.italic());
+                    }
+                    FACE_ENGINES.put(key, engine);
+                }
+            }
+        }
+        return engine;
+    }
+
+    private static boolean sameFile(String a, String b) {
+        return new File(a).getAbsoluteFile().equals(new File(b).getAbsoluteFile());
+    }
+
+    /** The registered fonts changed: forget what was resolved and shaped from the old set. */
+    static void fontsChanged() {
+        FONT_ENGINES.clear();
+        FALLBACKS.clear();
+        JXFonts.invalidateFallbacks();
+        JXTextEngine regular = instance;
+        JXTextEngine heavy = boldInstance;
+        if (regular != null) {
+            regular.shapes.clear();
+        }
+        if (heavy != null) {
+            heavy.shapes.clear();
+        }
+        for (JXTextEngine engine : FACE_ENGINES.values()) {
+            engine.shapes.clear();
+        }
+    }
+
+    /** Fallback face per (code point, bold, italic): an engine, or {@link #NO_FALLBACK}. */
+    private static final ConcurrentHashMap<Long, Object> FALLBACKS = new ConcurrentHashMap<Long, Object>();
+    private static final Object NO_FALLBACK = new Object();
 
     /** The bold UI font file, or {@code null}. */
     public static String findBoldFontFile() {
@@ -178,7 +271,7 @@ public final class JXTextEngine {
         if (text == null || text.isEmpty()) {
             return 0.0f;
         }
-        LineMetrics metrics = lineMetrics;
+        LineMetrics metrics = custom ? null : lineMetrics;
         if (metrics != null && (bold || size != DEFAULT_SIZE)) {
             // hinted advances drift from the scaled ones away from the default size: ask the host
             String key = size + "|" + text;
@@ -200,16 +293,211 @@ public final class JXTextEngine {
         if (font == 0L) {
             return text.codePointCount(0, text.length()) * 0.6f * size;
         }
-        // Unhinted advances scale linearly with size, so one entry per text serves every size.
-        Integer units = advances.get(text);
-        if (units == null) {
-            units = shapeAdvance(text);
-            if (advances.size() >= MAX_CACHED) {
-                advances.clear(); // ponytail: crude eviction, an LRU if big apps thrash it
-            }
-            advances.put(text, units);
+        // Unhinted advances scale linearly with size, so one shaping per text serves every size.
+        return shape(text).width(size);
+    }
+
+    /**
+     * The text split into runs, each in one font, script and direction, in visual (left to right) order:
+     * bidirectional text is reordered ({@link java.text.Bidi}) and a character this font lacks is taken from a
+     * fallback face that has it. {@link #width} and the renderers use these runs, so what is measured is what is
+     * drawn. {@code null} when there is no font file or no text. Cached.
+     */
+    public JXShapedText shape(String text) {
+        if (font == 0L || text == null || text.isEmpty()) {
+            return null;
         }
-        return units * size / unitsPerEm;
+        JXShapedText shaped = shapes.get(text);
+        if (shaped == null) {
+            shaped = itemize(text);
+            if (shapes.size() >= MAX_CACHED) {
+                shapes.clear(); // ponytail: crude eviction, an LRU if big apps thrash it
+            }
+            shapes.put(text, shaped);
+        }
+        return shaped;
+    }
+
+    private final ConcurrentHashMap<String, JXShapedText> shapes = new ConcurrentHashMap<String, JXShapedText>();
+    /** Whether this font has a glyph for each BMP code point: 0 unknown, 1 yes, 2 no. */
+    private volatile byte[] bmpCoverage;
+    private final ConcurrentHashMap<Integer, Boolean> astralCoverage = new ConcurrentHashMap<Integer, Boolean>();
+
+    /** The index of this face in its file (0 unless the file is a collection). */
+    public int getFaceIndex() {
+        return faceIndex;
+    }
+
+    /** True if the font has a glyph for the code point. */
+    public boolean covers(int codePoint) {
+        if (font == 0L) {
+            return false;
+        }
+        if (codePoint < 0x10000) {
+            byte[] table = bmpCoverage;
+            if (table == null) {
+                table = new byte[0x10000];
+                bmpCoverage = table;
+            }
+            byte known = table[codePoint];
+            if (known == 0) {
+                known = (byte) (hasGlyph(codePoint) ? 1 : 2);
+                table[codePoint] = known;
+            }
+            return known == 1;
+        }
+        Boolean known = astralCoverage.get(codePoint);
+        if (known == null) {
+            known = hasGlyph(codePoint);
+            astralCoverage.put(codePoint, known);
+        }
+        return known;
+    }
+
+    private boolean hasGlyph(int codePoint) {
+        try (MemoryStack stack = MemoryStack.stackPush()) {
+            java.nio.IntBuffer glyph = stack.mallocInt(1);
+            return hb_font_get_nominal_glyph(font, codePoint, glyph) && glyph.get(0) != 0;
+        }
+    }
+
+    /** Marks, joiners, variation selectors, modifiers and controls: they belong to the character before them. */
+    private static boolean sticky(int cp) {
+        int type = Character.getType(cp);
+        return type == Character.NON_SPACING_MARK || type == Character.ENCLOSING_MARK
+                || type == Character.COMBINING_SPACING_MARK || type == Character.FORMAT || type == Character.CONTROL
+                || cp >= 0xFE00 && cp <= 0xFE0F || cp >= 0xE0100 && cp <= 0xE01EF || cp >= 0x1F3FB && cp <= 0x1F3FF
+                || cp >= 0xE0020 && cp <= 0xE007F;
+    }
+
+    /** The face for a character this font lacks: the first fallback face that has it, else this font (its notdef). */
+    private JXTextEngine fallbackFor(int cp) {
+        long key = ((long) cp << 2) | (weight >= 600 ? 2 : 0) | (italic ? 1 : 0);
+        Object known = FALLBACKS.get(key);
+        if (known == null) {
+            known = NO_FALLBACK;
+            for (JXFonts.Face candidate : JXFonts.fallbacks(cp)) {
+                JXFonts.Face sibling = JXFonts.sibling(candidate, weight, italic);
+                JXTextEngine engine = forFace(sibling);
+                if (!engine.covers(cp) && sibling != candidate) {
+                    engine = forFace(candidate);
+                }
+                if (engine.covers(cp)) {
+                    known = engine;
+                    break;
+                }
+            }
+            FALLBACKS.put(key, known);
+        }
+        return known == NO_FALLBACK ? this : (JXTextEngine) known;
+    }
+
+    private static Character.UnicodeScript scriptGroup(int cp, Character.UnicodeScript previous) {
+        Character.UnicodeScript script = Character.UnicodeScript.of(cp);
+        if (script == Character.UnicodeScript.COMMON || script == Character.UnicodeScript.INHERITED) {
+            return previous;
+        }
+        if (script == Character.UnicodeScript.HIRAGANA || script == Character.UnicodeScript.KATAKANA) {
+            return Character.UnicodeScript.HAN; // one run: Japanese text mixes the three
+        }
+        return script;
+    }
+
+    private JXShapedText itemize(String text) {
+        int length = text.length();
+        java.text.Bidi bidi = null;
+        if (java.text.Bidi.requiresBidi(text.toCharArray(), 0, length)) {
+            java.text.Bidi analysed = new java.text.Bidi(text, java.text.Bidi.DIRECTION_DEFAULT_LEFT_TO_RIGHT);
+            if (!analysed.isLeftToRight()) {
+                bidi = analysed;
+            }
+        }
+        java.util.ArrayList<JXShapedText.Run> runs = new java.util.ArrayList<JXShapedText.Run>();
+        if (bidi == null) {
+            split(text, 0, length, false, runs);
+        } else {
+            int count = bidi.getRunCount();
+            byte[] levels = new byte[count];
+            Object[] groups = new Object[count];
+            for (int i = 0; i < count; i++) {
+                int level = bidi.getRunLevel(i);
+                java.util.ArrayList<JXShapedText.Run> group = new java.util.ArrayList<JXShapedText.Run>();
+                split(text, bidi.getRunStart(i), bidi.getRunLimit(i), (level & 1) != 0, group);
+                if ((level & 1) != 0) {
+                    java.util.Collections.reverse(group); // inside a right-to-left run the pieces go right to left
+                }
+                levels[i] = (byte) level;
+                groups[i] = group;
+            }
+            java.text.Bidi.reorderVisually(levels, 0, groups, 0, count);
+            for (Object group : groups) {
+                @SuppressWarnings("unchecked")
+                java.util.List<JXShapedText.Run> list = (java.util.List<JXShapedText.Run>) group;
+                runs.addAll(list);
+            }
+        }
+        return new JXShapedText(text, runs.toArray(new JXShapedText.Run[0]));
+    }
+
+    /** Splits [start, limit) into pieces of one font and script, each shaped, in logical order. */
+    private void split(String text, int start, int limit, boolean rtl, java.util.List<JXShapedText.Run> out) {
+        JXTextEngine current = null;
+        Character.UnicodeScript script = null;
+        int pieceStart = start;
+        int i = start;
+        while (i < limit) {
+            int cp = text.codePointAt(i);
+            int next = i + Character.charCount(cp);
+            JXTextEngine face;
+            Character.UnicodeScript s = script;
+            if (current != null && sticky(cp)) {
+                face = current;
+            } else {
+                face = covers(cp) || sticky(cp) ? this : fallbackFor(cp);
+                s = scriptGroup(cp, script);
+            }
+            if (current != null && (face != current || s != script && script != null && s != null)) {
+                out.add(current.shapePiece(text, pieceStart, i, rtl));
+                pieceStart = i;
+            }
+            current = face;
+            script = s != null ? s : script;
+            i = next;
+        }
+        if (current != null) {
+            out.add(current.shapePiece(text, pieceStart, limit, rtl));
+        }
+    }
+
+    /** Shapes [start, end) of the text with this font alone. */
+    private JXShapedText.Run shapePiece(String text, int start, int end, boolean rtl) {
+        long buffer = hb_buffer_create();
+        try {
+            hb_buffer_add_utf16(buffer, text, start, end - start);
+            hb_buffer_guess_segment_properties(buffer);
+            hb_buffer_set_direction(buffer, rtl ? HB_DIRECTION_RTL : HB_DIRECTION_LTR);
+            hb_shape(font, buffer, null);
+            org.lwjgl.util.harfbuzz.hb_glyph_info_t.Buffer infos = org.lwjgl.util.harfbuzz.HarfBuzz.hb_buffer_get_glyph_infos(buffer);
+            hb_glyph_position_t.Buffer positions = hb_buffer_get_glyph_positions(buffer);
+            int n = infos == null || positions == null ? 0 : Math.min(infos.remaining(), positions.remaining());
+            int[] glyphs = new int[3 * n];
+            int pen = 0;
+            for (int g = 0; g < n; g++) {
+                hb_glyph_position_t p = positions.get(g);
+                glyphs[3 * g] = infos.get(g).codepoint(); // after hb_shape, the glyph id
+                glyphs[3 * g + 1] = pen + p.x_offset();
+                glyphs[3 * g + 2] = -p.y_offset();
+                pen += p.x_advance();
+            }
+            return new JXShapedText.Run(this, start, end, rtl, glyphs, pen);
+        } finally {
+            hb_buffer_destroy(buffer);
+        }
+    }
+
+    /** Font units per em of this face. */
+    int unitsPerEm() {
+        return unitsPerEm;
     }
 
     /**
@@ -275,24 +563,6 @@ public final class JXTextEngine {
         }
     }
 
-    /** Total advance of the shaped text in font units. */
-    private int shapeAdvance(String text) {
-        long buffer = hb_buffer_create();
-        try {
-            hb_buffer_add_utf16(buffer, text, 0, -1);
-            hb_buffer_guess_segment_properties(buffer);
-            hb_shape(font, buffer, null);
-            hb_glyph_position_t.Buffer positions = hb_buffer_get_glyph_positions(buffer);
-            int advance = 0;
-            for (int i = 0; positions != null && i < positions.remaining(); i++) {
-                advance += positions.get(i).x_advance();
-            }
-            return advance;
-        } finally {
-            hb_buffer_destroy(buffer);
-        }
-    }
-
     /** Distance from the top of a line to the baseline. */
     public float ascent(float size) {
         float[] measured = measured(size);
@@ -337,7 +607,7 @@ public final class JXTextEngine {
 
     private float[] measured(float size) {
         LineMetrics metrics = lineMetrics;
-        if (metrics == null) {
+        if (metrics == null || custom) {
             return null;
         }
         float[] cached = measuredLines.get(size);

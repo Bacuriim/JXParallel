@@ -139,6 +139,9 @@ class JXScrollBarDragTest {
         JXControlLayout.ScrollGeometry g = geometry(root);
         float x = g.vx + 5;
         float y = g.vy + g.vh - JXControlLayout.BAR_BUTTON - 5; // the track, over a row
+        while (root.hitTest((int) x, (int) y) == pane) {
+            y--; // not in the gap between two rows: the empty gap of the column is no longer hit, the pane is
+        }
         List<JXNativeNode> path = root.hitPath((int) x, (int) y);
         assertTrue(path.get(path.size() - 1) != pane, "a row lies under the bar");
         assertSame(pane, root.routePointer(at(x, y)));

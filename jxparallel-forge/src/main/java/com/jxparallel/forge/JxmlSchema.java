@@ -22,19 +22,34 @@ public final class JxmlSchema {
         public final boolean bindable;
         /** For a STRING written as a literal: the only values allowed (checked when the file is read), or null for any. */
         public final java.util.List<String> choices;
-        /** For a CHANGE attribute: the type of the value the handler gets (STRING, BOOLEAN, DOUBLE, INT or DOUBLES). */
+        /** {@link #choices} as an array, one instance per attribute: what a bound value is checked against. */
+        final String[] choiceArray;
+        /** For a CHANGE attribute: the type of the value the handler gets (STRING, BOOLEAN, DOUBLE, INT, DOUBLES, or STRINGS for a List&lt;String&gt;). */
         public final AttrType valueType;
+        /** For a STRING written as a literal: checks its text (throws IllegalArgumentException with the reason), or null. */
+        public final java.util.function.Consumer<String> check;
 
         Attr(String name, String prop, AttrType type, boolean bindable) {
             this(name, prop, type, bindable, null, null);
         }
 
+        Attr(String name, String prop, AttrType type, boolean bindable, java.util.function.Consumer<String> check) {
+            this(name, prop, type, bindable, null, null, check);
+        }
+
         Attr(String name, String prop, AttrType type, boolean bindable, java.util.List<String> choices, AttrType valueType) {
+            this(name, prop, type, bindable, choices, valueType, null);
+        }
+
+        Attr(String name, String prop, AttrType type, boolean bindable, java.util.List<String> choices, AttrType valueType,
+                java.util.function.Consumer<String> check) {
+            this.check = check;
             this.name = name;
             this.prop = prop;
             this.type = type;
             this.bindable = bindable;
             this.choices = choices;
+            this.choiceArray = choices == null ? null : choices.toArray(new String[0]);
             this.valueType = valueType;
         }
     }
@@ -53,6 +68,12 @@ public final class JxmlSchema {
         public final String changeAttr;
         /** The Java type of the value onChange passes: STRING, BOOLEAN or DOUBLE. */
         public final AttrType changeType;
+        /**
+         * Every attribute that {@code @{...}} binds two ways, with the handler attribute the renderer reports its change
+         * through: {@code onChange} for {@link #changeAttr}, and for the selection of a list or tree {@code selected}
+         * through {@code onSelect} and {@code selection} through {@code onSelection}.
+         */
+        public final Map<String, String> twoWay;
         /**
          * A tag that stands for other tags: {@code JxmlComposites} rewrites it into primitive tags before the
          * interpreter and the compiler see it, so it has no native element of its own.
@@ -83,7 +104,8 @@ public final class JxmlSchema {
         Tag(String name, String nativeType, Children children, Map<String, Attr> attrs, Map<String, Object> defaults,
             boolean control, String changeAttr, AttrType changeType, boolean composite, String alias,
             Map<String, String> aliasAttrs, boolean virtual, boolean finish, java.util.List<String> required,
-            boolean tree, java.util.List<String> only, java.util.List<String> parents) {
+            boolean tree, java.util.List<String> only, java.util.List<String> parents, Map<String, String> twoWay) {
+            this.twoWay = Collections.unmodifiableMap(twoWay);
             this.tree = tree;
             this.only = only == null ? null : Collections.unmodifiableList(only);
             this.parents = parents == null ? null : Collections.unmodifiableList(parents);
@@ -116,13 +138,24 @@ public final class JxmlSchema {
     /** The looks of a Button; {@code fab} is what a Fab expands to. */
     static final java.util.List<String> VARIANTS = Collections.unmodifiableList(
             java.util.Arrays.asList("filled", "tonal", "outlined", "text", "elevated", "fab"));
+    /**
+     * The {@code onChange} of a {@code <Spinner integer="true">}: the handler or setter gets an int. The renderer reports a
+     * Double, so the interpreter and the generated code convert it ({@link JxmlValues#asInt}); the resolver puts this
+     * attribute in place of the Spinner's own {@code onChange} (a Spinner has one number type at a time).
+     */
+    static final Attr SPINNER_INTEGER_CHANGE = new Attr("onChange", "onChange", AttrType.CHANGE, false, null, AttrType.INT);
     static final java.util.List<String> ORIENTATIONS = Collections.unmodifiableList(java.util.Arrays.asList("horizontal", "vertical"));
     static final java.util.List<String> CHIP_KINDS = Collections.unmodifiableList(
             java.util.Arrays.asList("assist", "filter", "choice", "input"));
-    static final java.util.List<String> SIDES = Collections.unmodifiableList(java.util.Arrays.asList("left", "right"));
+    static final java.util.List<String> SELECTION_MODES = Collections.unmodifiableList(java.util.Arrays.asList("single", "multiple"));
+    static final java.util.List<String> SIDES =Collections.unmodifiableList(java.util.Arrays.asList("left", "right"));
+    /** The mouse pointer shapes of {@code cursor} (JXCursor.parse also takes the CSS and JavaFX synonyms from code). */
+    static final java.util.List<String> CURSORS = Collections.unmodifiableList(
+            java.util.Arrays.asList("default", "text", "hand", "crosshair", "h-resize", "v-resize"));
 
     static {
-        layout("theme", "theme", AttrType.STRING, false); // root only: light or dark, inherited by the renderer
+        // root only: light or dark, inherited by the renderer; written or bound (${...}), and the tokens follow a bound one
+        LAYOUT.put("theme", new Attr("theme", "theme", AttrType.STRING, true, JxmlThemes.THEMES, null));
         layout("key", "key", AttrType.STRING, false);
         layout("margin", "margin", AttrType.INSETS, false);
         layout("hgrow", "hgrow", AttrType.STRING, false);
@@ -149,6 +182,19 @@ public final class JxmlSchema {
         layout("hidden", "hidden", AttrType.BOOLEAN, true);
         layout("mouseTransparent", "mouseTransparent", AttrType.BOOLEAN, false);
         layout("tooltip", "tooltip", AttrType.STRING, true); // shown when the pointer rests on the element
+        // accessibility, read by the screen-reader tree (JXNativeAccessibility): a name and a description, a role that replaces
+        // the detected one, hidden from assistive technology, and labelFor="key": this element names the one with that key
+        layout("accessibleName", "accessibleName", AttrType.STRING, true);
+        layout("accessibleDescription", "accessibleDescription", AttrType.STRING, true);
+        layout("accessibleRole", "accessibleRole", AttrType.STRING, false);
+        layout("accessibleHidden", "accessibleHidden", AttrType.BOOLEAN, true);
+        layout("labelFor", "labelFor", AttrType.STRING, false);
+        // the shape of the mouse pointer over the element (an enabled text field, hyperlink and split pane divider have theirs)
+        LAYOUT.put("cursor", new Attr("cursor", "cursor", AttrType.STRING, false, CURSORS, null));
+        // files dropped on the window from the system: the nearest element under the pointer with onDrop gets the paths
+        LAYOUT.put("onDrop", new Attr("onDrop", "onDrop", AttrType.CHANGE, false, null, AttrType.STRINGS));
+        // the pointer entered (true) or left (false) the element or one inside it: JXNativeNode.hoverPointer
+        LAYOUT.put("onHover", new Attr("onHover", "onHover", AttrType.CHANGE, false, null, AttrType.BOOLEAN));
         // a click: the renderer calls the handler of the deepest element under the pointer (JXNativeNode.dispatchPointer)
         layout("onAction", "onAction", AttrType.HANDLER, false);
         layout("background", "background", AttrType.COLOR, true);
@@ -156,6 +202,23 @@ public final class JxmlSchema {
         layout("borderColor", "borderColor", AttrType.COLOR, true);
         layout("borderWidth", "borderWidth", AttrType.DOUBLE, true);
         layout("borderRadius", "borderRadius", AttrType.DOUBLE, true);
+        // animation (JXTransitions): what a changed prop does on a kept element, and where a new element starts from; both are
+        // checked here, once per literal, with the same parser the renderer uses
+        LAYOUT.put("transition", new Attr("transition", "transition", AttrType.STRING, true, com.jxparallel.ui.JXTransitions::checkTransition));
+        LAYOUT.put("enter", new Attr("enter", "enter", AttrType.STRING, true, com.jxparallel.ui.JXTransitions::checkEnter));
+        // drawn and picked, never laid out: the node and its subtree are scaled, then rotated (degrees, clockwise) about the
+        // centre of the node's bounds, then moved (JXPaint, JXTransforms)
+        layout("translateX", "translateX", AttrType.DOUBLE, true);
+        layout("translateY", "translateY", AttrType.DOUBLE, true);
+        layout("scaleX", "scaleX", AttrType.DOUBLE, true);
+        layout("scaleY", "scaleY", AttrType.DOUBLE, true);
+        layout("rotate", "rotate", AttrType.DOUBLE, true);
+        // a soft shadow under the box (JXPaint.region) and a CSS linear-gradient(...) or radial-gradient(...) instead of the background
+        layout("elevation", "elevation", AttrType.DOUBLE, true);
+        layout("shadowColor", "shadowColor", AttrType.COLOR, true);
+        layout("shadowOffsetX", "shadowOffsetX", AttrType.DOUBLE, true);
+        layout("shadowOffsetY", "shadowOffsetY", AttrType.DOUBLE, true);
+        layout("gradient", "backgroundGradient", AttrType.STRING, true);
 
         tag("Column", "column", Children.MANY)
                 .attr("gap", "gap", AttrType.DOUBLE, true).attr("padding", "padding", AttrType.INSETS, false)
@@ -210,31 +273,32 @@ public final class JxmlSchema {
         tag("Label", "#text", Children.NONE)
                 .attr("text", "value", AttrType.STRING, true).attr("wrapText", "wrapText", AttrType.BOOLEAN, false)
                 .attr("bold", "bold", AttrType.BOOLEAN, false).attr("fontSize", "fontSize", AttrType.DOUBLE, false)
-                .attr("textFill", "textFill", AttrType.COLOR, true)
+                .attr("textFill", "textFill", AttrType.COLOR, true).font()
                 .def("value", "")
                 .done();
         tag("Button", "button", Children.ONE) // an optional child is its graphic, left of the text
                 .attr("text", "label", AttrType.STRING, true).attr("onAction", "onAction", AttrType.HANDLER, false)
                 .attr("disabled", "disabled", AttrType.BOOLEAN, true).attr("defaultButton", "defaultButton", AttrType.BOOLEAN, false)
-                .choice("variant", "variant", VARIANTS)
+                .choiceBound("variant", "variant", VARIANTS)
                 .attr("round", "round", AttrType.BOOLEAN, false).attr("padding", "padding", AttrType.INSETS, false)
-                .attr("textFill", "textFill", AttrType.COLOR, true)
+                .attr("textFill", "textFill", AttrType.COLOR, true).font()
+                .attr("accelerator", "accelerator", AttrType.STRING, true)
                 .def("label", "")
                 .done();
         tag("TextField", "input", Children.NONE)
-                .attr("text", "value", AttrType.STRING, true).attr("prompt", "prompt", AttrType.STRING, true)
+                .attr("text", "value", AttrType.STRING, true).attr("prompt", "prompt", AttrType.STRING, true).font()
                 .attr("columns", "prefColumnCount", AttrType.DOUBLE, false)
                 .def("value", "").def("prompt", "").def("prefColumnCount", Double.valueOf(12))
                 .change("text", AttrType.STRING)
                 .done();
         tag("PasswordField", "password", Children.NONE)
-                .attr("text", "value", AttrType.STRING, true).attr("prompt", "prompt", AttrType.STRING, true)
+                .attr("text", "value", AttrType.STRING, true).attr("prompt", "prompt", AttrType.STRING, true).font()
                 .attr("columns", "prefColumnCount", AttrType.DOUBLE, false)
                 .def("value", "").def("prompt", "").def("prefColumnCount", Double.valueOf(12))
                 .change("text", AttrType.STRING)
                 .done();
         tag("TextArea", "textarea", Children.NONE)
-                .attr("text", "value", AttrType.STRING, true).attr("prompt", "prompt", AttrType.STRING, true)
+                .attr("text", "value", AttrType.STRING, true).attr("prompt", "prompt", AttrType.STRING, true).font()
                 .attr("wrapText", "wrapText", AttrType.BOOLEAN, false)
                 .attr("columns", "prefColumnCount", AttrType.DOUBLE, false).attr("rows", "prefRowCount", AttrType.DOUBLE, false)
                 .def("value", "").def("prompt", "").def("wrapText", Boolean.FALSE).def("scrollTop", Double.valueOf(0))
@@ -242,20 +306,20 @@ public final class JxmlSchema {
                 .change("text", AttrType.STRING)
                 .done();
         tag("CheckBox", "checkbox", Children.NONE)
-                .attr("text", "label", AttrType.STRING, true).attr("selected", "checked", AttrType.BOOLEAN, true)
+                .attr("text", "label", AttrType.STRING, true).attr("selected", "checked", AttrType.BOOLEAN, true).font()
                 .def("label", "").def("checked", Boolean.FALSE).def("indeterminate", Boolean.FALSE)
                 .change("selected", AttrType.BOOLEAN)
                 .done();
         tag("ComboBox", "select", Children.NONE)
                 .attr("value", "value", AttrType.STRING, true).attr("prompt", "prompt", AttrType.STRING, true)
                 .attr("items", "options", AttrType.STRINGS, true)
-                .def("value", "").def("prompt", "").def("options", new String[0]).def("showing", Boolean.FALSE)
+                .def("value", "").def("prompt", "").def("options", new String[0])
                 .def("overlay", Boolean.TRUE) // the node draws its own popup over the window (JXOverlays)
                 .overlay()
                 .change("value", AttrType.STRING)
                 .done();
         tag("Spinner", "spinner", Children.NONE)
-                .attr("value", "value", AttrType.STRING, true)
+                .attr("value", "value", AttrType.TEXT_OR_NUMBER, true).attr("integer", "integer", AttrType.BOOLEAN, false)
                 .attr("min", "min", AttrType.DOUBLE, false).attr("max", "max", AttrType.DOUBLE, false)
                 .attr("step", "step", AttrType.DOUBLE, false)
                 .def("value", "")
@@ -263,7 +327,7 @@ public final class JxmlSchema {
                 .done();
         tag("DatePicker", "datepicker", Children.NONE)
                 .attr("value", "value", AttrType.STRING, true).attr("prompt", "prompt", AttrType.STRING, true)
-                .def("value", "").def("prompt", "").def("showing", Boolean.FALSE).def("overlay", Boolean.TRUE)
+                .def("value", "").def("prompt", "").def("overlay", Boolean.TRUE)
                 .overlay()
                 .change("value", AttrType.STRING)
                 .done();
@@ -347,14 +411,13 @@ public final class JxmlSchema {
                 .attr("hour24", "hour24", AttrType.BOOLEAN, true).attr("minuteStep", "minuteStep", AttrType.INT, true)
                 .attr("disabled", "disabled", AttrType.BOOLEAN, true)
                 .def("value", "").def("prompt", "").def("hour24", Boolean.TRUE).def("minuteStep", Integer.valueOf(5))
-                .def("showing", Boolean.FALSE)
                 .overlay()
                 .change("value", AttrType.STRING)
                 .done();
         tag("ColorPicker", "colorpicker", Children.NONE)
                 .attr("value", "value", AttrType.STRING, true).attr("prompt", "prompt", AttrType.STRING, true)
                 .attr("disabled", "disabled", AttrType.BOOLEAN, true)
-                .def("value", "").def("prompt", "").def("showing", Boolean.FALSE)
+                .def("value", "").def("prompt", "")
                 .overlay()
                 .change("value", AttrType.STRING)
                 .done();
@@ -399,8 +462,11 @@ public final class JxmlSchema {
                 .def("message", "").def("showing", Boolean.FALSE)
                 .overlay()
                 .done();
+        // A Dialog and an AlertDialog take what the Modal they become takes, so a dialog can be styled as a Modal is.
         tag("Dialog", null, Children.MANY).composite()
                 .attr("title", "title", AttrType.STRING, true).attr("dismissible", "dismissible", AttrType.BOOLEAN, true)
+                .attr("padding", "padding", AttrType.INSETS, false).attr("gap", "gap", AttrType.DOUBLE, true)
+                .attr("alignment", "alignment", AttrType.STRING, false).attr("fillWidth", "fillWidth", AttrType.BOOLEAN, false)
                 .overlay()
                 .done();
         tag("AlertDialog", null, Children.NONE).composite()
@@ -408,6 +474,8 @@ public final class JxmlSchema {
                 .attr("confirmText", "confirmText", AttrType.STRING, true).attr("cancelText", "cancelText", AttrType.STRING, true)
                 .attr("onConfirm", "onConfirm", AttrType.HANDLER, false).attr("onCancel", "onCancel", AttrType.HANDLER, false)
                 .attr("dismissible", "dismissible", AttrType.BOOLEAN, true)
+                .attr("padding", "padding", AttrType.INSETS, false).attr("gap", "gap", AttrType.DOUBLE, true)
+                .attr("alignment", "alignment", AttrType.STRING, false).attr("fillWidth", "fillWidth", AttrType.BOOLEAN, false)
                 .overlay()
                 .done();
         alias("MenuSeparator", "MenuItem", "separator", "true");
@@ -417,7 +485,7 @@ public final class JxmlSchema {
                 .attr("rowHeight", "cellHeight", AttrType.DOUBLE, true).attr("first", "first", AttrType.INT, true)
                 .attr("rows", "rows", AttrType.INT, true)
                 .def("first", Integer.valueOf(0)).def("cellHeight", Double.valueOf(24))
-                .change("first", AttrType.INT)
+                .change("first", AttrType.INT).selection()
                 .done();
         tag("TreeTable", "table", Children.MANY).tree().only("TreeItem")
                 .attr("rowHeight", "rowHeight", AttrType.DOUBLE, true).attr("first", "first", AttrType.INT, true)
@@ -426,7 +494,7 @@ public final class JxmlSchema {
                 .attr("constrained", "constrained", AttrType.BOOLEAN, false)
                 .def("first", Integer.valueOf(0)).def("rowHeight", Double.valueOf(24)).def("columns", new String[0])
                 .def("constrained", Boolean.FALSE)
-                .change("first", AttrType.INT)
+                .change("first", AttrType.INT).selection()
                 .done();
         tag("TreeItem", "cell", Children.MANY).only("TreeItem").parents("Tree", "TreeTable", "TreeItem")
                 .attr("text", "value", AttrType.STRING, true).attr("expanded", "expanded", AttrType.BOOLEAN, true)
@@ -442,10 +510,12 @@ public final class JxmlSchema {
                 .attr("size", "size", AttrType.DOUBLE, false).attr("color", "color", AttrType.COLOR, false)
                 .choice("variant", "variant", VARIANTS)
                 .attr("disabled", "disabled", AttrType.BOOLEAN, true)
+                .attr("padding", "padding", AttrType.INSETS, false).attr("accelerator", "accelerator", AttrType.STRING, true)
                 .done();
         tag("Fab", null, Children.NONE).composite()
                 .choice("icon", "icon", JxmlThemes.ICONS).attr("text", "text", AttrType.STRING, true)
                 .attr("disabled", "disabled", AttrType.BOOLEAN, true)
+                .attr("padding", "padding", AttrType.INSETS, false).attr("accelerator", "accelerator", AttrType.STRING, true)
                 .done();
 
         // Containers the renderer already lays out (JXFlowLayout, JXBoxLayout).
@@ -493,21 +563,21 @@ public final class JxmlSchema {
 
         // Controls the renderer already draws (JXPaint.self, JXControlLayout.sizes).
         tag("ToggleButton", "toggle", Children.NONE).finish()
-                .attr("text", "label", AttrType.STRING, true).attr("selected", "selected", AttrType.BOOLEAN, true)
+                .attr("text", "label", AttrType.STRING, true).attr("selected", "selected", AttrType.BOOLEAN, true).font()
                 .attr("onAction", "onAction", AttrType.HANDLER, false).attr("disabled", "disabled", AttrType.BOOLEAN, true)
                 .attr("group", "group", AttrType.STRING, true).attr("value", "value", AttrType.STRING, false)
                 .def("label", "").def("selected", Boolean.FALSE)
                 .change("group", AttrType.STRING)
                 .done();
         tag("RadioButton", "radio", Children.NONE).finish()
-                .attr("text", "label", AttrType.STRING, true).attr("selected", "checked", AttrType.BOOLEAN, true)
+                .attr("text", "label", AttrType.STRING, true).attr("selected", "checked", AttrType.BOOLEAN, true).font()
                 .attr("onAction", "onAction", AttrType.HANDLER, false).attr("disabled", "disabled", AttrType.BOOLEAN, true)
                 .attr("group", "group", AttrType.STRING, true).attr("value", "value", AttrType.STRING, false)
                 .def("label", "").def("checked", Boolean.FALSE)
                 .change("group", AttrType.STRING)
                 .done();
         tag("Hyperlink", "hyperlink", Children.NONE)
-                .attr("text", "label", AttrType.STRING, true).attr("visited", "visited", AttrType.BOOLEAN, true)
+                .attr("text", "label", AttrType.STRING, true).attr("visited", "visited", AttrType.BOOLEAN, true).font()
                 .attr("onAction", "onAction", AttrType.HANDLER, false).attr("disabled", "disabled", AttrType.BOOLEAN, true)
                 .def("label", "")
                 .done();
@@ -521,6 +591,7 @@ public final class JxmlSchema {
                 .done();
         tag("Image", "image", Children.NONE)
                 .attr("pixels", "pixels", AttrType.PIXELS, true)
+                .attr("src", "src", AttrType.IMAGE_SOURCE, true)
                 .attr("imageWidth", "imageWidth", AttrType.DOUBLE, true).attr("imageHeight", "imageHeight", AttrType.DOUBLE, true)
                 .attr("fitWidth", "fitWidth", AttrType.DOUBLE, true).attr("fitHeight", "fitHeight", AttrType.DOUBLE, true)
                 .attr("preserveRatio", "preserveRatio", AttrType.BOOLEAN, false)
@@ -532,7 +603,7 @@ public final class JxmlSchema {
                 .attr("type", "type", AttrType.STRING, false).attr("rows", "rows", AttrType.INT, true)
                 .attr("first", "first", AttrType.INT, true).attr("cellHeight", "cellHeight", AttrType.DOUBLE, true)
                 .def("first", Integer.valueOf(0)).def("cellHeight", Double.valueOf(24))
-                .handler("onScroll", AttrType.DOUBLES).change("first", AttrType.INT)
+                .handler("onScroll", AttrType.DOUBLES).change("first", AttrType.INT).selection()
                 .done();
         tag("TableView", "table", Children.TEMPLATE).virtual().finish()
                 .attr("items", "itemCount", AttrType.COUNT, true).attr("var", "var", AttrType.STRING, false)
@@ -542,7 +613,7 @@ public final class JxmlSchema {
                 .attr("constrained", "constrained", AttrType.BOOLEAN, false)
                 .def("first", Integer.valueOf(0)).def("rowHeight", Double.valueOf(24)).def("columns", new String[0])
                 .def("constrained", Boolean.FALSE)
-                .handler("onScroll", AttrType.DOUBLES).change("first", AttrType.INT)
+                .handler("onScroll", AttrType.DOUBLES).change("first", AttrType.INT).selection().sorting()
                 .done();
         tag("TableRow", "tablerow", Children.MANY)
                 .attr("selected", "selected", AttrType.BOOLEAN, true).attr("odd", "odd", AttrType.BOOLEAN, true)
@@ -600,6 +671,7 @@ public final class JxmlSchema {
                 .done();
         tag("NavigationBar", null, Children.MANY).composite()
                 .attr("gap", "gap", AttrType.DOUBLE, true).attr("padding", "padding", AttrType.INSETS, false)
+                .attr("alignment", "alignment", AttrType.STRING, false)
                 .done();
         tag("Scaffold", null, Children.MANY).composite()
                 .attr("padding", "padding", AttrType.INSETS, false)
@@ -638,6 +710,7 @@ public final class JxmlSchema {
         b.attrs.putAll(of.attrs);
         b.changeAttr = of.changeAttr;
         b.changeType = of.changeType;
+        b.twoWay.putAll(of.twoWay);
         for (int i = 0; i < defaults.length; i += 2) {
             if (of.attr(defaults[i]) == null) {
                 throw new IllegalStateException(name + " defaults an attribute " + target + " lacks: " + defaults[i]);
@@ -662,6 +735,7 @@ public final class JxmlSchema {
         private String changeAttr;
         private AttrType changeType;
         private final java.util.List<String> required = new java.util.ArrayList<String>();
+        private final Map<String, String> twoWay = new LinkedHashMap<String, String>();
         private boolean tree;
         private java.util.List<String> only;
         private java.util.List<String> parents;
@@ -699,6 +773,17 @@ public final class JxmlSchema {
             return this;
         }
 
+        /**
+         * The font of the text: {@code fontFamily} (a registered or installed family), {@code fontWeight} (100 to 900,
+         * 400 regular, 700 bold; wins over {@code bold}) and {@code italic}. Not inherited, like {@code fontSize}.
+         */
+        TagBuilder font() {
+            attr("fontFamily", "fontFamily", AttrType.STRING, true);
+            attr("fontWeight", "fontWeight", AttrType.INT, true);
+            attr("italic", "italic", AttrType.BOOLEAN, false);
+            return this;
+        }
+
         TagBuilder attr(String attr, String prop, AttrType type, boolean bindable) {
             attrs.put(attr, new Attr(attr, prop, type, bindable));
             return this;
@@ -707,6 +792,15 @@ public final class JxmlSchema {
         /** A STRING attribute written as a literal that must be one of {@code values}. */
         TagBuilder choice(String attr, String prop, java.util.List<String> values) {
             attrs.put(attr, new Attr(attr, prop, AttrType.STRING, false, values, null));
+            return this;
+        }
+
+        /**
+         * Like {@link #choice}, and a binding may give the value too: it is checked each time the element is built
+         * ({@link JxmlValues#choice}), so a value outside {@code values} is an error then; a null or empty one writes no prop.
+         */
+        TagBuilder choiceBound(String attr, String prop, java.util.List<String> values) {
+            attrs.put(attr, new Attr(attr, prop, AttrType.STRING, true, values, null));
             return this;
         }
 
@@ -751,12 +845,48 @@ public final class JxmlSchema {
             attrs.put("onChange", new Attr("onChange", "onChange", AttrType.CHANGE, false, null, type));
             changeAttr = attr;
             changeType = type;
+            twoWay.put(attr, "onChange");
+            return this;
+        }
+
+        /**
+         * The selection of the rows of a list, table or tree, which the renderer handles (JXSelection): {@code selected}
+         * (the index of the row, -1 for none; {@code @{...}} binds it two ways through {@code onSelect}),
+         * {@code selectionMode}, and in multiple mode {@code selection} (the indices, bound two ways through
+         * {@code onSelection}, which gets them as a {@code double[]}, like the other lists of numbers of the schema).
+         */
+        TagBuilder selection() {
+            attr("selected", "selected", AttrType.INT, true);
+            choiceBound("selectionMode", "selectionMode", SELECTION_MODES);
+            attr("selection", "selection", AttrType.DOUBLES, true);
+            handler("onSelect", AttrType.INT);
+            handler("onSelection", AttrType.DOUBLES);
+            twoWay.put("selected", "onSelect");
+            twoWay.put("selection", "onSelection");
+            return this;
+        }
+
+        /**
+         * Sortable columns of a table (JXTableSort), the application sorting its own data: {@code sortColumn} (the column, -1
+         * for none) and {@code sortAscending}, each bound two ways through {@code onSortColumn} and {@code onSortAscending};
+         * {@code onSort} gets both as a {@code double[]} {column, 1 or 0}; {@code sortable} switches the headers on or off
+         * (on when the table has {@code onSort} or {@code sortColumn}).
+         */
+        TagBuilder sorting() {
+            attr("sortColumn", "sortColumn", AttrType.INT, true);
+            attr("sortAscending", "sortAscending", AttrType.BOOLEAN, true);
+            attr("sortable", "sortable", AttrType.BOOLEAN, true);
+            handler("onSortColumn", AttrType.INT);
+            handler("onSortAscending", AttrType.BOOLEAN);
+            handler("onSort", AttrType.DOUBLES);
+            twoWay.put("sortColumn", "onSortColumn");
+            twoWay.put("sortAscending", "onSortAscending");
             return this;
         }
 
         void done() {
             TAGS.put(name, new Tag(name, nativeType, children, attrs, defaults, control, changeAttr, changeType,
-                    composite, alias, aliasAttrs, virtual, finish, required, tree, only, parents));
+                    composite, alias, aliasAttrs, virtual, finish, required, tree, only, parents, twoWay));
         }
     }
 }

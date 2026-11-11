@@ -13,7 +13,7 @@ public final class TaskContext {
         this.taskId = UUID.randomUUID().toString();
         this.priority = priority == null ? TaskPriority.NORMAL : priority;
         this.cancellationToken = cancellationToken == null ? new CancellationToken() : cancellationToken;
-        this.timeout = timeout == null ? Duration.ofSeconds(30) : timeout;
+        this.timeout = timeout == null || timeout.isNegative() ? Duration.ZERO : timeout;
     }
 
     public String getTaskId() {

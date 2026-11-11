@@ -87,6 +87,32 @@ public class SampleController {
         return snackOpen;
     }
 
+    /** What the samples bind where a value is one of a few choices, a theme, or a number a spinner holds as an int. */
+    public String themeName = "dark";
+    public String variant = "tonal";
+    public String mode = "multiple";
+    public int qty = 3;
+
+    public String getThemeName() {
+        return themeName;
+    }
+
+    public String getVariant() {
+        return variant;
+    }
+
+    public String getMode() {
+        return mode;
+    }
+
+    public int getQty() {
+        return qty;
+    }
+
+    public void setQty(int value) {
+        qty = value;
+    }
+
     public String time = "09:30";
     public String accent = "#E91E63";
     public final List<Node> folders = new ArrayList<Node>();
@@ -228,6 +254,65 @@ public class SampleController {
         scrolled = value;
     }
 
+    /** Whether the pointer is over an element with {@code onHover}. */
+    public boolean hover;
+
+    public void hovered(boolean over) {
+        hover = over;
+    }
+
+    /** The paths of the files dropped on an element with {@code onDrop}. */
+    public List<String> dropped;
+
+    public void dropFiles(List<String> paths) {
+        dropped = paths;
+    }
+
+    /** The selection of the lists, tables and trees: the row (-1 for none) and, in multiple mode, the rows. */
+    public int selected = 4;
+    public double[] picked = {1, 3};
+
+    public int getSelected() {
+        return selected;
+    }
+
+    public void setSelected(int value) {
+        selected = value;
+    }
+
+    /** The sort of a table: its column (-1 for none) and direction, and the last {column, 1 or 0} {@code onSort} reported. */
+    public int sortCol = 2;
+    public boolean sortAsc = false;
+    public double[] sortedTo;
+
+    public int getSortCol() {
+        return sortCol;
+    }
+
+    public void setSortCol(int value) {
+        sortCol = value;
+    }
+
+    public boolean getSortAsc() {
+        return sortAsc;
+    }
+
+    public void setSortAsc(boolean value) {
+        sortAsc = value;
+    }
+
+    public void sorted(double[] state) {
+        sortedTo = state;
+    }
+
+    public double[] getPicked() {
+        return picked;
+    }
+
+    public void setPicked(double[] value) {
+        picked = value;
+    }
+
     public int getLimit() {
         return limit;
     }
@@ -262,6 +347,13 @@ public class SampleController {
 
     public int[] getPixels() {
         return pixels;
+    }
+
+    /** A picture file as the screen writes it, next to the samples. */
+    public String photo = "swatch.png";
+
+    public String getPhoto() {
+        return photo;
     }
 
     public String getName() {
@@ -308,6 +400,16 @@ public class SampleController {
                 return JXElement.of("#text", JXProps.builder().set("value", "hand-written").build());
             }
         };
+    }
+
+    /** A hand-written widget with a margin of its own, which a Slot's margin replaces. */
+    public JXElement getMarked() {
+        return JXElement.of("#text", JXProps.builder().set("value", "marked").set("margin", Double.valueOf(1)).build());
+    }
+
+    /** A slot with nothing to show. */
+    public JXElement getNothing() {
+        return null;
     }
 
     public void save() {

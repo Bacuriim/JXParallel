@@ -26,10 +26,11 @@ final class JxmlPrepare {
     private JxmlPrepare() {
     }
 
-    /** Prepares {@code root}; returns its {@code theme} (light or dark), or null when it writes none. */
+    /** Prepares {@code root}; returns its {@code theme} (light or dark, or a {@code ${...}} binding), or null when it writes none. */
     static String run(JxmlParser.Node root, String controller, JxmlLoader loader) {
         String theme = root.attrs.get("theme");
-        if (theme != null && !JxmlThemes.THEMES.contains(theme)) {
+        boolean bound = theme != null && (theme.startsWith("${") || theme.startsWith("@{")); // checked when the root is resolved
+        if (theme != null && !bound && !JxmlThemes.THEMES.contains(theme)) {
             throw new JxmlException(root.source, root.line, "theme=\"" + theme + "\" is not one of " + JxmlThemes.THEMES);
         }
         if ("Include".equals(root.tag)) {
@@ -92,7 +93,13 @@ final class JxmlPrepare {
         try {
             InputStream in = loader.open(name);
             try {
-                part = JxmlParser.parse(in, name);
+                if (name.endsWith(".fxml")) { // a JavaFX screen included by a screen read with JxmlTemplate.readFxml
+                    FxmlToJxml.Options options = loader instanceof FxmlToJxml.FxmlLoader
+                            ? ((FxmlToJxml.FxmlLoader) loader).options : new FxmlToJxml.Options();
+                    part = FxmlToJxml.convert(in, name, options, true).node();
+                } else {
+                    part = JxmlParser.parse(in, name);
+                }
             } finally {
                 in.close();
             }

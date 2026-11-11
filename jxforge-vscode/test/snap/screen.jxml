@@ -1,0 +1,14 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!-- A screen: ${not.a.binding} in a comment. -->
+<Column xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+        xsi:noNamespaceSchemaLocation="jxml.xsd"
+        controller="com.acme.CustomersController" padding="12" gap="8">
+  <Label text="${customer.name}" textFill="#336699"/>
+  <Button text="Delete" disabled="${!readOnly}" onAction="#delete"/>
+  <TextField text="@{customer.name}" prompt="Full name"/>
+  <Button text="Save" onAction="#save" disabled="${readOnly}"/>
+  <For items="${orders}" var="o" type="com.acme.Order">
+    <Button text="Open ${o.id}" onAction="#open(o, 3)"/>
+    <Label text="\#1 literal" onHover='#over'/>
+  </For>
+</Column>

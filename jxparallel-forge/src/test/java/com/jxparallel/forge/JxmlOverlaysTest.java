@@ -96,8 +96,9 @@ class JxmlOverlaysTest {
         accept(combo, "onShowing", Boolean.FALSE);
         accept(column.getChildren().get(2), "onShowing", Boolean.TRUE);
         assertEquals(Arrays.asList("showing false", "showing true"), seen[0].calls);
-        // a combo box and a date picker are controlled: showing is false unless the file says otherwise
-        assertEquals(Boolean.FALSE, screen("<ComboBox/>").getChildren().get(0).getProps().get("showing"));
+        // without showing, a combo box and a date picker are uncontrolled: no prop, the renderer keeps the state
+        assertNull(screen("<ComboBox/>").getChildren().get(0).getProps().get("showing"));
+        assertNull(screen("<DatePicker/>").getChildren().get(0).getProps().get("showing"));
     }
 
     @Test
@@ -121,7 +122,7 @@ class JxmlOverlaysTest {
         JXElement defaults = column.getChildren().get(1);
         assertEquals(Boolean.TRUE, defaults.getProps().get("hour24"));
         assertEquals(Integer.valueOf(5), defaults.getProps().get("minuteStep"));
-        assertEquals(Boolean.FALSE, defaults.getProps().get("showing"));
+        assertNull(defaults.getProps().get("showing"), "no showing: uncontrolled");
         accept(time, "onChange", "14:45");
         assertEquals("14:45", seen[0].time);
         accept(defaults, "onChange", "01:05");

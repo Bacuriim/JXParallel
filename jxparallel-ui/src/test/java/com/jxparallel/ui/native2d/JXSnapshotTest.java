@@ -69,6 +69,7 @@ class JXSnapshotTest {
 
     @Test
     void skiaRasterMatchesGoldenImage() throws IOException {
+        TestSkia.assume();
         assumeTrue(System.getProperty("os.name").startsWith("Windows")
                 && "64".equals(System.getProperty("sun.arch.data.model")), "golden image is for 64-bit Windows");
         JXNativeNode root = JXSkiaRenderer.mount(showcase());
@@ -130,6 +131,7 @@ class JXSnapshotTest {
         if (Files.exists(file)) {
             return Files.readAllBytes(file);
         }
+        assumeTrue(System.getenv("CI") == null, "no layout snapshot " + name + " for this system's UI font yet: run the test once locally to create it");
         Files.createDirectories(GOLDEN);
         Files.write(file, actual);
         fail("created snapshot " + file + ", review it and run again");

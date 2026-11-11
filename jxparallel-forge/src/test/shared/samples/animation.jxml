@@ -1,0 +1,7 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!-- Implicit animation: transition (what a changed attribute does on a kept element) and enter (where a new element starts from). -->
+<Column controller="com.jxparallel.forge.samples.SampleController" gap="4" padding="4">
+  <Label text="fades and slides" opacity="${alpha}" translateX="4" transition="opacity 200ms ease-out, translateX 0.3s linear 50ms, rotate 150ms ease-in-out, background 1s ease-in"
+         enter="opacity 0 200ms, translateY 12 200ms ease-out, background #336699 150ms ease-in-out"/>
+  <Label text="all of it" scaleX="1" scaleY="1" transition="all 200ms ease-in-out"/>
+</Column>

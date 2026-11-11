@@ -242,10 +242,12 @@ class JXOverlaysTest {
         JXNativeNode select = root.getChildren().get(0);
         press(root, ESCAPE, '\0', select);
         assertEquals(Arrays.<Object>asList(false), showings);
-        press(root, DOWN, '\0', select); // Down chooses the next option: the select's own key handling
-        assertEquals(Arrays.<Object>asList("c"), changes);
+        press(root, DOWN, '\0', select); // Down moves the highlight of the open list to the next option and chooses nothing
+        assertEquals(Arrays.<Object>asList(), changes);
+        assertEquals(2, select.highlight);
         press(root, ENTER, '\0', select);
-        assertEquals(Arrays.<Object>asList(false, false), showings, "Enter closes an open popup");
+        assertEquals(Arrays.<Object>asList("c"), changes, "Enter chooses the highlighted option");
+        assertEquals(Arrays.<Object>asList(false, false), showings, "and closes the open popup");
         JXNativeNode closed = mount(e("column", p().set("padding", 8.0), select(false, "a", "b", "c")));
         press(closed, ESCAPE, '\0', closed.getChildren().get(0));
         assertEquals(2, showings.size(), "Escape with nothing open does nothing");
@@ -1011,6 +1013,18 @@ class JXOverlaysTest {
         JXNativeNode plain = mount(e("stack", p(), snackbar(true, null, 0)));
         assertEquals(-1, plain.tickOverlays(Long.MAX_VALUE / 2));
         assertTrue(showings.size() == 1);
+    }
+
+    @Test
+    void aFieldOfADialogThatClosedNoLongerHoldsTheFocus() {
+        JXElement field = e("input", p().set("value", "x").set("onChange", onChange));
+        JXNativeNode root = mount(e("stack", p(), button("Behind"), e("dialog", p().set("showing", true), field)));
+        JXNativeNode input = root.getChildren().get(1).getChildren().get(0);
+        assertSame(input, JXWindow.liveFocus(root, input), "open: the field keeps the focus");
+        remount(root, e("stack", p(), button("Behind"), e("dialog", p().set("showing", false), field)));
+        assertNull(JXWindow.liveFocus(root, input), "closed: its content is gone, so the focus is dropped");
+        assertNull(JXWindow.liveFocus(null, input));
+        assertNull(JXWindow.liveFocus(root, null));
     }
 
     // ---- incremental painting --------------------------------------------------------------------

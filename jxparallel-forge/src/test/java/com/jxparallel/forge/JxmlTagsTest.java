@@ -177,6 +177,8 @@ class JxmlTagsTest {
                 return new Class<?>[] {JXElement.class};
             case PIXELS:
                 return new Class<?>[] {int[].class};
+            case IMAGE_SOURCE:
+                return new Class<?>[] {String.class};
             default:
                 return new Class<?>[] {Object.class};
         }
@@ -455,6 +457,25 @@ class JxmlTagsTest {
         // an expansion is checked as the tags it becomes
         assertError(2, "is not a valid insets", "<Column>\n<Padding padding=\"1 2 3\"/></Column>");
         assertError(2, "is not a valid color", "<Column>\n<Card background=\"white\"/></Column>");
+    }
+
+    @Test
+    void fontAttributesBecomeTheFontPropsOfTheTextTags() throws Exception {
+        JxmlTemplate t = ViewCompiler.read("<Column controller=\"" + CTRL + "\">"
+                + "<Label text=\"a\" fontFamily=\"serif\" fontWeight=\"600\" italic=\"true\" bold=\"true\"/>"
+                + "<TextField fontFamily=\"${title}\"/><Button text=\"b\" fontWeight=\"300\"/></Column>", "t.jxml");
+        SampleController c = new SampleController();
+
+        JXElement root = t.build(c);
+
+        Map<String, Object> label = root.getChildren().get(0).getProps().asMap();
+        assertEquals("serif", label.get("fontFamily"));
+        assertEquals(Integer.valueOf(600), label.get("fontWeight"));
+        assertEquals(Boolean.TRUE, label.get("italic"));
+        assertEquals(Boolean.TRUE, label.get("bold"), "bold keeps working next to fontWeight");
+        assertEquals(c.getTitle(), root.getChildren().get(1).getProps().get("fontFamily"));
+        assertEquals(Integer.valueOf(300), root.getChildren().get(2).getProps().get("fontWeight"));
+        assertError(1, "is not a valid int", "<Label fontWeight=\"heavy\"/>");
     }
 
     @Test
@@ -860,6 +881,41 @@ class JxmlTagsTest {
     }
 
     @Test
+    void anImageSrcIsResolvedAgainstTheFolderOfItsJxmlFileTheSameWayInterpretedAndCompiled() throws Exception {
+        String xml = "<Column controller=\"" + CTRL + "\">"
+                + "<Image src=\"logo.png\"/><Image src=\"../img/a.png\"/><Image src=\"/abs/b.png\"/><Image src=\"file:c.png\"/>"
+                + "<Image src=\"classpath:d/e.png\"/><Image src=\"${photo}\"/><Image src=\"${title}\"/><Image src=\"\"/></Column>";
+        SampleController c = new SampleController();
+        c.photo = "sub/p.png";
+        for (String source : new String[] {"screens/main.jxml", "main.jxml"}) {
+            String folder = source.startsWith("screens/") ? "screens/" : "";
+            List<JxmlView<Object>> views = new ViewCompiler(dir).views(xml, source);
+            for (JxmlView<Object> view : views) {
+                List<JXElement> images = view.build(c).getChildren();
+                String[] expected = {folder + "logo.png", source.startsWith("screens/") ? "img/a.png" : null, "/abs/b.png",
+                        "file:c.png", "classpath:d/e.png", folder + "sub/p.png", folder + c.getTitle(), ""};
+                for (int i = 0; i < expected.length; i++) {
+                    if (expected[i] == null) {
+                        continue; // "../img" above the top of a root-level file: kept as written
+                    }
+                    assertEquals(expected[i], images.get(i).getProps().get("src"), source + " image " + i);
+                }
+            }
+            for (int i = 1; i < views.size(); i++) {
+                assertNull(JxmlTrees.diff(views.get(0).build(c), views.get(i).build(c)), source + ", view " + i);
+            }
+        }
+    }
+
+    @Test
+    void anImageKeepsItsPixelsAttributeAlongsideSrc() throws Exception {
+        JXElement image = screen("<Image pixels=\"${pixels}\" imageWidth=\"2\" imageHeight=\"2\" src=\"p.png\"/>");
+        assertEquals(Double.valueOf(2), image.getProps().get("imageWidth"));
+        assertEquals(4, ((int[]) image.getProps().get("pixels")).length);
+        assertEquals("p.png", image.getProps().get("src"));
+    }
+
+    @Test
     void stylesAndVisibilityAttributesAreOnEveryTag() throws Exception {
         JXElement label = screen("<Label background=\"#112233\" backgroundRadius=\"3\" borderColor=\"${color}\" borderWidth=\"2\" "
                 + "borderRadius=\"4\" opacity=\"0.25\" hidden=\"true\" mouseTransparent=\"true\"/>");
@@ -871,5 +927,39 @@ class JxmlTagsTest {
         assertEquals(Double.valueOf(0.25), label.getProps().get("opacity"));
         assertEquals(Boolean.TRUE, label.getProps().get("hidden"));
         assertEquals(Boolean.TRUE, label.getProps().get("mouseTransparent"));
+    }
+
+    @Test
+    void transformsShadowsAndGradientsAreOnEveryTag() throws Exception {
+        JXElement label = screen("<Label translateX=\"4\" translateY=\"-2\" scaleX=\"1.5\" scaleY=\"0.5\" rotate=\"30\" "
+                + "elevation=\"6\" shadowColor=\"#40000000\" shadowOffsetX=\"1\" shadowOffsetY=\"3\" "
+                + "gradient=\"linear-gradient(#FFF, #000)\"/>");
+        assertEquals(Double.valueOf(4), label.getProps().get("translateX"));
+        assertEquals(Double.valueOf(-2), label.getProps().get("translateY"));
+        assertEquals(Double.valueOf(1.5), label.getProps().get("scaleX"));
+        assertEquals(Double.valueOf(0.5), label.getProps().get("scaleY"));
+        assertEquals(Double.valueOf(30), label.getProps().get("rotate"));
+        assertEquals(Double.valueOf(6), label.getProps().get("elevation"));
+        assertEquals(Integer.valueOf(0x40000000), label.getProps().get("shadowColor"));
+        assertEquals(Double.valueOf(1), label.getProps().get("shadowOffsetX"));
+        assertEquals(Double.valueOf(3), label.getProps().get("shadowOffsetY"));
+        assertEquals("linear-gradient(#FFF, #000)", label.getProps().get("backgroundGradient"));
+    }
+
+    @Test
+    void transitionAndEnterAreOnEveryTag() throws Exception {
+        JXElement label = screen("<Label opacity=\"0.5\" transition=\"opacity 200ms ease-out, translateX 0.3s linear 50ms\" "
+                + "enter=\"opacity 0 200ms, translateY 12 200ms ease-out\"/>");
+        assertEquals("opacity 200ms ease-out, translateX 0.3s linear 50ms", label.getProps().get("transition"));
+        assertEquals("opacity 0 200ms, translateY 12 200ms ease-out", label.getProps().get("enter"));
+        JXElement all = screen("<Button text=\"b\" transition=\"all 150ms\"/>");
+        assertEquals("all 150ms", all.getProps().get("transition"));
+    }
+
+    @Test
+    void aBadTransitionOrEnterIsReportedWithItsLine() {
+        assertError(2, "transition=\"opacity fast\"", "<Column controller=\"" + CTRL + "\">\n<Label transition=\"opacity fast\"/></Column>");
+        assertError(2, "cannot be animated", "<Column controller=\"" + CTRL + "\">\n<Label transition=\"width 1s\"/></Column>");
+        assertError(2, "from-value", "<Column controller=\"" + CTRL + "\">\n<Label enter=\"opacity 200ms\"/></Column>");
     }
 }

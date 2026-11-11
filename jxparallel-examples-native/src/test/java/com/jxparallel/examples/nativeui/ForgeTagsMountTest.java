@@ -74,6 +74,12 @@ class ForgeTagsMountTest {
     /** The node tree has the element tree's types and child counts; nothing has a negative size. */
     private static void assertMirrors(JXElement element, JXNativeNode node, String where) {
         assertEquals(element.getType(), node.getType(), where);
+        boolean closedLayer = ("dialog".equals(element.getType()) || "drawer".equals(element.getType()))
+                && Boolean.FALSE.equals(element.getProps().get("showing"));
+        if (closedLayer) { // a closed dialog or drawer holds no content in the node tree
+            assertEquals(0, node.getChildren().size(), where + element.getType() + " is closed");
+            return;
+        }
         assertEquals(element.getChildren().size(), node.getChildren().size(), where + element.getType());
         assertTrue(node.getWidth() >= 0 && node.getHeight() >= 0, where + element.getType() + " has a negative size");
         for (int i = 0; i < element.getChildren().size(); i++) {
@@ -217,6 +223,24 @@ class ForgeTagsMountTest {
         JXNativeNode bottom = scaffold.getChildren().get(2);
         assertTrue(top.getY() < body.getY() && body.getY() < bottom.getY(), "app bar, body, bottom bar from top to bottom");
         assertTrue(top.getWidth() > 0 && body.getWidth() > 0 && bottom.getWidth() > 0);
+    }
+
+    @Test
+    void anImageWithSrcShowsTheFileNextToItsJxml() throws Exception {
+        JXNativeNode column = mount("controls", new SampleController());
+        int withSrc = 0;
+        for (JXNativeNode child : column.getChildren()) {
+            if ("image".equals(child.getType()) && child.getProperty("src") != null) {
+                withSrc++;
+                assertEquals("samples/swatch.png", child.getProperty("src"), "resolved against samples/controls.jxml");
+                if (withSrc == 1) { // fitWidth="16", no ratio: the file's own height of 2 stays
+                    assertEquals(2, child.getHeight());
+                } else { // fitHeight (the sample's gap) and preserveRatio on a 2:1 file
+                    assertTrue(child.getHeight() > 0, "sized from the file, not 0");
+                }
+            }
+        }
+        assertEquals(2, withSrc);
     }
 
     // ---- ListView ------------------------------------------------------------------------------------

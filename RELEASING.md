@@ -64,3 +64,27 @@ and move `main` to the next `-SNAPSHOT`.
 
 To check a release without sending anything, add `-DskipUpload=true` (and `-Dgpg.skip=true` without a key): the
 bundle is written to `target/central-publishing/central-bundle.zip` of the last module.
+
+## Native classifiers of `jxparallel-ui`
+
+The natives are not separate deployments. The published `jxparallel-ui` pom keeps its OS-activated profiles
+(`natives-windows-x64`, `natives-windows-x86`, `natives-linux-x64`, and since the macOS/ARM64 work
+`natives-macos-x64`, `natives-macos-arm64`, `natives-linux-arm64`, `natives-windows-arm64`); a consumer's Maven
+activates the one that matches its own OS and CPU and pulls the LWJGL `natives-*` jars (and Skija's platform jar
+where one exists) from Central. Nothing is uploaded for them, and the profiles of the existing platforms are
+unchanged, so what a Windows or Linux x64 user resolves does not change. The new profiles cannot activate there.
+
+Before a release, check that every artifact the profiles name still exists on Central (they are fixed by
+`lwjgl.version` and `skija.version` in the parent pom):
+
+```
+mvn -pl jxparallel-ui -am -P natives-macos-x64 dependency:resolve
+mvn -pl jxparallel-ui -am -P natives-macos-arm64 dependency:resolve
+mvn -pl jxparallel-ui -am -P natives-linux-arm64 dependency:resolve
+mvn -pl jxparallel-ui -am -P natives-windows-arm64 dependency:resolve
+```
+
+Skija 0.116.4 publishes no `skija-windows-arm64` or `skija-linux-arm64` (those start at 0.143), so on those two
+platforms the window uses NanoVG. State in the release notes which of the four new platforms CI has run green
+(`.github/workflows/build.yml`); until a platform has, it is configured but unproven. Applications on macOS must
+start the JVM with `-XstartOnFirstThread` (`docs/native-ui.md`).

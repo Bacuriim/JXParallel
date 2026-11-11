@@ -1,0 +1,57 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!--
+  JX Orders: the main window. A menu, a sidebar, the status bar, and the screen in the middle, which is another JXML
+  view built with its own controller and placed with <Slot>. The dialogs (the order editor, About, the "saved" snack
+  bar) are overlays: they are written at the root and open over the whole window.
+  The root's theme is bound (theme="${themeName}"): View > Light / Dark theme changes it at run time, and the theme
+  tokens (surface, primary, error ...) written in this window's screens follow it, as do the controls the renderer
+  themes itself. The colours that are not one of the six tokens (the page and sidebar greys, the muted text, the
+  lines) come from the controller's palette.
+  onDrop on the root: a CSV file dropped anywhere on the window is imported.
+-->
+<Stack controller="com.jxparallel.examples.orders.ShellController" theme="${themeName}" onDrop="#dropFiles">
+  <Border background="${palette.background}">
+    <MenuBar slot="top">
+      <Menu text="File">
+        <MenuItem text="New order" accelerator="Ctrl+N" onAction="#newOrder"/>
+        <MenuSeparator/>
+        <MenuItem text="Open CSV…" accelerator="Ctrl+O" onAction="#openCsv"/>
+        <MenuItem text="Export CSV…" accelerator="Ctrl+E" onAction="#exportCsv"/>
+        <MenuSeparator/>
+        <MenuItem text="Exit" accelerator="Alt+F4" onAction="#exit"/>
+      </Menu>
+      <Menu text="View">
+        <MenuItem text="Light theme" onAction="#setLight"/>
+        <MenuItem text="Dark theme" onAction="#setDark"/>
+      </Menu>
+      <Menu text="Help">
+        <MenuItem text="About" accelerator="F1" onAction="#about"/>
+      </Menu>
+    </MenuBar>
+
+    <Column slot="left" prefWidth="164" padding="14 10" gap="6" fillWidth="true" background="${palette.sidebar}">
+      <Label text="JX Orders" bold="true" fontSize="16" margin="0 0 8 4"/>
+      <!-- the current screen's button is the tonal one: variant is bound to what the controller says -->
+      <Button text="Dashboard" variant="${dashboardVariant}" onAction="#showDashboard" tooltip="Totals and bar charts"><Icon name="home" size="18"/></Button>
+      <Button text="Orders" variant="${ordersVariant}" onAction="#showOrders" tooltip="Search, filter and edit orders"><Icon name="mail" size="18"/></Button>
+      <Button text="Customers" variant="${customersVariant}" onAction="#showCustomers" tooltip="Who orders, and how much"><Icon name="person" size="18"/></Button>
+    </Column>
+
+    <Slot slot="center" content="${content}"/>
+
+    <Row slot="bottom" gap="12" padding="6 14" alignment="CENTER_LEFT" background="${palette.sidebar}">
+      <Label text="${status}" hgrow="always" fontSize="12"/>
+      <If test="${busy}">
+        <ProgressBar progress="${progress}" prefWidth="180"/>
+        <Button text="Cancel" variant="outlined" onAction="#cancelWork" tooltip="Stop the work in progress"/>
+      </If>
+      <Label text="${countText}" fontSize="12" textFill="${palette.muted}"/>
+    </Row>
+  </Border>
+
+  <Slot content="${editorLayer}"/>
+
+  <AlertDialog title="About JX Orders" message="${aboutText}" confirmText="Close"
+               showing="${aboutOpen}" onShowing="#setAboutOpen" onConfirm="#closeAbout"/>
+  <SnackBar message="${snackMessage}" duration="3000" showing="${snackOpen}" onShowing="#setSnackOpen"/>
+</Stack>

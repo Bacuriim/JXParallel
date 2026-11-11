@@ -1,0 +1,33 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<?import javafx.scene.control.*?>
+<?import javafx.scene.control.cell.PropertyValueFactory?>
+<?import javafx.scene.layout.*?>
+
+<VBox spacing="6.0" xmlns="http://javafx.com/javafx/17" xmlns:fx="http://javafx.com/fxml/1" fx:controller="com.jxparallel.forge.FxmlTableController">
+   <children>
+      <HBox spacing="6.0">
+         <children>
+            <TextField fx:id="filter" promptText="Filter" text="${controller.filter}" HBox.hgrow="ALWAYS" />
+            <Button mnemonicParsing="false" onAction="#refresh" text="Refresh" />
+         </children>
+      </HBox>
+      <TableView fx:id="orders" fx:typeArguments="com.jxparallel.forge.FxmlOrder" prefHeight="300.0" prefWidth="500.0" VBox.vgrow="ALWAYS">
+        <columns>
+          <TableColumn prefWidth="60.0" text="Id">
+             <cellValueFactory><PropertyValueFactory property="id" /></cellValueFactory>
+          </TableColumn>
+          <TableColumn prefWidth="220.0" text="Customer">
+             <cellValueFactory><PropertyValueFactory property="customer" /></cellValueFactory>
+          </TableColumn>
+          <TableColumn prefWidth="80.0" text="Total">
+             <cellValueFactory><PropertyValueFactory property="total" /></cellValueFactory>
+          </TableColumn>
+        </columns>
+        <columnResizePolicy>
+          <TableView fx:constant="CONSTRAINED_RESIZE_POLICY" />
+        </columnResizePolicy>
+      </TableView>
+      <Label fx:id="count" text="${controller.count}" />
+   </children>
+</VBox>

@@ -29,6 +29,7 @@ class JXWindowRendererTest {
     private static String defaultRenderer() {
         boolean is32Bit = "32".equals(System.getProperty("sun.arch.data.model"));
         boolean java8 = System.getProperty("java.specification.version", "").startsWith("1.");
-        return is32Bit || java8 ? JXWindow.NANOVG : JXWindow.SKIA;
+        boolean skiaNatives = JXWindow.skijaHasNatives(System.getProperty("os.arch", ""));
+        return is32Bit || java8 || !skiaNatives ? JXWindow.NANOVG : JXWindow.SKIA;
     }
 }

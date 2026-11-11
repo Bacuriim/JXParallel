@@ -38,20 +38,33 @@ public class GenerateMojo extends AbstractMojo {
     @Parameter(defaultValue = "true")
     private boolean hoistConstants;
 
+    /** Where the {@code fxml} goal wrote the JXML converted from FXML; compiled too when it exists. */
+    @Parameter(defaultValue = "${project.build.directory}/generated-jxml")
+    private File fxmlJxmlDirectory;
+
     @Parameter(defaultValue = "${project}", readonly = true, required = true)
     private MavenProject project;
 
     @Override
     public void execute() throws MojoExecutionException, MojoFailureException {
-        if (!sourceDirectory.isDirectory()) {
+        boolean fxml = fxmlJxmlDirectory != null && fxmlJxmlDirectory.isDirectory();
+        if (!sourceDirectory.isDirectory() && !fxml) {
             getLog().info("JXForge: no " + sourceDirectory + ", nothing to do");
             return;
         }
         try {
-            JXForge.Result result = JXForge.compileDirectory(sourceDirectory, outputDirectory, packageName,
-                    classSuffix, hoistConstants);
-            getLog().info(String.format("JXForge: %d written, %d up to date, %.1f ms (%s)", result.written.size(),
-                    result.upToDate.size(), result.nanos / 1e6, packageName));
+            for (File directory : new File[] {sourceDirectory, fxml ? fxmlJxmlDirectory : null}) {
+                if (directory == null || !directory.isDirectory()) {
+                    continue;
+                }
+                JXForge.Result result = JXForge.compileDirectory(directory, outputDirectory, packageName,
+                        classSuffix, hoistConstants);
+                if (result.regenerated) {
+                    getLog().debug("JXForge: compiler or options differ from the last run, every class is generated again");
+                }
+                getLog().info(String.format("JXForge: %d written, %d up to date, %.1f ms (%s, from %s)", result.written.size(),
+                        result.upToDate.size(), result.nanos / 1e6, packageName, directory));
+            }
         } catch (JxmlException e) {
             throw new MojoFailureException(e.getMessage(), e);
         } catch (IOException e) {

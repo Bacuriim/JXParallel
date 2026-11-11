@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<!-- ToggleButton, RadioButton (alone and in a group), Hyperlink, ProgressIndicator, Tooltip, Image. -->
+<!-- ToggleButton, RadioButton (alone and in a group), Hyperlink, ProgressIndicator, Tooltip, Image (pixels, and src: a file next to this one). -->
 <Column controller="com.jxparallel.forge.samples.SampleController" gap="6" padding="8">
   <ToggleButton text="Bold" selected="true" onAction="#save" disabled="false"/>
   <ToggleButton text="${title}" selected="${on}" disabled="${busy}"/>
@@ -14,4 +14,6 @@
   <ProgressIndicator/>
   <Tooltip text="Hint"/>
   <Image pixels="${pixels}" imageWidth="2" imageHeight="2" fitWidth="16" fitHeight="${gap}" preserveRatio="true"/>
+  <Image src="swatch.png" fitWidth="16"/>
+  <Image src="${photo}" fitHeight="${gap}" preserveRatio="true"/>
 </Column>

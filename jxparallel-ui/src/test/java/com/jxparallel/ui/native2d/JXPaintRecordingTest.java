@@ -27,7 +27,7 @@ class JXPaintRecordingTest {
     private static final Path ACTUAL = Paths.get("target/snapshots");
 
     /** Writes each primitive call as one line, numbers with two decimals. */
-    static final class RecordingPainter implements JXPainter {
+    static class RecordingPainter implements JXPainter {
         final StringBuilder log = new StringBuilder();
 
         private void add(String name, Object... args) {
@@ -58,6 +58,21 @@ class JXPaintRecordingTest {
         @Override
         public void fillRoundRectGradient(float x, float y, float w, float h, float radius, int top, int bottom) {
             add("gradient", x, y, w, h, radius, top, bottom);
+        }
+
+        @Override
+        public void fillGradient(float x, float y, float w, float h, float radius, JXGradient gradient) {
+            add("gradientStops", x, y, w, h, radius, gradient);
+        }
+
+        @Override
+        public void shadow(float x, float y, float w, float h, float radius, float dx, float dy, float blur, int argb) {
+            add("shadow", x, y, w, h, radius, dx, dy, blur, argb);
+        }
+
+        @Override
+        public void transform(float tx, float ty, float sx, float sy, float degrees, float cx, float cy) {
+            add("transform", tx, ty, sx, sy, degrees, cx, cy);
         }
 
         @Override

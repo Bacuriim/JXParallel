@@ -38,6 +38,28 @@ public final class JXGlyphs {
         }
     }
 
+    /** Glyphs of other faces (fallbacks, families), by file and face index. */
+    private static final Map<String, JXGlyphs> OTHERS = new HashMap<String, JXGlyphs>();
+
+    /** The glyph cache of the face an engine measures with (the UI font's regular and bold ones are shared). */
+    public static JXGlyphs get(JXTextEngine engine) {
+        if (engine == JXTextEngine.get()) {
+            return get(false);
+        }
+        if (engine == JXTextEngine.get(true)) {
+            return get(true);
+        }
+        String key = engine.getFontFile() + "#" + engine.getFaceIndex();
+        synchronized (OTHERS) {
+            JXGlyphs glyphs = OTHERS.get(key);
+            if (glyphs == null) {
+                glyphs = new JXGlyphs(engine.getFontFile(), engine.getFaceIndex());
+                OTHERS.put(key, glyphs);
+            }
+            return glyphs;
+        }
+    }
+
     public static JXGlyphs get(boolean bold) {
         if (bold) {
             if (boldCache == null) {
@@ -63,6 +85,10 @@ public final class JXGlyphs {
     private static long library;
 
     private JXGlyphs(String fontFile) {
+        this(fontFile, 0);
+    }
+
+    private JXGlyphs(String fontFile, int faceIndex) {
         long f = 0L;
         if (fontFile != null) {
             try (org.lwjgl.system.MemoryStack stack = org.lwjgl.system.MemoryStack.stackPush()) {
@@ -74,7 +100,7 @@ public final class JXGlyphs {
                         }
                     }
                 }
-                if (library != 0L && org.lwjgl.util.freetype.FreeType.FT_New_Face(library, fontFile, 0, out) == 0) {
+                if (library != 0L && org.lwjgl.util.freetype.FreeType.FT_New_Face(library, fontFile, faceIndex, out) == 0) {
                     f = out.get(0);
                 }
             }
@@ -110,7 +136,10 @@ public final class JXGlyphs {
         }
         // unhinted outlines, as the layout's HarfBuzz advances; antialiased 8-bit coverage
         if (org.lwjgl.util.freetype.FreeType.FT_Load_Glyph(ft, id,
-                org.lwjgl.util.freetype.FreeType.FT_LOAD_NO_HINTING | org.lwjgl.util.freetype.FreeType.FT_LOAD_RENDER) != 0) {
+                org.lwjgl.util.freetype.FreeType.FT_LOAD_NO_HINTING | org.lwjgl.util.freetype.FreeType.FT_LOAD_RENDER) != 0
+                || ft.glyph().bitmap().pixel_mode() != org.lwjgl.util.freetype.FreeType.FT_PIXEL_MODE_GRAY
+                && ft.glyph().bitmap().rows() > 0) {
+            // not loadable, or a colour/mono bitmap (an emoji bitmap font): the software renderer draws outlines only
             g = new Glyph(0, 0, 0, 0, new byte[0]);
         } else {
             org.lwjgl.util.freetype.FT_GlyphSlot slot = ft.glyph();

@@ -64,32 +64,33 @@ public final class JXCalendar {
     }
 
     static void paint(JXPainter p, JXNativeNode node, JXPaint paint) {
+        JXClassic c = paint.classic();
         float x = node.getX();
         float y = node.getY();
-        p.fillRect(x, y, WIDTH, HEIGHT, JXPaint.BOX_BORDER);
-        p.fillRect(x + 1, y + 1, WIDTH - 2, HEIGHT - 2, 0xFFFFFFFF);
+        p.fillRect(x, y, WIDTH, HEIGHT, c.boxBorder);
+        p.fillRect(x + 1, y + 1, WIDTH - 2, HEIGHT - 2, c.base);
         JXTextEngine engine = JXTextEngine.get(false);
         JXTextEngine bold = JXTextEngine.get(true);
         float size = JXTextEngine.DEFAULT_SIZE;
         // header: arrows and month title
         float hy = y + PAD;
-        p.fillRoundRectGradient(x + PAD, hy, WIDTH - 2 * PAD, HEADER - 4, 3, 0xFFFDFDFD, 0xFFE2E2E2);
+        p.fillRoundRectGradient(x + PAD, hy, WIDTH - 2 * PAD, HEADER - 4, 3, c.ctlTop, c.ctlBottom);
         float cy = hy + (HEADER - 4) / 2;
-        p.fillTriangle(x + PAD + 16, cy - 5, x + PAD + 16, cy + 5, x + PAD + 10, cy, JXPaint.ARROW);
-        p.fillTriangle(x + WIDTH - PAD - 16, cy - 5, x + WIDTH - PAD - 16, cy + 5, x + WIDTH - PAD - 10, cy, JXPaint.ARROW);
+        p.fillTriangle(x + PAD + 16, cy - 5, x + PAD + 16, cy + 5, x + PAD + 10, cy, c.arrow);
+        p.fillTriangle(x + WIDTH - PAD - 16, cy - 5, x + WIDTH - PAD - 16, cy + 5, x + WIDTH - PAD - 10, cy, c.arrow);
         String title = JXPaint.text(node, "title");
         if (title.isEmpty()) {
             title = month(node) + "/" + year(node);
         }
         float tw = bold.width(title, size);
-        p.text(title, x + (WIDTH - tw) / 2, hy + bold.baseline(HEADER - 4, size), size, true, JXPaint.TEXT);
+        p.text(title, x + (WIDTH - tw) / 2, hy + bold.baseline(HEADER - 4, size), size, true, c.text);
         // weekday names
         String[] names = JXPaint.strings(node.getProperty("weekdays"));
         float wy = y + PAD + HEADER;
         for (int i = 0; i < 7; i++) {
             String name = i < names.length ? names[i] : DayOfWeek.of((firstDay(node) - 1 + i) % 7 + 1).name().substring(0, 2);
             float nw = engine.width(name, 11);
-            p.text(name, x + PAD + i * CELL_W + (CELL_W - nw) / 2, wy + engine.baseline(WEEKDAYS, 11), 11, false, 0xFF7A7A7A);
+            p.text(name, x + PAD + i * CELL_W + (CELL_W - nw) / 2, wy + engine.baseline(WEEKDAYS, 11), 11, false, c.weekday);
         }
         // days
         LocalDate start = gridStart(year(node), month(node), firstDay(node));
@@ -107,14 +108,22 @@ public final class JXCalendar {
             boolean inMonth = d.getMonthValue() == month(node);
             boolean selected = d.getYear() == selY && d.getMonthValue() == selM && d.getDayOfMonth() == selD;
             boolean today = d.getYear() == todayY && d.getMonthValue() == todayM && d.getDayOfMonth() == todayD;
+            boolean lit = (int) JXPaint.number(node, "highlightYear", 0) == d.getYear()
+                    && (int) JXPaint.number(node, "highlightMonth", 0) == d.getMonthValue()
+                    && (int) JXPaint.number(node, "highlightDay", 0) == d.getDayOfMonth();
             if (selected) {
-                p.fillRect(cx + 1, ry + 1, CELL_W - 2, CELL_H - 2, JXPaint.SELECTION);
+                p.fillRect(cx + 1, ry + 1, CELL_W - 2, CELL_H - 2, c.selection);
+            } else if (lit) { // under the pointer or the keys
+                p.fillRect(cx + 1, ry + 1, CELL_W - 2, CELL_H - 2, c.calHover);
+                if (today) {
+                    p.strokeRoundRect(cx + 1, ry + 1, CELL_W - 2, CELL_H - 2, 0, 1, c.accent);
+                }
             } else if (today) {
-                p.strokeRoundRect(cx + 1, ry + 1, CELL_W - 2, CELL_H - 2, 0, 1, JXPaint.ACCENT);
+                p.strokeRoundRect(cx + 1, ry + 1, CELL_W - 2, CELL_H - 2, 0, 1, c.accent);
             }
             String label = String.valueOf(d.getDayOfMonth());
             float lw = engine.width(label, size);
-            int color = selected ? 0xFFFFFFFF : inMonth ? JXPaint.TEXT : 0xFFAAAAAA;
+            int color = selected ? c.selectionText : inMonth ? c.text : c.dim;
             p.text(label, cx + (CELL_W - lw) / 2, ry + engine.baseline(CELL_H, size), size, false, color);
         }
     }

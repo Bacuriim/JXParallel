@@ -1,51 +1,30 @@
-# JXParallel architecture
+# Core primitives
 
-The runtime is intentionally split into independent modules:
+The module layout, the dependency rules and the renderers are described in
+[ARCHITECTURE.md](../ARCHITECTURE.md). This page keeps what is specific to `jxparallel-core` and the JavaFX
+bridge: the primitives that the rest is built on. The packages of `jxparallel-core` are:
 
-- `jxparallel-core` keeps the scheduling logic, metrics, queue behavior, and public facade.
-- `jxparallel-properties` is the lightweight property and binding layer for future control implementations.
-- `jxparallel-events` contains the event dispatch model and listener registry.
-- `jxparallel-layout` provides dirty-flag layout, lazy measurements, and incremental updates.
-- `jxparallel-scene` offers the scene-graph bridge and dispatcher layer.
-- `jxparallel-controls` will contain the first-generation lightweight controls.
-- `jxparallel-javafx` handles JavaFX bridge and UI orchestration without creating multiple FX Application Threads.
-- `jxparallel-fxml` manages FXML loading and cache behavior.
-- `jxparallel-core/com.jxparallel.ui` provides the independent declarative scene-graph model.
-- `jxparallel-junit4` and `jxparallel-junit5` hook into the test frameworks without replacing them.
-- `jxparallel-mockito` and `jxparallel-powermock` provide explicit compatibility layers for legacy stacks.
+| Package | Contents |
+|---|---|
+| `com.jxparallel.core` | `JXParallel` (the facade: `start`, `background`, `shutdownNow`), `Task`, `TaskPriority`, `CancellationToken`, `AdaptiveWorkerPool`, `TaskQueue`, `BackpressureController`, `QueuePolicy`, `JXParallelConfig`, `JXParallelMode`, `RuntimeMetrics` |
+| `com.jxparallel.properties` | `JXProperty` and its boolean, integer, double and string subclasses, `JXObservableList` (add, remove and update events), change events and listeners |
+| `com.jxparallel.events` | `JXEvent`, `JXEventType`, `JXEventHandler`, `JXEventDispatcher` |
+| `com.jxparallel.ui` | the declarative model: `JXElement`, `JXComponent`, `JXState`, `JXNode`, `JXRenderer`, with `JXControls`, `JXLayouts` and a `JXTheme` of tokens ([ui-model.md](ui-model.md)) |
 
-## Phase 2 and Phase 3 baseline
+In the JavaFX bridge (`jxparallel-javafx`, profile `legacy-javafx`), `JXFxDispatcher` runs work on the JavaFX
+application thread (`runLater` runs it at once when already there, `runAndWait` blocks the caller) and throws
+`IllegalStateException` when the toolkit is not available. `JXParallelFx` is the facade over it
+(`ui(...)`, `uiAndWait(...)`, `background(...)`). The dispatcher uses `Platform.runLater`, so there is
+only the one FX Application Thread.
 
-The foundation now includes:
+The primitives are small on purpose: lazy creation, little allocation, and the same concepts and names as
+JavaFX where that costs nothing.
 
-- `JXProperty` and property subclasses for lightweight observable values
-- `JXObservableList` with scheduled change notifications
-- `JXEvent`, `JXEventType`, `JXEventHandler`, `JXEventDispatcher`
-- `JXFxDispatcher` for deferring work to the FX thread and handling toolkit absence safely
-- `JXParallelFx` as a compatibility facade for UI/background execution
+## The thread rule
 
-These primitives are intentionally small and intentionally compatible in spirit with JavaFX, without trying to rewrite the full UI stack before the runtime is stable.
+- background work (I/O, parsing, computation) -> the worker pool, `JXParallel.background(...)`
+- scene changes in a JavaFX application -> the FX thread, `JXParallelFx.ui(...)`
+- scene changes in the native UI -> `JXWindow.setContent(...)`, which may be called from any thread and
+  hands the work to the display thread
 
-## Independent UI direction
-
-The new UI model is inspired by React/Vue's declarative composition, not by their JavaScript
-runtime. `JXElement` is immutable, `JXState` is explicit, and `JXNode` is a small mutable mount
-tree that can later be connected to JavaFX, a native renderer, or another host. The first
-implementation includes only tree reconciliation, basic layouts, form elements, and theme tokens.
-
-## Core principle
-
-Keep the JavaFX developer experience and replace the internals with a lighter runtime model:
-
-- same concepts as JavaFX
-- same names where possible
-- better thread isolation
-- better resource control
-- lower allocation pressure
-- lazy creation and caching where beneficial
-
-The main runtime rule remains:
-
-- background work -> worker pool
-- UI work -> JavaFX Application Thread
-- layout and scene updates -> safe, isolated, deterministic flow
+Configuration of the pool is in [configuration.md](configuration.md).

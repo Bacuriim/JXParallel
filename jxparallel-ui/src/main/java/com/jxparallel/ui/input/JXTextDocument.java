@@ -60,8 +60,9 @@ public final class JXTextDocument {
         if (hasSelection()) {
             replaceSelection("");
         } else if (caret > 0) {
-            text.deleteCharAt(caret - 1);
-            caret--;
+            int from = text.offsetByCodePoints(caret, -1); // a surrogate pair (an emoji) goes as one character
+            text.delete(from, caret);
+            caret = from;
             anchor = caret;
         }
     }
@@ -70,7 +71,7 @@ public final class JXTextDocument {
         if (hasSelection()) {
             replaceSelection("");
         } else if (caret < text.length()) {
-            text.deleteCharAt(caret);
+            text.delete(caret, text.offsetByCodePoints(caret, 1));
         }
     }
 
@@ -107,7 +108,16 @@ public final class JXTextDocument {
         anchor = caret;
     }
 
+    /**
+     * Inside the text, and never between the two halves of a surrogate pair: a position inside a pair goes to the
+     * pair's far edge in the direction the caret is moving (so {@code setCaret(caret + 1)} steps over an emoji).
+     */
     private int clamp(int value) {
-        return Math.max(0, Math.min(text.length(), value));
+        int at = Math.max(0, Math.min(text.length(), value));
+        if (at > 0 && at < text.length() && Character.isHighSurrogate(text.charAt(at - 1))
+                && Character.isLowSurrogate(text.charAt(at))) {
+            at += value >= caret ? 1 : -1;
+        }
+        return at;
     }
 }

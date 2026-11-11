@@ -78,6 +78,14 @@ public final class JXWindow implements AutoCloseable {
     private double lastPressX;
     private double lastPressY;
     private int clickCount;
+    /** Physical pixels per logical pixel ({@link JXScale}); all layout and application coordinates are logical. */
+    private volatile float scale = JXScale.resolve(JXScale.forced(), 1f, 1f);
+    /** GLFW window units (cursor positions) to logical pixels, per axis; display thread. */
+    private double toLogicalX = 1;
+    private double toLogicalY = 1;
+    /** Framebuffer size in physical pixels as of the last {@link #syncMetrics}; display thread. */
+    private int fbWidth;
+    private int fbHeight;
 
     public JXWindow(String title) {
         this.title = title == null ? "JXParallel" : title;
@@ -103,7 +111,16 @@ public final class JXWindow implements AutoCloseable {
         // Java 8 keeps NanoVG, the measured configuration. Skija used to crash the JVM there while loading
         // its library: the types 0.1.1 it brings are Java 9 classes; with types 0.2.0 (pom) it loads.
         boolean java8 = System.getProperty("java.specification.version", "").startsWith("1.");
-        return is32Bit || java8 ? NANOVG : SKIA;
+        return is32Bit || java8 || !skijaHasNatives(arch) ? NANOVG : SKIA;
+    }
+
+    /**
+     * Skija 0.116.4 publishes natives for Windows x64, Linux x64 and macOS x64/arm64 only: there is no
+     * skija-windows-arm64 or skija-linux-arm64 before 0.143, so an ARM64 JVM on those systems uses NanoVG.
+     */
+    static boolean skijaHasNatives(String arch) {
+        boolean arm64 = arch.equals("aarch64") || arch.equals("arm64");
+        return !arm64 || JXPlatform.isMac();
     }
 
     /**
@@ -151,6 +168,11 @@ public final class JXWindow implements AutoCloseable {
     /** A snack bar with a duration is open: the loop asks the overlays for its timeout at every turn (display thread). */
     private boolean timedOverlay;
 
+    /** Advances transitions and enters at each frame, and says when another frame is due (see {@link JXAnimationDriver}). */
+    private final JXAnimationDriver animations = new JXAnimationDriver();
+    /** At most one animation frame per this long, whatever the swap interval does (4 ms: 250 per second). */
+    private static final long ANIMATION_FLOOR_NANOS = 4_000_000L;
+
     public void setOnFirstPaint(Runnable callback) {
         onFirstPaint = callback;
     }
@@ -186,27 +208,42 @@ public final class JXWindow implements AutoCloseable {
         return title;
     }
 
-    /** Size of the content area in pixels; applied when the window opens, or at once if open. */
+    /**
+     * Size of the content area in logical pixels (physical pixels divided by {@link #getScale()}); applied
+     * when the window opens, or at once if open.
+     */
     public void setSize(int newWidth, int newHeight) {
         width = Math.max(1, newWidth);
         height = Math.max(1, newHeight);
         if (window != MemoryUtil.NULL) {
             JXDisplay.post(() -> {
                 if (window != MemoryUtil.NULL) {
-                    GLFW.glfwSetWindowSize(window, width, height);
+                    applyLogicalSize(window);
                 }
             });
         }
     }
 
+    /** Width of the content area in logical pixels. */
     public int getWidth() {
         return width;
     }
 
+    /** Height of the content area in logical pixels. */
     public int getHeight() {
         return height;
     }
 
+    /**
+     * Physical pixels per logical pixel: 1 on a 100% display, 1.5 at 150%, 2 at 200%. It is the window's
+     * monitor content scale, updated when the window moves to another monitor, or {@code -Djx.scale=N}
+     * when set. Before the window opens it is the forced scale or 1. Safe from any thread.
+     */
+    public float getScale() {
+        return scale;
+    }
+
+    /** Logical pixels; applied when the window opens, and again when the scale changes. */
     public void setMinSize(int newMinWidth, int newMinHeight) {
         minWidth = newMinWidth;
         minHeight = newMinHeight;
@@ -225,18 +262,245 @@ public final class JXWindow implements AutoCloseable {
         }
     }
 
+    /** Whether the user can resize the window; applied when the window opens, or at once if open. */
     public void setResizable(boolean value) {
         resizable = value;
+        attribute(GLFW.GLFW_RESIZABLE, value);
     }
 
-    /** Title bar and borders; false for popups and notifications. Set before opening. */
+    public boolean isResizable() {
+        return resizable;
+    }
+
+    /** Title bar and borders; false for popups and notifications. Applied when the window opens, or at once if open. */
     public void setDecorated(boolean value) {
         decorated = value;
+        attribute(GLFW.GLFW_DECORATED, value);
     }
 
-    /** Always on top of other windows. Set before opening. */
+    public boolean isDecorated() {
+        return decorated;
+    }
+
+    /** Always on top of other windows. Applied when the window opens, or at once if open. */
     public void setFloating(boolean value) {
         floating = value;
+        attribute(GLFW.GLFW_FLOATING, value);
+    }
+
+    /** Same as {@link #setFloating}. */
+    public void setAlwaysOnTop(boolean value) {
+        setFloating(value);
+    }
+
+    public boolean isFloating() {
+        return floating;
+    }
+
+    /** Sets a GLFW window attribute on the display thread, if the window is open. */
+    private void attribute(int attrib, boolean value) {
+        if (window != MemoryUtil.NULL) {
+            JXDisplay.post(() -> {
+                if (window != MemoryUtil.NULL) {
+                    GLFW.glfwSetWindowAttrib(window, attrib, value ? GLFW.GLFW_TRUE : GLFW.GLFW_FALSE);
+                }
+            });
+        }
+    }
+
+    /** Screen position of the content area as of the last move (GLFW window units), or what {@link #setPosition} set. */
+    public int getX() {
+        return x;
+    }
+
+    public int getY() {
+        return y;
+    }
+
+    private volatile boolean maximized;
+    private volatile boolean iconified;
+    private volatile boolean fullScreen;
+    private volatile List<JXWindowIcon> icons = new ArrayList<JXWindowIcon>();
+    /** Position and size (GLFW window units) to go back to when the full screen ends; display thread. */
+    private final int[] windowedBounds = new int[4];
+    private boolean inFullScreen;
+
+    /** Maximized: applied when the window opens, or at once if open. */
+    public void setMaximized(boolean value) {
+        maximized = value;
+        if (window != MemoryUtil.NULL) {
+            JXDisplay.post(() -> {
+                if (window != MemoryUtil.NULL) {
+                    if (value) {
+                        GLFW.glfwMaximizeWindow(window);
+                    } else if (!inFullScreen) {
+                        GLFW.glfwRestoreWindow(window);
+                    }
+                }
+            });
+        }
+    }
+
+    /** The window is maximized, as the user or {@link #setMaximized} left it. */
+    public boolean isMaximized() {
+        return maximized;
+    }
+
+    /** Minimized to the task bar: applied when the window opens, or at once if open. */
+    public void setIconified(boolean value) {
+        iconified = value;
+        if (window != MemoryUtil.NULL) {
+            JXDisplay.post(() -> {
+                if (window != MemoryUtil.NULL) {
+                    if (value) {
+                        GLFW.glfwIconifyWindow(window);
+                    } else {
+                        GLFW.glfwRestoreWindow(window);
+                    }
+                }
+            });
+        }
+    }
+
+    /** Same as {@code setIconified(true)}. */
+    public void minimize() {
+        setIconified(true);
+    }
+
+    public boolean isIconified() {
+        return iconified;
+    }
+
+    /** Brings a minimized or maximized window back to its normal size. */
+    public void restore() {
+        if (window != MemoryUtil.NULL) {
+            JXDisplay.post(() -> {
+                if (window != MemoryUtil.NULL) {
+                    GLFW.glfwRestoreWindow(window);
+                }
+            });
+        } else {
+            maximized = false;
+            iconified = false;
+        }
+    }
+
+    /**
+     * Full screen on the primary monitor, at its current video mode; false goes back to the position and size the window
+     * had. Applied when the window opens, or at once if open.
+     */
+    public void setFullScreen(boolean value) {
+        fullScreen = value;
+        if (window != MemoryUtil.NULL) {
+            JXDisplay.post(() -> applyFullScreen());
+        }
+    }
+
+    public boolean isFullScreen() {
+        return fullScreen;
+    }
+
+    /** Display thread. */
+    private void applyFullScreen() {
+        long handle = window;
+        if (handle == MemoryUtil.NULL || fullScreen == inFullScreen) {
+            return;
+        }
+        if (fullScreen) {
+            int[] px = new int[1];
+            int[] py = new int[1];
+            int[] pw = new int[1];
+            int[] ph = new int[1];
+            GLFW.glfwGetWindowPos(handle, px, py);
+            GLFW.glfwGetWindowSize(handle, pw, ph);
+            long monitor = GLFW.glfwGetPrimaryMonitor();
+            org.lwjgl.glfw.GLFWVidMode mode = monitor == MemoryUtil.NULL ? null : GLFW.glfwGetVideoMode(monitor);
+            if (mode == null) {
+                fullScreen = false;
+                return;
+            }
+            windowedBounds[0] = px[0];
+            windowedBounds[1] = py[0];
+            windowedBounds[2] = pw[0];
+            windowedBounds[3] = ph[0];
+            GLFW.glfwSetWindowMonitor(handle, monitor, 0, 0, mode.width(), mode.height(), mode.refreshRate());
+        } else {
+            GLFW.glfwSetWindowMonitor(handle, MemoryUtil.NULL, windowedBounds[0], windowedBounds[1], windowedBounds[2],
+                    windowedBounds[3], GLFW.GLFW_DONT_CARE);
+        }
+        inFullScreen = fullScreen;
+        requestRender();
+    }
+
+    /** Asks the system to give this window the keyboard focus (it may only flash in the task bar). */
+    public void requestFocus() {
+        if (window != MemoryUtil.NULL) {
+            JXDisplay.post(() -> {
+                if (window != MemoryUtil.NULL) {
+                    GLFW.glfwFocusWindow(window);
+                }
+            });
+        }
+    }
+
+    /** One icon size for the title bar and the task bar; applied when the window opens, or at once if open. */
+    public void setIcon(int iconWidth, int iconHeight, int[] argb) {
+        setIcons(java.util.Collections.singletonList(new JXWindowIcon(iconWidth, iconHeight, argb)));
+    }
+
+    /** Several sizes of the icon (16, 32, 48...): the system picks the closest to what it needs. Null or empty: the default icon. */
+    public void setIcons(List<JXWindowIcon> sizes) {
+        icons = sizes == null ? new ArrayList<JXWindowIcon>() : new ArrayList<JXWindowIcon>(sizes);
+        if (window != MemoryUtil.NULL) {
+            JXDisplay.post(() -> {
+                if (window != MemoryUtil.NULL) {
+                    applyIcons(window);
+                }
+            });
+        }
+    }
+
+    /** The icon from a picture file ({@link JXWindowIcon#load}). */
+    public void setIconFile(String source) throws java.io.IOException {
+        setIcons(java.util.Collections.singletonList(JXWindowIcon.load(source)));
+    }
+
+    /** The icon from several picture files, one per size. */
+    public void setIconFiles(String... sources) throws java.io.IOException {
+        setIcons(JXWindowIcon.load(sources));
+    }
+
+    /** The window's icons, also set on its window class on Windows (see {@link JXWin32ClassIcon}). */
+    private final JXWin32ClassIcon classIcon = new JXWin32ClassIcon();
+
+    /** Display thread. */
+    private void applyIcons(long handle) {
+        classIcon.restore(); // GLFW frees the window's previous icons below: the class must not keep them
+        List<JXWindowIcon> sizes = icons;
+        if (sizes.isEmpty()) {
+            GLFW.glfwSetWindowIcon(handle, (org.lwjgl.glfw.GLFWImage.Buffer) null);
+            return;
+        }
+        org.lwjgl.glfw.GLFWImage.Buffer images = org.lwjgl.glfw.GLFWImage.malloc(sizes.size());
+        java.nio.ByteBuffer[] pixels = new java.nio.ByteBuffer[sizes.size()];
+        try {
+            for (int i = 0; i < pixels.length; i++) {
+                JXWindowIcon icon = sizes.get(i);
+                byte[] rgba = icon.rgba();
+                pixels[i] = MemoryUtil.memAlloc(rgba.length);
+                pixels[i].put(rgba).flip();
+                images.get(i).set(icon.getWidth(), icon.getHeight(), pixels[i]);
+            }
+            GLFW.glfwSetWindowIcon(handle, images);
+            classIcon.apply(handle); // the task bar's fallback (Windows) shows the same icon
+        } finally {
+            images.free();
+            for (java.nio.ByteBuffer pixel : pixels) {
+                if (pixel != null) {
+                    MemoryUtil.memFree(pixel);
+                }
+            }
+        }
     }
 
     /** Whether showing the window takes the keyboard focus (false for notifications). Set before opening. */
@@ -291,7 +555,11 @@ public final class JXWindow implements AutoCloseable {
         };
     }
 
-    /** Size of the primary monitor's work area: x, y, width, height. Safe from any thread. */
+    /**
+     * The primary monitor's work area in logical pixels: x, y, width, height. Safe from any thread.
+     * Where GLFW's screen coordinates are physical pixels (Windows, X11) the monitor's content scale
+     * divides them; on macOS and Wayland they already are logical.
+     */
     public static int[] screenBounds() {
         return JXDisplay.call(() -> {
             int[] x = new int[1];
@@ -303,8 +571,27 @@ public final class JXWindow implements AutoCloseable {
                 return new int[] {0, 0, 1280, 800};
             }
             GLFW.glfwGetMonitorWorkarea(monitor, x, y, w, h);
-            return new int[] {x[0], y[0], w[0], h[0]};
+            float s = screenCoordinatesAreLogical() ? 1f : monitorScale(monitor);
+            return new int[] {Math.round(x[0] / s), Math.round(y[0] / s), JXScale.logicalExtent(w[0], s),
+                    JXScale.logicalExtent(h[0], s)};
         });
+    }
+
+    /** True where one GLFW screen coordinate is one logical pixel and the framebuffer is denser (macOS, Wayland). */
+    private static boolean screenCoordinatesAreLogical() {
+        try {
+            int platform = GLFW.glfwGetPlatform();
+            return platform == GLFW.GLFW_PLATFORM_COCOA || platform == GLFW.GLFW_PLATFORM_WAYLAND;
+        } catch (Throwable e) {
+            return System.getProperty("os.name", "").toLowerCase(Locale.ROOT).contains("mac");
+        }
+    }
+
+    private static float monitorScale(long monitor) {
+        float[] sx = new float[1];
+        float[] sy = new float[1];
+        GLFW.glfwGetMonitorContentScale(monitor, sx, sy);
+        return JXScale.resolve(JXScale.forced(), sx[0], sy[0]);
     }
 
     /**
@@ -312,8 +599,19 @@ public final class JXWindow implements AutoCloseable {
      * the top. CPU only: no window, no OpenGL, any thread.
      */
     public static int[] captureSoftware(JXElement element, int width, int height) {
-        int[] argb = new int[Math.max(1, width * height)];
-        JXSoftwarePainter painter = new JXSoftwarePainter(argb, width, height, 1f);
+        return captureSoftware(element, width, height, 1f);
+    }
+
+    /**
+     * Like {@link #captureSoftware(JXElement, int, int)} for a HiDPI display: {@code width x height} is the
+     * logical size the tree is laid out in, and the image is {@code round(width * scale)} by
+     * {@code round(height * scale)} physical pixels, drawn at that resolution (not enlarged).
+     */
+    public static int[] captureSoftware(JXElement element, int width, int height, float scale) {
+        int pw = Math.max(1, JXScale.physicalExtent(width, scale));
+        int ph = Math.max(1, JXScale.physicalExtent(height, scale));
+        int[] argb = new int[pw * ph];
+        JXSoftwarePainter painter = new JXSoftwarePainter(argb, pw, ph, scale);
         painter.clear(JXSkiaRenderer.BACKGROUND);
         JXNativeNode node = JXNativeNode.createBackendNode(element);
         node.layoutForBackend(Math.max(1, width), Math.max(1, height));
@@ -346,7 +644,8 @@ public final class JXWindow implements AutoCloseable {
             GLFW.glfwDefaultWindowHints();
             GLFW.glfwWindowHint(GLFW.GLFW_VISIBLE, GLFW.GLFW_FALSE);
             GLFW.glfwWindowHint(GLFW.GLFW_STENCIL_BITS, 8);
-            long hidden = GLFW.glfwCreateWindow(width, height, "capture", MemoryUtil.NULL, MemoryUtil.NULL);
+            JXPlatform.applyContextHints();
+            long hidden =GLFW.glfwCreateWindow(width, height, "capture", MemoryUtil.NULL, MemoryUtil.NULL);
             if (hidden == MemoryUtil.NULL) {
                 throw new IllegalStateException("Unable to create GLFW window");
             }
@@ -358,7 +657,7 @@ public final class JXWindow implements AutoCloseable {
                 GLFW.glfwGetFramebufferSize(hidden, fbw, fbh);
                 NanoVGBackend backend = new NanoVGBackend();
                 try {
-                    backend.render(JXNativeNode.createBackendNode(element), fbw[0], fbh[0], width, height);
+                    backend.render(JXNativeNode.createBackendNode(element), fbw[0], fbh[0], width, height, (float) fbw[0] / width);
                     GL11.glFinish();
                     java.nio.ByteBuffer rgba = MemoryUtil.memAlloc(fbw[0] * fbh[0] * 4);
                     try {
@@ -399,6 +698,11 @@ public final class JXWindow implements AutoCloseable {
         if (JXDisplay.isDisplayThread()) {
             throw new IllegalStateException("show() blocks; use open() on the display thread");
         }
+        if (JXDisplay.needsMainThreadEntry()) {
+            // macOS: this (first) thread becomes the display thread and returns when the last window is closed
+            JXDisplay.runOnMainThread(this::open);
+            return;
+        }
         open();
         awaitClosed();
     }
@@ -422,7 +726,6 @@ public final class JXWindow implements AutoCloseable {
         if (adopted) {
             // the prewarmed hidden window, its OpenGL context already made: set it up as this window
             GLFW.glfwSetWindowTitle(handle, title);
-            GLFW.glfwSetWindowSize(handle, width, height);
             GLFW.glfwSetWindowAttrib(handle, GLFW.GLFW_RESIZABLE, resizable ? GLFW.GLFW_TRUE : GLFW.GLFW_FALSE);
             GLFW.glfwSetWindowAttrib(handle, GLFW.GLFW_DECORATED, decorated ? GLFW.GLFW_TRUE : GLFW.GLFW_FALSE);
             GLFW.glfwSetWindowAttrib(handle, GLFW.GLFW_FLOATING, floating ? GLFW.GLFW_TRUE : GLFW.GLFW_FALSE);
@@ -433,6 +736,7 @@ public final class JXWindow implements AutoCloseable {
                 GLFW.glfwWindowHint(GLFW.GLFW_CLIENT_API, GLFW.GLFW_NO_API); // no OpenGL context: no driver memory
             } else {
                 GLFW.glfwWindowHint(GLFW.GLFW_STENCIL_BITS, 8);
+                JXPlatform.applyContextHints();
             }
             GLFW.glfwWindowHint(GLFW.GLFW_VISIBLE, GLFW.GLFW_FALSE);
             GLFW.glfwWindowHint(GLFW.GLFW_RESIZABLE, resizable ? GLFW.GLFW_TRUE : GLFW.GLFW_FALSE);
@@ -445,11 +749,10 @@ public final class JXWindow implements AutoCloseable {
             throw new IllegalStateException("Unable to create GLFW window");
         }
         window = handle;
-        if (minWidth > 0 || minHeight > 0) {
-            GLFW.glfwSetWindowSizeLimits(handle, minWidth > 0 ? minWidth : GLFW.GLFW_DONT_CARE,
-                    minHeight > 0 ? minHeight : GLFW.GLFW_DONT_CARE, GLFW.GLFW_DONT_CARE, GLFW.GLFW_DONT_CARE);
-        }
+        // Not GLFW_SCALE_TO_MONITOR: the size is converted here, from the scale of the monitor the window
+        // ends up on, so it works the same on Windows, X11, macOS and Wayland, and for -Djx.scale.
         place(handle);
+        syncMetrics(handle, false);
         installCallbacks(handle);
         if (software) {
             backend = new SoftwareBackend(org.lwjgl.glfw.GLFWNativeWin32.glfwGetWin32Window(handle));
@@ -468,7 +771,20 @@ public final class JXWindow implements AutoCloseable {
             backend = NANOVG.equals(rendererName) ? new NanoVGBackend() : new SkiaBackend();
         }
         JXDisplay.add(this);
+        a11y = new JXWindowAccessibility(this);
+        if (!icons.isEmpty()) {
+            applyIcons(handle);
+        }
+        if (maximized) {
+            GLFW.glfwMaximizeWindow(handle);
+        }
         GLFW.glfwShowWindow(handle);
+        if (iconified) {
+            GLFW.glfwIconifyWindow(handle);
+        }
+        if (fullScreen) {
+            applyFullScreen();
+        }
         requestRender();
     }
 
@@ -476,6 +792,8 @@ public final class JXWindow implements AutoCloseable {
     private void place(long handle) {
         if (x != Integer.MIN_VALUE && y != Integer.MIN_VALUE) {
             GLFW.glfwSetWindowPos(handle, x, y);
+            scale = windowScale(handle); // the monitor the window is now on
+            applyLogicalSize(handle);
             return;
         }
         org.lwjgl.PointerBuffer monitors = GLFW.glfwGetMonitors();
@@ -483,25 +801,120 @@ public final class JXWindow implements AutoCloseable {
         long monitor = monitors != null && index != null && index >= 0 && index < monitors.limit()
                 ? monitors.get(index) : GLFW.glfwGetPrimaryMonitor();
         if (monitor == MemoryUtil.NULL) {
+            applyLogicalSize(handle);
             return;
         }
+        scale = monitorScale(monitor);
+        applyLogicalSize(handle);
         int[] mx = new int[1];
         int[] my = new int[1];
         int[] mw = new int[1];
         int[] mh = new int[1];
+        int[] ww = new int[1];
+        int[] wh = new int[1];
         GLFW.glfwGetMonitorWorkarea(monitor, mx, my, mw, mh);
-        GLFW.glfwSetWindowPos(handle, mx[0] + Math.max(0, (mw[0] - width) / 2), my[0] + Math.max(0, (mh[0] - height) / 2));
+        GLFW.glfwGetWindowSize(handle, ww, wh);
+        GLFW.glfwSetWindowPos(handle, mx[0] + Math.max(0, (mw[0] - ww[0]) / 2), my[0] + Math.max(0, (mh[0] - wh[0]) / 2));
+    }
+
+    /** The content scale of the monitor the window is on, or the forced one. */
+    private static float windowScale(long handle) {
+        float[] sx = new float[1];
+        float[] sy = new float[1];
+        GLFW.glfwGetWindowContentScale(handle, sx, sy);
+        return JXScale.resolve(JXScale.forced(), sx[0], sy[0]);
+    }
+
+    /**
+     * Gives the window the logical {@link #width} x {@link #height} at the current scale, and the logical
+     * minimum size (GLFW sizes are in window units: physical pixels on Windows and X11, points elsewhere).
+     * Display thread.
+     */
+    private void applyLogicalSize(long handle) {
+        applyLogicalSize(handle, true);
+    }
+
+    /** {@code resize} false only refreshes the minimum size. */
+    private void applyLogicalSize(long handle, boolean resize) {
+        int[] ww = new int[1];
+        int[] wh = new int[1];
+        int[] fw = new int[1];
+        int[] fh = new int[1];
+        GLFW.glfwGetWindowSize(handle, ww, wh);
+        GLFW.glfwGetFramebufferSize(handle, fw, fh);
+        float s = scale;
+        if (minWidth > 0 || minHeight > 0) {
+            GLFW.glfwSetWindowSizeLimits(handle,
+                    minWidth > 0 ? JXScale.toWindowUnits(minWidth, ww[0], fw[0], s) : GLFW.GLFW_DONT_CARE,
+                    minHeight > 0 ? JXScale.toWindowUnits(minHeight, wh[0], fh[0], s) : GLFW.GLFW_DONT_CARE,
+                    GLFW.GLFW_DONT_CARE, GLFW.GLFW_DONT_CARE);
+        }
+        if (resize) {
+            GLFW.glfwSetWindowSize(handle, JXScale.toWindowUnits(width, ww[0], fw[0], s),
+                    JXScale.toWindowUnits(height, wh[0], fh[0], s));
+        }
+    }
+
+    /**
+     * Re-reads the window and framebuffer sizes: sets the cursor conversion, the framebuffer size and the
+     * logical size. Reports a changed logical size to the input listener when {@code notify} is set.
+     * False when the window has no area (minimized). Display thread.
+     */
+    private boolean syncMetrics(long handle, boolean notify) {
+        int[] fw = new int[1];
+        int[] fh = new int[1];
+        int[] ww = new int[1];
+        int[] wh = new int[1];
+        GLFW.glfwGetFramebufferSize(handle, fw, fh);
+        GLFW.glfwGetWindowSize(handle, ww, wh);
+        if (fw[0] <= 0 || fh[0] <= 0 || ww[0] <= 0 || wh[0] <= 0) {
+            return false;
+        }
+        float s = scale;
+        fbWidth = fw[0];
+        fbHeight = fh[0];
+        toLogicalX = JXScale.toLogical(1, ww[0], fw[0], s);
+        toLogicalY = JXScale.toLogical(1, wh[0], fh[0], s);
+        int lw = JXScale.logicalExtent(fw[0], s);
+        int lh = JXScale.logicalExtent(fh[0], s);
+        if (lw != width || lh != height) {
+            width = lw;
+            height = lh;
+            if (notify) {
+                deliver(JXInputEvent.window(JXInputEvent.Kind.RESIZE, lw, lh));
+            }
+        }
+        return true;
     }
 
     private void installCallbacks(long handle) {
         GLFW.glfwSetFramebufferSizeCallback(handle, (h, w, hh) -> requestRender());
         GLFW.glfwSetWindowSizeCallback(handle, (h, w, hh) -> {
-            if (w > 0 && hh > 0) {
-                width = w;
-                height = hh;
-                deliver(JXInputEvent.window(JXInputEvent.Kind.RESIZE, w, hh));
+            if (w > 0 && hh > 0 && syncMetrics(h, false)) {
+                deliver(JXInputEvent.window(JXInputEvent.Kind.RESIZE, width, height)); // logical pixels
             }
             requestRender();
+        });
+        // The window moved to a monitor with another scale (or the user changed it): the logical size, the
+        // minimum size and the cursor conversion follow. Windows resizes the window itself, keeping its logical size.
+        GLFW.glfwSetWindowContentScaleCallback(handle, (h, sx, sy) -> {
+            float resolved = JXScale.resolve(JXScale.forced(), sx, sy);
+            if (resolved != scale) {
+                scale = resolved;
+                if (minWidth > 0 || minHeight > 0) {
+                    applyLogicalSize(h, false);
+                }
+                syncMetrics(h, true);
+            }
+            requestRender();
+        });
+        GLFW.glfwSetWindowMaximizeCallback(handle, (h, value) -> maximized = value);
+        GLFW.glfwSetWindowIconifyCallback(handle, (h, value) -> iconified = value);
+        GLFW.glfwSetWindowPosCallback(handle, (h, wx, wy) -> {
+            if (!iconified) { // a minimized window reports a position far off screen
+                x = wx;
+                y = wy;
+            }
         });
         GLFW.glfwSetWindowRefreshCallback(handle, h -> {
             if (backend instanceof SoftwareBackend) {
@@ -509,8 +922,12 @@ public final class JXWindow implements AutoCloseable {
             }
             requestRender();
         });
-        GLFW.glfwSetWindowFocusCallback(handle, (h, focused) ->
-                deliver(JXInputEvent.window(focused ? JXInputEvent.Kind.FOCUS_GAINED : JXInputEvent.Kind.FOCUS_LOST, width, height)));
+        GLFW.glfwSetWindowFocusCallback(handle, (h, focused) -> {
+            if (a11y != null) {
+                a11y.setActive(focused);
+            }
+            deliver(JXInputEvent.window(focused ? JXInputEvent.Kind.FOCUS_GAINED : JXInputEvent.Kind.FOCUS_LOST, width, height));
+        });
         GLFW.glfwSetWindowCloseCallback(handle, h -> {
             if (inputListener != null) {
                 GLFW.glfwSetWindowShouldClose(h, false);
@@ -519,7 +936,9 @@ public final class JXWindow implements AutoCloseable {
                 dispose();
             }
         });
-        GLFW.glfwSetCursorPosCallback(handle, (h, px, py) -> {
+        GLFW.glfwSetCursorPosCallback(handle, (h, rawX, rawY) -> {
+            double px = rawX * toLogicalX; // window units to logical pixels
+            double py = rawY * toLogicalY;
             cursorX = px;
             cursorY = py;
             if (inputListener != null) {
@@ -531,6 +950,24 @@ public final class JXWindow implements AutoCloseable {
                 requestRender();
             } else if (root != null && buttonsDown == 0) {
                 hover((int) px, (int) py);
+            }
+        });
+        // files dropped from the file manager go to the node under the pointer that has an onDrop handler
+        GLFW.glfwSetDropCallback(handle, (h, count, names) -> {
+            if (inputListener != null || root == null) {
+                return;
+            }
+            String[] files = new String[count];
+            for (int i = 0; i < count; i++) {
+                files[i] = org.lwjgl.glfw.GLFWDropCallback.getName(names, i);
+            }
+            double[] dx = new double[1];
+            double[] dy = new double[1];
+            GLFW.glfwGetCursorPos(h, dx, dy);
+            cursorX = dx[0] * toLogicalX;
+            cursorY = dy[0] * toLogicalY;
+            if (root.dispatchDrop((int) cursorX, (int) cursorY, java.util.Arrays.asList(files))) {
+                requestRender();
             }
         });
         GLFW.glfwSetCursorEnterCallback(handle, (h, entered) -> {
@@ -547,9 +984,12 @@ public final class JXWindow implements AutoCloseable {
             double[] px = new double[1];
             double[] py = new double[1];
             GLFW.glfwGetCursorPos(h, px, py);
+            px[0] *= toLogicalX; // window units to logical pixels
+            py[0] *= toLogicalY;
             cursorX = px[0];
             cursorY = py[0];
             if (action == GLFW.GLFW_PRESS) {
+                altTap.cancel();
                 buttonsDown |= 1 << button;
                 long now = System.currentTimeMillis();
                 boolean again = button == lastButton && now - lastPressTime <= MULTI_CLICK_MILLIS
@@ -572,6 +1012,7 @@ public final class JXWindow implements AutoCloseable {
             hideTooltip(); // a press or a release puts the tooltip away
             if (button == JXInputEvent.BUTTON_PRIMARY && action == GLFW.GLFW_RELEASE && root != null) {
                 root.releasePointer(new JXPointerEvent((int) px[0], (int) py[0], glfwButton)); // a button clicks on the release
+                updateCursor((int) px[0], (int) py[0]); // a drag that kept the resize cursor is over
                 requestRender();
                 return;
             }
@@ -579,7 +1020,8 @@ public final class JXWindow implements AutoCloseable {
                 return;
             }
             // the overlays first: a press outside an open popup or menu closes it, one inside a dialog stays in it
-            JXNativeNode hit = root.pressPointer(new JXPointerEvent((int) px[0], (int) py[0], glfwButton, clickCount));
+            JXNativeNode hit = root.pressPointer(new JXPointerEvent((int) px[0], (int) py[0], glfwButton, clickCount,
+                    JXKeys.modifiers(mods)));
             if (hit != null && !secondary) {
                 focus(hit);
                 dragNode = hit; // a scroll bar's thumb or a split pane's divider follows the pointer until the release
@@ -600,7 +1042,11 @@ public final class JXWindow implements AutoCloseable {
                         JXKeys.name(key), JXKeys.modifiers(mods)));
                 return;
             }
+            if (altTap.key(key, action != GLFW.GLFW_RELEASE) && root != null && root.toggleMenuBar()) {
+                requestRender(); // Alt pressed and released alone opened (or closed) the menu bar
+            }
             if (action != GLFW.GLFW_RELEASE && root != null) {
+                forgetDetachedFocus(); // the last render may have removed it (a field of a dialog that closed)
                 if (key == GLFW.GLFW_KEY_TAB) { // Tab and Shift+Tab move the focus through the controls
                     JXNativeNode next = root.nextFocus(focusedNode, (mods & GLFW.GLFW_MOD_SHIFT) != 0);
                     if (next != null) {
@@ -608,7 +1054,12 @@ public final class JXWindow implements AutoCloseable {
                     }
                 } else {
                     // Escape and Enter belong to an open overlay first; Shift and Ctrl select, copy, paste and undo text
-                    root.routeKey(new JXKeyEvent(key, '\0', JXKeys.modifiers(mods)), focusedNode);
+                    keyTaken = root.capturesKeys(); // the character this key types, which GLFW sends next, goes with it
+                    JXNativeNode owner = root.routeKey(new JXKeyEvent(key, '\0', JXKeys.modifiers(mods),
+                            action == GLFW.GLFW_REPEAT), focusedNode);
+                    if (owner != focusedNode) {
+                        focus(owner); // Escape closed a popup or a menu: the control it belongs to has the focus again
+                    }
                 }
                 hideTooltip();
                 requestRender();
@@ -619,12 +1070,19 @@ public final class JXWindow implements AutoCloseable {
                 deliver(JXInputEvent.character(codepoint, JXKeys.modifiers(mods)));
                 return;
             }
-            if (focusedNode != null) {
-                focusedNode.dispatchKey(new JXKeyEvent(0, (char) codepoint));
+            forgetDetachedFocus();
+            if (focusedNode != null && !keyTaken) { // an open menu or popup took the key that typed it already
+                // the whole code point: casting to char would drop the high half of an emoji or any supplementary character
+                focusedNode.dispatchKey(JXKeyEvent.typed(codepoint, 0));
                 requestRender();
             }
         });
     }
+
+    private final JXAltTap altTap = new JXAltTap();
+
+    /** The last key press went to an open popup list or menu (see {@link JXNativeNode#capturesKeys}), not to the focused node. */
+    private boolean keyTaken;
 
     /** How long the pointer rests on a node with a {@code tooltip} before it shows, as JavaFX's default (milliseconds). */
     private static final long TOOLTIP_DELAY = 600;
@@ -637,6 +1095,7 @@ public final class JXWindow implements AutoCloseable {
         if (root.hoverPointer(x, y)) {
             requestRender();
         }
+        updateCursor(x, y);
         JXNativeNode tip = x < 0 ? null : JXNativeNode.hoveredTooltip();
         if (tip != tooltipNode) {
             hideTooltip();
@@ -648,12 +1107,87 @@ public final class JXWindow implements AutoCloseable {
         }
     }
 
+    /** GLFW standard cursors, created the first time each shape is needed and destroyed with the window; display thread. */
+    private final long[] cursors = new long[JXCursor.values().length];
+    private JXCursor cursorShown = JXCursor.ARROW;
+
+    /** Shows the pointer shape of what is at (x, y) (x < 0: the pointer left, the arrow). */
+    private void updateCursor(int x, int y) {
+        showCursor(x < 0 || root == null ? JXCursor.ARROW : root.cursorAt(x, y));
+    }
+
+    private void showCursor(JXCursor shape) {
+        if (shape == cursorShown || window == MemoryUtil.NULL) {
+            return;
+        }
+        long cursor = cursors[shape.ordinal()];
+        if (cursor == MemoryUtil.NULL) {
+            cursor = GLFW.glfwCreateStandardCursor(glfwShape(shape));
+            cursors[shape.ordinal()] = cursor;
+        }
+        if (cursor != MemoryUtil.NULL) { // a platform without that shape keeps the current one
+            GLFW.glfwSetCursor(window, cursor);
+            cursorShown = shape;
+        }
+    }
+
+    private static int glfwShape(JXCursor shape) {
+        switch (shape) {
+            case IBEAM:
+                return GLFW.GLFW_IBEAM_CURSOR;
+            case CROSSHAIR:
+                return GLFW.GLFW_CROSSHAIR_CURSOR;
+            case HAND:
+                return GLFW.GLFW_HAND_CURSOR;
+            case RESIZE_H:
+                return GLFW.GLFW_HRESIZE_CURSOR;
+            case RESIZE_V:
+                return GLFW.GLFW_VRESIZE_CURSOR;
+            default:
+                return GLFW.GLFW_ARROW_CURSOR;
+        }
+    }
+
+    private void destroyCursors() {
+        for (int i = 0; i < cursors.length; i++) {
+            if (cursors[i] != MemoryUtil.NULL) {
+                GLFW.glfwDestroyCursor(cursors[i]);
+                cursors[i] = MemoryUtil.NULL;
+            }
+        }
+        cursorShown = JXCursor.ARROW;
+    }
+
     private void hideTooltip() {
         if (JXNativeNode.shownTooltip != null) {
             JXNativeNode.shownTooltip = null;
             requestRender();
         }
         tooltipNode = null;
+    }
+
+    /** Drops the focus when the node that had it is no longer in the tree, so keys never reach a removed control. */
+    private void forgetDetachedFocus() {
+        if (liveFocus(root, focusedNode) != focusedNode) {
+            focus(null);
+        }
+    }
+
+    /** {@code focused} when it is still in the tree under {@code root}, else null. */
+    static JXNativeNode liveFocus(JXNativeNode root, JXNativeNode focused) {
+        return focused != null && root != null && inTree(root, focused) ? focused : null;
+    }
+
+    private static boolean inTree(JXNativeNode node, JXNativeNode target) {
+        if (node == target) {
+            return true;
+        }
+        for (JXNativeNode child : node.getChildren()) {
+            if (inTree(child, target)) {
+                return true;
+            }
+        }
+        return false;
     }
 
     /** Gives the keyboard focus to {@code node} (null: none): keys go there, and it draws its focus ring and caret. */
@@ -713,15 +1247,12 @@ public final class JXWindow implements AutoCloseable {
         if (!renderRequested.getAndSet(false)) {
             return;
         }
-        int[] fbWidth = new int[1];
-        int[] fbHeight = new int[1];
-        int[] winWidth = new int[1];
-        int[] winHeight = new int[1];
-        GLFW.glfwGetFramebufferSize(window, fbWidth, fbHeight);
-        GLFW.glfwGetWindowSize(window, winWidth, winHeight);
-        if (fbWidth[0] <= 0 || fbHeight[0] <= 0 || winWidth[0] <= 0 || winHeight[0] <= 0) {
+        if (!syncMetrics(window, true)) {
             return; // minimized
         }
+        float frameScale = scale;
+        int logicalWidth = width;
+        int logicalHeight = height;
         if (frameIntervalNanos > 0) {
             // no vertical sync without OpenGL: at most one frame per refresh of the monitor
             long now = System.nanoTime();
@@ -738,17 +1269,30 @@ public final class JXWindow implements AutoCloseable {
             GL.setCapabilities(capabilities);
         }
         Object lock = externalLock;
+        long frameNanos = JXAnimationClock.now();
+        boolean moving;
         if (lock != null) {
             synchronized (lock) {
-                backend.render(root, fbWidth[0], fbHeight[0], winWidth[0], winHeight[0]);
+                moving = animations.step(root, frameNanos); // transitions advance to this frame's time, then it paints them
+                backend.render(root, fbWidth, fbHeight, logicalWidth, logicalHeight, frameScale);
             }
         } else {
-            backend.render(root, fbWidth[0], fbHeight[0], winWidth[0], winHeight[0]);
+            moving = animations.step(root, frameNanos);
+            backend.render(root, fbWidth, fbHeight, logicalWidth, logicalHeight, frameScale);
         }
         if (frameIntervalNanos == 0) {
             GLFW.glfwSwapBuffers(window);
         }
+        if (moving) {
+            // something is still moving: paint again, paced by the swap interval (OpenGL) or the refresh interval (software);
+            // the wake-up bounds the sleep of the loop, so a driver that ignores the swap interval cannot make it spin
+            renderRequested.set(true);
+            JXDisplay.wakeAt(frameIntervalNanos > 0 ? lastFrameNanos + frameIntervalNanos : System.nanoTime() + ANIMATION_FLOOR_NANOS);
+        }
         timedOverlay = root != null && lock == null && root.tickOverlays() >= 0;
+        if (a11y != null && root != null && (com.jxparallel.ui.accessibility.JXAccessibility.isEnabled() || a11y.isAttached())) {
+            publishAccessibility(lock);
+        }
         if (!firstPaintReported) {
             firstPaintReported = true;
             if (backend instanceof NanoVGBackend) {
@@ -763,10 +1307,64 @@ public final class JXWindow implements AutoCloseable {
         }
     }
 
+    private JXWindowAccessibility a11y;
+
+    /** The native window handle (the HWND on Windows), or 0 elsewhere or when not open. */
+    long nativeHandle() {
+        long handle = window;
+        if (handle == MemoryUtil.NULL || !System.getProperty("os.name", "").startsWith("Windows")) {
+            return 0;
+        }
+        try {
+            return org.lwjgl.glfw.GLFWNativeWin32.glfwGetWin32Window(handle);
+        } catch (Throwable t) {
+            return 0;
+        }
+    }
+
+    /** What an assistive technology's request for the focus does: as a click that focuses does. */
+    void focusFromAccessibility(JXNativeNode node) {
+        focus(node);
+        requestRender();
+    }
+
+    private void publishAccessibility(Object lock) {
+        int[] px = new int[1];
+        int[] py = new int[1];
+        GLFW.glfwGetWindowPos(window, px, py);
+        double unitsX = toLogicalX == 0 ? 1 : 1 / toLogicalX;
+        double unitsY = toLogicalY == 0 ? 1 : 1 / toLogicalY;
+        if (lock != null) {
+            synchronized (lock) {
+                a11y.frame(root, width, height, unitsX, unitsY, px[0], py[0], nativeHandle());
+            }
+        } else {
+            a11y.frame(root, width, height, unitsX, unitsY, px[0], py[0], nativeHandle());
+        }
+    }
+
+    /** The accessibility tree of the content as of now (display thread only; null when nothing is mounted). */
+    public com.jxparallel.ui.accessibility.JXAccessibleNode getAccessibleRoot() {
+        if (root == null) {
+            return null;
+        }
+        int[] px = new int[1];
+        int[] py = new int[1];
+        if (window != MemoryUtil.NULL) {
+            GLFW.glfwGetWindowPos(window, px, py);
+        }
+        return new JXNativeAccessibility().snapshot(root, title, width, height, toLogicalX == 0 ? 1 : 1 / toLogicalX,
+                toLogicalY == 0 ? 1 : 1 / toLogicalY, px[0], py[0]);
+    }
+
     private void release() {
         long handle = window;
         if (handle == MemoryUtil.NULL) {
             return;
+        }
+        if (a11y != null) {
+            a11y.close();
+            a11y = null;
         }
         JXDisplay.remove(this);
         boolean gl = capabilities != null;
@@ -781,7 +1379,9 @@ public final class JXWindow implements AutoCloseable {
         if (gl) {
             GLFW.glfwMakeContextCurrent(MemoryUtil.NULL);
         }
+        classIcon.restore(); // GLFW frees the window's icons now
         GLFW.glfwDestroyWindow(handle);
+        destroyCursors();
         window = MemoryUtil.NULL;
     }
 
@@ -808,7 +1408,11 @@ public final class JXWindow implements AutoCloseable {
 
     /** Paints one frame into the current OpenGL context. Display thread only. */
     private interface Backend {
-        void render(JXNativeNode root, int fbWidth, int fbHeight, int winWidth, int winHeight);
+        /**
+         * Paints a {@code fbWidth x fbHeight} physical framebuffer; the tree is laid out in
+         * {@code winWidth x winHeight} logical pixels, each {@code scale} physical pixels wide.
+         */
+        void render(JXNativeNode root, int fbWidth, int fbHeight, int winWidth, int winHeight, float scale);
 
         void close();
     }
@@ -822,17 +1426,13 @@ public final class JXWindow implements AutoCloseable {
         private int height;
 
         @Override
-        public void render(JXNativeNode root, int fbWidth, int fbHeight, int winWidth, int winHeight) {
+        public void render(JXNativeNode root, int fbWidth, int fbHeight, int winWidth, int winHeight, float scale) {
             if (surface == null || fbWidth != width || fbHeight != height) {
                 recreateSurface(fbWidth, fbHeight);
             }
             context.resetAll(); // several windows share the thread: GL state may belong to another context's last frame
             if (root != null) {
-                io.github.humbleui.skija.Canvas canvas = surface.getCanvas();
-                canvas.save();
-                canvas.scale((float) fbWidth / winWidth, (float) fbHeight / winHeight);
-                JXSkiaRenderer.paint(root, canvas, winWidth, winHeight);
-                canvas.restore();
+                JXSkiaRenderer.paint(root, surface.getCanvas(), winWidth, winHeight, scale);
             }
             context.flush();
         }
@@ -881,11 +1481,11 @@ public final class JXWindow implements AutoCloseable {
         }
 
         @Override
-        public void render(JXNativeNode root, int fbWidth, int fbHeight, int winWidth, int winHeight) {
+        public void render(JXNativeNode root, int fbWidth, int fbHeight, int winWidth, int winHeight, float scale) {
             if (root != null) {
                 root.layoutForBackend(Math.max(1, winWidth), Math.max(1, winHeight));
             }
-            int rects = frame.paint(root, fbWidth, fbHeight, (float) fbWidth / winWidth);
+            int rects = frame.paint(root, fbWidth, fbHeight, scale);
             if (exposed) {
                 exposed = false;
                 whole[2] = fbWidth;
@@ -922,7 +1522,7 @@ public final class JXWindow implements AutoCloseable {
         }
 
         @Override
-        public void render(JXNativeNode root, int fbWidth, int fbHeight, int winWidth, int winHeight) {
+        public void render(JXNativeNode root, int fbWidth, int fbHeight, int winWidth, int winHeight, float scale) {
             int background = JXNanoVGRenderer.BACKGROUND;
             GL11.glViewport(0, 0, fbWidth, fbHeight);
             GL11.glClearColor(((background >> 16) & 0xFF) / 255.0f, ((background >> 8) & 0xFF) / 255.0f,
@@ -931,7 +1531,8 @@ public final class JXWindow implements AutoCloseable {
             if (root == null) {
                 return;
             }
-            NanoVG.nvgBeginFrame(vg, winWidth, winHeight, (float) fbWidth / winWidth);
+            // the view is the framebuffer divided by the ratio, not the rounded-up logical size: an exact mapping
+            NanoVG.nvgBeginFrame(vg, fbWidth / scale, fbHeight / scale, scale);
             JXNanoVGRenderer.paint(root, vg, color, hasFont, hasBold, winWidth, winHeight);
             NanoVG.nvgEndFrame(vg);
         }

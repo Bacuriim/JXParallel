@@ -8,7 +8,6 @@ import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.atomic.AtomicReference;
 
 import org.lwjgl.glfw.GLFW;
-import org.lwjgl.glfw.GLFWErrorCallback;
 
 /**
  * The one thread that talks to GLFW. GLFW is initialised once per process and is not thread safe,
@@ -35,8 +34,8 @@ public final class JXDisplay {
      * does nothing without a display ({@code -Djx.headless=true}) or when called again.
      */
     public static void prewarm() {
-        if (prewarmed || Boolean.getBoolean("jx.headless")) {
-            return;
+        if (prewarmed || Boolean.getBoolean("jx.headless") || (JXPlatform.isMac() && thread == null)) {
+            return; // on macOS the display loop is the main thread's: nothing to warm before runOnMainThread
         }
         prewarmed = true;
         Thread t = new Thread(() -> {
@@ -71,6 +70,7 @@ public final class JXDisplay {
         }
         GLFW.glfwDefaultWindowHints();
         GLFW.glfwWindowHint(GLFW.GLFW_STENCIL_BITS, 8);
+        JXPlatform.applyContextHints();
         GLFW.glfwWindowHint(GLFW.GLFW_VISIBLE, GLFW.GLFW_FALSE);
         long handle = GLFW.glfwCreateWindow(1, 1, "", org.lwjgl.system.MemoryUtil.NULL, org.lwjgl.system.MemoryUtil.NULL);
         if (handle != org.lwjgl.system.MemoryUtil.NULL) {
@@ -204,6 +204,9 @@ public final class JXDisplay {
             if (thread != null) {
                 return;
             }
+            if (JXPlatform.isMac()) {
+                throw new IllegalStateException(MAC_MAIN_THREAD);
+            }
             CountDownLatch ready = new CountDownLatch(1);
             AtomicReference<Throwable> failure = new AtomicReference<Throwable>();
             Thread t = new Thread(() -> run(ready, failure), "JX Display");
@@ -224,16 +227,29 @@ public final class JXDisplay {
 
     private static void run(CountDownLatch ready, AtomicReference<Throwable> failure) {
         try {
-            GLFWErrorCallback.createPrint(System.err).set();
-            if (!GLFW.glfwInit()) {
-                throw new IllegalStateException("glfwInit failed");
-            }
+            initGlfw();
         } catch (Throwable t) {
             failure.set(t);
             ready.countDown();
             return;
         }
         ready.countDown();
+        loop(false);
+    }
+
+    private static void initGlfw() {
+        JXGlfwErrors.install();
+        if (!GLFW.glfwInit()) {
+            throw new IllegalStateException("glfwInit failed");
+        }
+    }
+
+    /**
+     * Display thread. With {@code stopWhenClosed} (the main-thread mode) it returns once a window has been
+     * open and the last one is closed; otherwise it never returns.
+     */
+    private static void loop(boolean stopWhenClosed) {
+        boolean sawWindow = false;
         while (true) {
             Runnable task;
             while ((task = TASKS.poll()) != null) {
@@ -250,6 +266,10 @@ public final class JXDisplay {
                     t.printStackTrace();
                 }
             }
+            sawWindow |= !WINDOWS.isEmpty();
+            if (stopWhenClosed && sawWindow && WINDOWS.isEmpty() && TASKS.isEmpty()) {
+                return;
+            }
             if (TASKS.isEmpty()) {
                 // A timeout keeps animations and timers that do not post a task ticking; a window
                 // waiting for its next frame slot (software renderer) shortens it.
@@ -263,6 +283,64 @@ public final class JXDisplay {
             } else {
                 GLFW.glfwPollEvents();
             }
+        }
+    }
+
+    private static final String MAC_MAIN_THREAD = "On macOS GLFW must run on the process's first thread. Start the JVM with "
+            + "-XstartOnFirstThread and open the windows from JXDisplay.runOnMainThread(() -> window.open()) "
+            + "(or call JXWindow.show() on the main thread); the display loop then runs on the main thread "
+            + "until the last window is closed.";
+
+    /** True on macOS while no display loop runs: the next window must be opened through {@link #runOnMainThread}. */
+    static boolean needsMainThreadEntry() {
+        return JXPlatform.isMac() && thread == null;
+    }
+
+    /**
+     * The entry point for applications on macOS (harmless elsewhere): makes the calling thread the display
+     * thread, runs {@code setup} on it (open windows there with {@link JXWindow#open()}; {@code show()} blocks and is
+     * refused on the display thread), then runs the display loop on it and returns after the last window has been
+     * closed. Other threads may {@link #post} to it meanwhile.
+     *
+     * <p>macOS only lets the process's first thread create windows and run the event loop, so the JVM must be
+     * started with {@code -XstartOnFirstThread} and this must be called from {@code main}; otherwise it throws an
+     * {@link IllegalStateException} that says so. On Windows and Linux the display thread is a separate one:
+     * {@code setup} runs on the caller, which then waits until the windows it opened are closed.
+     */
+    public static void runOnMainThread(Runnable setup) {
+        if (setup == null) {
+            throw new IllegalArgumentException("Setup cannot be null");
+        }
+        if (!JXPlatform.isMac()) {
+            setup.run();
+            while (!WINDOWS.isEmpty()) {
+                try {
+                    Thread.sleep(20);
+                } catch (InterruptedException e) {
+                    Thread.currentThread().interrupt();
+                    return;
+                }
+            }
+            return;
+        }
+        synchronized (LOCK) {
+            if (thread != null) {
+                throw new IllegalStateException(thread == Thread.currentThread()
+                        ? "runOnMainThread is already running on this thread"
+                        : "The display loop already runs on another thread; use JXDisplay.post");
+            }
+            if (!JXPlatform.startedOnFirstThread()) {
+                throw new IllegalStateException(MAC_MAIN_THREAD + " (JAVA_STARTED_ON_FIRST_THREAD is not set: the JVM "
+                        + "was not started with -XstartOnFirstThread.)");
+            }
+            initGlfw();
+            thread = Thread.currentThread();
+        }
+        try {
+            setup.run();
+            loop(true);
+        } finally {
+            thread = null;
         }
     }
 }

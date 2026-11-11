@@ -89,7 +89,9 @@ class JxmlTemplateTest {
         assertLine(2, "text content is not allowed", "<Column>\n hello </Column>");
         assertLine(1, "only allowed inside <Tabs>", "<Tab title=\"x\"><Column/></Tab>");
         assertLine(2, "takes only <Tab> children", "<Tabs>\n<Column/></Tabs>");
-        assertLine(1, "exactly one attribute", "<Slot/>");
+        assertLine(1, "needs content=", "<Slot/>");
+        assertLine(1, "needs content=", "<Slot hgrow=\"always\"/>");
+        assertLine(1, "<Slot> has no attribute background", "<Slot content=\"${banner}\" background=\"#FFF\"/>");
         assertLine(1, "expected true or false", "<CheckBox selected=\"yes\"/>");
     }
 

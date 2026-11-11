@@ -32,7 +32,26 @@ import com.jxparallel.ui.JXProps;
  */
 public final class JxmlTemplate implements JxmlView<Object> {
     /** How an attribute gets its value. */
-    enum Kind { LITERAL, BINDING, HANDLER, CHANGE, SETTER }
+    enum Kind {
+        LITERAL, BINDING, HANDLER, CHANGE, SETTER,
+        /** A theme token ({@code primary}, {@code surface}...) written as a color while the root's theme is bound: its ARGB follows the theme. */
+        TOKEN
+    }
+
+    /**
+     * The theme the colors of a file are resolved in: the name the root writes (null: none, so light), which resolves a
+     * token when the file is read; or, when the root binds {@code theme="${name}"}, that binding, which each token reads
+     * every time the tree is built, so the colors follow the controller.
+     */
+    private static final class Theme {
+        final String literal;
+        final Prop binding;
+
+        Theme(String literal, Prop binding) {
+            this.literal = literal;
+            this.binding = binding;
+        }
+    }
 
     /** One prop of one element. */
     static final class Prop {
@@ -51,9 +70,17 @@ public final class JxmlTemplate implements JxmlView<Object> {
         final boolean negate;
         final String source;
         final int line;
+        /** A TOKEN: the root's theme binding it reads; its {@code literal} is the token's name. */
+        final Prop theme;
 
         Prop(JxmlSchema.Attr attr, Kind kind, Object literal, String root, String[] path, String method, String[] args,
              boolean negate, String source, int line) {
+            this(attr, kind, literal, root, path, method, args, negate, source, line, null);
+        }
+
+        Prop(JxmlSchema.Attr attr, Kind kind, Object literal, String root, String[] path, String method, String[] args,
+             boolean negate, String source, int line, Prop theme) {
+            this.theme = theme;
             this.source = source;
             this.attr = attr;
             this.kind = kind;
@@ -205,10 +232,42 @@ public final class JxmlTemplate implements JxmlView<Object> {
      * {@code source} is the name of the file for the loader, which resolves each {@code src} against it.
      */
     public static JxmlTemplate read(InputStream input, String source, JxmlLoader loader) {
-        JxmlParser.Node node = JxmlParser.parse(input, source);
+        return read(JxmlParser.parse(input, source), source, loader);
+    }
+
+    /**
+     * Reads an FXML file (a JavaFX screen) by converting it to the tree a JXML file would give, with no text in between;
+     * see {@link FxmlToJxml}. What could not be converted is in {@code options.report()}; an {@code fx:include} of
+     * {@code a.fxml} includes that file, found by {@code loader} (null: the file has none).
+     */
+    public static JxmlTemplate readFxml(InputStream input, String source, JxmlLoader loader, FxmlToJxml.Options options) {
+        JxmlLoader withOptions = loader == null ? null : FxmlToJxml.loader(loader, options);
+        return read(FxmlToJxml.convert(input, source, options, true).node(), source, withOptions);
+    }
+
+    /** Reads an FXML file with the default options: strict off, no resource bundle, no row types. */
+    public static JxmlTemplate readFxml(InputStream input, String source) {
+        return readFxml(input, source, null, new FxmlToJxml.Options());
+    }
+
+    private static JxmlTemplate read(JxmlParser.Node node, String source, JxmlLoader loader) {
         String controller = node.attrs.remove("controller");
-        String theme = JxmlPrepare.run(node, controller, loader);
-        return new JxmlTemplate(source, controller, resolve(node, source, null, null, null, theme));
+        String written = JxmlPrepare.run(node, controller, loader);
+        return new JxmlTemplate(source, controller, resolve(node, source, null, null, null, theme(written, node)));
+    }
+
+    /** The theme of the root, as the colors of its elements are resolved: its name, or the binding that gives it. */
+    private static Theme theme(String written, JxmlParser.Node root) {
+        if (written == null || written.startsWith("@{")) { // a @{...} is reported when the root's attributes are read
+            return new Theme(written == null ? null : "light", null);
+        }
+        if (!written.startsWith("${") || !written.endsWith("}")) {
+            return new Theme(written, null);
+        }
+        JxmlSchema.Attr attr = JxmlSchema.LAYOUT.get("theme");
+        String inner = written.substring(2, written.length() - 1).trim();
+        return new Theme(null, reference(attr, segments(inner, written, root.source, root.line), false, written, root.source,
+                root.line, null));
     }
 
     /** Reads a file from the file system; its includes are found next to it. */
@@ -262,7 +321,7 @@ public final class JxmlTemplate implements JxmlView<Object> {
      * above it that is an element, which is what a menu item or a tree item must stand inside.
      */
     private static Element resolve(JxmlParser.Node written, String source, JxmlSchema.Tag parent, JxmlSchema.Tag owner, Var vars,
-                                   String theme) {
+                                   Theme theme) {
         source = written.source; // an included file's elements report their own file
         JxmlParser.Node node = JxmlComposites.expand(written, source); // composites become primitive tags here, once
         JxmlSchema.Tag tag = JxmlSchema.tag(node.tag);
@@ -332,14 +391,16 @@ public final class JxmlTemplate implements JxmlView<Object> {
             }
         }
         int changes = 0;
+        java.util.Set<String> reporting = new java.util.HashSet<String>();
         for (Prop p : props) {
-            // onClose and the like also take a value, but they are not the change of the edited attribute
-            if ((p.kind == Kind.CHANGE && "onChange".equals(p.attr.name)) || p.kind == Kind.SETTER) {
+            // onClose and the like also take a value, but they are not the change of an edited attribute
+            if ((p.kind == Kind.CHANGE && tag.twoWay.containsValue(p.attr.name)) || p.kind == Kind.SETTER) {
                 changes++;
+                if (!reporting.add(p.attr.name)) { // the handler written, and again by a @{...} binding
+                    throw new JxmlException(source, node.line, "<" + tag.name + "> has both " + p.attr.name
+                            + " and a @{...} binding; use one");
+                }
             }
-        }
-        if (changes > 1) {
-            throw new JxmlException(source, node.line, "<" + tag.name + "> has both onChange and a @{...} binding; use one");
         }
         for (Prop p : props) {
             if ((tag.virtual || tag.tree) && p.kind == Kind.LITERAL && p.literal instanceof Double && !(((Double) p.literal) > 0)
@@ -351,8 +412,11 @@ public final class JxmlTemplate implements JxmlView<Object> {
         if (tag.changeAttr != null && "group".equals(tag.changeAttr)) {
             checkGroup(node, tag, changes, source);
         }
-        if (isSlot(tag) && (props.size() != 1 || !"content".equals(props.get(0).attr.name))) {
-            throw new JxmlException(source, node.line, "<Slot> takes exactly one attribute: content=\"${...}\"");
+        if (isSlot(tag)) {
+            checkSlot(node, props, source);
+        }
+        if ("Spinner".equals(tag.name)) {
+            props = spinnerChanges(props);
         }
         List<Element> children = new ArrayList<Element>();
         String[] titles = null;
@@ -431,6 +495,54 @@ public final class JxmlTemplate implements JxmlView<Object> {
     }
 
     /**
+     * What a {@code <Slot>} may carry besides {@code content}: where the slotted element stands in its parent and how big
+     * it is (the layout attributes of the tag it becomes, which a Java-built element knows nothing about), written or bound.
+     * They are set on the element the content gives, and win over what it set itself.
+     */
+    static final List<String> SLOT_ATTRS = Collections.unmodifiableList(java.util.Arrays.asList(
+            "slot", "margin", "hgrow", "vgrow", "row", "column", "rowSpan", "columnSpan", "halignment", "valignment",
+            "top", "right", "bottom", "left", "x", "y", "minWidth", "prefWidth", "maxWidth", "minHeight", "prefHeight",
+            "maxHeight", "hidden", "opacity"));
+
+    private static void checkSlot(JxmlParser.Node node, List<Prop> props, String source) {
+        boolean content = false;
+        for (Prop p : props) {
+            if ("content".equals(p.attr.name)) {
+                content = true;
+            } else if (!SLOT_ATTRS.contains(p.attr.name)) {
+                throw new JxmlException(source, p.line, "<Slot> has no attribute " + p.attr.name + "; besides content=\"${...}\" it takes "
+                        + "the placement and size of the element it shows: " + SLOT_ATTRS);
+            }
+        }
+        if (!content) {
+            throw new JxmlException(source, node.line, "<Slot> needs content=\"${...}\", the element it shows");
+        }
+    }
+
+    /** A {@code <Spinner integer="true">} hands its changes on as ints: the {@code onChange} and {@code @{...}} props say so. */
+    private static List<Prop> spinnerChanges(List<Prop> props) {
+        Prop integer = null;
+        for (Prop p : props) {
+            if ("integer".equals(p.attr.name)) {
+                integer = p;
+            }
+        }
+        if (integer == null || !Boolean.TRUE.equals(integer.literal)) {
+            return props;
+        }
+        List<Prop> out = new ArrayList<Prop>(props.size());
+        for (Prop p : props) {
+            if ((p.kind == Kind.CHANGE || p.kind == Kind.SETTER) && "onChange".equals(p.attr.name)) {
+                out.add(new Prop(JxmlSchema.SPINNER_INTEGER_CHANGE, p.kind, p.literal, p.root, p.path, p.method, p.args, p.negate,
+                        p.source, p.line));
+            } else {
+                out.add(p);
+            }
+        }
+        return out;
+    }
+
+    /**
      * The body of a {@code <For memo="true">} is built once for as long as the list stays the same, so it may read
      * nothing but its own loop variables (and those of the loops inside it): a value of the controller or of a loop
      * around the {@code memo} loop would go stale. Handlers are fine, the controller they call is part of what the
@@ -444,6 +556,11 @@ public final class JxmlTemplate implements JxmlView<Object> {
                 inner.add(e.var);
             }
             for (Prop p : e.props) {
+                if (p.kind == Kind.TOKEN) {
+                    throw new JxmlException(p.source, p.line, "<For memo> builds its elements once for as long as the list is the same, "
+                            + "so \"" + p.attr.name + "\" cannot be the theme token " + p.literal + " while the root binds its theme: the "
+                            + "color would stay that of the theme the loop was first built in; bind a color of the controller instead");
+                }
                 if ((p.kind == Kind.BINDING || p.kind == Kind.SETTER) && (p.root == null || !inner.contains(p.root))) {
                     throw new JxmlException(p.source, p.line, "<For memo> builds its elements once for as long as the list is the same, "
                             + "so \"" + p.attr.name + "\" can read only the loop variable " + roots + ", not "
@@ -576,7 +693,7 @@ public final class JxmlTemplate implements JxmlView<Object> {
 
     /** Children of a tag that takes many: an {@code <Else>} joins the {@code <If>} just before it. */
     private static List<Element> resolveAll(List<JxmlParser.Node> nodes, String source, JxmlSchema.Tag parent, JxmlSchema.Tag owner,
-                                            Var vars, String theme) {
+                                            Var vars, Theme theme) {
         List<Element> out = new ArrayList<Element>();
         boolean openIf = false;
         for (JxmlParser.Node node : nodes) {
@@ -600,15 +717,16 @@ public final class JxmlTemplate implements JxmlView<Object> {
     }
 
     private static void addProps(List<Prop> out, JxmlSchema.Attr attr, String value, String source, int line,
-                                 JxmlSchema.Tag tag, Var vars, String theme) {
+                                 JxmlSchema.Tag tag, Var vars, Theme theme) {
         if (attr.type == AttrType.HANDLER || attr.type == AttrType.CHANGE) {
             out.add(handler(attr, value, source, line, vars));
             return;
         }
         if (value.startsWith("@{") && value.endsWith("}")) {
-            if (!attr.name.equals(tag.changeAttr)) {
+            String reported = tag.twoWay.get(attr.name);
+            if (reported == null) {
                 throw new JxmlException(source, line, "<" + tag.name + "> " + attr.name + " cannot be bound two ways with @{...}"
-                        + (tag.changeAttr == null ? "" : "; use " + tag.changeAttr + "=\"@{...}\""));
+                        + (tag.twoWay.isEmpty() ? "" : "; use " + String.join(" or ", tag.twoWay.keySet()) + "=\"@{...}\""));
             }
             String[] segments = segments(value.substring(2, value.length() - 1), value, source, line);
             String last = segments[segments.length - 1];
@@ -620,7 +738,7 @@ public final class JxmlTemplate implements JxmlView<Object> {
             if (read.path.length == 0) {
                 throw new JxmlException(source, line, "bad binding " + value + "; expected @{name} or @{a.b}, a property to set");
             }
-            JxmlSchema.Attr change = tag.attr("onChange");
+            JxmlSchema.Attr change = tag.attr(reported);
             out.add(read);
             out.add(new Prop(change, Kind.SETTER, null, read.root, java.util.Arrays.copyOf(read.path, read.path.length - 1),
                     "set" + Character.toUpperCase(last.charAt(0)) + last.substring(1), new String[0], false, source, line));
@@ -645,11 +763,23 @@ public final class JxmlTemplate implements JxmlView<Object> {
         if (attr.choices != null && !attr.choices.contains(text.trim())) {
             throw new JxmlException(source, line, attr.name + "=\"" + value + "\" is not one of " + attr.choices);
         }
+        if (attr.check != null) {
+            try {
+                attr.check.accept(text);
+            } catch (IllegalArgumentException e) {
+                throw new JxmlException(source, line, attr.name + "=\"" + value + "\": " + e.getMessage());
+            }
+        }
         if (attr.type == AttrType.COLOR && JxmlThemes.isToken(text)) {
-            text = String.format("#%08X", JxmlThemes.color(theme, text)); // a theme token, resolved now: both modes get the same color
+            if (theme.binding != null) { // the theme is bound: the token is resolved each time the tree is built
+                out.add(new Prop(attr, Kind.TOKEN, text.trim(), null, null, null, null, false, source, line, theme.binding));
+                return;
+            }
+            text = String.format("#%08X", JxmlThemes.color(theme.literal, text)); // a theme token, resolved now: both modes get the same color
         }
         try {
-            out.add(new Prop(attr, Kind.LITERAL, JxmlValues.literal(attr.type, text), null, null, null, null, false, source, line));
+            Object literal = attr.type == AttrType.IMAGE_SOURCE ? JxmlValues.imageSource(source, text) : JxmlValues.literal(attr.type, text);
+            out.add(new Prop(attr, Kind.LITERAL, literal, null, null, null, null, false, source, line));
         } catch (IllegalArgumentException e) {
             throw new JxmlException(source, line, attr.name + "=\"" + value + "\" is not a valid "
                     + attr.type.name().toLowerCase() + ": " + e.getMessage());
@@ -740,7 +870,16 @@ public final class JxmlTemplate implements JxmlView<Object> {
 
     private JXElement build(Element e, Object controller, Scope scope, Object key) {
         if (isSlot(e.tag)) {
-            return (JXElement) value(e.props.get(0), controller, scope);
+            JXElement shown = null;
+            JXProps.Builder placement = JXProps.builder(e.props.size());
+            for (Prop p : e.props) {
+                if ("content".equals(p.attr.name)) {
+                    shown = (JXElement) value(p, controller, scope);
+                } else {
+                    placement.set(p.attr.prop, value(p, controller, scope));
+                }
+            }
+            return e.props.size() == 1 ? shown : JxmlRuntime.place(shown, placement.build());
         }
         JXProps.Builder props = JXProps.builder(e.defaults.size() + e.props.size() + (key == null ? 0 : 1));
         for (Map.Entry<String, Object> d : e.defaults.entrySet()) {
@@ -845,13 +984,18 @@ public final class JxmlTemplate implements JxmlView<Object> {
                 return change(p, controller, loopValues(p, scope));
             case SETTER:
                 return setter(p, controller, scope);
+            case TOKEN:
+                return Integer.valueOf(JxmlThemes.color((String) value(p.theme, controller, scope), (String) p.literal));
             case BINDING:
                 Object value = walk(p, controller, scope, p.path.length);
                 Object bound;
                 try {
-                    bound = JxmlValues.bound(p.attr.type, value);
+                    bound = p.attr.choices != null ? JxmlValues.choice(p.attr.name, p.attr.choiceArray, value)
+                            : p.attr.type == AttrType.IMAGE_SOURCE ? JxmlValues.imageSource(p.source, value)
+                            : JxmlValues.bound(p.attr.type, value);
                 } catch (IllegalArgumentException ex) {
-                    throw new JxmlException(p.source, p.line, p.attr.name + "=\"${" + String.join(".", p.path) + "}\": " + ex.getMessage(), ex);
+                    throw new JxmlException(p.source, p.line, (p.attr.choices != null ? "${" + String.join(".", p.path) + "}: "
+                            : p.attr.name + "=\"${" + String.join(".", p.path) + "}\": ") + ex.getMessage(), ex);
                 }
                 return p.negate ? Boolean.valueOf(!((Boolean) bound).booleanValue()) : bound;
             default:
@@ -887,7 +1031,7 @@ public final class JxmlTemplate implements JxmlView<Object> {
             @Override
             public void accept(Object newValue) {
                 Object[] args = java.util.Arrays.copyOf(fixed, fixed.length + 1);
-                args[fixed.length] = newValue;
+                args[fixed.length] = p.attr == JxmlSchema.SPINNER_INTEGER_CHANGE ? JxmlValues.asInt(newValue) : newValue;
                 invoke(method, controller, args, p);
             }
         };
@@ -900,7 +1044,8 @@ public final class JxmlTemplate implements JxmlView<Object> {
             @Override
             public void accept(Object newValue) {
                 Object bean = walk(p, controller, scope, p.path.length);
-                invoke(method(bean, p, p.method, 1, valueType), bean, new Object[] {newValue}, p);
+                Object value = p.attr == JxmlSchema.SPINNER_INTEGER_CHANGE ? JxmlValues.asInt(newValue) : newValue;
+                invoke(method(bean, p, p.method, 1, valueType), bean, new Object[] {value}, p);
             }
         };
     }
@@ -916,6 +1061,8 @@ public final class JxmlTemplate implements JxmlView<Object> {
                 return Integer.class;
             case DOUBLES:
                 return double[].class;
+            case STRINGS:
+                return java.util.List.class;
             default:
                 return String.class;
         }

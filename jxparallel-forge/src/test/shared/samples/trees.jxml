@@ -27,4 +27,13 @@
     </TreeItem>
     <TreeItem text="README.md" values="1 KB" key="readme"/>
   </TreeTable>
+  <!-- the same trees with the selection the renderer handles: written out here, bound two ways in the tests -->
+  <Tree rowHeight="22" rows="20" prefHeight="80"
+        selectionMode="multiple" selection="${picked}" onSelection="#setPicked" selected="${selected}" onSelect="#setSelected">
+    <TreeItem text="src" expanded="true"><TreeItem text="main"/></TreeItem>
+  </Tree>
+  <TreeTable rowHeight="24" rows="10" columns="Name, Size" columnWidths="-1, 80" constrained="true" prefHeight="80"
+             selectionMode="single" selection="${picked}" onSelection="#setPicked" selected="${selected}" onSelect="#setSelected">
+    <TreeItem text="docs" values="12 KB"/>
+  </TreeTable>
 </Column>
