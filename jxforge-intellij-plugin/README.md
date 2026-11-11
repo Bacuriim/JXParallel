@@ -8,9 +8,14 @@ its Java controller.
 - IntelliJ IDEA 2024.2 or newer (build 242 and up, no upper limit), with the bundled Java plugin.
 - Not a Maven module: it is a standalone Gradle build in this folder.
 
-## Install from disk
+## Install
 
-1. Build the zip (below) or take `build/distributions/jxforge-intellij-plugin-0.1.0.zip`.
+The plugin is on the JetBrains Marketplace: [JXForge (JXML)](https://plugins.jetbrains.com/plugin/35981-jxforge-jxml-).
+In the IDE: Settings, Plugins, Marketplace, search for **JXForge**, Install, restart.
+
+To install a zip you built yourself (below) instead:
+
+1. Build the zip or take `build/distributions/jxforge-intellij-plugin-0.1.0.zip`.
 2. In the IDE: Settings, Plugins, the gear icon, Install Plugin from Disk..., choose the zip, restart.
 
 If you had registered `*.jxml` as an XML pattern by hand (or answered the "Register New File Type Association" prompt),
@@ -97,6 +102,8 @@ index and file template (`EditorFeaturesTest`).
 
 ## Publishing
 
-Not done from here. The `plugin.xml` has the name, vendor, description and change notes that the JetBrains Marketplace
-asks for, and `META-INF/pluginIcon.svg` and `pluginIcon_dark.svg` (40x40). Signing and uploading are a separate step with
-the vendor's own certificate and token.
+Published on the [JetBrains Marketplace](https://plugins.jetbrains.com/plugin/35981-jxforge-jxml-) (plugin id 35981).
+The `plugin.xml` has the name, vendor, description and change notes that the Marketplace shows, and
+`META-INF/pluginIcon.svg` and `pluginIcon_dark.svg` (40x40). A new version is uploaded by hand on the plugin's page
+(Upload Update) with the zip from `buildPlugin`, after raising `version` in `build.gradle.kts`; each upload goes through
+the Marketplace's moderation again.

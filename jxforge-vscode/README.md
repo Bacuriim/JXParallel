@@ -20,6 +20,8 @@ Support for `.jxml` files, the markup of [JXForge](https://github.com/Bacuriim/J
 
 ## Install
 
+The extension is on the Visual Studio Marketplace:
+[JXForge (JXML)](https://marketplace.visualstudio.com/items?itemName=bacuriim.jxforge-vscode).
 From the Extensions view (Ctrl+Shift+X), search for **JXForge (JXML)** and choose **Install**, or run
 `code --install-extension bacuriim.jxforge-vscode`.
 
