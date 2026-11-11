@@ -5,6 +5,15 @@
   "version": "0.1.0",
   "publisher": "bacuriim",
   "license": "MIT",
+  "icon": "images/icon.png",
+  "galleryBanner": {
+    "color": "#2E8B8B",
+    "theme": "dark"
+  },
+  "homepage": "https://github.com/Bacuriim/JXParallel/tree/main/jxforge-vscode#readme",
+  "bugs": {
+    "url": "https://github.com/Bacuriim/JXParallel/issues"
+  },
   "repository": {
     "type": "git",
     "url": "https://github.com/Bacuriim/JXParallel.git",

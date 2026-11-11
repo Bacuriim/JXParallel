@@ -1,6 +1,6 @@
 # JXForge for VS Code
 
-Support for `.jxml` files, the markup of [JXForge](../docs/jxforge.md) (native screens for JXParallel):
+Support for `.jxml` files, the markup of [JXForge](https://github.com/Bacuriim/JXParallel/blob/main/docs/jxforge.md) (native screens for JXParallel):
 
 - **Highlighting.** `.jxml` is XML, so the language includes VS Code's own XML grammar and adds scopes for
   `${a.b}` (read binding), `@{a.b}` (two-way binding) and `#handler` / `#handler(args)` in the `on*` attributes
@@ -20,7 +20,10 @@ Support for `.jxml` files, the markup of [JXForge](../docs/jxforge.md) (native s
 
 ## Install
 
-The extension is not on the Marketplace or Open VSX. Install the `.vsix` you built (below):
+From the Extensions view (Ctrl+Shift+X), search for **JXForge (JXML)** and choose **Install**, or run
+`code --install-extension bacuriim.jxforge-vscode`.
+
+To install a `.vsix` you built yourself (below) instead:
 
 1. Open the Extensions view (Ctrl+Shift+X).
 2. Choose the **...** menu at the top of the view, then **Install from VSIX...**.
@@ -64,7 +67,7 @@ npm run xsd
 ```
 
 The script runs `JxmlXsd` from the jars in `jxparallel-forge/target` and `jxparallel-core/target` (`JAVA_HOME` if set).
-See [docs/jxforge-xsd.md](../docs/jxforge-xsd.md) for what the schema checks.
+The schema checks tag names, attribute names, attribute values and which children a tag takes.
 
 ## How the schema reaches the XML extension
 
@@ -83,7 +86,7 @@ The extension is activated by `onLanguage:jxml`.
   segment of a binding only (`customer` in `${customer.name}`; the rest needs types), does not follow inherited
   methods, and does nothing for loop variables (`${o.name}` inside a `<For var="o">`). If two files match, the
   first one VS Code returns is used.
-- The schema checks the shape of a file, not what the controller has; see
-  [docs/jxforge-xsd.md](../docs/jxforge-xsd.md#what-it-does-not-check).
-- This has been built and tested headless (grammar tests, unit tests). It has not been opened in a real VS Code in
-  this repository's tests: the schema registration and Go to Definition run only inside the editor.
+- The schema checks the shape of a file, not what the controller has: a handler or a binding that does not exist
+  in the controller is not underlined.
+- The automated tests run headless (grammar tests, unit tests); the schema registration and Go to Definition run only
+  inside the editor and were checked by hand in VS Code.
