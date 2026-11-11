@@ -131,7 +131,7 @@ unless already there.
 
 ## Windows (UI Automation)
 
-Module `jxparallel-a11y-windows` (experimental, 64-bit Windows, not published): a UI Automation *server-side provider*
+Module `jxparallel-a11y-windows` (experimental, Windows on x64, not published): a UI Automation *server-side provider*
 written with JNA (`jna` and `jna-platform` 5.14.0; `jxparallel-ui` itself has no JNA dependency). It is **off by default**.
 
 Enable it, with the module on the class path:
@@ -189,7 +189,8 @@ focus change and an application value change reach a client's focus-changed and 
   or virtualization pattern: a screen reader reads a text field's whole value only.
 * The COM objects are never freed while the process lives (a client may hold a pointer); memory grows with the number of
   distinct elements clients ask for. `UiaDisconnectProvider` is not called when a node goes away.
-* 64-bit Windows only (the window procedure and the VARIANT layout are coded for 64-bit); the module needs JNA, so a JVM
+* Windows on x64 only (the window procedure, the VARIANT layout and the COM callbacks are coded for the x64 calling
+  convention; on Windows ARM64 the adapter refuses to start, as calling them crashed the JVM); the module needs JNA, so a JVM
   that cannot load it keeps running without accessibility (a message on the error stream).
 * Behaviour with several windows, with a window procedure subclassed by something else, with high contrast, and while the
   display thread is busy was not tested. The focus-event test lets the window take the system focus when it opens

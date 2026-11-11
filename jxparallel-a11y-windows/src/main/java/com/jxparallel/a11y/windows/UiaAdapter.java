@@ -34,15 +34,21 @@ public final class UiaAdapter implements JXAccessibilityAdapter {
         return NAME;
     }
 
-    /** Whether this process can run the adapter: 64-bit Windows. */
+    /**
+     * Whether this process can run the adapter: Windows on x64. The window procedure, the VARIANT layout and the COM
+     * vtables of JNA callbacks are written for the x64 calling convention; on Windows ARM64 calling them crashes the JVM
+     * (seen on CI), so the adapter refuses there instead.
+     */
     public static boolean supported() {
-        return System.getProperty("os.name", "").startsWith("Windows") && Native.POINTER_SIZE == 8;
+        String arch = System.getProperty("os.arch", "");
+        return System.getProperty("os.name", "").startsWith("Windows") && Native.POINTER_SIZE == 8
+                && ("amd64".equals(arch) || "x86_64".equals(arch));
     }
 
     @Override
     public void attach(JXAccessibilityHost host) {
         if (!supported()) {
-            System.err.println("jx.accessibility=uia: needs 64-bit Windows");
+            System.err.println("jx.accessibility=uia: needs Windows on x64");
             return;
         }
         long handle = host.getNativeHandle();

@@ -126,7 +126,7 @@ class UiaAdapterTest {
 
     @Test
     void aUiAutomationClientReadsTheWindowAndInvokesItsControls() throws Exception {
-        assumeTrue(UiaAdapter.supported(), "UI Automation needs 64-bit Windows");
+        assumeTrue(UiaAdapter.supported(), "UI Automation needs Windows on x64");
         System.setProperty("jx.renderer", "software"); // no OpenGL context needed
         AtomicInteger clicks = new AtomicInteger();
         List<Object> changes = new ArrayList<Object>();
@@ -239,7 +239,7 @@ class UiaAdapterTest {
 
     @Test
     void focusAndValueChangesReachAUiAutomationClientAsEvents() throws Exception {
-        assumeTrue(UiaAdapter.supported(), "UI Automation needs 64-bit Windows");
+        assumeTrue(UiaAdapter.supported(), "UI Automation needs Windows on x64");
         System.setProperty("jx.renderer", "software");
         AtomicReference<JXAccessibilityHost> hostRef = new AtomicReference<JXAccessibilityHost>();
         List<JXAccessibilityEvent> events = new ArrayList<JXAccessibilityEvent>();
