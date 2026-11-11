@@ -56,16 +56,21 @@
         <!-- 4. highlighting -->
         <colorSettingsPage implementation="io.github.bacuriim.jxforge.JxmlColorSettingsPage"/>
 
-        <!-- 3. controller awareness -->
-
-        <!-- 4. highlighting -->
-
         <!-- 5. gutter -->
+        <codeInsight.lineMarkerProvider language="XML" implementationClass="io.github.bacuriim.jxforge.gutter.JxmlToControllerMarkerProvider"/>
+        <codeInsight.lineMarkerProvider language="JAVA" implementationClass="io.github.bacuriim.jxforge.gutter.ControllerToJxmlMarkerProvider"/>
+        <fileBasedIndex implementation="io.github.bacuriim.jxforge.gutter.JxmlControllerIndex"/>
 
         <!-- 6. file template -->
+        <internalFileTemplate name="JXML Screen"/>
+
     </extensions>
 
-
     <actions>
+        <action id="JXForge.NewJxmlScreen" class="io.github.bacuriim.jxforge.template.NewJxmlScreenAction"
+                text="JXML Screen" description="Create a new JXML screen">
+            <add-to-group group-id="NewGroup" anchor="before" relative-to-action="NewFile"/>
+        </action>
     </actions>
+
 </idea-plugin>

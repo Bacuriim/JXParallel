@@ -1,7 +1,12 @@
 <?xml version="1.0" encoding="UTF-8"?>
+#if (${PACKAGE_NAME} && ${PACKAGE_NAME} != "")
+#set ($CONTROLLER_CLASS = "${PACKAGE_NAME}.${NAME}Controller")
+#else
+#set ($CONTROLLER_CLASS = "com.example.${NAME}Controller")
+#end
 <Column xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
         xsi:noNamespaceSchemaLocation="urn:jxforge:jxml.xsd"
-        controller="${CONTROLLER}"
+        controller="${CONTROLLER_CLASS}"
         padding="16" gap="8">
   <Label text="${NAME}"/>
 </Column>
