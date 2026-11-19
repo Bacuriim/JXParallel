@@ -136,8 +136,8 @@ public final class JxmlSchema {
     static final Map<String, Attr> LAYOUT = new LinkedHashMap<String, Attr>();
     private static final Map<String, Tag> TAGS = new LinkedHashMap<String, Tag>();
     /**
-     * The looks of a Button, ToggleButton and MenuButton: the Material ones, and {@code classic} for the Modena look of
-     * JavaFX. With none written the button is Material ({@link JxmlPrepare}); {@code fab} is what a Fab expands to.
+     * The looks of a Button, ToggleButton and MenuButton: the Material ones, and {@code classic} for the compact JavaFX
+     * button (its padding, drawn flat). With none written the button is Material ({@link JxmlPrepare}); {@code fab} is what a Fab expands to.
      */
     static final java.util.List<String> VARIANTS = Collections.unmodifiableList(
             java.util.Arrays.asList("filled", "tonal", "outlined", "text", "elevated", "fab", "classic"));

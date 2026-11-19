@@ -67,14 +67,13 @@ public final class JXCalendar {
         JXClassic c = paint.classic();
         float x = node.getX();
         float y = node.getY();
-        p.fillRect(x, y, WIDTH, HEIGHT, c.boxBorder);
-        p.fillRect(x + 1, y + 1, WIDTH - 2, HEIGHT - 2, c.base);
+        p.fillRoundRect(x, y, WIDTH, HEIGHT, 4, c.base);
+        p.strokeRoundRect(x, y, WIDTH, HEIGHT, 4, 1, c.boxBorder);
         JXTextEngine engine = JXTextEngine.get(false);
         JXTextEngine bold = JXTextEngine.get(true);
         float size = JXTextEngine.DEFAULT_SIZE;
         // header: arrows and month title
         float hy = y + PAD;
-        p.fillRoundRectGradient(x + PAD, hy, WIDTH - 2 * PAD, HEADER - 4, 3, c.ctlTop, c.ctlBottom);
         float cy = hy + (HEADER - 4) / 2;
         p.fillTriangle(x + PAD + 16, cy - 5, x + PAD + 16, cy + 5, x + PAD + 10, cy, c.arrow);
         p.fillTriangle(x + WIDTH - PAD - 16, cy - 5, x + WIDTH - PAD - 16, cy + 5, x + WIDTH - PAD - 10, cy, c.arrow);
@@ -111,19 +110,22 @@ public final class JXCalendar {
             boolean lit = (int) JXPaint.number(node, "highlightYear", 0) == d.getYear()
                     && (int) JXPaint.number(node, "highlightMonth", 0) == d.getMonthValue()
                     && (int) JXPaint.number(node, "highlightDay", 0) == d.getDayOfMonth();
+            float diameter = Math.min(CELL_W, CELL_H) - 2;
+            float ox = cx + (CELL_W - diameter) / 2;
+            float oy = ry + (CELL_H - diameter) / 2;
             if (selected) {
-                p.fillRect(cx + 1, ry + 1, CELL_W - 2, CELL_H - 2, c.selection);
-            } else if (lit) { // under the pointer or the keys
-                p.fillRect(cx + 1, ry + 1, CELL_W - 2, CELL_H - 2, c.calHover);
-                if (today) {
-                    p.strokeRoundRect(cx + 1, ry + 1, CELL_W - 2, CELL_H - 2, 0, 1, c.accent);
+                p.fillOval(ox, oy, diameter, diameter, c.accent);
+            } else {
+                if (lit) { // under the pointer or the keys
+                    p.fillOval(ox, oy, diameter, diameter, c.calHover);
                 }
-            } else if (today) {
-                p.strokeRoundRect(cx + 1, ry + 1, CELL_W - 2, CELL_H - 2, 0, 1, c.accent);
+                if (today) {
+                    p.strokeOval(ox, oy, diameter, diameter, 1, c.accent);
+                }
             }
             String label = String.valueOf(d.getDayOfMonth());
             float lw = engine.width(label, size);
-            int color = selected ? c.selectionText : inMonth ? c.text : c.dim;
+            int color = selected ? paint.theme().onPrimary : today ? c.accent : inMonth ? c.text : c.dim;
             p.text(label, cx + (CELL_W - lw) / 2, ry + engine.baseline(CELL_H, size), size, false, color);
         }
     }

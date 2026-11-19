@@ -1020,7 +1020,7 @@ public final class JXControlLayout {
     /** The look of a button: filled, tonal, outlined, text, elevated or fab; empty for the classic one. */
     /**
      * The Material look of a button, toggle button or menu button ({@code filled}, {@code tonal}, {@code outlined},
-     * {@code text}, {@code elevated}, {@code fab}); empty for the classic Modena look, which is also what
+     * {@code text}, {@code elevated}, {@code fab}); empty for the compact JavaFX button (JavaFX's padding, drawn flat), which is also what
      * {@code classic} or no {@code variant} at all asks for.
      */
     static String variant(JXNativeNode node) {

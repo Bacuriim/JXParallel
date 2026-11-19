@@ -1225,8 +1225,8 @@ class JxmlComponentBehaviorTest {
         private static final int PAGE_UP = 266;
         private static final int PAGE_DOWN = 267;
         private static final int KEY_A = 65;
-        private static final int SELECTED = 0xFF0096C9;
-        private static final int UNFOCUSED = 0xFFD3D3D3;
+        private final int SELECTED = JXClassic.LIGHT.selection;
+        private final int UNFOCUSED = JXClassic.LIGHT.selectionUnfocused;
 
         private static final String LIST = "<ListView items=\"${rows}\" var=\"r\" type=\"java.lang.String\" first=\"@{top}\""
                 + " rows=\"30\" prefHeight=\"240\" selected=\"@{selected}\"><ListItem text=\"${r}\" onAction=\"#pick(r)\"/></ListView>";
@@ -1570,11 +1570,11 @@ class JxmlComponentBehaviorTest {
             header(ui, 0);
             header(ui, 0); // descending on the first
             assertNotEquals(none, arrowPixel(ui, 0, 1), "the arrow of the sorted column");
-            assertEquals(JXPaint.ARROW, arrowPixel(ui, 0, 1), "pointing down: wide at the top");
+            assertEquals(JXClassic.LIGHT.arrow, arrowPixel(ui, 0, 1), "pointing down: wide at the top");
             header(ui, 1);
             assertEquals(1, ui.c.getSortCol());
             assertTrue(ui.c.getSortAsc(), "another column: ascending");
-            assertEquals(JXPaint.ARROW, arrowPixel(ui, 1, 3), "pointing up: wide at the bottom");
+            assertEquals(JXClassic.LIGHT.arrow, arrowPixel(ui, 1, 3), "pointing up: wide at the bottom");
             assertEquals(none, arrowPixel(ui, 0, 1), "and the first column has none");
         }
 
@@ -1615,8 +1615,8 @@ class JxmlComponentBehaviorTest {
         private static final int F4 = 293;
         private static final int PAGE_UP = 266;
         private static final int PAGE_DOWN = 267;
-        private static final int SELECTION = 0xFF0096C9;
-        private static final int GREY = 0xFFD3D3D3;
+        private final int SELECTION = JXClassic.LIGHT.selection;
+        private final int HOVER = JXClassic.LIGHT.hoverRow;
         private static final String FRUITS = "Apple, Banana, Cherry, Date, Elderberry, Fig, Grape";
         private static final String COMBO = "<ComboBox items=\"" + FRUITS + "\" value=\"@{fruit}\" showing=\"${fruitOpen}\""
                 + " onShowing=\"#setFruitOpen\"/>";
@@ -1653,17 +1653,17 @@ class JxmlComponentBehaviorTest {
         // ---- the list of a combo box
 
         @Test
-        void hoverHighlightsTheOptionUnderThePointerAndTheChosenOneTurnsGrey() {
+        void hoverHighlightsTheOptionUnderThePointerAndTheChosenOneKeepsItsTonalFill() {
             Ui ui = openCombo();
             JXNativeNode combo = ui.find("select");
             int[][] cells = combo.getPopupCells();
             int right = cells[0][0] + cells[0][2] - 8;
-            assertEquals(SELECTION, ui.pixel(right, cells[0][1] + 3), "nothing hovered: the chosen option is the blue one");
+            assertEquals(SELECTION, ui.pixel(right, cells[0][1] + 3), "nothing hovered: the chosen option has the tonal fill");
             int[] c = cell(ui, 3);
             ui.hover(c[0], c[1]);
             assertEquals(3, highlight(ui));
-            assertEquals(SELECTION, ui.pixel(right, cells[3][1] + 3), "the hovered option is drawn blue");
-            assertEquals(GREY, ui.pixel(right, cells[0][1] + 3), "and the chosen one grey");
+            assertEquals(HOVER, ui.pixel(right, cells[3][1] + 3), "the hovered option has the light hover tint");
+            assertEquals(SELECTION, ui.pixel(right, cells[0][1] + 3), "and the chosen one keeps the tonal fill");
             c = cell(ui, 5);
             ui.hover(c[0], c[1]);
             assertEquals(5, highlight(ui));
@@ -2125,7 +2125,9 @@ class JxmlComponentBehaviorTest {
             assertEquals(JXNativeNode.NO_DATE, picker.highlightDate);
             ui.hover(at[0] + 3, at[1] + 3);
             assertEquals(java.time.LocalDate.of(2026, 9, 20).toEpochDay(), picker.highlightDate);
-            assertEquals(JXOverlayPaint.HOVER, ui.pixel(at[0] + 3, at[1] + 3), "the day is drawn highlighted");
+            // the hover mark is a circle in the middle of the cell
+            assertEquals(JXClassic.LIGHT.calHover, ui.pixel(at[0] + JXCalendar.CELL_W / 2, at[1] + JXCalendar.CELL_H / 2 - 4),
+                    "the day is drawn highlighted");
             ui.key(ESCAPE);
             assertEquals(JXNativeNode.NO_DATE, picker.highlightDate, "closing clears it");
         }

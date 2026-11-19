@@ -134,7 +134,7 @@ class JXDarkClassicTest {
     }
 
     @Test
-    void theDarkPaletteIsReadableAndTheLightOneIsModena() {
+    void theDarkPaletteIsReadableAndTheLightOneIsFromTheLightTokens() {
         JXClassic d = JXClassic.DARK;
         assertTrue(contrast(d.text, d.base) >= 7, "text on a field or list");
         assertTrue(contrast(d.text, d.oddRow) >= 7, "text on a striped row");
@@ -160,10 +160,13 @@ class JXDarkClassicTest {
         assertTrue(contrast(d.fieldEdgeA, d.base) >= 1.4, "the rim of a field");
         assertTrue(luminance(d.base) < 0.05 && luminance(d.background) < 0.05, "dark bodies");
         JXClassic l = JXClassic.LIGHT;
-        assertEquals(0xFF333333, l.text);
-        assertEquals(0xFFFFFFFF, l.base);
-        assertEquals(0xFFF4F4F4, l.background);
-        assertEquals(JXPaint.SELECTION, l.selection);
+        assertEquals(JXTheme.LIGHT.onSurface, l.text);
+        assertEquals(JXTheme.LIGHT.surface, l.base);
+        assertEquals(JXTheme.LIGHT.tonal(), l.selection);
+        assertEquals(JXTheme.LIGHT.primary, l.accent);
+        assertTrue(luminance(l.base) > 0.8 && luminance(l.background) > 0.8, "light bodies");
+        assertTrue(contrast(l.text, l.base) >= 7, "light text on a field or list");
+        assertFalse(l.text == d.text || l.base == d.base || l.selection == d.selection, "the two palettes differ");
         assertEquals(JXClassic.LIGHT, JXClassic.of(JXTheme.LIGHT));
         assertEquals(JXClassic.DARK, JXClassic.of(JXTheme.DARK));
     }
@@ -198,9 +201,32 @@ class JXDarkClassicTest {
         return String.format("%08x", argb);
     }
 
+    /** The colors a palette holds, as the hex tokens of a recording. */
+    private static Set<String> paletteColors(JXClassic palette) {
+        Set<String> out = new HashSet<String>();
+        try {
+            for (java.lang.reflect.Field f : JXClassic.class.getDeclaredFields()) {
+                if (f.getType() == int.class && !java.lang.reflect.Modifier.isStatic(f.getModifiers())) {
+                    f.setAccessible(true);
+                    out.add(hex(f.getInt(palette)));
+                }
+            }
+        } catch (IllegalAccessException e) {
+            throw new AssertionError(e);
+        }
+        return out;
+    }
+
+    /** What only the light palette holds: a color both share by coincidence (the dark surface is the light text) is no leak. */
+    private static Set<String> onlyLight() {
+        Set<String> out = paletteColors(JXClassic.LIGHT);
+        out.removeAll(paletteColors(JXClassic.DARK));
+        return out;
+    }
+
     @Test
     void nothingOfTheLightPaletteIsPaintedOnTheDarkTheme() {
-        // white (the base of Modena) is left out: it is also the text on a selection and a swatch of the color picker
+        // colors the dark palette holds too (the dark surface is the light onSurface, say) are not a leak
         Set<String> light = new HashSet<String>();
         JXClassic l = JXClassic.LIGHT;
         for (int c : new int[] {l.text, l.accent, l.focus, l.focusRing, l.outerBorder, l.boxBorder, l.highlight, l.background, l.prompt,
@@ -215,9 +241,10 @@ class JXDarkClassicTest {
         String dark = record(mount(screen("dark"), WIDTH, HEIGHT));
         Set<String> used = colors(dark);
         used.retainAll(light);
+        used.retainAll(onlyLight());
         assertTrue(used.isEmpty(), "light colors on the dark theme: " + used);
         String plain = record(mount(screen(null), WIDTH, HEIGHT));
-        assertTrue(colors(plain).contains(hex(l.base)) && colors(plain).contains(hex(l.text)), "the default theme is Modena");
+        assertTrue(colors(plain).contains(hex(l.base)) && colors(plain).contains(hex(l.text)), "the default theme is the light palette");
     }
 
     @Test
@@ -229,10 +256,11 @@ class JXDarkClassicTest {
                 e("colorpicker", p().set("value", "#2196F3").set("overlay", true).set("showing", true)));
         String log = record(mount(popups, 600, 500));
         Set<String> used = colors(log);
-        assertFalse(used.contains(hex(JXClassic.LIGHT.boxBorder)), "no light calendar rim");
-        assertFalse(used.contains(hex(JXClassic.LIGHT.outerBorder)), "no light popup rim");
-        assertFalse(used.contains(hex(JXClassic.LIGHT.text)), "no dark text");
+        Set<String> light = onlyLight();
+        assertFalse(used.contains(hex(JXClassic.LIGHT.boxBorder)) && light.contains(hex(JXClassic.LIGHT.boxBorder)), "no light calendar rim");
+        assertFalse(used.contains(hex(JXClassic.LIGHT.outerBorder)) && light.contains(hex(JXClassic.LIGHT.outerBorder)), "no light popup rim");
         assertFalse(used.contains(hex(JXClassic.LIGHT.selection)), "no light-theme selection");
+        assertTrue(used.contains(hex(JXClassic.DARK.text)), "light text on the dark popups");
         assertTrue(used.contains(hex(JXClassic.DARK.base)), "the dark body");
         assertTrue(used.contains(hex(JXClassic.DARK.selection)), "the dark selection");
     }
@@ -266,15 +294,15 @@ class JXDarkClassicTest {
                 assertEquals(own, px[(int) (kid.getY() + kid.getHeight() - 45) * 340 + x - 10], theme + " " + kid.getType() + " stripe");
             }
         }
-        // without a background of their own they are Modena light or the dark palette
+        // without a background of their own they are the light palette or the dark one
         JXNativeNode light = mount(e("row", p().set("gap", 10.0),
                 e("scroll", p().set("prefWidth", 100.0).set("prefHeight", 100.0), e("pane", p().set("prefWidth", 10.0).set("prefHeight", 10.0))),
                 e("list", p().set("itemCount", 0).set("prefWidth", 100.0).set("prefHeight", 100.0))), 240, 110);
         int[] lightPx = pixels(light, 240, 110);
         JXNativeNode scrollNode = light.getChildren().get(0);
         JXNativeNode listNode = light.getChildren().get(1);
-        assertEquals(0xFFF4F4F4, lightPx[(int) (scrollNode.getY() + 50) * 240 + (int) (scrollNode.getX() + 50)]);
-        assertEquals(0xFFFFFFFF, lightPx[(int) (listNode.getY() + 20) * 240 + (int) (listNode.getX() + 50)]);
+        assertEquals(JXClassic.LIGHT.background, lightPx[(int) (scrollNode.getY() + 50) * 240 + (int) (scrollNode.getX() + 50)]);
+        assertEquals(JXClassic.LIGHT.base, lightPx[(int) (listNode.getY() + 20) * 240 + (int) (listNode.getX() + 50)]);
         JXNativeNode dark = mount(e("row", p().set("theme", "dark").set("gap", 10.0),
                 e("scroll", p().set("prefWidth", 100.0).set("prefHeight", 100.0), e("pane", p().set("prefWidth", 10.0).set("prefHeight", 10.0))),
                 e("list", p().set("itemCount", 0).set("prefWidth", 100.0).set("prefHeight", 100.0)),

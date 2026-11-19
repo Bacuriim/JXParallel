@@ -49,7 +49,7 @@ final class JxmlPrepare {
     /**
      * A Button, ToggleButton or MenuButton that writes no {@code variant} (itself or through a style) takes the Material
      * look: {@code filled} for the default button, {@code outlined} for the others. {@code variant="classic"} keeps the
-     * Modena look of JavaFX.
+     * compact JavaFX button (its padding, drawn flat).
      */
     private static void materialButtons(JxmlParser.Node node) {
         String tag = node.tag;

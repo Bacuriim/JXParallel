@@ -626,8 +626,8 @@ every painter draws it, because it uses only the primitives of `JXPainter`.
   chevron-up chevron-down more-vert more-horiz edit delete settings home info warning error star favorite refresh person mail calendar
   visibility lock`. They are lines, ovals, arcs and triangles drawn on a 24 x 24 grid and scaled to `size` (24 by default); no font, file or
   network. `color` defaults to `onSurface`. An unknown name is a `JxmlException` listing these names, and `name` cannot be bound.
-- `Button variant`: `filled`, `tonal`, `outlined`, `text` or `elevated` (and `fab`, which `Fab` writes), or `classic` for the Modena look
-  of JavaFX. Without `variant` (written or given by a style) the button is Material: `filled` when `defaultButton="true"` is written,
+- `Button variant`: `filled`, `tonal`, `outlined`, `text` or `elevated` (and `fab`, which `Fab` writes), or `classic` for the compact
+  JavaFX button (JavaFX's padding, drawn flat: an outlined face, the tonal fill for the default button). Without `variant` (written or given by a style) the button is Material: `filled` when `defaultButton="true"` is written,
   `outlined` otherwise. `ToggleButton` and `MenuButton` take the same `variant` and the same default (`outlined`); a toggle button that is
   on takes the tonal fill (`filled`: the primary color, and a tinted surface when off), and a menu button draws its arrow in the label's
   color. `round="true"` makes the ends round. Hover and pressed tint the face. `elevated` and `fab` draw a soft darker
@@ -635,7 +635,7 @@ every painter draws it, because it uses only the primitives of `JXPainter`.
   on each side for it. A child of the button (an `Icon`) is its graphic, and the graphic does not take the pointer: a press, release, hover or cursor on it is on the button (the same for `ToggleButton`, `RadioButton`, `Hyperlink`, `CheckBox`, `Switch` and `Chip`), with no need for `mouseTransparent`.
 - `Button variant` may be bound: `variant="${current}"`. A literal is checked when the file is read; a bound value is checked each time the
   screen is built and must be one of the list (an error naming it otherwise); null or empty gives the classic button. The FXML loaders
-  (`FxmlTemplate`, the JavaFX-compatible API) build native nodes with no `variant`, so FXML screens keep the Modena look; an FXML file
+  (`FxmlTemplate`, the JavaFX-compatible API) build native nodes with no `variant`, so FXML screens keep JavaFX's sizes; an FXML file
   converted to JXML (`FxmlToJxml`) is JXML and takes the Material default. `IconButton` keeps a literal
   `variant` (its icon's color is chosen from it when the file is read; binding it is an error).
 - `IconButton icon size color variant disabled padding accelerator` (also `Fab icon text disabled padding accelerator`, and `NavigationBar gap padding alignment`): a `Button` (`variant` `text` unless written, `round`, padding 8) whose graphic is an `Icon` that does
@@ -882,8 +882,9 @@ A file may start with `<Style>` elements, direct children of its root, which are
   props. The root also gets the prop `theme`, which the renderer inherits down the tree: it paints the themed root with `surface`, draws `Label` text in
   `onSurface` and the Material controls above in the theme's colors. The classic controls (`Button` without `variant`, `CheckBox`, `TextField`,
   `PasswordField`, `TextArea`, `ComboBox`, `DatePicker`, `Spinner`, `Slider`, `ProgressBar`, `Scroll`, `ListView`, `TableView`, `TabPane`, scroll bars and the popups of
-  the pickers) keep the Modena look in the light theme and are painted in a dark palette derived from the six tokens (bodies from `surface`, text from `onSurface`,
-  borders from `outline`, focus and selection from `primary`) in the dark one. A `background` written on a `Scroll`, `ListView` or `TableView` wins in both themes
+  the pickers) keep the sizes of JavaFX's Modena skins, so layouts match JavaFX, but are drawn flat in Material 3 from the six tokens in both
+  themes: bodies from `surface`, text from `onSurface`, borders from `outline`, focus, marks, sliders and progress from `primary`, selection in the
+  tonal color; no gradients or bevels. A `background` written on a `Scroll`, `ListView` or `TableView` wins in both themes
   (the plain rows of a list or table then show it, without stripes).
 - A bound theme: `theme="${themeName}"` on the root (`light`, `dark`; null or empty gives no theme and the light tokens; anything else is an error). The
   tokens written anywhere in the file are then resolved each time the screen is built, from the controller's current value, so changing the property and
