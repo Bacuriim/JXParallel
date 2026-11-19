@@ -219,7 +219,7 @@ inside a `Border`), and these, which the renderer reads from any node:
 | `Accordion` | `accordion` | children are `TitledPane`s |
 | `TitledPane` | `titled` | `text`, `expanded`, `collapsible`, `onAction`; one child |
 | `Pagination` | `pagination` | `pageCount`, `current`, `maxPageIndicatorCount`, `onChange`; one child, the page |
-| `ToggleButton` | `toggle` | `text`, `selected`, `onAction`, `disabled`, `group`, `value`, `onChange`, the [font](#fonts) attributes |
+| `ToggleButton` | `toggle` | `text`, `selected`, `onAction`, `disabled`, `group`, `value`, `variant`, `onChange`, the [font](#fonts) attributes |
 | `RadioButton` | `radio` | `text`, `selected`, `onAction`, `disabled`, `group`, `value`, `onChange`, the [font](#fonts) attributes |
 | `Hyperlink` | `hyperlink` | `text`, `visited`, `onAction`, `disabled`, the [font](#fonts) attributes |
 | `ProgressIndicator` | `indicator` | `progress` (negative: indeterminate) |
@@ -240,7 +240,7 @@ inside a `Border`), and these, which the renderer reads from any node:
 | `DatePicker` | `datepicker` | `value`, `prompt`, `showing`, `onShowing` |
 | `TimePicker` | `timepicker` | `value` (`HH:mm`), `prompt`, `hour24`, `minuteStep`, `disabled`, `showing`, `onShowing` |
 | `ColorPicker` | `colorpicker` | `value` (`#RRGGBB`), `prompt`, `disabled`, `showing`, `onShowing` |
-| `MenuButton` | `menubutton` | `text`, `disabled`, `showing`, `onShowing`; children are `MenuItem`s and `Menu`s |
+| `MenuButton` | `menubutton` | `text`, `disabled`, `variant`, `showing`, `onShowing`; children are `MenuItem`s and `Menu`s |
 | `ContextMenu` | `contextmenu` | `disabled`, `showing`, `onShowing`; children are `MenuItem`s and `Menu`s; takes no room |
 | `MenuBar` | `menubar` | children are `Menu`s |
 | `Menu` | `menu` | `text`, `disabled`; children are `MenuItem`s and `Menu`s (a submenu) |
@@ -626,12 +626,17 @@ every painter draws it, because it uses only the primitives of `JXPainter`.
   chevron-up chevron-down more-vert more-horiz edit delete settings home info warning error star favorite refresh person mail calendar
   visibility lock`. They are lines, ovals, arcs and triangles drawn on a 24 x 24 grid and scaled to `size` (24 by default); no font, file or
   network. `color` defaults to `onSurface`. An unknown name is a `JxmlException` listing these names, and `name` cannot be bound.
-- `Button variant`: `filled`, `tonal`, `outlined`, `text` or `elevated` (and `fab`, which `Fab` writes). Without `variant` the button is
-  the classic one, unchanged. `round="true"` makes the ends round. Hover and pressed tint the face. `elevated` and `fab` draw a soft darker
+- `Button variant`: `filled`, `tonal`, `outlined`, `text` or `elevated` (and `fab`, which `Fab` writes), or `classic` for the Modena look
+  of JavaFX. Without `variant` (written or given by a style) the button is Material: `filled` when `defaultButton="true"` is written,
+  `outlined` otherwise. `ToggleButton` and `MenuButton` take the same `variant` and the same default (`outlined`); a toggle button that is
+  on takes the tonal fill (`filled`: the primary color, and a tinted surface when off), and a menu button draws its arrow in the label's
+  color. `round="true"` makes the ends round. Hover and pressed tint the face. `elevated` and `fab` draw a soft darker
   ring below the face (two translucent rings, because not every painter has a blur), kept inside the button's bounds, which are 3 px larger
   on each side for it. A child of the button (an `Icon`) is its graphic, and the graphic does not take the pointer: a press, release, hover or cursor on it is on the button (the same for `ToggleButton`, `RadioButton`, `Hyperlink`, `CheckBox`, `Switch` and `Chip`), with no need for `mouseTransparent`.
 - `Button variant` may be bound: `variant="${current}"`. A literal is checked when the file is read; a bound value is checked each time the
-  screen is built and must be one of the list (an error naming it otherwise); null or empty gives the classic button. `IconButton` keeps a literal
+  screen is built and must be one of the list (an error naming it otherwise); null or empty gives the classic button. The FXML loaders
+  (`FxmlTemplate`, the JavaFX-compatible API) build native nodes with no `variant`, so FXML screens keep the Modena look; an FXML file
+  converted to JXML (`FxmlToJxml`) is JXML and takes the Material default. `IconButton` keeps a literal
   `variant` (its icon's color is chosen from it when the file is read; binding it is an error).
 - `IconButton icon size color variant disabled padding accelerator` (also `Fab icon text disabled padding accelerator`, and `NavigationBar gap padding alignment`): a `Button` (`variant` `text` unless written, `round`, padding 8) whose graphic is an `Icon` that does
   not take the click, so the button gets it. `Fab icon text`: a `Button variant="fab"` with an icon, a text or both (padding 16, or 16 20 with a

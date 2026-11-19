@@ -26,7 +26,7 @@
     <Menu text="More"><MenuItem text="Inner" onAction="#save"/></Menu>
     <MenuItem text="Quit"/>
   </MenuButton>
-  <MenuButton text="Own state"><MenuItem text="One"/></MenuButton>
+  <MenuButton text="Own state" variant="classic"><MenuItem text="One"/></MenuButton>
   <Stack prefWidth="200" prefHeight="60">
     <Label text="Right-click here"/>
     <ContextMenu disabled="false" showing="${contextOpen}" onShowing="#setOpen">

@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <!-- ToggleButton, RadioButton (alone and in a group), Hyperlink, ProgressIndicator, Tooltip, Image (pixels, and src: a file next to this one). -->
 <Column controller="com.jxparallel.forge.samples.SampleController" gap="6" padding="8">
-  <ToggleButton text="Bold" selected="true" onAction="#save" disabled="false"/>
+  <ToggleButton text="Bold" selected="true" onAction="#save" disabled="false" variant="tonal"/>
   <ToggleButton text="${title}" selected="${on}" disabled="${busy}"/>
   <ToggleButton text="Left" group="@{choice}" value="a"/>
   <ToggleButton text="Mid" group="${choice}" value="b" onChange="#setChoice"/>

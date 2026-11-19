@@ -382,11 +382,23 @@ final class JXPaint {
         float fw = w - 2 * ring;
         float fh = h - 2 * ring;
         float r = Boolean.TRUE.equals(node.getProperty("round")) || "fab".equals(variant) ? fh / 2 : 4;
+        // a toggle button that is on: filled turns to the primary color (off it is a tinted surface); the other
+        // variants take the tonal fill under their own outline or ring
+        boolean toggle = "toggle".equals(node.getType());
+        boolean on = toggle && Boolean.TRUE.equals(node.getProperty("selected"));
+        if (on && !"filled".equals(variant)) {
+            p.fillRoundRect(fx, fy, fw, fh, r, t.tonal());
+        }
         int content;
         switch (variant) {
             case "filled":
-                p.fillRoundRect(fx, fy, fw, fh, r, t.primary);
-                content = t.onPrimary;
+                if (toggle && !on) {
+                    p.fillRoundRect(fx, fy, fw, fh, r, t.elevated());
+                    content = t.primary;
+                } else {
+                    p.fillRoundRect(fx, fy, fw, fh, r, t.primary);
+                    content = t.onPrimary;
+                }
                 break;
             case "tonal":
                 p.fillRoundRect(fx, fy, fw, fh, r, t.tonal());
@@ -398,7 +410,7 @@ final class JXPaint {
                 break;
             case "elevated":
                 softRing(fx, fy, fw, fh, r);
-                p.fillRoundRect(fx, fy, fw, fh, r, t.elevated());
+                p.fillRoundRect(fx, fy, fw, fh, r, on ? t.tonal() : t.elevated());
                 content = t.primary;
                 break;
             case "fab":
@@ -410,7 +422,10 @@ final class JXPaint {
                 content = t.primary;
                 break;
         }
-        if (Boolean.TRUE.equals(node.getProperty("pressed"))) {
+        if (on && !"filled".equals(variant)) {
+            content = t.onSurface;
+        }
+        if (Boolean.TRUE.equals(node.getProperty("pressed")) || "menubutton".equals(node.getType()) && JXOverlays.isOpen(node)) {
             p.fillRoundRect(fx, fy, fw, fh, r, JXTheme.withAlpha(content, 0x24));
         } else if (Boolean.TRUE.equals(node.getProperty("hover"))) {
             p.fillRoundRect(fx, fy, fw, fh, r, JXTheme.withAlpha(content, 0x14));
@@ -865,6 +880,16 @@ final class JXPaint {
     }
 
     private void menuButton(JXNativeNode node, float x, float y, float w, float h) {
+        String variant = JXControlLayout.variant(node);
+        if (!variant.isEmpty()) {
+            int content = color(node, variantBody(node, variant, x, y, w, h));
+            float[] pad = JXControlLayout.buttonPad(node);
+            p.clip(x, y, w - pad[3] - JXControlLayout.MENU_ARROW, h);
+            drawText(node, text(node, "label"), x + pad[1], y, h, content, false);
+            p.restore();
+            downArrow(x + w - pad[3] - 8, y + Math.round((h - 4) / 2), content);
+            return;
+        }
         buttonBody(node, x, y, w, h, 3, JXOverlays.isOpen(node));
         p.clip(x, y, w - JXControlLayout.MENU_ARROW, h);
         drawText(node, text(node, "label"), x + JXNativeNode.PAD_X, y, h, color(node, c.text), false);

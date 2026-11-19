@@ -329,7 +329,11 @@ public final class JXControlLayout {
             }
             case "menubutton": {
                 double w = text.width(JXPaint.text(node, "label"), size);
-                return labeled(node, w, 2 * JXNativeNode.PAD_X + MENU_ARROW, line + 2 * JXNativeNode.PAD_Y);
+                if (variant(node).isEmpty()) {
+                    return labeled(node, w, 2 * JXNativeNode.PAD_X + MENU_ARROW, line + 2 * JXNativeNode.PAD_Y);
+                }
+                float[] pad = buttonPad(node);
+                return labeled(node, w, pad[1] + pad[3] + MENU_ARROW, line + pad[0] + pad[2]);
             }
             case "menubar": {
                 double w = 8;
@@ -1014,9 +1018,16 @@ public final class JXControlLayout {
     // ---- buttons with a variant --------------------------------------------------------------
 
     /** The look of a button: filled, tonal, outlined, text, elevated or fab; empty for the classic one. */
+    /**
+     * The Material look of a button, toggle button or menu button ({@code filled}, {@code tonal}, {@code outlined},
+     * {@code text}, {@code elevated}, {@code fab}); empty for the classic Modena look, which is also what
+     * {@code classic} or no {@code variant} at all asks for.
+     */
     static String variant(JXNativeNode node) {
         Object v = node.getProperty("variant");
-        return "button".equals(node.getType()) && v instanceof String ? (String) v : "";
+        String type = node.getType();
+        boolean takes = "button".equals(type) || "toggle".equals(type) || "menubutton".equals(type);
+        return takes && v instanceof String && !"classic".equals(v) ? (String) v : "";
     }
 
     /** Pixels kept free around the face of a button that draws a soft ring (elevated, fab). */

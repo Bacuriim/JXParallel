@@ -135,9 +135,12 @@ public final class JxmlSchema {
     /** Placement and sizing, valid on every tag: read by the parent's layout. */
     static final Map<String, Attr> LAYOUT = new LinkedHashMap<String, Attr>();
     private static final Map<String, Tag> TAGS = new LinkedHashMap<String, Tag>();
-    /** The looks of a Button; {@code fab} is what a Fab expands to. */
+    /**
+     * The looks of a Button, ToggleButton and MenuButton: the Material ones, and {@code classic} for the Modena look of
+     * JavaFX. With none written the button is Material ({@link JxmlPrepare}); {@code fab} is what a Fab expands to.
+     */
     static final java.util.List<String> VARIANTS = Collections.unmodifiableList(
-            java.util.Arrays.asList("filled", "tonal", "outlined", "text", "elevated", "fab"));
+            java.util.Arrays.asList("filled", "tonal", "outlined", "text", "elevated", "fab", "classic"));
     /**
      * The {@code onChange} of a {@code <Spinner integer="true">}: the handler or setter gets an int. The renderer reports a
      * Double, so the interpreter and the generated code convert it ({@link JxmlValues#asInt}); the resolver puts this
@@ -423,6 +426,7 @@ public final class JxmlSchema {
                 .done();
         tag("MenuButton", "menubutton", Children.MANY).only("MenuItem", "Menu")
                 .attr("text", "label", AttrType.STRING, true).attr("disabled", "disabled", AttrType.BOOLEAN, true)
+                .choiceBound("variant", "variant", VARIANTS)
                 .def("label", "")
                 .overlay()
                 .done();
@@ -566,6 +570,7 @@ public final class JxmlSchema {
                 .attr("text", "label", AttrType.STRING, true).attr("selected", "selected", AttrType.BOOLEAN, true).font()
                 .attr("onAction", "onAction", AttrType.HANDLER, false).attr("disabled", "disabled", AttrType.BOOLEAN, true)
                 .attr("group", "group", AttrType.STRING, true).attr("value", "value", AttrType.STRING, false)
+                .choiceBound("variant", "variant", VARIANTS)
                 .def("label", "").def("selected", Boolean.FALSE)
                 .change("group", AttrType.STRING)
                 .done();

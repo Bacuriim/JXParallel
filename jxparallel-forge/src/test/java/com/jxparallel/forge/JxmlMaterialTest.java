@@ -214,7 +214,7 @@ class JxmlMaterialTest {
         assertError(2, "variant fab is what <Fab> is", "<Column>\n<IconButton icon=\"add\" variant=\"fab\"/></Column>");
         assertError(2, "<Fab> needs icon", "<Column>\n<Fab/></Column>");
         assertError(2, "name=\"nope\" is not one of", "<Column>\n<Fab icon=\"nope\"/></Column>");
-        assertError(2, "variant=\"loud\" is not one of [filled, tonal, outlined, text, elevated, fab]",
+        assertError(2, "variant=\"loud\" is not one of [filled, tonal, outlined, text, elevated, fab, classic]",
                 "<Column>\n<Button variant=\"loud\"/></Column>");
         assertError(2, "kind=\"big\" is not one of [assist, filter, choice, input]", "<Column>\n<Chip kind=\"big\"/></Column>");
         assertError(2, "orientation=\"diagonal\" is not one of", "<Column>\n<SplitPane orientation=\"diagonal\"/></Column>");
