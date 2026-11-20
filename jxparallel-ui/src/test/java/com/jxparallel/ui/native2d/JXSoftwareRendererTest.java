@@ -62,7 +62,9 @@ class JXSoftwareRendererTest {
         }
         // edges of glyphs differ (whole-pixel glyph positions, FreeType vs Skia rasterization)
         double ratio = different / (double) (WIDTH * HEIGHT);
-        if (ratio > 0.01) {
+        // Material text is near black (onSurface), so the same antialiasing difference crosses the per-channel
+        // tolerance more often than the gray Modena text did: 1.1% measured, and the blur is Skia only
+        if (ratio > 0.015) {
             BufferedImage out = new BufferedImage(WIDTH, HEIGHT, BufferedImage.TYPE_INT_ARGB);
             out.setRGB(0, 0, WIDTH, HEIGHT, actual, 0, WIDTH);
             Files.createDirectories(ACTUAL);

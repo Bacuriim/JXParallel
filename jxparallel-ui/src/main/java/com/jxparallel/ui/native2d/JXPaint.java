@@ -7,9 +7,10 @@ import com.jxparallel.ui.text.JXFont;
 import com.jxparallel.ui.text.JXTextEngine;
 
 /**
- * Paints every element type with the look of JavaFX's Modena theme, through a {@link JXPainter}, so
- * Skia and NanoVG draw the same thing. Colors and insets come from Modena (measured on JavaFX 21);
- * gradients are kept where Modena layers them, shadows are left out (a node asks for one with {@code elevation}).
+ * Paints every element type through a {@link JXPainter}, so Skia and NanoVG draw the same thing. Sizes and
+ * insets follow JavaFX 21 / Modena (measured), so layouts match JavaFX; the look is flat Material 3, with colors
+ * from the {@link JXTheme} tokens. There are no gradients or bevels, and shadows are left out (a node asks for one
+ * with {@code elevation}).
  *
  * <p>Props every node understands: {@code background}, {@code backgroundRadius}, {@code borderColor},
  * {@code borderWidth}, {@code borderRadius} (a region's CSS background and border, ARGB ints),
@@ -51,7 +52,7 @@ final class JXPaint {
     /** The theme set by the nearest ancestor with a {@code theme} prop; null when none sets one. */
     private JXTheme theme;
 
-    /** The colors of the classic controls under {@link #theme}: Modena unless a node set the dark theme. */
+    /** The colors of the classic controls under {@link #theme}: the light Material palette unless a node set the dark theme. */
     private JXClassic c = JXClassic.LIGHT;
 
     JXTheme theme() {
@@ -117,7 +118,7 @@ final class JXPaint {
         if (y + h > root.getY() + root.getHeight()) {
             y = Math.max(0, y - h - 28); // no room below the pointer: above it
         }
-        p.fillRoundRect(x, y, w, h, 6, 0xCC1E1E1E);
+        p.fillRoundRect(x, y, w, h, 4, 0xE6313033);
         p.text(label, x + 9, y + engine.baseline(h, size), size, false, 0xFFFFFFFF);
     }
 
@@ -382,11 +383,23 @@ final class JXPaint {
         float fw = w - 2 * ring;
         float fh = h - 2 * ring;
         float r = Boolean.TRUE.equals(node.getProperty("round")) || "fab".equals(variant) ? fh / 2 : 4;
+        // a toggle button that is on: filled turns to the primary color (off it is a tinted surface); the other
+        // variants take the tonal fill under their own outline or ring
+        boolean toggle = "toggle".equals(node.getType());
+        boolean on = toggle && Boolean.TRUE.equals(node.getProperty("selected"));
+        if (on && !"filled".equals(variant)) {
+            p.fillRoundRect(fx, fy, fw, fh, r, t.tonal());
+        }
         int content;
         switch (variant) {
             case "filled":
-                p.fillRoundRect(fx, fy, fw, fh, r, t.primary);
-                content = t.onPrimary;
+                if (toggle && !on) {
+                    p.fillRoundRect(fx, fy, fw, fh, r, t.elevated());
+                    content = t.primary;
+                } else {
+                    p.fillRoundRect(fx, fy, fw, fh, r, t.primary);
+                    content = t.onPrimary;
+                }
                 break;
             case "tonal":
                 p.fillRoundRect(fx, fy, fw, fh, r, t.tonal());
@@ -398,7 +411,7 @@ final class JXPaint {
                 break;
             case "elevated":
                 softRing(fx, fy, fw, fh, r);
-                p.fillRoundRect(fx, fy, fw, fh, r, t.elevated());
+                p.fillRoundRect(fx, fy, fw, fh, r, on ? t.tonal() : t.elevated());
                 content = t.primary;
                 break;
             case "fab":
@@ -410,7 +423,10 @@ final class JXPaint {
                 content = t.primary;
                 break;
         }
-        if (Boolean.TRUE.equals(node.getProperty("pressed"))) {
+        if (on && !"filled".equals(variant)) {
+            content = t.onSurface;
+        }
+        if (Boolean.TRUE.equals(node.getProperty("pressed")) || "menubutton".equals(node.getType()) && JXOverlays.isOpen(node)) {
             p.fillRoundRect(fx, fy, fw, fh, r, JXTheme.withAlpha(content, 0x24));
         } else if (Boolean.TRUE.equals(node.getProperty("hover"))) {
             p.fillRoundRect(fx, fy, fw, fh, r, JXTheme.withAlpha(content, 0x14));
@@ -794,12 +810,12 @@ final class JXPaint {
                 image(node, x, y, w, h);
                 break;
             case "popup":
-                p.fillRect(x, y, w, h, 0x33000000);
-                p.fillRect(x, y, w - 1, h - 1, c.boxBorder);
-                p.fillRect(x + 1, y + 1, w - 3, h - 3, c.base);
+                JXOverlayPaint.ring(p, x, y, w - 1, h - 1, 4);
+                p.fillRoundRect(x, y, w - 1, h - 1, 4, c.base);
+                p.strokeRoundRect(x, y, w - 1, h - 1, 4, 1, c.boxBorder);
                 break;
             case "tooltip":
-                p.fillRoundRect(x, y, w, h, 6, 0xCC1E1E1E);
+                p.fillRoundRect(x, y, w, h, 4, 0xE6313033);
                 labeledText(node, text(node, "label"), x, y, w, h, 'L', new float[] {4, 9, 4, 9});
                 break;
             case "calendar":
@@ -835,7 +851,7 @@ final class JXPaint {
             drawText(node, shown, x + JXNativeNode.FIELD_PAD_X, y, h, color(node, c.text), false);
         }
         p.restore();
-        buttonBody(node, x + w - bw, y, bw, h, 0, JXOverlays.isOpen(node));
+        fieldButton(node, x + w - bw, y, bw, h, JXOverlays.isOpen(node));
         float cx = x + w - bw / 2;
         float cy = y + h / 2;
         p.strokeOval(cx - 5, cy - 5, 10, 10, 1.5f, c.arrow);
@@ -860,11 +876,21 @@ final class JXPaint {
             drawText(node, hex, left, y, h, color(node, c.text), false);
         }
         p.restore();
-        buttonBody(node, x + w - bw, y, bw, h, 0, JXOverlays.isOpen(node));
+        fieldButton(node, x + w - bw, y, bw, h, JXOverlays.isOpen(node));
         downArrow(x + w - bw + (bw - 8) / 2, y + (h - 4) / 2, c.arrow);
     }
 
     private void menuButton(JXNativeNode node, float x, float y, float w, float h) {
+        String variant = JXControlLayout.variant(node);
+        if (!variant.isEmpty()) {
+            int content = color(node, variantBody(node, variant, x, y, w, h));
+            float[] pad = JXControlLayout.buttonPad(node);
+            p.clip(x, y, w - pad[3] - JXControlLayout.MENU_ARROW, h);
+            drawText(node, text(node, "label"), x + pad[1], y, h, content, false);
+            p.restore();
+            downArrow(x + w - pad[3] - 8, y + Math.round((h - 4) / 2), content);
+            return;
+        }
         buttonBody(node, x, y, w, h, 3, JXOverlays.isOpen(node));
         p.clip(x, y, w - JXControlLayout.MENU_ARROW, h);
         drawText(node, text(node, "label"), x + JXNativeNode.PAD_X, y, h, color(node, c.text), false);
@@ -889,47 +915,55 @@ final class JXPaint {
 
     // ---- building blocks -------------------------------------------------------------------
 
-    /** Modena button: highlight, outer border, inner border and body, with hover/armed variants. */
+    /**
+     * A button with the JavaFX sizes, drawn flat like a Material outlined button: the surface inside a 1 px outline,
+     * the tonal fill for the default button and for a selected (toggle, open) one, and a tint under the pointer or while
+     * pressed. A radius of 0 is a part of a control (a check box's box keeps its own).
+     */
     void buttonBody(JXNativeNode node, float x, float y, float w, float h, float r, boolean selected) {
-        boolean pressed = Boolean.TRUE.equals(node.getProperty("pressed")) || selected;
+        boolean pressed = Boolean.TRUE.equals(node.getProperty("pressed"));
         boolean hover = Boolean.TRUE.equals(node.getProperty("hover"));
         boolean isDefault = Boolean.TRUE.equals(node.getProperty("defaultButton"));
-        p.fillRoundRect(x, y + 1, w, h, r, c.highlight);
-        p.fillRoundRect(x, y, w, h, r, c.outerBorder);
-        if (pressed) {
-            p.fillRoundRectGradient(x + 1, y + 1, w - 2, h - 2, r - 1, c.pressedOuterA, c.pressedOuterB);
-            p.fillRoundRectGradient(x + 2, y + 2, w - 4, h - 4, Math.max(0, r - 2), c.pressedInnerA, c.pressedInnerB);
-        } else if (isDefault) {
-            p.fillRoundRectGradient(x + 1, y + 1, w - 2, h - 2, r - 1, c.defOuterA, c.defOuterB);
-            p.fillRoundRectGradient(x + 2, y + 2, w - 4, h - 4, Math.max(0, r - 2), hover ? c.defHoverA : c.defInnerA,
-                    hover ? c.defHoverB : c.defInnerB);
+        float radius = r > 0 ? Math.max(r, 4) : 0;
+        if (selected || isDefault) {
+            p.fillRoundRect(x, y, w, h, radius, hover && !selected ? c.defHoverA : c.defInnerA);
         } else {
-            p.fillRoundRectGradient(x + 1, y + 1, w - 2, h - 2, r - 1, c.ctlTop, c.ctlBottom);
-            p.fillRoundRectGradient(x + 2, y + 2, w - 4, h - 4, Math.max(0, r - 2), hover ? c.bodyHoverA : c.bodyA,
-                    hover ? c.bodyHoverB : c.bodyB);
+            p.fillRoundRect(x, y, w, h, radius, c.bodyA);
+            p.strokeRoundRect(x, y, w, h, radius, 1, c.outerBorder);
         }
-        focusRing(node, x, y, w, h, r);
+        if (pressed) {
+            p.fillRoundRect(x, y, w, h, radius, JXTheme.withAlpha(c.text, 0x1F));
+        } else if (hover && !isDefault) {
+            p.fillRoundRect(x, y, w, h, radius, JXTheme.withAlpha(c.text, 0x0F));
+        }
+        focusRing(node, x, y, w, h, radius);
     }
 
+    /** The keyboard focus: a 2 px primary line just outside the control. */
     void focusRing(JXNativeNode node, float x, float y, float w, float h, float r) {
         if (Boolean.TRUE.equals(node.getProperty("focused"))) {
-            p.strokeRoundRect(x - 1, y - 1, w + 2, h + 2, r + 1, 1, c.focusRing);
-            p.strokeRoundRect(x, y, w, h, r, 1, c.focus);
+            p.strokeRoundRect(x - 1, y - 1, w + 2, h + 2, r + 1, 2, c.focus);
         }
     }
 
-    /** Modena text-field background: gradient border and white body, blue when focused. */
+    /** A Material outlined text field: the surface inside a 1 px outline, 2 px of primary when focused. */
     private void field(JXNativeNode node, float x, float y, float w, float h) {
         boolean focused = Boolean.TRUE.equals(node.getProperty("focused"));
+        boolean hover = Boolean.TRUE.equals(node.getProperty("hover"));
+        p.fillRoundRect(x, y, w, h, 4, c.base);
         if (focused) {
-            p.fillRoundRect(x - 1, y - 1, w + 2, h + 2, 4, c.focusRing);
-            p.fillRoundRect(x, y, w, h, 3, c.focus);
+            p.strokeRoundRect(x, y, w, h, 4, 2, c.focus);
         } else {
-            p.fillRoundRectGradient(x, y, w, h, 3, c.fieldEdgeA, c.fieldEdgeB);
+            p.strokeRoundRect(x, y, w, h, 4, 1, hover ? c.text : c.outerBorder);
         }
-        p.fillRoundRect(x + 1, y + 1, w - 2, h - 2, 2, c.base);
-        if (!focused) {
-            p.fillRoundRectGradient(x + 1, y + 1, w - 2, Math.min(5, h - 2), 2, c.sheenA, c.base);
+    }
+
+    /** The button at the end of a field (combo box, pickers): no face of its own, a tint under the pointer or while open. */
+    private void fieldButton(JXNativeNode node, float x, float y, float w, float h, boolean open) {
+        if (open) {
+            p.fillRoundRect(x + 2, y + 2, w - 4, h - 4, 3, JXTheme.withAlpha(c.text, 0x1F));
+        } else if (Boolean.TRUE.equals(node.getProperty("hover"))) {
+            p.fillRoundRect(x + 2, y + 2, w - 4, h - 4, 3, JXTheme.withAlpha(c.text, 0x0F));
         }
     }
 
@@ -1039,13 +1073,23 @@ final class JXPaint {
         p.restore();
     }
 
+    /** A Material check box: a 2 px outline, or the primary color with the mark on it; a soft halo when focused. */
     private void checkBox(JXNativeNode node, float x, float y, float h) {
         float s = JXNativeNode.CHECK_BOX;
         float top = y + Math.round((h - s) / 2);
-        buttonBody(node, x, top, s, s, 3, false);
-        if (Boolean.TRUE.equals(node.getProperty("indeterminate"))) {
+        boolean indeterminate = Boolean.TRUE.equals(node.getProperty("indeterminate"));
+        boolean checked = Boolean.TRUE.equals(node.getProperty("checked"));
+        if (Boolean.TRUE.equals(node.getProperty("focused"))) {
+            p.fillRoundRect(x - 2, top - 2, s + 4, s + 4, 5, c.focusRing);
+        }
+        if (indeterminate || checked) {
+            p.fillRoundRect(x + 1, top + 1, s - 2, s - 2, 2, c.accent);
+        } else {
+            p.strokeRoundRect(x + 1, top + 1, s - 2, s - 2, 2, 2, Boolean.TRUE.equals(node.getProperty("hover")) ? c.text : c.arrow);
+        }
+        if (indeterminate) {
             p.fillRect(x + 4, top + 7, s - 8, 2, c.mark);
-        } else if (Boolean.TRUE.equals(node.getProperty("checked"))) {
+        } else if (checked) {
             p.line(x + 4, top + 8.5f, x + 7, top + 11.5f, 2, c.mark);
             p.line(x + 7, top + 11.5f, x + 12.5f, top + 4.5f, 2, c.mark);
         }
@@ -1053,29 +1097,31 @@ final class JXPaint {
                 Boolean.TRUE.equals(node.getProperty("underline")));
     }
 
+    /** A Material radio button: a 2 px ring, primary with a dot inside when chosen; a soft halo when focused. */
     private void radio(JXNativeNode node, float x, float y, float h) {
         float s = JXNativeNode.CHECK_BOX;
         float top = y + Math.round((h - s) / 2);
-        boolean focused = Boolean.TRUE.equals(node.getProperty("focused"));
-        p.fillOval(x, top + 1, s, s, c.highlight);
-        p.fillOval(x, top, s, s, focused ? c.focus : c.outerBorder);
-        p.fillOval(x + 1, top + 1, s - 2, s - 2, c.ctlTop);
-        p.fillOval(x + 2, top + 2, s - 4, s - 4, Boolean.TRUE.equals(node.getProperty("hover")) ? c.thumbHover : c.thumbBody);
-        if (Boolean.TRUE.equals(node.getProperty("checked"))) {
-            p.fillOval(x + 4, top + 4, s - 8, s - 8, c.mark);
+        boolean checked = Boolean.TRUE.equals(node.getProperty("checked"));
+        if (Boolean.TRUE.equals(node.getProperty("focused"))) {
+            p.fillOval(x - 2, top - 2, s + 4, s + 4, c.focusRing);
+        }
+        int ring = checked ? c.accent : Boolean.TRUE.equals(node.getProperty("hover")) ? c.text : c.arrow;
+        p.strokeOval(x + 1, top + 1, s - 2, s - 2, 2, ring);
+        if (checked) {
+            p.fillOval(x + 5, top + 5, s - 10, s - 10, c.accent);
         }
         drawText(node, text(node, "label"), x + JXNativeNode.CHECK_BOX + JXNativeNode.CHECK_GAP, y, h, color(node, c.text),
                 Boolean.TRUE.equals(node.getProperty("underline")));
     }
 
+    /** A combo box: an outlined field, editable or not, with the arrow at its end. */
     private void select(JXNativeNode node, float x, float y, float w, float h) {
         boolean editable = Boolean.TRUE.equals(node.getProperty("editable"));
+        field(node, x, y, w, h);
+        fieldButton(node, x + w - JXNativeNode.ARROW, y, JXNativeNode.ARROW, h, JXOverlays.isOpen(node));
         if (editable) {
-            field(node, x, y, w, h);
             fieldText(node, x, y, w - JXNativeNode.ARROW, h, false);
-            p.fillRect(x + w - JXNativeNode.ARROW, y + 1, 1, h - 2, c.outerBorder);
         } else {
-            buttonBody(node, x, y, w, h, 3, JXOverlays.isOpen(node));
             String value = text(node, "value");
             boolean prompt = value.isEmpty() || Boolean.TRUE.equals(node.getProperty("promptShown"));
             if (value.isEmpty()) {
@@ -1091,7 +1137,6 @@ final class JXPaint {
     }
 
     void downArrow(float x, float y, int color) {
-        p.fillTriangle(x, y + 1, x + 8, y + 1, x + 4, y + 5, c.highlight);
         p.fillTriangle(x, y, x + 8, y, x + 4, y + 4, color);
     }
 
@@ -1099,17 +1144,19 @@ final class JXPaint {
         p.fillTriangle(x, y + 4, x + 8, y + 4, x + 4, y, color);
     }
 
+    /** A spinner: an outlined field with the two arrows at its end, the half under the pointer tinted. */
     private void spinner(JXNativeNode node, float x, float y, float w, float h) {
         field(node, x, y, w, h);
         float bw = JXControlLayout.SPINNER_BUTTON;
         fieldText(node, x, y, w - bw, h, false);
         float bx = x + w - bw;
         float half = (float) Math.floor(h / 2);
-        boolean upHover = "up".equals(node.getProperty("hoverPart"));
-        boolean downHover = "down".equals(node.getProperty("hoverPart"));
-        p.fillRect(bx, y, bw, h, c.outerBorder);
-        p.fillRoundRectGradient(bx + 1, y + 1, bw - 2, half - 1, 0, c.ctlTop, upHover ? c.ctlBottomHover : c.ctlBottom);
-        p.fillRoundRectGradient(bx + 1, y + half + 1, bw - 2, h - half - 2, 0, c.ctlTop, downHover ? c.ctlBottomHover : c.ctlBottom);
+        int tint = JXTheme.withAlpha(c.text, 0x0F);
+        if ("up".equals(node.getProperty("hoverPart"))) {
+            p.fillRoundRect(bx + 2, y + 2, bw - 4, half - 2, 3, tint);
+        } else if ("down".equals(node.getProperty("hoverPart"))) {
+            p.fillRoundRect(bx + 2, y + half, bw - 4, h - half - 2, 3, tint);
+        }
         upArrow(bx + (bw - 8) / 2, y + (half - 4) / 2 + 0.5f, c.arrow);
         downArrow(bx + (bw - 8) / 2, y + half + (h - half - 4) / 2 - 0.5f, c.arrow);
     }
@@ -1118,7 +1165,7 @@ final class JXPaint {
         field(node, x, y, w, h);
         float bw = JXControlLayout.DATE_BUTTON;
         fieldText(node, x, y, w - bw, h, false);
-        buttonBody(node, x + w - bw, y, bw, h, 0, JXOverlays.isOpen(node));
+        fieldButton(node, x + w - bw, y, bw, h, JXOverlays.isOpen(node));
         float cx = x + w - bw + (bw - 11) / 2;
         float cy = y + (h - 10) / 2;
         p.fillRect(cx, cy, 11, 10, c.arrow);
@@ -1128,27 +1175,29 @@ final class JXPaint {
         p.fillRect(cx + 2, cy + 6, 2, 2, c.arrow);
     }
 
+    /** A Material linear progress bar: a 4 px track in the tonal color, the bar in primary, both round at the ends. */
     private void progressBar(JXNativeNode node, float x, float y, float w, float h) {
         if (w <= 0 || h <= 0) {
             return; // laid out with no room (a Scroll with fitToHeight): nothing to show
         }
-        p.fillRoundRect(x, y + 1, w, h, 4, c.highlight);
-        p.fillRoundRectGradient(x, y, w, h, 3, c.fieldEdgeA, c.fieldEdgeB);
-        p.fillRoundRectGradient(x + 1, y + 1, w - 2, h - 2, 2, c.trackA, c.base);
+        float th = Math.min(4, h);
+        float ty = y + Math.round((h - th) / 2);
+        p.fillRoundRect(x, ty, w, th, th / 2, c.sliderTrack);
         double progress = number(node, "progress", 0.0);
         if (progress < 0) {
             float band = Math.max(20, w / 4);
             float t = (float) ((clock.getAsLong() % 1500) / 1500.0);
-            float bx = x + 3 + (w - 6 - band) * t;
-            p.fillRoundRectGradient(bx, y + 3, band, h - 6, 2, c.barA, c.barB);
+            float bx = x + (w - band) * t;
+            p.fillRoundRect(bx, ty, band, th, th / 2, c.barA);
             return;
         }
-        float bw = (float) ((w - 6) * clamp(progress));
+        float bw = (float) (w * clamp(progress));
         if (bw > 0) {
-            p.fillRoundRectGradient(x + 3, y + 3, bw, h - 6, 2, c.barA, c.barB);
+            p.fillRoundRect(x, ty, Math.max(bw, th), th, th / 2, c.barA);
         }
     }
 
+    /** A Material circular progress indicator: a 4 px ring, the done part in primary over the tonal track. */
     private void indicator(JXNativeNode node, float x, float y, float w, float h) {
         double progress = number(node, "progress", -1.0);
         JXTextEngine engine = JXTextEngine.get(false);
@@ -1156,24 +1205,17 @@ final class JXPaint {
         float d = Math.max(0, Math.min(w, h - textH) - 4);
         float cx = x + (w - d) / 2;
         float cy = y + (h - textH - d) / 2;
+        float stroke = Math.max(2, Math.min(4, d / 6));
         if (progress < 0) {
             long now = clock.getAsLong();
-            int lit = (int) ((now / 100) % 8);
-            float r = d / 2;
-            for (int i = 0; i < 8; i++) {
-                double a = Math.toRadians(i * 45 - 90);
-                float dot = Math.max(2, d / 7);
-                float px = (float) (cx + r + Math.cos(a) * (r - dot)) - dot / 2;
-                float py = (float) (cy + r + Math.sin(a) * (r - dot)) - dot / 2;
-                int alpha = 0x40 + ((i - lit + 8) % 8) * 0x18;
-                p.fillOval(px, py, dot, dot, (Math.min(alpha, 0xFF) << 24) | (c.accent & 0xFFFFFF));
-            }
+            float start = (now % 1200) * 360f / 1200f - 90;
+            float sweep = 70 + 200 * (float) Math.abs(Math.sin((now % 2400) * Math.PI / 2400));
+            p.strokeArc(cx, cy, d, d, start, sweep, stroke, c.accent);
             return;
         }
-        p.fillOval(cx, cy, d, d, c.boxBorder);
-        p.fillOval(cx + 1, cy + 1, d - 2, d - 2, c.base);
+        p.strokeOval(cx, cy, d, d, stroke, c.sliderTrack);
         if (progress > 0) {
-            p.strokeArc(cx + 3, cy + 3, d - 6, d - 6, -90, (float) (360 * clamp(progress)), (d - 6) / 2, c.accent);
+            p.strokeArc(cx, cy, d, d, -90, (float) (360 * clamp(progress)), stroke, c.accent);
         }
         String percent = Math.round(clamp(progress) * 100) + "%";
         if (progress >= 1) {
@@ -1183,60 +1225,62 @@ final class JXPaint {
         p.text(percent, x + (w - tw) / 2, y + h - textH + engine.ascent(11), 11, false, c.text);
     }
 
+    /** A Material slider: the track in primary up to the thumb and tonal after it, a round primary thumb. */
     private void slider(JXNativeNode node, float x, float y, float w, float h) {
         double min = number(node, "min", 0.0);
         double max = number(node, "max", 100.0);
         double fraction = max <= min ? 0.0 : clamp((number(node, "value", min) - min) / (max - min));
         if (node.vertical()) {
-            float tx = x + (w - 6) / 2;
-            p.fillRoundRectGradient(tx, y + 4, 6, h - 8, 3, c.fieldEdgeA, c.fieldEdgeB);
-            p.fillRoundRect(tx + 1, y + 5, 4, h - 10, 2, c.sliderTrack);
+            float tx = x + (w - 4) / 2;
             float ty = (float) (y + (h - 14) * (1 - fraction));
+            p.fillRoundRect(tx, y + 4, 4, h - 8, 2, c.sliderTrack);
+            p.fillRoundRect(tx, ty + 7, 4, Math.max(0, y + h - 4 - (ty + 7)), 2, c.accent);
             thumb(node, x + (w - 14) / 2, ty);
             return;
         }
-        float ty = y + (h - 6) / 2;
-        p.fillRoundRect(x + 4, ty + 1, w - 8, 6, 3, c.highlight);
-        p.fillRoundRectGradient(x + 4, ty, w - 8, 6, 3, c.fieldEdgeA, c.fieldEdgeB);
-        p.fillRoundRectGradient(x + 5, ty + 1, w - 10, 4, 2, c.sheenA, c.base);
-        thumb(node, (float) (x + (w - 14) * fraction), y + (h - 14) / 2);
+        float ty = y + (h - 4) / 2;
+        float tx = (float) (x + (w - 14) * fraction);
+        p.fillRoundRect(x + 4, ty, w - 8, 4, 2, c.sliderTrack);
+        p.fillRoundRect(x + 4, ty, Math.max(0, tx + 7 - (x + 4)), 4, 2, c.accent);
+        thumb(node, tx, y + (h - 14) / 2);
     }
 
     private void thumb(JXNativeNode node, float x, float y) {
-        p.fillOval(x, y, 14, 14, Boolean.TRUE.equals(node.getProperty("focused")) ? c.focus : c.thumbEdge);
-        p.fillOval(x + 1, y + 1, 12, 12, c.ctlTop);
-        p.fillOval(x + 2, y + 2, 10, 10, Boolean.TRUE.equals(node.getProperty("pressed")) ? c.thumbPressed : c.thumbBody);
+        if (Boolean.TRUE.equals(node.getProperty("focused")) || Boolean.TRUE.equals(node.getProperty("pressed"))) {
+            p.fillOval(x - 3, y - 3, 20, 20, c.focusRing);
+        } else if (Boolean.TRUE.equals(node.getProperty("hover"))) {
+            p.fillOval(x - 3, y - 3, 20, 20, JXTheme.withAlpha(c.accent, 0x1A));
+        }
+        p.fillOval(x, y, 14, 14, c.accent);
     }
 
+    /** A 1 px line in the outline variant color. */
     private void separator(JXNativeNode node, float x, float y, float w, float h) {
         if (node.vertical()) {
             float left = x + Math.round((w - JXNativeNode.SEPARATOR_THICKNESS_V) / 2.0f);
-            p.fillRect(left, y, 3, h, c.highlight);
             p.fillRect(left + 1, y, 1, h, c.sepLine);
         } else {
             float top = y + Math.round((h - JXNativeNode.SEPARATOR_THICKNESS_H) / 2.0f);
             p.fillRect(x, top, w, 1, c.sepLine);
-            p.fillRect(x, top + 1, w, 1, c.highlight);
         }
     }
 
+    /** A titled pane: a flat header in the surface container color, the content framed by a light line. */
     private void titled(JXNativeNode node, float x, float y, float w, float h) {
         float title = JXTitledLayout.titleHeight();
         if (!node.collapsed() && h > title) {
-            p.fillRect(x, y + title, w, h - title, c.boxBorder);
-            p.fillRoundRectGradient(x + 1, y + title, w - 2, Math.min(5, h - title - 1), 0, c.titledSheen, c.background);
-            p.fillRect(x + 1, y + title + 5, w - 2, Math.max(0, h - title - 6), c.background);
+            p.fillRect(x, y + title, w, h - title, c.background);
+            p.strokeRoundRect(x, y + title - 1, w, h - title + 1, 0, 1, c.boxBorder);
         }
-        p.fillRoundRect(x, y, w, title, 3, c.boxBorder);
         boolean hover = Boolean.TRUE.equals(node.getProperty("hover"));
-        p.fillRoundRectGradient(x + 1, y + 1, w - 2, title - 2, 2, c.ctlTop, hover ? c.ctlBottomHover : c.ctlBottom);
+        p.fillRoundRect(x, y, w, title, 4, hover ? c.ctlBottomHover : c.ctlTop);
         if (node.collapsible()) {
             float[] a = JXTitledLayout.arrow(node, x, y);
             p.fillTriangle(a[0], a[1], a[2], a[3], a[4], a[5], c.arrow);
         }
         drawText(node, text(node, "label"), x + JXTitledLayout.textOffset(node), y, title, color(node, c.text), false);
         if (Boolean.TRUE.equals(node.getProperty("focused"))) {
-            p.strokeRoundRect(x, y, w, title, 3, 1, c.focus);
+            p.strokeRoundRect(x, y, w, title, 4, 2, c.focus);
         }
     }
 
@@ -1288,11 +1332,12 @@ final class JXPaint {
         }
     }
 
+    /** Material tabs: flat headers on the surface, the chosen one in primary with a 2 px line under it. */
     private void tabs(JXNativeNode node, float x, float y, float w, float h) {
         float header = JXControlLayout.TAB_HEADER;
         p.fillRect(x, y + header, w, h - header, c.background);
-        p.fillRect(x, y, w, header, c.outerBorder);
-        p.fillRoundRectGradient(x, y + 1, w, header - 1, 0, c.tabA, c.tabB);
+        p.fillRect(x, y, w, header, c.base);
+        p.fillRect(x, y + header - 1, w, 1, c.boxBorder);
         String[] titles = strings(node.getProperty("titles"));
         int selected = (int) number(node, "selected", 0);
         float[] tabX = JXControlLayout.tabPositions(node);
@@ -1301,25 +1346,19 @@ final class JXPaint {
             float tw = tabX[i + 1] - tabX[i];
             float ty = y + JXControlLayout.TAB_TOP;
             float th = header - JXControlLayout.TAB_TOP;
-            p.fillRoundRect(tx, ty, tw, th + 3, 3, c.outerBorder);
-            if (i == selected) {
-                p.fillRoundRect(tx + 1, ty + 1, tw - 2, th + 2, 2, c.background);
-            } else {
-                p.fillRoundRectGradient(tx + 1, ty + 1, tw - 2, th + 2, 2, c.ctlTop, c.ctlBottom);
-            }
+            int color = i == selected ? c.accent : c.text;
             JXTextEngine engine = JXTextEngine.get(false);
             p.text(titles[i], tx + JXControlLayout.TAB_PAD, ty + engine.baseline(th, JXTextEngine.DEFAULT_SIZE),
-                    JXTextEngine.DEFAULT_SIZE, false, c.text);
+                    JXTextEngine.DEFAULT_SIZE, false, color);
             if (JXControlLayout.tabClosable(node, i)) {
                 float cx = tx + tw - JXControlLayout.TAB_PAD - 8;
                 float cy = ty + (th - 8) / 2;
                 p.line(cx + 1, cy + 1, cx + 7, cy + 7, 1.5f, c.arrow);
                 p.line(cx + 7, cy + 1, cx + 1, cy + 7, 1.5f, c.arrow);
             }
-        }
-        p.fillRect(x, y + header - 1, w, 1, c.outerBorder);
-        if (selected >= 0 && selected < titles.length) {
-            p.fillRect(x + tabX[selected] + 1, y + header - 1, tabX[selected + 1] - tabX[selected] - 2, 1, c.background);
+            if (i == selected) {
+                p.fillRoundRect(tx + 2, y + header - 3, tw - 4, 3, 1.5f, c.accent);
+            }
         }
     }
 
@@ -1331,8 +1370,7 @@ final class JXPaint {
             int page = (int) b[4];
             boolean arrow = page < 0;
             if (!arrow && page == current) {
-                p.fillRoundRect(b[0], b[1], b[2], b[3], 3, c.outerBorder);
-                p.fillRoundRect(b[0] + 1, b[1] + 1, b[2] - 2, b[3] - 2, 2, c.base);
+                p.fillRoundRect(b[0], b[1], b[2], b[3], Math.min(b[2], b[3]) / 2, c.selection);
             }
             if (arrow) {
                 float cy = b[1] + b[3] / 2;
@@ -1346,7 +1384,7 @@ final class JXPaint {
                 String label = String.valueOf(page + 1);
                 float tw = engine.width(label, JXTextEngine.DEFAULT_SIZE);
                 p.text(label, b[0] + (b[2] - tw) / 2, b[1] + engine.baseline(b[3], JXTextEngine.DEFAULT_SIZE),
-                        JXTextEngine.DEFAULT_SIZE, false, page == current ? c.accent : c.text);
+                        JXTextEngine.DEFAULT_SIZE, false, c.text);
             }
         }
         int count = (int) number(node, "pageCount", 1);
@@ -1401,23 +1439,21 @@ final class JXPaint {
         }
     }
 
+    /** A scroll bar: a quiet lane, small arrows at its ends and a round thumb that darkens with the pointer on it. */
     private void bar(float x, float y, float w, float h, float thumbPos, float thumbLen, boolean vertical) {
-        p.fillRect(x, y, w, h, c.barTrack);
+        p.fillRect(x, y, w, h, c.barLane);
         if (vertical) {
-            p.fillRect(x + 1, y, w - 1, h, c.barLane);
             upArrow(x + (w - 8) / 2, y + 3, c.barArrow);
             downArrow(x + (w - 8) / 2, y + h - 7, c.barArrow);
-            p.fillRoundRect(x + 2, thumbPos, w - 4, thumbLen, 3, c.outerBorder);
-            p.fillRoundRectGradient(x + 3, thumbPos + 1, w - 6, thumbLen - 2, 2, c.ctlTop, c.ctlBottom);
+            p.fillRoundRect(x + 3, thumbPos, w - 6, thumbLen, (w - 6) / 2, c.thumbBody);
         } else {
-            p.fillRect(x, y + 1, w, h - 1, c.barLane);
             float cy = y + (h - 8) / 2;
             p.fillTriangle(x + 7, cy, x + 7, cy + 8, x + 3, cy + 4, c.barArrow);
             p.fillTriangle(x + w - 7, cy, x + w - 7, cy + 8, x + w - 3, cy + 4, c.barArrow);
-            p.fillRoundRect(thumbPos, y + 2, thumbLen, h - 4, 3, c.outerBorder);
-            p.fillRoundRectGradient(thumbPos + 1, y + 3, thumbLen - 2, h - 6, 2, c.ctlTop, c.ctlBottom);
+            p.fillRoundRect(thumbPos, y + 3, thumbLen, h - 6, (h - 6) / 2, c.thumbBody);
         }
     }
+
 
     /** The width of a column header kept for its sort arrow when the table is sorted by that column. */
     private static final float SORT_ARROW = 16;
@@ -1427,8 +1463,7 @@ final class JXPaint {
         float y = node.getY() + 1;
         float w = node.getWidth() - 2;
         float h = JXControlLayout.TABLE_HEADER;
-        p.fillRoundRectGradient(x, y, w, h, 0, c.ctlTop, c.ctlBottom);
-        p.fillRoundRectGradient(x, y + 1, w, h - 1, 0, c.bodyA, c.bodyB);
+        p.fillRect(x, y, w, h, c.ctlTop);
         p.fillRect(x, y + h - 1, w, 1, c.boxBorder);
         String[] titles = strings(node.getProperty("columns"));
         float[] widths = JXControlLayout.columnWidths(node);
@@ -1454,7 +1489,7 @@ final class JXPaint {
             }
             p.restore();
             cx += widths[i];
-            p.fillRect(cx - 1, y, 1, h, c.boxBorder);
+            p.fillRect(cx - 1, y + 6, 1, h - 12, c.boxBorder);
         }
         p.restore();
     }

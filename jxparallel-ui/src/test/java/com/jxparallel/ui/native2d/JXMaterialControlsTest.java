@@ -160,10 +160,25 @@ class JXMaterialControlsTest {
     @Test
     void aButtonWithoutAVariantKeepsTheClassicLook() {
         String classic = record(mount(button(null, p()), 80, 30));
-        assertTrue(classic.contains("gradient"));
+        // the classic button is the flat surface body with the field outline, not one of the variants' fills
+        String surface = String.format("%08x", JXClassic.LIGHT.bodyA);
+        assertTrue(has(classic, "fillRoundRect", surface), "the classic body");
+        assertFalse(classic.contains("gradient"), "no gradients in the Material repaint");
         for (String variant : new String[] {"filled", "tonal", "outlined", "text", "elevated", "fab"}) {
-            assertFalse(record(mount(button(variant, p()), 80, 40)).contains("gradient"), variant);
+            assertNotEquals(classic, record(mount(button(variant, p()), 80, 36)), variant);
         }
+        assertTrue(has(record(mount(button("filled", p()), 80, 36)), "fillRoundRect", "ff1565c0"));
+        assertFalse(has(record(mount(button("filled", p()), 80, 36)), "fillRoundRect", surface), "a variant does not paint the classic body");
+    }
+
+    @Test
+    void aVariantButtonIsAsTallAsATextFieldOfTheSameFont() {
+        JXNativeNode field = JXNativeNode.createBackendNode(e("input", p().set("value", "...")));
+        JXNativeNode button = JXNativeNode.createBackendNode(e("button", p().set("label", "...").set("variant", "outlined")));
+        assertEquals(field.prefHeight(), button.prefHeight(), 0.001, "compact desktop padding: a button lines up with a field");
+        JXNativeNode padded = JXNativeNode.createBackendNode(
+                e("button", p().set("label", "...").set("variant", "outlined").set("padding", 9.0)));
+        assertTrue(padded.prefHeight() > button.prefHeight(),"a written padding still wins");
     }
 
     @Test
@@ -544,8 +559,9 @@ class JXMaterialControlsTest {
         assertTrue(has(log, "fillRect", "ff1c1b1f"), "the dark surface");
         assertTrue(log.contains("ffe6e1e5"), "the text takes onSurface");
         String plain = record(mount(e("column", p(), e("#text", p().set("value", "Hi"))), 100, 40));
-        assertFalse(plain.contains("ff1c1b1f"));
-        assertTrue(plain.contains("ff333333"), "no theme: the classic text color");
+        assertFalse(has(plain, "fillRect", "ff1c1b1f"), "no theme: no dark surface");
+        assertFalse(plain.contains("ffe6e1e5"), "no theme: no dark text");
+        assertTrue(plain.contains(String.format("%08x", JXTheme.LIGHT.onSurface)), "no theme: the light onSurface text color");
         String inherited = record(mount(e("column", p().set("theme", "dark"), e("row", p(), e("#text", p().set("value", "x")))), 100, 40));
         assertTrue(inherited.contains("ffe6e1e5"));
         assertEquals("dark", "dark");

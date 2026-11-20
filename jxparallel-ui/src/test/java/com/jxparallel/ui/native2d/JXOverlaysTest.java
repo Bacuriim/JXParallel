@@ -172,7 +172,7 @@ class JXOverlaysTest {
         assertTrue(popup.contains(below.getX() + 2, below.getY() + 2), "the list covers the button under the select");
         List<String> log = lines(record(root));
         int buttonLabel = lastIndexOf(log, "text \"Below\"");
-        int listBorder = lastIndexOf(log, "fillRect " + String.format(Locale.ROOT, "%.2f", (float) popup.x));
+        int listBorder = lastIndexOf(log, "fillRoundRect " + String.format(Locale.ROOT, "%.2f", (float) popup.x));
         assertTrue(buttonLabel >= 0 && listBorder > buttonLabel, "the list is painted after the button it covers");
         // the covered button does not get the press
         assertSame(root.getChildren().get(0), root.hitTest(below.getX() + 2, below.getY() + 2));
@@ -392,9 +392,11 @@ class JXOverlaysTest {
         assertEquals(timeCell(host, 0, 0)[0], timeCell(host, 0, 6)[0], "six hours to a row");
         List<String> log = lines(record(root));
         assertTrue(firstIndexOf(log, "text \"13\"") >= 0 && firstIndexOf(log, "text \"45\"") >= 0);
-        assertTrue(lastIndexOf(log, "fillRect " + String.format(Locale.ROOT, "%.2f", (float) timeCell(host, 0, 9)[0]) + " "
-                + String.format(Locale.ROOT, "%.2f", (float) timeCell(host, 0, 9)[1]) + " 32.00 26.00 ff0096c9") >= 0,
-                "the cell of the current hour is filled with the selection color");
+        // the current cell is a tonal rounded fill, 2 px in from the cell on each side
+        assertTrue(lastIndexOf(log, "fillRoundRect " + String.format(Locale.ROOT, "%.2f", (float) timeCell(host, 0, 9)[0] + 2) + " "
+                + String.format(Locale.ROOT, "%.2f", (float) timeCell(host, 0, 9)[1]) + " 28.00 26.00 4.00 "
+                + String.format("%08x", JXClassic.LIGHT.selection)) >= 0,
+                "the cell of the current hour is filled with the tonal selection color");
     }
 
     @Test
@@ -1056,8 +1058,8 @@ class JXOverlaysTest {
         JXSoftwareFrame frame = new JXSoftwareFrame(false);
         frame.paint(root, W, H, 1f);
         int[] px = Arrays.copyOf(frame.pixels(), W * H);
-        assertEquals(0xFFB6B6B6, px[popup.y * W + popup.x + 20], "the border of the list, over the button below");
-        assertEquals(0xFFFFFFFF, px[(popup.y + 3) * W + popup.x + popup.w - 6], "the white of a row, right of its text");
+        assertEquals(JXClassic.LIGHT.boxBorder, px[popup.y * W + popup.x + 20], "the outline of the list, over the button below");
+        assertEquals(JXClassic.LIGHT.base, px[(popup.y + 3) * W + popup.x + popup.w - 6], "the surface of a row, right of its text");
     }
 
     @Test

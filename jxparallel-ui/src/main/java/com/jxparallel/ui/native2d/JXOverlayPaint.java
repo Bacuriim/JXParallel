@@ -65,11 +65,20 @@ final class JXOverlayPaint {
         p.fillRoundRect(x - 1, y, w + 2, h + 2, r + 1, 0x18000000);
     }
 
-    /** The classic (Modena) popup: a gray line around white. */
+    /** The Material menu surface: a soft shadow, a rounded surface fill and a 1 px outline variant. */
     private static void box(JXClassic k, JXPainter p, int x, int y, int w, int h) {
-        ring(p, x, y, w, h, 0);
-        p.fillRect(x, y, w, h, k.outerBorder);
-        p.fillRect(x + 1, y + 1, w - 2, h - 2, k.base);
+        ring(p, x, y, w, h, 4);
+        p.fillRoundRect(x, y, w, h, 4, k.base);
+        p.strokeRoundRect(x, y, w, h, 4, 1, k.boxBorder);
+    }
+
+    /** A menu item: the chosen one is a tonal fill, the one under the pointer or the keys a light hover fill. */
+    private static void item(JXClassic k, JXPainter p, int[] c, boolean chosen, boolean lit) {
+        if (chosen) {
+            p.fillRoundRect(c[0] + 2, c[1], c[2] - 4, c[3], 4, k.selection);
+        } else if (lit) {
+            p.fillRoundRect(c[0] + 2, c[1], c[2] - 4, c[3], 4, k.hoverRow);
+        }
     }
 
     private static void centered(JXPainter p, String label, int[] cell, int color) {
@@ -94,15 +103,10 @@ final class JXOverlayPaint {
         for (int i = 0; i < po.cells.length; i++) {
             int[] c = po.cells[i];
             boolean chosen = po.labels[i].equals(value);
-            // the item under the pointer or the keys is the blue one; the chosen one turns grey while another is highlighted
-            boolean lit = node.highlight >= 0 ? c[5] == node.highlight : chosen;
-            if (lit) {
-                p.fillRect(c[0], c[1], c[2], c[3], k.selection);
-            } else if (chosen) {
-                p.fillRect(c[0], c[1], c[2], c[3], k.selectionUnfocused);
-            }
-            p.text(po.labels[i], c[0] + JXNativeNode.PAD_X, c[1] + engine.baseline(c[3], size), size, false,
-                    lit ? k.selectionText : k.text);
+            // the chosen item has the tonal fill; the item under the pointer or the keys gets the hover fill
+            boolean lit = node.highlight >= 0 && c[5] == node.highlight;
+            item(k, p, c, chosen, lit);
+            p.text(po.labels[i], c[0] + JXNativeNode.PAD_X, c[1] + engine.baseline(c[3], size), size, false, k.text);
         }
     }
 
@@ -116,14 +120,9 @@ final class JXOverlayPaint {
         for (int i = 0; i < po.cells.length; i++) {
             int[] c = po.cells[i];
             boolean current = JXOverlays.timeCurrent(node, c);
-            // the cell under the pointer or the keys is the blue one; the current one turns grey while another is highlighted
-            boolean lit = node.highlight >= 0 ? i == node.highlight : current;
-            if (lit) {
-                p.fillRect(c[0], c[1], c[2], c[3], k.selection);
-            } else if (current) {
-                p.fillRect(c[0], c[1], c[2], c[3], k.selectionUnfocused);
-            }
-            centered(p, po.labels[i], c, lit ? k.selectionText : k.text);
+            // the current cell has the tonal fill; the cell under the pointer or the keys gets the hover fill
+            item(k, p, c, current, node.highlight >= 0 && i == node.highlight);
+            centered(p, po.labels[i], c, k.text);
         }
     }
 
@@ -147,8 +146,8 @@ final class JXOverlayPaint {
             }
         }
         int[] f = po.field;
-        p.fillRect(f[0], f[1], f[2], f[3], k.boxBorder);
-        p.fillRect(f[0] + 1, f[1] + 1, f[2] - 2, f[3] - 2, k.base);
+        p.fillRoundRect(f[0], f[1], f[2], f[3], 4, k.base);
+        p.strokeRoundRect(f[0], f[1], f[2], f[3], 4, 1, k.outerBorder);
         String draft = JXOverlays.hexDraft(node);
         JXTextEngine engine = JXTextEngine.get(false);
         float size = JXTextEngine.DEFAULT_SIZE;

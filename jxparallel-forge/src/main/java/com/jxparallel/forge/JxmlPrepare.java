@@ -42,7 +42,24 @@ final class JxmlPrepare {
         stack.add(root.source);
         includes(root, controller, loader, styles, stack);
         applyStyles(root, styles);
+        materialButtons(root);
         return theme;
+    }
+
+    /**
+     * A Button, ToggleButton or MenuButton that writes no {@code variant} (itself or through a style) takes the Material
+     * look: {@code filled} for the default button, {@code outlined} for the others. {@code variant="classic"} keeps the
+     * compact JavaFX button (its padding, drawn flat).
+     */
+    private static void materialButtons(JxmlParser.Node node) {
+        String tag = node.tag;
+        if (("Button".equals(tag) || "ToggleButton".equals(tag) || "MenuButton".equals(tag)) && !node.attrs.containsKey("variant")) {
+            boolean main = "Button".equals(tag) && "true".equals(node.attrs.get("defaultButton"));
+            node.attrs.put("variant", main ? "filled" : "outlined");
+        }
+        for (JxmlParser.Node child : node.children) {
+            materialButtons(child);
+        }
     }
 
     // ---- includes ----------------------------------------------------------------------------

@@ -90,7 +90,7 @@ class JxmlBindableAttributesTest {
         c.variant = "huge";
         JxmlException interpreted = assertThrows(JxmlException.class, () -> views.get(0).build(c));
         assertTrue(interpreted.getMessage().startsWith("t.jxml:3: "), interpreted.getMessage());
-        assertTrue(interpreted.getMessage().contains("variant must be one of [filled, tonal, outlined, text, elevated, fab]"),
+        assertTrue(interpreted.getMessage().contains("variant must be one of [filled, tonal, outlined, text, elevated, fab, classic]"),
                 interpreted.getMessage());
         assertTrue(interpreted.getMessage().contains("\"huge\""), interpreted.getMessage());
         for (int i = 1; i < views.size(); i++) {
