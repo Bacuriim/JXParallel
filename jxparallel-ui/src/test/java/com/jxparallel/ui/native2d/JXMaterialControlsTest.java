@@ -172,6 +172,16 @@ class JXMaterialControlsTest {
     }
 
     @Test
+    void aVariantButtonIsAsTallAsATextFieldOfTheSameFont() {
+        JXNativeNode field = JXNativeNode.createBackendNode(e("input", p().set("value", "...")));
+        JXNativeNode button = JXNativeNode.createBackendNode(e("button", p().set("label", "...").set("variant", "outlined")));
+        assertEquals(field.prefHeight(), button.prefHeight(), 0.001, "compact desktop padding: a button lines up with a field");
+        JXNativeNode padded = JXNativeNode.createBackendNode(
+                e("button", p().set("label", "...").set("variant", "outlined").set("padding", 9.0)));
+        assertTrue(padded.prefHeight() > button.prefHeight(),"a written padding still wins");
+    }
+
+    @Test
     void theVariantsHaveDistinctFillsAndBorders() {
         assertTrue(has(record(mount(button("filled", p()), 80, 36)), "fillRoundRect", "ff1565c0"));
         assertTrue(has(record(mount(button("outlined", p()), 80, 36)), "strokeRoundRect", "ff79747e"));

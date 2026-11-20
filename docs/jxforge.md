@@ -630,7 +630,9 @@ every painter draws it, because it uses only the primitives of `JXPainter`.
   JavaFX button (JavaFX's padding, drawn flat: an outlined face, the tonal fill for the default button). Without `variant` (written or given by a style) the button is Material: `filled` when `defaultButton="true"` is written,
   `outlined` otherwise. `ToggleButton` and `MenuButton` take the same `variant` and the same default (`outlined`); a toggle button that is
   on takes the tonal fill (`filled`: the primary color, and a tinted surface when off), and a menu button draws its arrow in the label's
-  color. `round="true"` makes the ends round. Hover and pressed tint the face. `elevated` and `fab` draw a soft darker
+  color. The default padding of a variant button (also a `ToggleButton` or `MenuButton` with one) is compact, desktop density: the text
+  field's vertical inset by 12 px, so a button lines up with a `TextField` of the same font in a row; a written `padding` wins.
+  `round="true"` makes the ends round. Hover and pressed tint the face. `elevated` and `fab` draw a soft darker
   ring below the face (two translucent rings, because not every painter has a blur), kept inside the button's bounds, which are 3 px larger
   on each side for it. A child of the button (an `Icon`) is its graphic, and the graphic does not take the pointer: a press, release, hover or cursor on it is on the button (the same for `ToggleButton`, `RadioButton`, `Hyperlink`, `CheckBox`, `Switch` and `Chip`), with no need for `mouseTransparent`.
 - `Button variant` may be bound: `variant="${current}"`. A literal is checked when the file is read; a bound value is checked each time the

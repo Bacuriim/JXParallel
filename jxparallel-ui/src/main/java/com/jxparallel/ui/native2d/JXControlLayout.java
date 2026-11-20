@@ -1037,12 +1037,13 @@ public final class JXControlLayout {
     }
 
     /**
-     * The padding of a button: the written one, else the classic Modena one (4 by 8) or, with a variant,
-     * 9 by 16; plus the room of the ring around an elevated or floating button.
+     * The padding of a button: the written one, else the classic Modena one (4 by 8) or, with a variant, a compact
+     * desktop one: the vertical inset of a text field ({@link JXNativeNode#PAD_Y}, so a button is as tall as a
+     * field of the same font) by 12; plus the room of the ring around an elevated or floating button.
      */
     static float[] buttonPad(JXNativeNode node) {
         boolean variant = !variant(node).isEmpty();
-        float[] pad = JXPaint.insetsOr(node, variant ? 9 : JXNativeNode.PAD_Y, variant ? 16 : JXNativeNode.PAD_X);
+        float[] pad = JXPaint.insetsOr(node, JXNativeNode.PAD_Y, variant ? 12 : JXNativeNode.PAD_X);
         float ring = shadow(node);
         return ring == 0 ? pad : new float[] {pad[0] + ring, pad[1] + ring, pad[2] + ring, pad[3] + ring};
     }
